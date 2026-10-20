@@ -1,0 +1,21 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "asagaya-town-sim"
+version = "0.2.0"
+description = "阿佐ケ谷 AI住民 町シミュレーション（仮説検証用トイモデル。予測ではありません）"
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "MIT (code); map data ODbL (c) OpenStreetMap contributors"}
+dependencies = []
+
+[project.scripts]
+asagaya-town-sim = "asagaya_town_sim.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/asagaya_town_sim"]
+
+[tool.hatch.build.targets.sdist]
+exclude = ["prototype", "docs"]

@@ -1,0 +1,72 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><title>阿佐ケ谷 町シミュレーション（トイモデル）</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"><script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+body{margin:0;font-family:"Noto Sans CJK JP","Hiragino Sans",sans-serif;font-size:13px}
+#warn{position:fixed;top:0;left:0;right:0;height:30px;line-height:30px;background:#b3261e;color:#fff;text-align:center;font-weight:bold;z-index:2000}
+#tabs{position:fixed;top:30px;left:0;right:0;height:34px;background:#222;z-index:1999;display:flex;gap:4px;padding:3px}
+#tabs button{background:#444;color:#fff;border:0;padding:4px 14px;font-size:14px;cursor:pointer}#tabs button.on{background:#f0a030;color:#000}
+#tabs span{color:#ccc;margin-left:auto;line-height:28px;padding-right:8px}
+#mapv{position:absolute;top:64px;bottom:0;left:0;right:0}#map{position:absolute;top:0;bottom:0;left:0;right:360px}
+#p{position:absolute;right:0;top:0;bottom:0;width:350px;padding:6px;overflow:auto;box-sizing:border-box}
+#t{font-size:24px;font-weight:bold}#cmp{position:absolute;top:64px;bottom:0;left:0;right:0;overflow:auto;padding:14px 22px;display:none;background:#fafafa}
+table{border-collapse:collapse;margin:8px 0 18px}td,th{border:1px solid #ccc;padding:4px 8px;text-align:right}th{background:#eee}td:first-child,th:first-child{text-align:left}
+.bar{display:inline-block;height:10px;background:#f0a030;vertical-align:middle;margin-left:6px}.best{background:#e6f4ea;font-weight:bold}
+.cards{display:flex;gap:14px}.card{flex:1;background:#fff;border:1px solid #ddd;border-radius:6px;padding:10px}.card h3{margin:0 0 6px}
+.note{color:#555;font-size:12px}.hb{display:flex;align-items:flex-end;height:60px;gap:1px}.hb div{flex:1;background:#4a7}.hb div.a{background:#47a}
+</style></head><body>
+<div id="warn">⚠ 仮説検証用のトイモデルです。予測ではありません（係数はすべて仮定値・実測データではありません）</div>
+<div id="tabs"><button id="b1" class="on">地図</button><button id="b2">比較（駅前の角：3案）</button><span id="meta"></span></div>
+<div id="mapv"><div id="map"></div><div id="p">
+<b>阿佐ケ谷 町シミュレーション</b><br><small>地図 © OpenStreetMap contributors</small><br><br>
+表示: <select id="sc"></select><br><label><input type="checkbox" id="hm" checked>通過量ヒートマップ(シード平均)</label><br><br>
+<span id="t">05:00</span> <button id="play">▶</button> 速度<select id="spd"><option>1</option><option selected>4</option><option>10</option></select>
+<input type="range" id="sl" min="300" max="1439" value="300" style="width:100%">
+<div id="legend"></div><div id="sum"></div><div id="hours"></div><div id="who"></div></div></div>
+<div id="cmp"></div>
+<script>
+const D=__DATA__;
+const C={'会社員':'#1f77b4','子育て世帯':'#e377c2','学生':'#2ca02c','高齢者':'#ff7f0e','在宅ワーカー':'#9467bd','来訪者':'#d62728','通勤者':'#555'};
+const PC={cafe:'brown',food:'orange',bar:'purple',grocery:'green',shop:'#36c',park:'lime',school:'red',clinic:'pink',library:'cyan',service:'gray',station:'black',event:'gold',plaza:'teal'};
+document.getElementById('meta').textContent=`エージェント ${D.agents}人（住民${D.residents}・電車来訪者${D.visitors}・通勤者${D.commuters}） / ${D.seeds}シード平均 / 計画: ${D.llm}`;
+const m=L.map('map',{preferCanvas:true}).setView(D.center,17);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap contributors',maxZoom:19}).addTo(m);
+D.pois.forEach(p=>L.circleMarker([p.lat,p.lon],{radius:p.cat=='station'?9:3,color:PC[p.cat]||'gray',weight:p.cat=='station'?3:1}).bindTooltip(p.name+' ('+p.cat+')').addTo(m));
+L.circle(D.site,{radius:40,color:'#f0a030',weight:2,dashArray:'4'}).bindTooltip('評価区画（駅前の角）',{permanent:true,direction:'left'}).addTo(m);
+const all={};for(const g of ['scenarios','alternatives'])for(const k in D[g]){all[g+':'+k]=D[g][k]}
+const sel=document.getElementById('sc');for(const k in all)sel.add(new Option((k.startsWith('alt')?'[比較] ':'')+all[k].label,k));
+document.getElementById('legend').innerHTML=Object.entries(C).map(([k,c])=>`<span style="color:${c}">●</span>${k}`).join(' ');
+let lay=L.layerGroup().addTo(m),hl=L.layerGroup().addTo(m),mk=[],S;
+function hbars(s){const mx=Math.max(...s.hourly_board,...s.hourly_alight,1);let h='<h4>阿佐ケ谷駅 時間帯別 乗車(緑)/降車(青)</h4><div class="hb">';
+ for(let i=0;i<s.hourly_board.length;i++)h+=`<div title="${i+5}時 乗車${s.hourly_board[i]}" style="height:${60*s.hourly_board[i]/mx}px"></div><div class="a" title="${i+5}時 降車${s.hourly_alight[i]}" style="height:${60*s.hourly_alight[i]/mx}px"></div>`;
+ return h+'</div><small>5時 … 23時</small>'}
+function load(){S=all[sel.value];lay.clearLayers();hl.clearLayers();mk=[];
+ (S.extra||[]).forEach(p=>L.marker([p.lat,p.lon]).bindTooltip(p.name,{permanent:true}).addTo(lay));
+ if(hm.checked){const mx=Math.max(...S.heat.map(h=>h[4]));S.heat.forEach(h=>L.polyline([[h[0],h[1]],[h[2],h[3]]],{color:'red',weight:1+8*h[4]/mx,opacity:.12+.6*h[4]/mx}).addTo(hl));}
+ S.tracks.forEach(a=>{a.f.sort((x,y)=>x[0]-y[0]);mk.push(L.circleMarker(D.center,{radius:a.llm?7:4,color:a.llm?'#000':'#fff',weight:1,fillColor:C[a.kind],fillOpacity:.9}).bindTooltip(a.name+' / '+a.kind+(a.llm?' (LLM計画)':'')).addTo(lay))});
+ const s=S.summary;document.getElementById('sum').innerHTML=`<h4>指標（${s.seeds}シード平均・1日）</h4>計画訪問 ${s.visits_planned} / ついで寄り ${s.visits_induced}<br>駅周辺の通過 ${s.station_area_traversals}<br>評価区画の通行 ${s.site_foot_traffic} / 区画への来訪 ${s.site_visits}<br>乗車 ${s.boardings} / 降車 ${s.alightings}<br>営業時間外で断念 ${s.closed_skips}<br>上位POI:<br>`+s.top_pois.map(x=>x[0]+': '+x[1]).join('<br>');
+ document.getElementById('hours').innerHTML=hbars(s);draw();}
+function at(f,t){let lo=0,hi=f.length-1;if(t<=f[0][0])return f[0];if(t>=f[hi][0])return f[hi];while(hi-lo>1){const mid=(lo+hi)>>1;if(f[mid][0]<=t)lo=mid;else hi=mid}
+ const a=f[lo],b=f[hi];if(a[1]==null||b[1]==null)return a;const r=(t-a[0])/Math.max(1,b[0]-a[0]);return[t,a[1]+(b[1]-a[1])*r,a[2]+(b[2]-a[2])*r,a[3]]}
+function draw(){const t=+sl.value;document.getElementById('t').textContent=String(t/60|0).padStart(2,'0')+':'+String(t%60).padStart(2,'0');
+ const cnt={};S.tracks.forEach((a,i)=>{const f=at(a.f,t);const hide=f[1]==null||(a.kind.match(/来訪者|通勤者/)&&(t<a.f[0][0]||t>a.f[a.f.length-1][0]));
+  if(hide)mk[i].setStyle({opacity:0,fillOpacity:0});else mk[i].setLatLng([f[1],f[2]]).setStyle({opacity:1,fillOpacity:.9});const st=hide?'不在/外出':String(f[3]).split(':')[0];cnt[st]=(cnt[st]||0)+1});
+ document.getElementById('who').innerHTML=`<h4>表示中 ${S.tracks.length}人の状態</h4>`+Object.entries(cnt).sort((a,b)=>b[1]-a[1]).map(([k,v])=>k+': '+v).join('<br>');}
+sel.onchange=load;hm.onchange=load;sl.oninput=draw;let tm=null;
+play.onclick=()=>{if(tm){clearInterval(tm);tm=null;play.textContent='▶';return}play.textContent='⏸';tm=setInterval(()=>{sl.value=+sl.value+ +spd.value>1439?300:+sl.value+ +spd.value;draw()},80)};
+// ---- 比較画面
+const A=D.alternatives,K=Object.keys(A);
+const ROWS=[['site_foot_traffic','区画の通行量（人・回/日）',1],['site_visits','区画への来訪（人/日）',1],['site_visits_induced','　うち ついで寄り',1],['site_dwell_mean','区画の平均滞在（分）',1],['site_person_minutes','区画の滞在 延べ人・分',1],
+ ['nearby_shop_visits','周辺150m店舗の来訪',1],['other_cafe_visits','既存カフェの来訪（共食い）',1],['visits_induced','町全体 ついで寄り',1],['bike_users','自転車で駅へ来る住民',0],['bike_extra_walk_min_total','駐輪場移転による追加徒歩（延べ分）',-1],['walk_km_total','町全体の歩行距離（km）',0]];
+let h='<h2>駅前の角をどう使う？ 3案の並行シミュレーション</h2><p class="note">同じ住民・同じ乱数（共通乱数法）で、評価区画だけを入れ替えて比較。'+D.seeds+'シード平均。数値はモデル内の相対比較用で、実際の来店数の予測ではありません。</p><div class="cards">';
+K.forEach(k=>{const s=A[k].summary;h+=`<div class="card"><h3>${A[k].label}</h3>区画の通行 <b>${s.site_foot_traffic}</b><br>区画への来訪 <b>${s.site_visits}</b>（ついで寄り ${s.site_visits_induced}）<br>平均滞在 <b>${s.site_dwell_mean}分</b><br>周辺店舗の来訪 ${s.nearby_shop_visits}<br>追加徒歩 ${s.bike_extra_walk_min_total}分</div>`});
+h+='</div><h3>指標の比較</h3><table><tr><th>指標</th>'+K.map(k=>'<th>'+A[k].label+'</th>').join('')+'</tr>';
+ROWS.forEach(([key,lab,dir])=>{const v=K.map(k=>A[k].summary[key]);const mx=Math.max(...v.map(Math.abs),1e-9);const best=dir>0?Math.max(...v):dir<0?Math.min(...v):null;
+ h+='<tr><td>'+lab+'</td>'+v.map(x=>`<td class="${dir&&x===best&&new Set(v).size>1?'best':''}">${x}<span class="bar" style="width:${80*Math.abs(x)/mx}px"></span></td>`).join('')+'</tr>'});
+h+='</table><p class="note">緑＝その指標で最も望ましい値（向きはモデル上の仮定）。トレードオフ例：カフェは来訪と滞在を生むが既存カフェと客を取り合う／広場は通行と周辺店舗のついで寄りを増やすが売上は直接生まない／駐輪場の維持は自転車利用者の徒歩を増やさない。</p>';
+const SK=Object.keys(D.scenarios);h+='<h3>町全体のシナリオ</h3><table><tr><th>指標</th>'+SK.map(k=>'<th>'+D.scenarios[k].label+'</th>').join('')+'</tr>';
+[['agents','エージェント数'],['visits_planned','計画訪問'],['visits_induced','ついで寄り'],['station_area_traversals','駅周辺の通過'],['boardings','乗車'],['alightings','降車'],['walk_km_total','歩行距離 km'],['closed_skips','営業時間外で断念']].forEach(([key,lab])=>{h+='<tr><td>'+lab+'</td>'+SK.map(k=>'<td>'+D.scenarios[k].summary[key]+'</td>').join('')+'</tr>'});
+h+='</table>';if(D.reviews&&D.reviews.length){h+='<h3>LLM住民の口コミ（生成文・架空）</h3><ul>'+D.reviews.map(r=>`<li>[${r.persona}/${r.scenario}] ${r.review}</li>`).join('')+'</ul>'}
+document.getElementById('cmp').innerHTML=h;
+function tab(i){document.getElementById('mapv').style.display=i?'none':'block';document.getElementById('cmp').style.display=i?'block':'none';b1.className=i?'':'on';b2.className=i?'on':'';if(!i)m.invalidateSize()}
+b1.onclick=()=>tab(0);b2.onclick=()=>tab(1);if(location.hash=='#compare')tab(1);
+load();
+</script></body></html>

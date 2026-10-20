@@ -1,0 +1,25 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><title>阿佐ケ谷 町シミュレーション</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"><script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>body{margin:0;font-family:sans-serif}#map{position:absolute;top:0;bottom:0;left:0;right:340px}#p{position:absolute;right:0;top:0;bottom:0;width:330px;padding:5px;overflow:auto;font-size:13px}#t{font-size:22px;font-weight:bold}</style></head><body>
+<div id="map"></div><div id="p"><b>阿佐ケ谷 町シミュレーション</b><br><small>トイモデル(ルールベース)。予測ではありません。地図 © OpenStreetMap contributors</small><br><br>
+シナリオ: <select id="sc"></select><br><label><input type="checkbox" id="hm" checked>通過量ヒートマップ(30試行)</label><br><br>
+<span id="t">06:00</span> <button id="play">▶</button> 速度<select id="spd"><option>1</option><option selected>3</option><option>8</option></select><br>
+<input type="range" id="sl" min="0" max="539" value="0" style="width:100%"><div id="sum"></div><div id="who"></div></div>
+<script>
+const D=__DATA__;const C={'会社員':'#1f77b4','子育て世帯':'#e377c2','学生':'#2ca02c','高齢者':'#ff7f0e','在宅ワーカー':'#9467bd'};
+const PC={cafe:'brown',food:'orange',bar:'purple',grocery:'green',shop:'#36c',park:'lime',school:'red',clinic:'pink',library:'cyan',station:'black',event:'gold'};
+const m=L.map('map').setView(D.center,17);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap'}).addTo(m);
+D.pois.forEach(p=>L.circleMarker([p.lat,p.lon],{radius:p.cat=='station'?8:3,color:PC[p.cat]||'gray'}).bindTooltip(p.name+' ('+p.cat+')').addTo(m));
+const sel=document.getElementById('sc');for(const k in D.scenarios)sel.add(new Option(D.scenarios[k].label,k));
+let lay=L.layerGroup().addTo(m),hl=L.layerGroup().addTo(m),mk={},S;
+function load(){S=D.scenarios[sel.value];lay.clearLayers();hl.clearLayers();mk={};
+ (S.extra||[]).forEach(p=>L.marker([p.lat,p.lon]).bindTooltip(p.name,{permanent:true}).addTo(lay));
+ if(hm.checked){const mx=Math.max(...S.heat.map(h=>h[4]));S.heat.forEach(h=>L.polyline([[h[0],h[1]],[h[2],h[3]]],{color:'red',weight:1+7*h[4]/mx,opacity:.15+.6*h[4]/mx}).addTo(hl));}
+ for(const id in S.tracks){const a=S.tracks[id];mk[id]=L.circleMarker(D.center,{radius:6,color:'#000',weight:1,fillColor:C[a.persona],fillOpacity:1}).bindTooltip(a.name+' / '+a.persona).addTo(lay);}
+ const s=S.summary;document.getElementById('sum').innerHTML='<h4>指標 (30試行平均)</h4>総訪問 '+s.visits_total+'/日<br>駅前通過 '+s.station_area_edge_traversals+'<br>1人歩行 '+s.walk_km_per_agent+'km<br>上位POI:<br>'+s.top_pois.map(x=>x[0]+': '+x[1]).join('<br>');draw();}
+function draw(){const i=+sl.value,mn=360+i*2;document.getElementById('t').textContent=String(mn/60|0).padStart(2,'0')+':'+String(mn%60).padStart(2,'0');let w='<h4>住民の状態</h4>';
+ for(const id in S.tracks){const a=S.tracks[id],f=a.f[Math.min(i,a.f.length-1)];if(f[0]==null){mk[id].setStyle({opacity:0,fillOpacity:0})}else{mk[id].setLatLng([f[0],f[1]]).setStyle({opacity:1,fillOpacity:1})}w+='<span style="color:'+C[a.persona]+'">●</span>'+a.name+'('+a.persona+'): '+f[2]+'<br>';}
+ document.getElementById('who').innerHTML=w;}
+sel.onchange=load;hm.onchange=load;sl.oninput=draw;let tm=null;
+play.onclick=()=>{if(tm){clearInterval(tm);tm=null;play.textContent='▶';return}play.textContent='⏸';tm=setInterval(()=>{sl.value=(+sl.value+ +spd.value)%540;draw()},100)};
+load();</script></body></html>
