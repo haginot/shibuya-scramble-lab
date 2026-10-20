@@ -35,9 +35,9 @@ def _pad(s, n, right=False):
 
 def table(title, cols, rows, data):
     out = [title]
-    out.append(_pad("", 24) + "".join(_pad(c, 16, True) for c in cols))
+    out.append(_pad("", 28) + "".join(_pad(c, 16, True) for c in cols))
     for key, lab in rows:
-        out.append(_pad(lab, 24) + "".join(_pad(d[key], 16, True) for d in data))
+        out.append(_pad(lab, 28) + "".join(_pad(d[key], 16, True) for d in data))
     return "\n".join(out)
 
 
