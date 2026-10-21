@@ -157,7 +157,7 @@ class Film:
         if self.comparison:return self.comparison.copy()
         im=Image.new('RGB',(1080,1920),BG);d=ImageDraw.Draw(im)
         self.text(d,(55,55),'03 / SAME ARRIVALS. DIFFERENT DESTINATIONS.',19,AMBER,True)
-        self.text(d,(55,114),'集合場所を、',70,WHITE,True);self.text(d,(55,215),'ひとつ減らそう。',70,PURPLE,True)
+        self.text(d,(55,114),'行き先を、',70,WHITE,True);self.text(d,(55,215),'増やしてみた。',70,PURPLE,True)
         self.text(d,(55,337),'同じ960人・seed 1031・900秒の比較\nSame 960 agents · matched seed · 900 simulated seconds',23,MUTED)
         for x,prefix,title,subtitle,accent in [(55,'no','販促なし','NO PROMO',RED),(550,'promo','販促あり','PROMO',MINT)]:
             result=self.metrics['no_promo' if prefix=='no' else 'promo'];d.rounded_rectangle((x,454,x+475,1350),radius=20,fill='#201d2d',outline='#66506e')
@@ -186,8 +186,8 @@ class Film:
         self.credits=im;return im.copy()
 
 def record(output,stills,metrics_path,preview=False):
-    start=time.monotonic();stills.mkdir(parents=True,exist_ok=True);frames=stills/'.software-frames';frames.mkdir(exist_ok=True);directory=stills/'.scene-cache';directory.mkdir(exist_ok=True)
-    sources=[*sorted((ROOT/'web3d/shibuya').glob('halloween*')),ROOT/'tools/export_shibuya_halloween_scene.mjs',ROOT/'tools/record_shibuya_halloween_software.py',ROOT/'tools/halloween_raster.c',ROOT/'web3d/data/shibuya_plateau.json',ROOT/'web3d/data/shibuya_osm.json']
+    start=time.monotonic();output.parent.mkdir(parents=True,exist_ok=True);stills.mkdir(parents=True,exist_ok=True);frames=stills/'.software-frames';frames.mkdir(exist_ok=True);directory=stills/'.scene-cache';directory.mkdir(exist_ok=True)
+    sources=[*sorted((ROOT/'web3d/shibuya').glob('halloween*')),ROOT/'tools/export_shibuya_halloween_scene.mjs',ROOT/'tools/record_shibuya_halloween_software.py',ROOT/'tools/halloween_raster.c',ROOT/'tools/record_shibuya_halloween.py',ROOT/'web3d/data/shibuya_plateau.json',ROOT/'web3d/data/shibuya_osm.json']
     signature=hashlib.sha256(b''.join(p.read_bytes() for p in sources)).hexdigest();manifest=frames/'source.sha256'
     if manifest.exists() and manifest.read_text()!=signature:
         for p in frames.glob('frame-*.jpg'):p.unlink()
@@ -207,7 +207,8 @@ def record(output,stills,metrics_path,preview=False):
         else:
             state=json.loads((directory/f'state-{frame:05d}.json').read_text());im=film.frame(state,scene.render(directory/f'frame-{frame:05d}.bin'))
         if frame in STILLS:im.save(stills/STILLS[frame]);snapshots.append({'frame':frame,'video_seconds':frame/FPS})
-        if not preview:im.save(path,quality=96,subsampling=0)
+        if not preview:
+            temporary=path.with_suffix('.tmp');im.save(temporary,format='JPEG',quality=96,subsampling=0);temporary.replace(path)
         if frame%24==0 or preview:print(f'{frame/FPS:.2f}/{DURATION}s · CPU rendering actual three.js geometry',flush=True)
     probe=None
     if not preview:

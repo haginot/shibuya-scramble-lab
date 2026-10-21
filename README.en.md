@@ -125,3 +125,20 @@ The following tables are **legacy Asagaya regression references**, not Shibuya c
 | sns+coupon | 643.12 | 428.75 [366.51, 490.99] | 33.3% | 76,375 | 90,000 | 166,375 | 84,444 | 93.83 [61.60, 126.06] |
 | all_four | 740.62 | 526.25 [443.06, 609.44] | 28.9% | 84,750 | 230,000 | 314,750 | -6,894 | -3.00 [-21.11, 15.12] |
 <!-- promo-results:end -->
+
+## Halloween night (local capture)
+
+Open `web3d/shibuya/halloween.html` or the existing viewer's Halloween link. PLATEAU building geometry stays unchanged; windows, lamps, round autumn trees, pumpkins, ghosts, cauldron, broom witch and sparkles are authored procedurally. The separate pedestrian routing experiment is illustrative and uncalibrated.
+
+```bash
+node tools/run_shibuya_halloween.mjs
+node web3d/shibuya/verify-halloween.mjs
+bash tools/record_shibuya_halloween.sh
+# /workspace/demos/shibuya-halloween.mp4 — 28s, 1080×1920, H.264, 24 fps
+# /workspace/demos/shibuya-halloween/ — five PNG story frames and recording.json
+# Preview only: bash tools/record_shibuya_halloween.sh --preview
+```
+
+Both 900-second trials use 960 agents and seed 1031. At film second 12, the same arrivals are replayed with offers at three farther fictional shops and deferred arrivals. Density is the number of centres inside a 24m disk divided by its area; visits count individuals actually reaching a shop. Acceptance (82%) and all behavioural parameters are assumptions. Reproducible results, definitions and histories are in `out/media/shibuya-halloween-metrics.json`. [Asset/license inventory](docs/HALLOWEEN_ASSETS.md).
+
+Recording is local and includes no publication. Requires FFmpeg and Playwright/Chromium. If socket/browser startup is restricted, capture automatically exports the same three.js geometry and uses the authored CPU renderer (C compiler, NumPy and Pillow required). Select explicitly with `--renderer software` or `--renderer browser`. Checkpointed frames support resuming with unchanged sources. `recording.json` records the renderer, source checksum and ffprobe verification.

@@ -12,6 +12,8 @@ import http.server
 import json
 from pathlib import Path
 import shutil
+import sys
+import importlib.util
 import subprocess
 import threading
 import time
@@ -145,5 +147,26 @@ if __name__ == '__main__':
     ap.add_argument('--stills', type=Path, default=Path('/workspace/demos/shibuya-halloween'))
     ap.add_argument('--metrics', type=Path, default=Path('out/media/shibuya-halloween-metrics.json'))
     ap.add_argument('--preview', action='store_true', help='Capture the five PNG story frames without encoding')
+    ap.add_argument('--renderer', choices=('auto', 'browser', 'software'), default='auto')
     args = ap.parse_args()
-    record(args.site.resolve(), args.output.resolve(), args.stills.resolve(), args.metrics.resolve(), args.preview)
+    def software():
+        interpreter = sys.executable
+        if importlib.util.find_spec('numpy') is None or importlib.util.find_spec('PIL') is None:
+            interpreter = getattr(sys, '_base_executable', sys.executable)
+        cmd = [interpreter, str(Path(__file__).with_name('record_shibuya_halloween_software.py')),
+               '--output', str(args.output.resolve()), '--stills', str(args.stills.resolve()),
+               '--metrics', str(args.metrics.resolve())]
+        if args.preview:
+            cmd.append('--preview')
+        subprocess.run(cmd, check=True)
+    if args.renderer == 'software':
+        software()
+    else:
+        try:
+            record(args.site.resolve(), args.output.resolve(), args.stills.resolve(), args.metrics.resolve(), args.preview)
+        except Exception as error:
+            # Only infrastructure restrictions permit fallback; JS/model errors remain fatal.
+            if args.renderer != 'auto' or not (isinstance(error, PermissionError) or type(error).__name__ == 'TargetClosedError'):
+                raise
+            print(f'Browser capture unavailable ({type(error).__name__}); using local CPU renderer.', flush=True)
+            software()

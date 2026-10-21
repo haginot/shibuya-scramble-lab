@@ -125,3 +125,21 @@ SUMO 1.28.0は生成時のみ（EPL-2.0）、実際に使用済み。ブラウ�
 | sns+coupon | 643.12 | 428.75 [366.51, 490.99] | 33.3% | 76,375 | 90,000 | 166,375 | 84,444 | 93.83 [61.60, 126.06] |
 | all_four | 740.62 | 526.25 [443.06, 609.44] | 28.9% | 84,750 | 230,000 | 314,750 | -6,894 | -3.00 [-21.11, 15.12] |
 <!-- promo-results:end -->
+
+## Halloween night（ローカル録画）
+
+`web3d/shibuya/halloween.html` はPLATEAUの建物形状を変えず、自作の窓・街灯・丸い紅葉・かぼちゃ・おばけ・大釜・空飛ぶ魔女を加えたナイトモードです。既存ビューの「Halloween」リンクからも開けます。夜の販促比較は別の歩行者経路トイモデルで、実際の交通や施策効果の予測ではありません。
+
+```bash
+node tools/run_shibuya_halloween.mjs
+node web3d/shibuya/verify-halloween.mjs
+bash tools/record_shibuya_halloween.sh
+# 28秒 / 1080×1920 / H.264 / 24 fps
+# /workspace/demos/shibuya-halloween.mp4
+# /workspace/demos/shibuya-halloween/01-wide-night.png ～ 05-credits.png
+# PNGだけ確認: bash tools/record_shibuya_halloween.sh --preview
+```
+
+seed 1031・960人・900秒の同条件比較。12秒で到着条件を揃えた試行に巻き戻し、遠い架空店舗の期間限定・時間差オファーへ分散します。密度は交差点中心の半径24m内の人数/面積。来訪は実際に経路を歩いて店舗へ到着した個体数です。受諾率82%などは仮定。実行結果・定義・時系列は `out/media/shibuya-halloween-metrics.json` に保存します。[全素材・ライセンス](docs/HALLOWEEN_ASSETS.md)。
+
+録画はローカルのみで公開操作を含みません。Playwright/ChromiumとFFmpegが必要です。ソケットやブラウザ起動が制限された環境では、同じthree.jsシーンを出力して自作のCPUラスタライザで記録します（Cコンパイラ、NumPy、Pillowが必要）。`--renderer software` / `--renderer browser` で明示選択可能。フレームを保存し、同じソースなら中断後に再開します。`recording.json` に使用レンダラ・チェックサム・ffprobe結果を記録します。
