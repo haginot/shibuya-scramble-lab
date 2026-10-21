@@ -3,7 +3,7 @@
 export const SETTINGS=Object.freeze({seed:1031,agents:960,horizon_s:900,promo_start_s:300,arrival_window_s:600,central_radius_m:24,cell_m:2.5,extent_m:220});
 export const SHOPS=Object.freeze([
  {name:'ひだまり珈琲',en:'Hidamari Coffee',position:[-88,-84],offer:'遠回りで、珈琲20%オフ',offerEn:'20% off coffee, a little farther away',kind:'distance'},
- {name:'月あかり書房',en:'Moonlit Books',position:[-110,44],offer:'5分後から使える栞クーポン',offerEn:'Bookmark coupon opens in 5 minutes',kind:'time-shift'},
+ {name:'月あかり書房',en:'Moonlit Books',position:[-110,44],offer:'3分後から使える栞クーポン',offerEn:'Bookmark coupon opens in 3 minutes',kind:'time-shift'},
  {name:'こはく菓子店',en:'Amber Sweets',position:[60,88],offer:'10分限定、焼き菓子セット',offerEn:'A 10-minute baked treat offer',kind:'distance'},
 ]);
 export function randomStream(seed){let s=seed>>>0;return()=>{s^=s<<13;s^=s>>>17;s^=s<<5;return(s>>>0)/4294967296;};}

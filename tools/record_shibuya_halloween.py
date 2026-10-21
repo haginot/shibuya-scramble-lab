@@ -19,7 +19,7 @@ import time
 from record_shibuya import QuietHandler, browser_with_webgl
 
 WIDTH, HEIGHT, FPS, DURATION = 1080, 1920, 24, 28
-STILLS = {24: '01-wide-night.png', 276: '02-red-heatmap-peak.png',
+STILLS = {24: '01-wide-night.png', 281: '02-red-heatmap-peak.png',
           444: '03-promo-dispersal.png', 528: '04-comparison.png', 624: '05-credits.png'}
 CREDIT = ('MLIT Project PLATEAU / Shibuya 2023; modified footprints + heights, CC BY 4.0. '
           'https://www.geospatial.jp/ckan/dataset/plateau-13113-shibuya-ku-2023 '
