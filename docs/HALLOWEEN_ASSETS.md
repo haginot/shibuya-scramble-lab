@@ -4,22 +4,22 @@ The Halloween scene is a self-made procedural variation of the existing viewer. 
 
 | Asset | Origin and use | License |
 | --- | --- | --- |
-| 1,050 building footprints and heights | Existing MLIT Project PLATEAU / 2023 Shibuya extract. Exactly the existing viewer's flat-roof extrusion; only material/UV attributes differ. | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/); [dataset](https://www.geospatial.jp/ckan/dataset/plateau-13113-shibuya-ku-2023) |
+| 1,050 building footprints and heights | Existing MLIT Project PLATEAU / 2023 Shibuya extract. Source bytes unchanged. Near extrusions keep footprints/heights; occluding foreground buildings are selectively omitted in the authored film camera. | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/); [dataset](https://www.geospatial.jp/ckan/dataset/plateau-13113-shibuya-ku-2023) |
 | Roads, crosswalks and rails | Existing `shibuya_osm.json`; local export contains the derived databases and their NOTICE. | © OpenStreetMap contributors, [ODbL 1.0](https://opendatacommons.org/licenses/odbl/1-0/), [copyright](https://www.openstreetmap.org/copyright) |
 | Background/context mapped shops | Existing OSM database; no real shop name appears as a promotion target. | ODbL 1.0 |
-| Window emissive map, sky gradient, lamp pools, avatar alpha mask, heatmap | Authored Canvas 2D algorithms, generated locally; no downloaded textures. | Project MIT, HAGINO 2026 |
+| Window emissive map, sky gradient, lamp pools,  heatmap | Authored Canvas 2D algorithms, generated locally; no downloaded textures. | Project MIT, HAGINO 2026 |
 | Round trees, pumpkins, ghosts, cauldron, witch, broom, moon | Authored three.js primitive arrangements. | Project MIT, HAGINO 2026 |
-| Purple sparkle trail, bubbles, fictional shop kiosks, shop markers and route lines | Authored geometry and deterministic formulas. | Project MIT, HAGINO 2026 |
-| Coupon pictograms, bilingual captions, comparison, fictional shop names/offers, model and recorder | Authored for this repository. | Project MIT, HAGINO 2026 |
+| Purple sparkle trail, bubbles, fictional event hubs, rail/walking ribbons and shop wall ads | Authored geometry and deterministic formulas. | Project MIT, HAGINO 2026 |
+| Bilingual captions, integrated comparison, fictional events and shop names, model and recorder | Authored for this repository. | Project MIT, HAGINO 2026 |
 | three.js r160 | Existing vendored renderer, three.js authors 2010–2023. | MIT; repository NOTICE |
 | Noto Sans CJK JP regular/bold | System `/usr/share/fonts/opentype/noto/NotoSansCJK-{Regular,Bold}.ttc`; Google, 2010–2012. Used for **all** Japanese, English and numbers. No font binary redistributed. | SIL OFL 1.1, locally verified in `/usr/share/doc/fonts-noto-cjk/copyright` |
-| Existing SUMO trajectories | Retained in source/site data, **unused** by the Halloween pedestrian-only scene. | OSM-derived data ODbL 1.0; generation tool Eclipse SUMO 1.28.0 EPL-2.0 |
+| Existing SUMO trajectories | Retained in source/site data, **unused** by the Halloween scene. | OSM-derived data ODbL 1.0; generation tool Eclipse SUMO 1.28.0 EPL-2.0 |
 
 Local export `NOTICE` includes the original statistical, train and acquisition provenance. Statistics are factual source context and are not relicensed; the Halloween routing scenario uses 960 invented arrivals rather than a measured crowd census. The film includes the toy-model notice throughout and a brief source card in the 18-second loop. MP4 metadata repeats the main credits. No audio track is used.
 
 Generation tools (external programs, not bundled art assets): Playwright Apache-2.0, Python PSF, Node.js MIT, FFmpeg/libx264 system GPL-enabled build. No online publication is part of recording.
 
-The sandbox-compatible recorder exports the **actual same three.js scene** (all 234 drawable objects, triangle positions/normals/UVs, generated canvas textures, transforms and agent states) to a local cache, then uses the original `tools/halloween_raster.c` CPU rasterizer. It uses perspective-correct UVs, a depth buffer, procedural emissive maps, alpha sprites and fog, with Pillow composing the same bilingual graphic layout. This adds no outside art asset. The code is project MIT; NumPy BSD-3-Clause and Pillow MIT-CMU are local generation dependencies. It is explicitly recorded as CPU rendering in `recording.json`; interactive WebGL performance is not inferred from encoding speed.
+The sandbox-compatible recorder exports the **actual same three.js scene** (visible drawable objects, triangle positions/normals/UVs, generated canvas textures, transforms and agent states) to a local cache, then uses the original `tools/halloween_raster.c` CPU rasterizer. It uses perspective-correct UVs, a depth buffer, procedural emissive maps, alpha sprites and fog, with Pillow composing the same bilingual graphic layout. This adds no outside art asset. The code is project MIT; NumPy BSD-3-Clause and Pillow MIT-CMU are local generation dependencies. It is explicitly recorded as CPU rendering in `recording.json`; interactive WebGL performance is not inferred from encoding speed.
 
 Iteration 1 (2026-10-21): 18-second full-frame puzzle-ad composition, shared closed
 witch orbit and camera path, self-made coupon ticket graphics, emissive bloom,
@@ -29,3 +29,34 @@ coefficient. The paired replay restarts at film second 6 (sim second 300).
 The final comparison uses full 900-second results, with matched images at 900s.
 The 18-second endpoint restores the opening camera, unpromoted model state,
 witch, trail, ghost phase and bubbles. No external art or audio was added.
+
+
+Iteration 2 (2026-10-21): the main intervention is five fictional peripheral events.
+`shibuya_halloween_region.json` contains **47,816** source buildings within a 3km
+radius, from the same licensed PLATEAU Shibuya 2023 CityGML archive. Acquisition
+script `tools/fetch_halloween_region.py` records each archive member's SHA-256.
+For distant rendering, the tallest actual building per 42m tile is shown using
+its source bounding box/height; no invented building infill. Some foreground
+near buildings are omitted to keep the complete scramble visible. Source data
+is retained unchanged, including the original crossing file.
+
+Coverage: Shinsen, Harajuku, Yoyogi and Ebisu have source buildings near the hubs.
+Omotesando's eastern area is outside this municipal extract: the fictional hub
+is a schematic marker and no replacement real-world geometry is invented.
+Event positions, walking corridors, station access and regional railway curves
+are authored schematic interpretation; they are not a navigable map. Assumed
+Yamanote / Inokashira service is illustrative, not an actual timetable.
+
+All six costume templates (witch hats, pumpkin heads, capes and lanterns), toy
+station, elevated train, generic original dog statue / meeting square, giant
+fictional advertising panels and regional festival stages are self-made meshes
+or Canvas textures. The dog is not a scan of a statue. Only fictional shops or
+events appear in advertisements. No external decorative assets or audio.
+
+The model uses matched seeded demand and 0.25s social-force steps. All displayed
+peak densities, per-district counts, arrival ratios and best-event values come
+from `out/media/shibuya-halloween-metrics.json`. Participation and capacities are
+assumptions. Density colour derives from local counts, never the event flag.
+Regional particles represent actual travelling/arrived agent states, and trains
+follow representative boarded agents. Train meshes are enlarged in the aerial
+view. The continuous ribbon is a schematic guide, not additional people.

@@ -8,7 +8,7 @@ void triangles(uint8_t*out,float*depth,int w,int h,const float*s,const float*a,i
  for(int k=0;k+2<n;k+=3){const float*p=s+k*3,*v=a+k*6;float x0=p[0],y0=p[1],x1=p[3],y1=p[4],x2=p[6],y2=p[7];if(p[2]<=0||p[5]<=0||p[8]<=0)continue;float area=(x1-x0)*(y2-y0)-(y1-y0)*(x2-x0);if(fabsf(area)<.02f)continue;int lx=fmaxf(0,(int)floorf(fminf(x0,fminf(x1,x2)))),hx=fminf(w-1,(int)ceilf(fmaxf(x0,fmaxf(x1,x2)))),ly=fmaxf(0,(int)floorf(fminf(y0,fminf(y1,y2)))),hy=fminf(h-1,(int)ceilf(fmaxf(y0,fmaxf(y1,y2))));if(lx>hx||ly>hy)continue;
   for(int y=ly;y<=hy;y++)for(int x=lx;x<=hx;x++){float px=x+.5f,py=y+.5f,b1=((px-x0)*(y2-y0)-(py-y0)*(x2-x0))/area,b2=((x1-x0)*(py-y0)-(y1-y0)*(px-x0))/area,b0=1-b1-b2;if(b0<0||b1<0||b2<0)continue;float inv=b0*p[2]+b1*p[5]+b2*p[8],z=1.f/inv;int i=y*w+x;if(z>depth[i]+.001f)continue;float q0=b0*p[2]*z,q1=b1*p[5]*z,q2=b2*p[8]*z,alpha=opacity,tx[4]={1,1,1,1};
    if(textureKind){float u=q0*v[3]+q1*v[9]+q2*v[15],t=q0*v[4]+q1*v[10]+q2*v[16];if(textureKind==2){u-=floorf(u);t-=floorf(t);}else{u=clamp(u,0.f,.99999f);t=clamp(t,0.f,.99999f);}int ix=clamp((int)(u*tw),0,tw-1),iy=clamp((int)((1-t)*th),0,th-1),j=(iy*tw+ix)*4;for(int c=0;c<4;c++)tx[c]=tex[j+c]/255.f;if(textureKind==1)alpha*=tx[3];}
-   if(alpha<.03f)continue;float dist=q0*v[5]+q1*v[11]+q2*v[17],f=clamp(1.f-expf(-dist*dist*.00000272f),0.f,.85f);
+   if(alpha<.03f)continue;float dist=q0*v[5]+q1*v[11]+q2*v[17],f=clamp(1.f-expf(-dist*dist*.000000012f),0.f,.85f);
    for(int c=0;c<3;c++){float base=q0*v[c]+q1*v[6+c]+q2*v[12+c];if(textureKind==1)base*=tx[c]*tx[c];base+=emission[c]*(textureKind==2?tx[c]*tx[c]:1.f);float rgb=tone(base)*(1-f)+fog[c]*f;out[i*3+c]=(uint8_t)clamp(rgb*alpha+out[i*3+c]*(1-alpha),0.f,255.f);}if(depthWrite&&alpha>.5f)depth[i]=z;
   }
  }

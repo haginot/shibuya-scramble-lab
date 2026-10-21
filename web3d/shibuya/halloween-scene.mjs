@@ -1,20 +1,20 @@
 import * as THREE from '../vendor/three.module.min.js';
 import {CORNERS} from './simulation.mjs';
-import {randomStream} from './halloween-model.mjs';
-import {witchAt} from './halloween-story.mjs';
-export function makeNightScene(plateau,osm,nav){
+import {randomStream,EVENTS,pointOnPath,signalAt} from './halloween-model.mjs';
+import {witchAt,storyAt} from './halloween-story.mjs';
+export function makeNightScene(plateau,osm,nav,region={buildings:[]}){
  const scene=new THREE.Scene(),color=new THREE.Color(),rand=randomStream(31);
- const sky=document.createElement('canvas');sky.width=4;sky.height=512;const sk=sky.getContext('2d'),gradient=sk.createLinearGradient(0,0,0,512);gradient.addColorStop(0,'#080d26');gradient.addColorStop(.6,'#272042');gradient.addColorStop(1,'#654263');sk.fillStyle=gradient;sk.fillRect(0,0,4,512);scene.background=new THREE.CanvasTexture(sky);scene.fog=new THREE.FogExp2(0x29213e,.00165);
+ const sky=document.createElement('canvas');sky.width=4;sky.height=512;const sk=sky.getContext('2d'),gradient=sk.createLinearGradient(0,0,0,512);gradient.addColorStop(0,'#080d26');gradient.addColorStop(.6,'#272042');gradient.addColorStop(1,'#654263');sk.fillStyle=gradient;sk.fillRect(0,0,4,512);scene.background=new THREE.CanvasTexture(sky);scene.fog=new THREE.FogExp2(0x29213e,.00016);
  scene.add(new THREE.HemisphereLight(0x9fafff,0x343054,2.0));const moonlight=new THREE.DirectionalLight(0xb5beff,2.6);moonlight.position.set(-140,260,-70);scene.add(moonlight);const amber=new THREE.DirectionalLight(0xffaf64,1.1);amber.position.set(20,60,130);scene.add(amber);
  const standard=(hex,emissive=0,intensity=0)=>new THREE.MeshStandardMaterial({color:hex,emissive,emissiveIntensity:intensity,roughness:.78});
  const basic=(hex,opacity=1)=>new THREE.MeshBasicMaterial({color:hex,transparent:opacity<1,opacity});
  const box=new THREE.BoxGeometry(1,1,1),sphere=new THREE.SphereGeometry(1,16,12);
  const mesh=(g,m,x,y,z,parent=scene)=>{const o=new THREE.Mesh(g,m);o.position.set(x,y,z);parent.add(o);return o;};
  const cube=(x,y,z,w,h,d,m,parent)=>{const o=mesh(box,m,x,y,z,parent);o.scale.set(w,h,d);return o;};
- cube(0,-.8,0,1000,1.5,1000,standard(0x23243a));
+ cube(0,-.8,0,7000,1.5,7000,standard(0x23243a));
  function merge(parts,material,uvs=false){const positions=[],normals=[],colors=[],uv=[];for(const[g,hex]of parts){const a=g.index?g.toNonIndexed():g,p=a.attributes.position,n=a.attributes.normal;color.setHex(hex);for(let i=0;i<p.count;i++){const x=p.getX(i),y=p.getY(i),z=p.getZ(i),ny=n.getY(i);positions.push(x,y,z);normals.push(n.getX(i),ny,n.getZ(i));colors.push(color.r,color.g,color.b);if(uvs)uv.push(Math.abs(ny)>.5?.001:(Math.abs(n.getX(i))>.5?z:x)/21,Math.abs(ny)>.5?.001:y/24);}if(a!==g)a.dispose();g.dispose();}const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));g.setAttribute('normal',new THREE.Float32BufferAttribute(normals,3));g.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));if(uvs)g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));return mesh(g,material,0,0,0);}
  // Exactly the day viewer's footprint extrusion: no building vertex is reshaped.
- const parts=[];for(let i=0;i<plateau.buildings.length;i++){const b=plateau.buildings[i],shape=new THREE.Shape();b.ring.forEach(([x,z],k)=>k?shape.lineTo(x,-z):shape.moveTo(x,-z));const g=new THREE.ExtrudeGeometry(shape,{depth:b.height,bevelEnabled:false,steps:1});g.rotateX(-Math.PI/2);parts.push([g,[0x333351,0x47365e,0x373d60,0x534369,0x343550][i%5]]);}
+ const parts=[];for(let i=0;i<plateau.buildings.length;i++){const b=plateau.buildings[i],cx=b.ring.reduce((v,p)=>v+p[0],0)/b.ring.length,cz=b.ring.reduce((v,p)=>v+p[1],0)/b.ring.length;if(Math.hypot(cx,cz)>260||((cx < -35 && cz < -35)||(cz < -27 && cx <40 && cx> -130)))continue;const shape=new THREE.Shape();b.ring.forEach(([x,z],k)=>k?shape.lineTo(x,-z):shape.moveTo(x,-z));const g=new THREE.ExtrudeGeometry(shape,{depth:b.height,bevelEnabled:false,steps:1});g.rotateX(-Math.PI/2);parts.push([g,[0x333351,0x47365e,0x373d60,0x534369,0x343550][i%5]]);}
  // Authored repeat texture; its dark border also masks horizontal roof faces.
  const windows=document.createElement('canvas');windows.width=128;windows.height=128;const ink=windows.getContext('2d');ink.fillStyle='#000';ink.fillRect(0,0,128,128);for(let x=0;x<4;x++)for(let y=0;y<4;y++){ink.fillStyle=rand()<.72?['#ffd57d','#ffe7ac','#ce904e'][Math.floor(rand()*3)]:'#090918';ink.fillRect(x*32+10,y*32+9,14,18);}const windowTexture=new THREE.CanvasTexture(windows);windowTexture.wrapS=windowTexture.wrapT=THREE.RepeatWrapping;
  const buildings=merge(parts,new THREE.MeshStandardMaterial({vertexColors:true,roughness:.85,emissive:0xffde9a,emissiveMap:windowTexture,emissiveIntensity:1.1}),true);
@@ -43,25 +43,76 @@ export function makeNightScene(plateau,osm,nav){
  mesh(sphere,standard(0xd39bf2),-2,2,-.5,witch).scale.set(.55,.65,.55);
  const trailCount=110,trailPos=new Float32Array(trailCount*3),trailGeometry=new THREE.BufferGeometry();trailGeometry.setAttribute('position',new THREE.BufferAttribute(trailPos,3));const trail=new THREE.Points(trailGeometry,new THREE.PointsMaterial({map:purpleGlow,color:0xe4a7ff,size:1.5,transparent:true,opacity:.7,depthWrite:false,blending:THREE.AdditiveBlending}));scene.add(trail);
  const moon=mesh(sphere,basic(0xffe5b7),-155,205,120);moon.scale.setScalar(14);
- const shopRings=nav.shops.map(s=>{const[x,z]=s.position;const ring=mesh(new THREE.TorusGeometry(5,.22,6,40),basic(0x93f5ce),x,.5,z);ring.rotation.x=Math.PI/2;const beam=mesh(new THREE.CylinderGeometry(.3,.6,20,8),basic(0xb1ffe4,.55),x,10,z);const shop=new THREE.Group();scene.add(shop);
- cube(x+5,3,z,8,6,5,standard(0x4d3b71),shop);cube(x+5,6.5,z,9,1.2,6,standard(0xaa6bcd),shop);
- cube(x+5,3.2,z-2.6,5,3.8,.2,basic(0xffd784),shop);cube(x+5,3.2,z-2.8,.2,4,.2,standard(0x423051),shop);
- return{ring,beam,shop,pool:pool(x,z,28,coolGlow,.8)};});
- const paths=nav.shops.map((s,i)=>{let k=nav.goals[0],f=nav.fields[i+1],points=[];for(let step=0;step<500;step++){const p=nav.point(k);points.push(new THREE.Vector3(p[0],.55,p[1]));if(f[k]===0)break;let best=k;for(const j of nav.neighbors(k))if(f[j]>=0&&f[j]<f[best])best=j;if(best===k)break;k=best;}const line=new THREE.Line(new THREE.BufferGeometry().setFromPoints(points),new THREE.LineDashedMaterial({color:0x8ce5c0,dashSize:2,gapSize:2,transparent:true,opacity:.8}));line.computeLineDistances();scene.add(line);return line;});
- // Rounded dots communicate an illustrative puzzle rather than realistic people.
- const avatar=document.createElement('canvas');avatar.width=avatar.height=64;const a=avatar.getContext('2d');a.fillStyle='#fff';a.beginPath();a.arc(32,32,24,0,Math.PI*2);a.fill();const avatarMap=new THREE.CanvasTexture(avatar);
- const pos=new Float32Array(960*3),colors=new Float32Array(960*3),crowdGeo=new THREE.BufferGeometry();crowdGeo.setAttribute('position',new THREE.BufferAttribute(pos,3));crowdGeo.setAttribute('color',new THREE.BufferAttribute(colors,3));const crowd=new THREE.Points(crowdGeo,new THREE.PointsMaterial({map:avatarMap,size:1.8,vertexColors:true,alphaTest:.4,sizeAttenuation:true}));crowd.frustumCulled=false;scene.add(crowd);
- const heatCanvas=document.createElement('canvas');heatCanvas.width=heatCanvas.height=128;const heatInk=heatCanvas.getContext('2d'),heatTexture=new THREE.CanvasTexture(heatCanvas),heat=mesh(new THREE.PlaneGeometry(90,90),new THREE.MeshBasicMaterial({map:heatTexture,transparent:true,opacity:.95,depthWrite:false}),0,.4,0);heat.rotation.x=-Math.PI/2;
+ // Separate regional LOD: one actual source building per 42m tile, tallest wins.
+ const far=new THREE.Group();scene.add(far);const tiles=new Map();
+ for(const b of region.buildings){const xs=b.ring.map(p=>p[0]),zs=b.ring.map(p=>p[1]),x=(Math.min(...xs)+Math.max(...xs))/2,z=(Math.min(...zs)+Math.max(...zs))/2;if(Math.hypot(x,z)<260)continue;const key=`${Math.floor(x/42)},${Math.floor(z/42)}`;if(!tiles.has(key)||tiles.get(key).b.height<b.height)tiles.set(key,{b,x,z,w:Math.max(...xs)-Math.min(...xs),d:Math.max(...zs)-Math.min(...zs)});}
+ const farParts=[];for(const {b,x,z,w,d} of tiles.values()){const g=box.clone();g.scale(Math.max(5,w),b.height,Math.max(5,d));g.translate(x,b.height/2,z);farParts.push([g,[0x333654,0x4b3c63,0x3c4664][farParts.length%3]]);}
+ if(farParts.length){const m=merge(farParts,new THREE.MeshStandardMaterial({vertexColors:true,emissive:0x8a6d9b,emissiveIntensity:.12}),true);far.add(m);}
+ // Landmark composition: station, elevated railway, Hachiko meeting square.
+ const station=standard(0x5c5278,0x6d408f,.25),steel=standard(0x8b88a5),warm=basic(0xffdc87);
+ cube(67,8,63,34,16,90,station);cube(67,17,63,38,2,96,standard(0x9064ae));
+ for(let z=28;z<105;z+=12)cube(48.8,7,z,.3,8,7,warm);
+ const localTrack=[];ribbon([[57,-310],[57,280]],13,11.5,0x57536e,localTrack);merge(localTrack,standard(0x57536e));
+ for(let z=-280;z<280;z+=34){cube(57,5,z,1.8,11,2,steel);cube(57,12,z,12,.4,1,steel);}
+ const square=cube(-11,.2,34,29,.15,18,standard(0x655270));
+ const pedestal=cube(-9,1,32,3,2,3,standard(0x8d789a));
+ // Original toy dog silhouette: no scanned sculpture or real facility branding.
+ mesh(sphere,standard(0xb9986f),-9,2.7,32).scale.set(.8,1.1,.65);mesh(sphere,standard(0xc6a476),-9,3.8,31.8).scale.set(.65,.65,.65);
+ for(const x of[-9.5,-8.5])mesh(new THREE.ConeGeometry(.3,.65,5),standard(0xa88665),x,4.4,31.8);
+ for(const x of[-9.8,-8.2])cube(x,2,32,.3,1.8,.3,standard(0xb9986f));
+ function sign(x,y,z,w,h,text,sub,hex,rotation=0){const c=document.createElement('canvas');c.width=512;c.height=256;const d=c.getContext('2d');d.fillStyle=hex;d.fillRect(0,0,512,256);d.fillStyle='#fff1cb';d.font='bold 49px Noto Sans CJK JP';d.fillText(text,26,98);d.font='28px Noto Sans CJK JP';d.fillText(sub,28,159);d.fillStyle='#f6bf55';for(let i=0;i<7;i++)d.fillRect(27+i*67,205,40,10);const tex=new THREE.CanvasTexture(c),m=mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshBasicMaterial({map:tex,side:THREE.DoubleSide}),x,y,z);m.rotation.y=rotation;return m;}
+ sign(-38,25,22,23,15,'MOONMASK','FICTIONAL COSTUME NIGHT','#7f3fab',Math.PI/2);
+ sign(14,30,-37,30,19,'HIDAMARI','PUMPKIN LATTE · FICTIONAL','#c27037',0);
+ sign(45,30,-12,22,29,'STARDUST','FICTIONAL PARADE','#7059b9',-Math.PI/2);
+ sign(48.5,17,63,22,6,'SHIBUYA','STATION', '#293c6a',-Math.PI/2);
+ sign(-12,6,43,12,4,'HACHIKO','SQUARE','#795b7b',Math.PI);
+ const signalHeads=[];for(const[x,z]of[[-26,-17],[20,15],[-20,17],[17,-19]]){cube(x,3,z,.22,6,.22,steel);cube(x,6,z,1.8,3,.8,standard(0x25243d));const red=mesh(sphere,basic(0xff5c8b),x,6.7,z-.5),green=mesh(sphere,basic(0x6dffb9),x,5.4,z-.5);red.scale.set(.55,.55,.15);green.scale.set(.55,.55,.15);signalHeads.push({red,green});}
+ // Large crossing-side Halloween pieces, purple/orange pools and festival arch.
+ pumpkin(-27,28,3.0);pumpkin(27,-24,2.8);pool(0,0,110,purpleGlow,.35);pool(-24,28,50,warmGlow,.65);
+ const arch=standard(0xa15ce4,0x8e3cd6,.5);for(const x of[-30,-12])cube(x,6,43,1,12,1,arch);cube(-21,12,43,20,1.2,1,arch);
+ const hubs=EVENTS.map((e,i)=>{const g=new THREE.Group();scene.add(g);const[x,z]=e.position,mat=standard(e.color,e.color,.5);cube(x,6,z,100,12,65,mat,g);cube(x,14,z,110,4,75,standard(0x625074),g);for(let j=0;j<5;j++)mesh(new THREE.ConeGeometry(13,17,6),mat,x-42+j*21,25,z,g);const ring=mesh(new THREE.TorusGeometry(95,5,6,48),basic(e.color),x,3,z,g);ring.rotation.x=-Math.PI/2;const beam=mesh(new THREE.CylinderGeometry(12,40,150,10),basic(e.color,.25),x,75,z,g);const p=pool(x,z,360,[warmGlow,purpleGlow,coolGlow,warmGlow,purpleGlow][i],.8);g.add(p);return g;});
+ const flowPaths=EVENTS.map((e,i)=>{const path=[[0,0],...e.corridor],v=[];for(let j=0;j<=100;j++){const p=pointOnPath(path,j/100);v.push(new THREE.Vector3(p[0],45,p[1]));}const curve=new THREE.CatmullRomCurve3(v),tube=mesh(new THREE.TubeGeometry(curve,90,4.5,5,false),basic(e.color,.65),0,0,0);return tube;});
+ const railPaths=[[[55,75],[140,-450],[330,-900],[220,-1460],[60,-2150],[140,-2650]],[[55,75],[300,460],[700,900],[1000,1420]],[[55,75],[-300,100],[-510,240],[-700,210]]];
+ const regionalRails=railPaths.map((path,i)=>{const a=[];ribbon(path,11,11,0x554d73,a);const obj=merge(a,standard(0x554d73));far.add(obj);const light=[];ribbon(path,1.6,12,i===2?0xe88cff:0x7df3c5,light);const l=merge(light,basic(i===2?0xe88cff:0x7df3c5));far.add(l);return obj;});
+ const trains=railPaths.map((path,i)=>{const g=new THREE.Group();scene.add(g);for(let j=0;j<3;j++){cube(0,0,j*15,8,5,13,standard(0xc6c6d9),g);cube(-4.1,0,j*15,.2,1.5,11,basic(i===2?0xe3a0ff:0x80f3cb),g);cube(0,0,j*15-6.6,5,2,.2,warm,g);}return{g,path};});
+ // Batched low-poly costumes. Bodies, hats, capes, arms and pumpkin heads
+ // share eight geometry templates; each individual has a smooth heading/bob.
+ const costumeTemplates=[];const skinMat=standard(0xffd2ae),palette=[0xb96ae5,0xf39a45,0x6ed6cf,0xec7fa8,0xcac4ff,0x7b8cf0];
+ function costume(kind){const g=new THREE.Group(),mat=standard(palette[kind%6]);
+  mesh(new THREE.CylinderGeometry(.28,.43,.85,6),mat,0,.98,0,g);
+  mesh(new THREE.SphereGeometry(.29,7,5),kind===1?standard(0xf89332):skinMat,0,1.68,0,g);
+  for(const x of[-.17,.17])cube(x,.27,0,.18,.55,.23,standard(0x353650),g);
+  for(const x of[-.39,.39]){const arm=cube(x,1.04,0,.17,.65,.18,mat,g);arm.rotation.z=x>0?-.2:.2;}
+  // Face is toward +z; the renderer preserves heading toward travel direction.
+  for(const x of[-.11,.11])mesh(new THREE.SphereGeometry(.045,4,3),basic(0x25203d),x,1.7,.26,g);
+  if(kind===0||kind===4){mesh(new THREE.CylinderGeometry(.49,.49,.07,8),standard(0x3b2857),0,1.97,0,g);mesh(new THREE.ConeGeometry(.33,.75,7),standard(0x65408e),0,2.32,0,g);}
+  if(kind===1){cube(0,1.58,.28,.2,.06,.04,basic(0xffda7f),g);mesh(new THREE.CylinderGeometry(.06,.1,.18,4),standard(0x725545),0,2.03,0,g);}
+  if(kind===2||kind===5){const cape=mesh(new THREE.ConeGeometry(.53,1.1,5),standard(kind===2?0xb85ad5:0xe96a91),0,.92,-.2,g);cape.scale.z=.35;}
+  if(kind===4){cube(0,1.4,.38,.38,.22,.15,standard(0x30334c),g);mesh(new THREE.CylinderGeometry(.08,.08,.08,8),basic(0xb4e8ff),0,1.4,.5,g).rotation.x=Math.PI/2;}
+  if(kind===3){cube(.48,1.2,.12,.12,.9,.12,standard(0x9d7c56),g);mesh(new THREE.SphereGeometry(.19,6,4),basic(0xffd485),.48,1.8,.12,g);}
+  g.updateMatrixWorld(true);const entries=[];g.traverse(o=>{if(!o.isMesh)return;const geo=o.geometry.index?o.geometry.toNonIndexed():o.geometry,p=geo.attributes.position,n=geo.attributes.normal,c=o.material.color;for(let k=0;k<p.count;k++){const v=new THREE.Vector3().fromBufferAttribute(p,k).applyMatrix4(o.matrixWorld),normal=new THREE.Vector3().fromBufferAttribute(n,k).transformDirection(o.matrixWorld);entries.push(v.x,v.y,v.z,normal.x,normal.y,normal.z,c.r,c.g,c.b);}});return new Float32Array(entries);
+ }
+ for(let k=0;k<6;k++)costumeTemplates.push(costume(k));
+ const bodyMeshes=costumeTemplates.map(template=>{const n=template.length/9,g=new THREE.BufferGeometry();for(const[key,offset]of[['position',0],['normal',3],['color',6]]){const arr=new Float32Array(n*3);for(let i=0;i<n;i++)arr.set(template.subarray(i*9+offset,i*9+offset+3),i*3);g.setAttribute(key,new THREE.BufferAttribute(arr,3));}const m=new THREE.InstancedMesh(g,new THREE.MeshStandardMaterial({vertexColors:true,roughness:.8}),160);m.count=0;m.frustumCulled=false;scene.add(m);return m;});
+ // Heat remains a separate measured-density layer; colours never key off event flag.
+ const heatCanvas=document.createElement('canvas');heatCanvas.width=heatCanvas.height=128;const heatInk=heatCanvas.getContext('2d'),heatTexture=new THREE.CanvasTexture(heatCanvas),heat=mesh(new THREE.PlaneGeometry(90,90),new THREE.MeshBasicMaterial({map:heatTexture,transparent:true,opacity:.66,depthWrite:false}),0,.28,0);heat.rotation.x=-Math.PI/2;
+ const flowCount=320,flowPos=new Float32Array(flowCount*3),flowCol=new Float32Array(flowCount*3),flowGeo=new THREE.BufferGeometry();flowGeo.setAttribute('position',new THREE.BufferAttribute(flowPos,3));flowGeo.setAttribute('color',new THREE.BufferAttribute(flowCol,3));const flowDots=new THREE.Points(flowGeo,new THREE.PointsMaterial({size:13,vertexColors:true,transparent:true,opacity:.9}));scene.add(flowDots);
  function update(model,seconds,promo){
   seconds%=18;
-  let count=0;const bins=new Float32Array(16*16);for(const p of model.people){if(p.stage==='waiting'||p.stage==='gone')continue;pos[count*3]=p.x;pos[count*3+1]=1.1;pos[count*3+2]=p.z;color.setHex(p.redirected?0x66ddff:[0xffe3b3,0xf2c3f7,0xaac6ff][p.id%3]);colors.set([color.r,color.g,color.b],count*3);count++;const x=Math.floor((p.x+45)/90*16),z=Math.floor((p.z+45)/90*16);if(x>=0&&x<16&&z>=0&&z<16)bins[z*16+x]++;}crowdGeo.setDrawRange(0,count);crowdGeo.attributes.position.needsUpdate=true;crowdGeo.attributes.color.needsUpdate=true;
-  heatInk.clearRect(0,0,128,128);for(let z=0;z<16;z++)for(let x=0;x<16;x++){const n=bins[z*16+x];if(!n)continue;const c=n>8?'255,35,88':n>3?'255,95,126':'55,208,255',g=heatInk.createRadialGradient(x*8+4,z*8+4,0,x*8+4,z*8+4,13);g.addColorStop(0,`rgba(${c},${Math.min(.98,.22+n*.09)})`);g.addColorStop(1,`rgba(${c},0)`);heatInk.fillStyle=g;heatInk.fillRect(x*8-10,z*8-10,28,28);}heatTexture.needsUpdate=true;
+  const story=storyAt(seconds),nearPeople=model.people.filter(p=>!['waiting','gone','event','rail','regional'].includes(p.stage));
+  const counts=[0,0,0,0,0,0],matrix=new THREE.Matrix4(),quat=new THREE.Quaternion(),axis=new THREE.Vector3(0,1,0);for(const p of nearPeople){const kind=p.id%6,bob=Math.sin(seconds/18*Math.PI*2*32+p.phase)*Math.min(.1,Math.hypot(p.vx,p.vz)*.07);quat.setFromAxisAngle(axis,p.heading);matrix.compose(new THREE.Vector3(p.x,bob,p.z),quat,new THREE.Vector3(1,1,1));bodyMeshes[kind].setMatrixAt(counts[kind]++,matrix);}bodyMeshes.forEach((m,i)=>{m.count=counts[i];m.instanceMatrix.needsUpdate=true;});
+  far.visible=story.regional;hubs.forEach((g,i)=>g.visible=story.regional&&story.activation>i*.16);flowPaths.forEach((p,i)=>p.visible=story.regional&&story.activation>i*.16);
+  const bins=new Float32Array(256);for(const p of nearPeople){const x=Math.floor((p.x+45)/90*16),z=Math.floor((p.z+45)/90*16);if(x>=0&&x<16&&z>=0&&z<16)bins[z*16+x]++;}
+  heatInk.clearRect(0,0,128,128);for(let z=0;z<16;z++)for(let x=0;x<16;x++){const n=bins[z*16+x];if(!n)continue;const c=n>5?'255,35,88':n>2?'255,95,126':'55,208,255',g=heatInk.createRadialGradient(x*8+4,z*8+4,0,x*8+4,z*8+4,13);g.addColorStop(0,`rgba(${c},${Math.min(.9,.2+n*.12)})`);g.addColorStop(1,`rgba(${c},0)`);heatInk.fillStyle=g;heatInk.fillRect(x*8-10,z*8-10,28,28);}heatTexture.needsUpdate=true;
+  heat.visible=!story.regional;
+  signalHeads.forEach(({red,green})=>{const phase=signalAt(model.time);red.visible=phase==='red';green.visible=phase!=='red';});
+  trains.forEach(({g,path},i)=>{const rider=model.people.find(p=>p.stage==='rail'&&(i===0?(p.district===1||p.district===2):i===1?p.district===4:p.district===0)),phase=rider?rider.journey/EVENTS[rider.district].travel_s:((seconds*.16+i*.29)%1),route=rider?[[55,75],...EVENTS[rider.district].corridor.slice(1)]:path,p=pointOnPath(route,phase),q=pointOnPath(route,Math.min(1,phase+.002));g.visible=story.regional?!!rider:i===0;g.position.set(story.regional?p[0]:57,15,story.regional?p[1]:-20+140*Math.sin(seconds/18*Math.PI*2));g.scale.setScalar(story.regional?3.6:1);g.rotation.y=story.regional?Math.atan2(q[0]-p[0],q[1]-p[1]):0;});
+  let flow=0;for(const p of model.people){if(!['regional','rail','event'].includes(p.stage)||!p.redirected||flow>=flowCount)continue;const e=EVENTS[p.district],q=[p.x,p.z];flowPos.set([q[0]+Math.sin(p.id)*7,52,q[1]+Math.cos(p.id)*7],flow*3);color.setHex(e.color);flowCol.set(color.toArray(),flow*3);flow++;}flowGeo.setDrawRange(0,flow);flowDots.visible=story.regional;flowGeo.attributes.position.needsUpdate=true;flowGeo.attributes.color.needsUpdate=true;
   const w=witchAt(seconds);witch.position.set(...w.position);witch.rotation.y=w.yaw;witch.rotation.z=w.roll;witch.scale.setScalar(w.scale);
   for(let i=0;i<trailCount;i++){const delay=i*.025,p=witchAt(seconds-delay).position;trailPos[i*3]=p[0]+Math.sin(i*2.3)*delay;trailPos[i*3+1]=p[1]+Math.sin(i*1.9)*delay;trailPos[i*3+2]=p[2]+Math.cos(i*1.3)*delay;}trailGeometry.attributes.position.needsUpdate=true;
   const phase=seconds/18*Math.PI*2;
   ghosts.forEach((g,i)=>{g.group.position.y=g.y+Math.sin(phase*4+i)*1.2;g.group.rotation.y=Math.sin(phase)*.2;});bubbles.forEach((b,i)=>b.position.y=4+(seconds*2+i*.9)%9);
-  shopRings.forEach((s,i)=>{const on=promo&&seconds>=6+i*1.5;s.ring.visible=s.beam.visible=s.pool.visible=on;const pulse=1+.12*Math.sin(phase*6+i);s.ring.scale.setScalar(pulse);});paths.forEach((p,i)=>p.visible=promo&&seconds>=6+i*1.5);
 
  }
- return{scene,update,buildings,THREE};
+ return{scene,update,buildings,THREE,bodyMeshes,heatCanvas,heatTexture,nearPeople:()=>[],lodCount:tiles.size};
 }

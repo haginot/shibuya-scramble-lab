@@ -99,3 +99,21 @@ its fictional offers and behavioural coefficients are assumptions, not measured
 effects. Only the actual deterministic model metrics appear as results.
 Noto Sans CJK JP (system regular/bold): SIL OFL 1.1. No font binary or audio is
 redistributed. See docs/HALLOWEEN_ASSETS.md and accompanying media ASSETS.md.
+
+
+Halloween iteration 2 — regional PLATEAU extract and original art:
+web3d/data/shibuya_halloween_region.json and its packaged mirror contain 47,816
+PLATEAU Shibuya 2023 ground footprints/heights clipped to a 3 km radius.
+Same source archive, policy and CC BY 4.0 permission as the building component
+above. Member filenames and SHA-256 hashes are included in the JSON.
+Policy rechecked 2026-10-21: section 3 uses PDL 1.0 and explicitly permits
+use following CC BY 4.0. Derived bounding-box LOD and selective foreground
+omission are renderer modifications, not source geometry replacements.
+The eastern Omotesando area is outside this supplied dataset. No invented infill.
+
+Original MIT assets by HAGINO 2026: costumed low-poly people, six costume
+silhouettes, generic dog statue and meeting square, toy station/train and
+schematic regional track curves, fictional event stages/labels, fictional shop
+wall advertisements, light ribbons, bilingual film graphics and CPU instance
+rendering. There are no real company logos or real event/organizer names.
+Full provenance and regional/model limitations: docs/HALLOWEEN_ASSETS.md.

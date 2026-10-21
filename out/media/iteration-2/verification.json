@@ -1,0 +1,146 @@
+{
+  "video": "/workspace/projects/ssl-halloween/out/media/iteration-2/shibuya-halloween.mp4",
+  "renderer": "authored CPU rasterizer of actual three.js scene",
+  "source_sha256": "0b5b0ca8896138faaadfc8380109ee44df958ad48d66559eec104f3d10d360f2",
+  "preview": false,
+  "width": 1080,
+  "height": 1920,
+  "fps": 24,
+  "duration_s": 18,
+  "wall_seconds": 129.8,
+  "screenshots": [
+    "out/media/iteration-2/shibuya-halloween/01-hook.png",
+    "out/media/iteration-2/shibuya-halloween/02-green-release.png",
+    "out/media/iteration-2/shibuya-halloween/03-pedestrian-view.png",
+    "out/media/iteration-2/shibuya-halloween/04-regional-reveal.png",
+    "out/media/iteration-2/shibuya-halloween/05-walk-and-rail.png",
+    "out/media/iteration-2/shibuya-halloween/06-calm-crossing.png",
+    "out/media/iteration-2/shibuya-halloween/07-comparison.png",
+    "out/media/iteration-2/shibuya-halloween/08-credits.png",
+    "out/media/iteration-2/shibuya-halloween/09-loop-return.png"
+  ],
+  "snapshots": [
+    {
+      "frame": 12,
+      "video_seconds": 0.5
+    },
+    {
+      "frame": 46,
+      "video_seconds": 1.9166666666666667
+    },
+    {
+      "frame": 64,
+      "video_seconds": 2.6666666666666665
+    },
+    {
+      "frame": 132,
+      "video_seconds": 5.5
+    },
+    {
+      "frame": 210,
+      "video_seconds": 8.75
+    },
+    {
+      "frame": 300,
+      "video_seconds": 12.5
+    },
+    {
+      "frame": 360,
+      "video_seconds": 15.0
+    },
+    {
+      "frame": 397,
+      "video_seconds": 16.541666666666668
+    },
+    {
+      "frame": 431,
+      "video_seconds": 17.958333333333332
+    }
+  ],
+  "probe": {
+    "programs": [],
+    "stream_groups": [],
+    "streams": [
+      {
+        "codec_name": "h264",
+        "width": 1080,
+        "height": 1920,
+        "r_frame_rate": "24/1"
+      }
+    ],
+    "format": {
+      "duration": "18.000000",
+      "tags": {
+        "major_brand": "isom",
+        "minor_version": "512",
+        "compatible_brands": "isomiso2avc1mp41",
+        "credit": "MLIT Project PLATEAU / Shibuya 2023; modified footprints + heights, CC BY 4.0. https://www.geospatial.jp/ckan/dataset/plateau-13113-shibuya-ku-2023 https://creativecommons.org/licenses/by/4.0/ © OpenStreetMap contributors, ODbL 1.0. https://www.openstreetmap.org/copyright https://opendatacommons.org/licenses/odbl/1-0/ three.js r160 MIT. HAGINO 2026 procedural art and code MIT. Noto Sans CJK JP SIL OFL 1.1. See accompanying NOTICE and ASSETS.md. Toy model, not a prediction. Seed 1031; 960 agents; 1800 simulated seconds per scenario. Walking and schematic Yamanote/Inokashira routing; underlying SUMO trajectories are unused.",
+        "comment": "Toy-model values; same procedural three.js geometry, local CPU raster capture; fictional neighborhood events, matched arrivals and rail journeys; 18s loop.",
+        "encoder": "Lavf61.7.103"
+      }
+    }
+  },
+  "errors": [],
+  "sha256": "57e286f56954c84d519017aa1a9115916aa98ae53f6a380d7cac831c4270467e",
+  "tests": {
+    "pytest": "102 passed in 118.37s",
+    "focused_final_calibration_and_packaged_sources": "5 passed in 46.62s",
+    "node": [
+      "web3d/sol/verify.mjs",
+      "web3d/astra/check.mjs",
+      "web3d/promo/verify.mjs",
+      "web3d/shibuya/verify.mjs",
+      "web3d/shibuya/verify-ui.mjs",
+      "web3d/shibuya/verify-halloween.mjs"
+    ],
+    "note": "VM-dependent Node checks use --experimental-vm-modules"
+  },
+  "loop": {
+    "native_endpoint_pixels_identical": true,
+    "finite_export_states": 433,
+    "note": "Unused instance slots/hidden particle buffers may retain earlier state; all rendered endpoint pixels match."
+  },
+  "region": {
+    "radius_m": 3000,
+    "source_buildings": 47816,
+    "distant_lod_boxes": 8905,
+    "archive_members": 27,
+    "coverage": [
+      "Omotesando eastern area outside supplied Shibuya dataset; shown as an event marker with no invented buildings."
+    ]
+  },
+  "metrics_summary": {
+    "no_events": 0.3305,
+    "events_on": 0.2758,
+    "peak_change_pct": -16.6,
+    "arrivals": [
+      154,
+      258
+    ],
+    "arrival_ratio": 1.675,
+    "best_event": {
+      "district": "Yoyogi",
+      "event": "Ghost lantern garden",
+      "people": 78
+    }
+  },
+  "stills": {
+    "01-hook.png": "096984f2e8a0efc8072790a8361740a6c74e8c080e97941a2026d4df92eb910c",
+    "02-green-release.png": "58cc9651ecabc742b249cda8c31fc75968df8472bdceeb9f955be8519126e442",
+    "03-pedestrian-view.png": "05374493a4470d5fecb1868f7eac439455beec04021dfd3a8994e8808421d426",
+    "04-regional-reveal.png": "7292c2676745731f9be27c7832356611e9581044a40b05930b53e8fdfcff77fb",
+    "05-walk-and-rail.png": "c69acb186c8efc84277dcbef42a42be5087d36c54dac988b8c7f40d875c0a99c",
+    "06-calm-crossing.png": "dcd79e80c70d415129776e87e206a7e5b037a532ad35c422d55852fc01a52073",
+    "07-comparison.png": "2475f2edf6a51a81b2a46eed9951287f347e15c35fba0ecc69cc10e58d8bea3d",
+    "08-credits.png": "46f8b662e2d81faf686116aeb0ffbd2d53edc20b09a27173567a2e5f899301a0",
+    "09-loop-return.png": "24ed5ea57db4d63b429db65850880820060663d1cdf3b88cf5b52430735a065f"
+  },
+  "protected_v1_sha256": "75a3259a1729d12404e84cd5429041c96eff8599b90bacbbadde20eeaa2b617e",
+  "limitations": [
+    "Uncalibrated illustrative behaviour and service assumptions; not a forecast.",
+    "Regional walking/rail corridors and festival locations are schematic.",
+    "Municipal PLATEAU coverage is partial on the eastern Omotesando fringe.",
+    "Original CPU raster capture; actual browser/WebGL performance not measured.",
+    "X engagement has not been measured."
+  ]
+}

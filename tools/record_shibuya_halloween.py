@@ -21,9 +21,7 @@ import time
 from record_shibuya import QuietHandler, browser_with_webgl
 
 WIDTH, HEIGHT, FPS, DURATION = 1080, 1920, 24, 18
-STILLS = {12: '01-macro-hook.png', 132: '02-red-heatmap-peak.png',
-          240: '03-coupon-powerups.png', 336: '04-cyan-payoff.png',
-          384: '05-comparison.png', 408: '06-credits.png', 431: '07-loop-return.png'}
+STILLS = {12:'01-hook.png',46:'02-green-release.png',64:'03-pedestrian-view.png',132:'04-regional-reveal.png',210:'05-walk-and-rail.png',300:'06-calm-crossing.png',360:'07-comparison.png',397:'08-credits.png',431:'09-loop-return.png'}
 CREDIT = ('MLIT Project PLATEAU / Shibuya 2023; modified footprints + heights, CC BY 4.0. '
           'https://www.geospatial.jp/ckan/dataset/plateau-13113-shibuya-ku-2023 '
           'https://creativecommons.org/licenses/by/4.0/ '
@@ -31,8 +29,8 @@ CREDIT = ('MLIT Project PLATEAU / Shibuya 2023; modified footprints + heights, C
           'https://opendatacommons.org/licenses/odbl/1-0/ '
           'three.js r160 MIT. HAGINO 2026 procedural art and code MIT. '
           'Noto Sans CJK JP SIL OFL 1.1. See accompanying NOTICE and ASSETS.md. '
-          'Toy model, not a prediction. Seed 1031; 960 agents; 900 simulated seconds per scenario. '
-          'Pedestrian-only routing experiment; underlying SUMO trajectories are unused.')
+          'Toy model, not a prediction. Seed 1031; 960 agents; 1800 simulated seconds per scenario. '
+          'Walking and schematic Yamanote/Inokashira routing; underlying SUMO trajectories are unused.')
 
 
 def probe_video(path):
@@ -60,7 +58,7 @@ def record(site, output, stills, metrics_path, preview=False):
     stills.mkdir(parents=True, exist_ok=True)
     frames = stills / '.frames'
     frames.mkdir(exist_ok=True)
-    sources = sorted(view.glob('halloween*')) + [site / 'web3d/data/shibuya_plateau.json', site / 'web3d/data/shibuya_osm.json', Path(__file__)]
+    sources = sorted(view.glob('halloween*')) + [site / 'web3d/data/shibuya_plateau.json', site / 'web3d/data/shibuya_osm.json', site / 'web3d/data/shibuya_halloween_region.json', Path(__file__)]
     fingerprint = hashlib.sha256(b''.join(p.read_bytes() for p in sources)).hexdigest()
     manifest = frames / 'source.sha256'
     if manifest.exists() and manifest.read_text() != fingerprint:
@@ -103,9 +101,9 @@ def record(site, output, stills, metrics_path, preview=False):
                     raise RuntimeError('; '.join(errors))
                 if frame in STILLS:
                     # Validate the actual ending text, not just the exported JSON.
-                    if frame == 384:
-                        assert page.locator('#no-visits').inner_text() == str(metrics['no_promo']['visits'])
-                        assert page.locator('#promo-density').inner_text() == f"{metrics['promo']['peak_density_per_m2']:.4f}"
+                    if frame == 360:
+                        assert page.locator('#no-visits').inner_text() == str(metrics['no_events']['visits'])
+                        assert page.locator('#promo-density').inner_text() == f"{metrics['events_on']['peak_density_per_m2']:.2f}"
                     page.screenshot(path=str(stills / STILLS[frame]), type='png', animations='disabled')
                     snapshots.append(dict(frame=frame, **state))
                 if not preview:
@@ -142,7 +140,7 @@ if __name__ == '__main__':
     ap.add_argument('--output', type=Path, default=Path('/workspace/demos/shibuya-halloween.mp4'))
     ap.add_argument('--stills', type=Path, default=Path('/workspace/demos/shibuya-halloween'))
     ap.add_argument('--metrics', type=Path, default=Path('out/media/shibuya-halloween-metrics.json'))
-    ap.add_argument('--preview', action='store_true', help='Capture the five PNG story frames without encoding')
+    ap.add_argument('--preview', action='store_true', help='Capture the nine PNG story frames without encoding')
     ap.add_argument('--renderer', choices=('auto', 'browser', 'software'), default='auto')
     args = ap.parse_args()
     def software():
