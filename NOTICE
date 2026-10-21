@@ -9,7 +9,8 @@ https://www.openstreetmap.org/copyright
 https://opendatacommons.org/licenses/odbl/1-0/
 Map screenshots retain their map attribution; this notice accompanies them.
 
-Terrain: 出典：国土地理院（地理院タイル）
+Terrain: 国土地理院の標高タイルを加工して作成（DEM5A／DEM10B）
+https://www.gsi.go.jp/kikakuchousei/kikakuchousei40182.html
 https://maps.gsi.go.jp/development/ichiran.html
 tools/fetch_terrain.py samples DEM5A PNG elevation
 tiles (dem5a_png, 5 m), falling back to DEM10B PNG (dem_png, 10 m).
@@ -20,3 +21,12 @@ web3d/vendor/three.module.min.js and packaged vendor copy.
 https://github.com/mrdoob/three.js/blob/r160/LICENSE
 
 The MIT code license does not replace the separate map-data license above.
+
+CDN: Leaflet 1.9.4, BSD-2-Clause. Loaded by the 2D viewers, not vendored.
+https://github.com/Leaflet/Leaflet/blob/v1.9.4/LICENSE
+
+Development / generation only, not bundled in the Python runtime:
+NetworkX (BSD-3-Clause), NumPy (BSD-3-Clause), Matplotlib (Matplotlib/PSF),
+Pillow (MIT-CMU), Playwright (Apache-2.0), pytest and Hatchling (MIT).
+FFmpeg/libx264 are external recording commands, not bundled binaries;
+their licensing depends on build configuration (LGPL/GPL).

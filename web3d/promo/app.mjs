@@ -33,7 +33,7 @@ async function start(){
  // The recorded store offsets are under 6 m; use only those actual visit slots.
  const layouts=Object.fromEntries(combos.map(name=>[name,data.combinations[name].frames.map(frame=>{
   const positions=frame.agents.map(a=>ll(a[0],a[1]));
-  const visitors=positions.flatMap((p,i)=>Math.hypot(p.x-store.x,p.z-store.z)<8?[i]:[]);
+  const visitors=frame.sample_visitor_ids;
   visitors.forEach((id,j)=>{
    const angle=j*2.399963229728653,radius=17+6*Math.sqrt(j);
    const p=positions[id];p.x=store.x+Math.cos(angle)*radius;p.z=store.z+Math.sin(angle)*radius;p.y=terrainHeight(p.x,p.z);
@@ -41,9 +41,24 @@ async function start(){
   return {positions,visitors:visitors.length};
  })]));
  const titles={none:'施策なし / No promotion',sns_only:'SNS広告 / Social ads',flyer_only:'チラシ・看板 / Flyers & signboard',pr_only:'広報・メディア / PR & media',coupon_only:'クーポン / Coupon','sns+coupon':'SNS広告＋クーポン / Social ads + coupon',all_four:'全4施策 / All four'};
- const labels=combos.map(name=>{const p=document.createElement('section');p.className='panel';const title=document.createElement('h2');title.textContent=titles[name]||`${name} / Custom`;const stats=document.createElement('div');stats.className='stats';const tag=document.createElement('div');tag.className='store-label';p.append(title,stats,tag);panels.append(p);return {stats,tag};});
+ const labels=combos.map(name=>{const p=document.createElement('section');p.className='panel';const title=document.createElement('h2');title.textContent=titles[name]||`${name} / Custom`;const stats=document.createElement('div');stats.className='stats';const tag=document.createElement('div');tag.className='store-label';const trial=document.createElement('div');trial.className='trial';trial.textContent=`表示中：seed ${data.timeline_seed}の1試行 / one trial`;p.append(title,trial,stats,tag);panels.append(p);return {stats,tag};});
  const speed=Number(params.get('speed')||30);if(!Number.isFinite(speed)||speed<=0)throw new Error('speed must be positive (seconds for the whole period)');
  window.__promoState={data,combos,durationSeconds:speed,frameIndex:0,day:0,ready:false};
+ const pct=v=>v===null?'N/A':`${(v*100).toFixed(1)}%`;
+ const yen=v=>`¥${Math.round(v).toLocaleString()}`;
+ const bounds=(result,key,factor=1)=>result.intervals_95[key]?.map(v=>(v*factor).toFixed(1)).join(', ')||'N/A';
+ const roiSummary=result=>`${pct(result.metrics.roi)} · 95% [${bounds(result,'roi',100)}${result.intervals_95.roi?'%':''}]`;
+ const line=(className,text)=>{const el=document.createElement('div');el.className=className;el.textContent=text;return el;};
+ document.getElementById('sample-note').textContent=`表示 ${people.length}体 / 全${data.config.population}体 × 人口倍率${data.config.agent_scale} / shown agents · total agents × population scale`;
+ document.getElementById('summary-title').textContent=`${data.config.days}日間・${data.config.seeds}試行平均 / ${data.config.seeds}-trial mean · 95%区間 / intervals`;
+ for(const name of combos){
+  const result=data.combinations[name],m=result.metrics,card=document.createElement('div');card.className='summary-result';
+  const title=document.createElement('strong');title.textContent=titles[name]||name;
+  card.append(title,line('',`来訪/Visits ${m.total_visits.toFixed(1)} · 増分/Uplift ${m.uplift.toFixed(1)} [${bounds(result,'uplift')}]`),
+   line('',`ROI（チャネル費基準 / channel cost basis）${roiSummary(result)}`),
+   line('',`総費用/Total cost ${yen(m.total_cost)} · 増分利益/Net gain ${yen(m.incremental_profit)}`));
+  document.getElementById('summary-results').append(card);
+ }
  const startTime=performance.now();
  function animate(now){
   renderer.setSize(innerWidth,innerHeight,false);
@@ -52,7 +67,8 @@ async function start(){
   const idx=Math.min(data.combinations[combos[0]].frames.length-1,Math.floor(day*data.config.hours.length));
   Object.assign(window.__promoState,{frameIndex:idx,day,metrics:Object.fromEntries(combos.map(name=>[name,data.combinations[name].frames[idx].metrics]))});
   document.getElementById('clock').textContent=`Day ${Math.floor(day)+1}/${data.config.days} · ${data.config.hours[idx%data.config.hours.length]}:00 · ${data.combinations[combos[0]].daily[Math.floor(day)].weather}`;
-  const top=78,bottom=65,w=innerWidth/cols,h=(innerHeight-top-bottom)/rows;
+  const rect=panels.getBoundingClientRect(),top=rect.top,w=rect.width/cols,h=rect.height/rows;
+  document.getElementById('summary-card').hidden=now-startTime<speed*1000;
   const orbit=(now-startTime)/1000*.025+.65;
   camera.position.set(store.x+Math.sin(orbit)*400,store.y+550,store.z+Math.cos(orbit)*400);camera.lookAt(focus);
   combos.forEach((name,k)=>{
@@ -64,14 +80,20 @@ async function start(){
    frame.agents.forEach((a,i)=>{people[i].position.copy(previous.positions[i]).lerp(current.positions[i],blend);people[i].position.y+=7;people[i].scale.setScalar(pixelSize);people[i].material=materials[a[2]];});
    const visitors=previous.visitors+(current.visitors-previous.visitors)*blend;
    marker.scale.setScalar((22+6*Math.sqrt(visitors))/18);marker.material.opacity=visitors? .85:.3;
-   const m=frame.metrics,pct=v=>v===null?'N/A':`${(v*100).toFixed(1)}%`;
-   labels[k].stats.textContent=`認知/Aware ${pct(1-frame.funnel[0]/data.config.population)} · 来訪/Visits ${m.total_visits.toFixed(0)} · 増分/Uplift +${m.uplift.toFixed(0)} (${m.uplift_pct===null?'N/A':m.uplift_pct.toFixed(1)+'%'}) · 元々来訪/Anyway ${pct(m.would_have_come_anyway_share)} · ROI ${pct(m.roi)}`;
+   const m=frame.metrics;
+   labels[k].stats.replaceChildren(
+    line('primary',`来訪/Visits ${m.total_visits.toFixed(0)} · 増分/Uplift ${m.uplift.toFixed(0)} · ROI ${pct(m.roi)}`),
+    line('breakdown',`累積ROI・全期間費用計上 / Cumulative ROI, full-period cost · 重複/Anyway ${pct(m.would_have_come_anyway_share)}`),
+    line('breakdown',`増分粗利/GP ${yen(m.incremental_gross_profit)} · 割引/Discount ${yen(m.discount_cost)} · 期間費/Channel ${yen(m.cost)}`),
+    line('mean',`${data.config.seeds}試行平均ROI / mean ${roiSummary(result)}`));
    const x=(k%cols)*w,y=innerHeight-top-(Math.floor(k/cols)+1)*h;
    renderer.setViewport(x,y,w,h);renderer.setScissor(x,y,w,h);camera.left=-350;camera.right=350;camera.top=350*h/w;camera.bottom=-350*h/w;camera.updateProjectionMatrix();
    const pin=store.clone().add(new THREE.Vector3(0,113,0)).project(camera);
    labels[k].tag.style.left=`${(pin.x+1)*50}%`;labels[k].tag.style.top=`${(1-pin.y)*h/2}px`;
-   labels[k].tag.textContent=`ひだまり珈琲 (架空) · 現在 ${current.visitors}人`;
+   labels[k].tag.textContent=`この枠の来訪：表示サンプル ${current.visitors}体 / sample visits · 全体 ${frame.slot_visits}回 / scaled visits`;
+   labels[k].tag.style.display = h < 190 ? 'none' : '';
    renderer.render(scene,camera);
+   labels[k].tag.style.top=`${Math.min(Math.max(60,parseFloat(labels[k].tag.style.top)),h-labels[k].stats.offsetHeight-12)}px`;
   });
   requestAnimationFrame(animate);
  }

@@ -22,7 +22,7 @@ with sync_playwright() as p:
         if pg.evaluate("!!window.__ready"): break
         time.sleep(0.05)
     else:
-        print("WARN: __ready never set", file=sys.stderr)
+        raise RuntimeError("Viewer did not become ready")
     ff = subprocess.Popen(["ffmpeg", "-y", "-loglevel", "error", "-f", "image2pipe", "-framerate", str(FPS), "-i", "-",
                            "-c:v", "libx264", "-pix_fmt", "yuv420p", "-crf", "20", "-movflags", "+faststart", out], stdin=subprocess.PIPE)
     n = int(secs * FPS)
@@ -41,6 +41,8 @@ with sync_playwright() as p:
             d, pre, ev = stills.split(":")
             if i % int(float(ev) * FPS) == int(float(ev) * FPS) // 2:
                 open(f"{d}/{pre}_{i // FPS:02d}s.png", "wb").write(png)
-    ff.stdin.close(); ff.wait()
+    ff.stdin.close()
+    if ff.wait() != 0:
+        raise RuntimeError("ffmpeg encoding failed")
     b.close()
 print(f"{out} {n} frames in {time.time()-t0:.0f}s")

@@ -6,9 +6,29 @@ import hashlib
 import json
 import os
 import urllib.request
+from urllib.parse import urlsplit
+import ipaddress
 from pathlib import Path
 
 CATS = ["cafe", "food", "bar", "grocery", "shop", "park", "school", "clinic", "library", "service", "station", "plaza", "event"]
+
+
+class NoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        return None
+
+
+def validate_base_url(url):
+    parts = urlsplit(url)
+    loopback = parts.hostname == "localhost"
+    try:
+        loopback = loopback or ipaddress.ip_address(parts.hostname or "").is_loopback
+    except ValueError:
+        pass
+    if (not parts.hostname or parts.username or parts.password or parts.query or parts.fragment
+            or not (parts.scheme == "https" or parts.scheme == "http" and loopback)):
+        raise ValueError("OPENAI_BASE_URL requires HTTPS (HTTP is allowed only for loopback development)")
+    return url
 
 
 def available():
@@ -19,7 +39,8 @@ class LLMPlanner:
     def __init__(self, n_agents=8, model=None, timeout=30):
         self.n = n_agents
         self.model = model or os.environ.get("ASAGAYA_LLM_MODEL", "gpt-4o-mini")
-        self.base = os.environ.get("OPENAI_BASE_URL", "https://api.openai.com/v1").rstrip("/")
+        self.base = validate_base_url(os.environ.get("OPENAI_BASE_URL", "https://api.openai.com/v1").rstrip("/"))
+        self.opener = urllib.request.build_opener(NoRedirect())
         self.key = os.environ.get("OPENAI_API_KEY", "")
         self.timeout = timeout
         self.cache_path = Path(os.environ.get("XDG_CACHE_HOME", Path.home() / ".cache")) / "asagaya-town-sim" / "llm.json"
@@ -44,7 +65,7 @@ class LLMPlanner:
         req = urllib.request.Request(self.base + "/chat/completions", data=body,
                                      headers={"Authorization": "Bearer " + self.key, "Content-Type": "application/json"})
         self.calls += 1
-        with urllib.request.urlopen(req, timeout=self.timeout) as r:
+        with self.opener.open(req, timeout=self.timeout) as r:
             out = json.loads(r.read())["choices"][0]["message"]["content"]
         self.cache[h] = out
         try:

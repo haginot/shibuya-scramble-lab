@@ -101,6 +101,8 @@ def test_all_fetches_and_module_imports_exist(tmp_path):
     engine = json.loads((tmp_path/'data/engine.json').read_text())
     assert engine['scenarios']['map']['heat']
     for path in Path('web3d/promo').iterdir():
+        if path.name == 'verify.mjs':
+            continue
         assert path.read_bytes() == (tmp_path/'promo'/path.name).read_bytes()
 
 
@@ -109,7 +111,7 @@ def test_same_slot_overlap_and_scale(output):
     for result in output['combinations'].values():
         for frame, base in zip(result['frames'], baseline['frames']):
             m = frame['metrics']
-            assert 0 <= m['would_have_come_anyway_share'] <= 1
+            assert m['would_have_come_anyway_share'] is None or 0 <= m['would_have_come_anyway_share'] <= 1
             if m['total_visits']:
                 assert m['would_have_come_anyway_share'] <= base['metrics']['total_visits']/m['total_visits'] + 1e-12
     c = promo.load_config()
@@ -201,3 +203,46 @@ def test_demo_serve_uses_complete_site(tmp_path, monkeypatch, capsys):
     monkeypatch.setattr(cli.http.server, 'ThreadingHTTPServer', Server)
     cli.main(['promo','demo','--serve','--no-open','--seeds','1','--days','1'])
     assert len(served) == 1
+
+
+def test_empty_visits_are_na_and_full_period_costs_are_explicit():
+    c = promo.load_config()
+    c.update(population=4, days=2, seeds=2, organic_visit=0, organic_awareness=0)
+    c['channels']['sns_ad'].update(daily_reach=0, word_of_mouth=0)
+    c['combinations'] = {'none':[], 'sns_only':['sns_ad']}
+    data = promo.simulate(c)
+    for result in data['combinations'].values():
+        assert result['metrics']['would_have_come_anyway_share'] is None
+        for frame in result['frames']:
+            m = frame['metrics']
+            assert m['total_visits'] == 0
+            assert m['would_have_come_anyway_share'] is None
+            assert m['cost'] == result['metrics']['cost']
+            assert m['total_cost'] == m['cost']+m['discount_cost']
+            assert m['incremental_profit'] == m['incremental_gross_profit']-m['total_cost']
+            if m['cost']:
+                assert m['roi'] == -1
+
+
+def test_slot_sample_visits_are_exact_and_scale_to_all_agents():
+    c = promo.load_config()
+    c.update(population=12, record_agents=5, days=2, seeds=1, organic_visit=1)
+    c['weather']['multipliers'] = dict.fromkeys(c['weather']['multipliers'],1)
+    c['hour_multipliers'] = [1]*len(c['hours'])
+    data = promo.simulate(c)
+    for result in data['combinations'].values():
+        cumulative = 0
+        for frame in result['frames']:
+            assert frame['sample_visitor_ids'] == list(range(5))
+            assert frame['slot_visits'] == c['population']*c['agent_scale']
+            cumulative += frame['slot_visits']
+            assert frame['metrics']['total_visits'] == cumulative
+
+
+def test_promo_export_includes_licenses(tmp_path):
+    from pathlib import Path
+    promo.write_site(tmp_path, promo.simulate(seeds=1,days=1))
+    for base in (tmp_path,tmp_path/'data'):
+        for name in ('LICENSE','NOTICE'):
+            assert (base/name).read_bytes() == Path(name).read_bytes()
+    assert 'promo.json' in (tmp_path/'data/index.html').read_text()

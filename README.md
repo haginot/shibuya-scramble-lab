@@ -1,183 +1,170 @@
 # 阿佐ケ谷 AI住民 町シミュレーション（asagaya-town-sim）
 
-> **⚠ これは仮説を試すためのトイモデルです。予測ではありません。**
-> 住民・店舗（架空の「ひだまり珈琲」を含む）・売上・販促係数はすべて架空・仮置きです。OSM/GSI由来なのは地図形状・地形のみです（OSMの地名ラベルは出典情報で、実店舗の行動データではありません）。
-> 係数（来店確率、ついで寄り確率、営業時間、乗降人数の時間分布など）はすべて仮定値で、実測データで校正していません。
-> 数値は「同じモデルの中で条件を変えたら相対的にどう動くか」を見るためのもので、実際の来店数・売上・通行量の予測には使えません。
+[English](README.en.md) · 日本語
 
-JR阿佐ケ谷駅の周り半径約400m（OpenStreetMapの道路 約410本・POI 約540件）に、住民と電車の乗降客をエージェントとして置き、1日（5〜24時）を動かします。
+**[30秒動画（録画手順・公開待ち）](#30秒動画)** · **[ブラウザで試す（Pages公開後のURL予定）](https://haginot.github.io/asagaya-town-sim/)**
+
+阿佐ケ谷の地図上で、駅前の使い方や架空カフェの販促を、同じ住民・同じ乱数で比較するトイモデルです。
+[町の1日](#町の1日)では駐輪場・カフェ・広場、[店舗販促14日間](#店舗販促14日間)では施策なし・SNS広告・クーポンなどを比較します。
+
+AIの役割は3つに分かれます。**開発**ではAIで3Dレンダラーを制作しました（[生成指示](docs/battle/prompt_round1.md)・[成果物](web3d/sol/)）。**町モデル**では任意のLLMが既定8人の予定・架空の口コミを作ります。**販促モデル**の計算は確率ルールです。公開用の静的デモはLLMを使わず生成します。
+
+> **⚠ 仮説検証用のトイモデルです。予測ではありません。**
+> 住民・店舗の行動・売上・販促係数は架空・仮置きです。OSM/GSI由来なのは地図形状・地形・地名ラベルのみです。実店舗の業績や住民の行動データは使用していません。
+> 営業時間・来店確率などを実測で校正していないため、実際の来店数・売上・通行量の予測には使えません。
 
 ## すぐ試す（設定不要）
 
-```bash
-uvx --from git+https://github.com/haginot/asagaya-town-sim.git asagaya-town-sim demo          # シナリオ・3案の数値を表示
-uvx --from git+https://github.com/haginot/asagaya-town-sim.git asagaya-town-sim demo --serve  # 続けてWeb UIを開く
-```
-
-- `demo` … 4シナリオ（ベースライン／新カフェ／駅前イベント／雨の日）と、駅前の角3案（駐輪場維持／カフェ／広場）を実行して表を表示。既定は900人×5シードで数秒
-- `serve` … Web UI（地図アニメーション＋比較画面 `#compare`）を http://127.0.0.1:8765/ で起動
-- `build -o out` … `out/index.html` と `out/results.json` を書き出す
-- 主なオプション: `--residents 400 --visitors 350 --commuters 150`（合計1000人程度まで数秒〜十数秒）、`--seeds 5`、`--json`、`--no-open`、`--port`
-
-依存ライブラリはありません（Python 3.9以上の標準ライブラリのみ）。地図タイルとLeafletはCDNから読むため、Web UIの表示にはネット接続が必要です。
-
-## 3D版（v0.3）
-
-`asagaya-town-sim demo --serve` の既定画面は three.js の3D版です（2D版は `/2d.html`）。エンジンの出力JSONをそのまま読み、
-OSMの建物3,045棟（高さはOSMの height / building:levels、無い建物は駅からの距離で推定）を国土地理院の標高タイル（DEM5A/DEM10B）の地形に載せています。
-街路樹・街灯・屋上設備は手続き生成（シード固定）です。
-
-- 住民（青）・電車来訪者（橙）・通勤者（桃）が歩き、中央線が着くと人が降りてきます
-- シミュレーション時刻で昼→夕方→夜に変わり、人通りの多い通りが光ります。店の上の数字はモデル内の来訪数です
-- 駅前の角を 駐輪場 / カフェ / 広場 に切り替えると3Dの形と数値（通行量・平均滞在・売上のおもちゃ試算）が変わります
-- `--area koenji` で高円寺版（実験的。OSMから同じ手順で作成）
-- URLパラメータ: `?scenario=rain|event|newcafe&alt=bike|cafe|plaza&t=分&cam=intro|site&timelapse=1050,1380&compare=1&hideui=1&area=koenji`
-
-静的に動かす場合はリポジトリ直下で `python3 -m http.server` して `web3d/sol/` を開きます（`web3d/data/engine*.json` は `python3 tools/export_engine.py` で再生成）。
-
-### 売上の「おもちゃ試算」（予測ではありません）
-`toy_total = site_visits × 客単価 + (駐輪案のみ bike_users × 駐輪料金) + (nearby_shop_visits − 駐輪案の nearby_shop_visits) × 周辺客単価`。
-仮定: カフェ客単価 650円、広場・駐輪場の区画売上 0円、駐輪料金 100円/回、周辺150m店舗の客単価 800円（`model.py` の `TOY_*`）。
-来訪数・通行量・滞在はエンジンの3シード平均で、仮定の単価を掛けただけの数字です。
-
-### モデルバトル
-`web3d/sol`（既定）、`web3d/astra`、`web3d/terra` は同じ指示・同じデータで Codex CLI の別モデルに作らせた3つのレンダラーです。
-
-## モデルの中身
-
-| 要素 | 内容 |
-|---|---|
-| 住民 | 会社員・子育て世帯・学生・高齢者・在宅ワーカー。属性ごとの確率ルールで1日の予定を作る。自宅は駅から60〜420mの道路ノード |
-| 電車の乗降客（外部エージェント） | JR中央線・阿佐ケ谷駅で降車して町に入り、用事の後に駅へ戻って乗車する。「来訪者」（飲食・買い物・イベント）と「町内勤務者」の2種。降車時刻は通勤型の駅を想定した時間分布（仮定値）。住民の通勤・通学による乗車／降車も集計 |
-| 行き先の選択 | 「魅力度 × exp(−距離/200m)」（雨は120m）で確率的に選ぶ。**営業時間外の店は選ばない**（すべてのPOIにカテゴリ別の仮定営業時間。閉店時刻で退店。全候補が閉まっていれば断念として計上） |
-| ついで寄り（誘発需要） | 歩いている途中で店の30m以内を通ると、カテゴリ別の確率×魅力度で予定外に立ち寄る（1人1日2回まで、営業中のみ）。新しい店は計画来店に加えて通りがかりの来店を生む |
-| 移動 | 道路網の最短経路（ダイクストラ）。徒歩78m/分（雨65m/分）。自転車通勤者は駐輪場まで自転車、そこから駅まで徒歩 |
-| 比較 | 駅前の角（駅の北東約70m）だけを入れ替え、同じ住民・同じ乱数（共通乱数法）で3案を並べて比較 |
-| LLM（任意） | `OPENAI_API_KEY` があれば住民のうち8人（`--llm-agents`）の予定をLLMが作り、比較画面に口コミを表示。`OPENAI_BASE_URL`・`ASAGAYA_LLM_MODEL`（既定 gpt-4o-mini）で変更可。キーが無い・失敗した場合はルールベースに自動で戻る。`--no-llm` で無効化。応答は `~/.cache/asagaya-town-sim/` にキャッシュ |
-
-### 比較画面の指標
-- 区画の通行量：評価区画（半径40m）を通過した延べ回数
-- 区画への来訪・うちついで寄り・平均滞在・延べ滞在（人・分）
-- 周辺150m店舗の来訪（広場による回遊・カフェによる取り合いの両方が出る）
-- 既存カフェの来訪（新カフェによる共食い）
-- 駐輪場移転による追加徒歩：区画の駐輪場をやめると、自転車通勤者は約300m先の代替駐輪場を使う（仮定）
-
-## 開発
+本体はPython 3.9以上、実行時依存ライブラリなしです。リポジトリ公開後は次で実行できます。
 
 ```bash
-uv venv && uv pip install -e . pytest && .venv/bin/pytest -q
+uvx --from git+https://github.com/haginot/asagaya-town-sim.git asagaya-town-sim demo --no-llm
+uvx --from git+https://github.com/haginot/asagaya-town-sim.git asagaya-town-sim promo demo --serve --no-open --port 8765
 ```
 
-`prototype/` は最初の20人版（networkx/matplotlib使用）。
+ローカルcheckoutからは `python3 -m pip install .` で導入できます。
 
-## ライセンス・出典
-- コード: MIT
-- 地図データ: © OpenStreetMap contributors（ODbL）。`src/asagaya_town_sim/data/asagaya_osm.geojson`
-- 店名はOSM上の名称で、各店舗とは無関係です。シミュレーション上の来店数は架空の値です。
-- 着想: Generative Agents、駅の乗降客を外部エージェントとして扱うシミュレーション、複数案を並行して比べる都市計画シミュレーションの事例
-- 標高: 国土地理院 標高タイル（3D版の地形）。three.js (MIT) を同梱。
-
-## 店舗販促シミュレーション / Store promotion simulation (toy model)
-
-```sh
-uvx --from git+https://github.com/haginot/asagaya-town-sim asagaya-town-sim promo demo --serve
+```bash
+asagaya-town-sim demo --no-llm
+asagaya-town-sim serve --no-llm
+asagaya-town-sim demo --json --seeds 1 --no-llm
+asagaya-town-sim build --no-llm -o out
 ```
 
-架空カフェ「ひだまり珈琲」 / fictional Hidamari Coffee uses fictional residents, spending,
-channel response and business data. トイモデル / toy model: coefficients are placeholders,
-not a forecast. Existing street geometry supplies home locations; no real store performance
-or resident information is used.
+`serve` の3D画面は `http://127.0.0.1:8765/`、2D比較は **`http://127.0.0.1:8765/2d.html#compare`** です。`build` は3D・2D・指標JSON・出典文書を出力します。2DのLeafletと地図タイルにはネット接続が必要です。`--no-llm` の計算と同梱3D資材はオフラインで動きます。
 
-`promo demo --json` exports metrics and timelines. `promo build -o /tmp/promo_site` writes
-a self-contained static site. Both accept `--config FILE`, `--days D`, and `--seeds N`.
-`demo --serve --no-open --port 8765` serves without opening a browser.
-The new page shows up to four combinations with one identical camera, a store beam,
-funnel colors, and live counters. Use
-`/promo/?combos=none,sns_only,sns%2Bcoupon,all_four&speed=30`.
-`speed` is the real duration in seconds for the entire simulation period (default 30),
-including when `--days` changes. `window.__promoState` exposes data, selected combinations,
-duration, current frame/day, live metrics and readiness or an error for debugging.
-Frames and live metrics use seed 0; CLI metrics average seeds 0 through N−1.
-At most 300 simulated agents are recorded. `population=400` and `agent_scale=5`
-represent 2,000 fictional residents; visits, redemptions and gross profit use this scale,
-while animation dots and funnel counts represent simulated agents.
+## 町の1日
 
-Every behavioral/environmental/economic coefficient in
-`src/asagaya_town_sim/data/promo.json` is a **fictional placeholder**. JSON partial overrides
-recursively merge dictionaries; lists replace defaults. TOML overrides work on Python 3.11+
-with stdlib `tomllib`; use JSON on Python 3.9/3.10.
+阿佐ケ谷駅周辺の道路・POIを使い、住民400人・電車来訪者350人・町内勤務者150人の1日（5〜24時）を動かします。
+営業時間内の行き先選択、徒歩の最短経路、ついで寄り、乗車・降車をモデル化します。3案は同じ住民・同じ乱数で比較します。
 
-| Metric | Definition and config keys |
+- 3Dの代替案・雨・イベントを選ぶと、形・軌跡・ヒートマップ・数値が対応する同じ計算結果へ切り替わります。軌跡はseed 0、日次指標とヒートマップはシード平均です。
+- 通過は半径40m区画内を連続して通る区間を1回とし、道路ノードの分割数による重複を除きます。通った実人数は別指標です。来訪は訪問回数で、同じ人の再訪も含みます。
+- 周辺150m店舗はPOI IDで区別し、`cafe / food / bar / grocery / shop` のみを集計します。公園・学校等は周辺売上の対象外です。
+- 寄り道・通常訪問とも閉店時刻で退店します。営業時間と徒歩速度（通常78m/分・雨65m/分）は仮定値です。
+- `--area koenji` は高円寺版（実験的）。通常CLI出力は指定エリアのみです。両エリアを切り替える場合は同梱静的デモ・Pagesビルドを使います。
+- `--residents / --visitors / --commuters / --record` は0以上、`--seeds` は1以上。`--record` は表示軌跡の抽出間隔を指定するための目安で、厳密な上限人数ではありません。
+- URL例：`?scenario=rain&alt=cafe&cam=site&compare=1&speed=0&t=1200`。`scenario=newcafe` は通常日＋カフェの別名です。
+
+### 区画収入＋周辺売上差分（仮定）
+
+`合計 = 区画来訪 × 仮定客単価 + 駐輪収入 + (周辺店舗来訪 − 同条件の駐輪案の周辺店舗来訪) × 仮定周辺客単価`。
+カフェ650円/回、駐輪100円/回、周辺店舗800円/回です。これは区画の収入と周辺の売上差分を足した指標です。店舗単体の売上や地域全体の売上には相当しません。内訳を画面にも表示します。
+
+同梱静的デモ・Pagesは3シード平均、CLIは既定5（`--seeds` で変更可）。阿佐ケ谷・通常日の再生成結果：
+
+<!-- town-results:start -->
+| 案 | 通過（回/日） | 実人数（人/日） | 区画来訪 | 平均滞在（分） | 周辺店舗来訪 | 区画売上 ¥ | 駐輪収入 ¥ | 周辺売上差分 ¥ | 合計（仮定）¥ |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 駐輪場 | 555 | 276 | 0 | 0 | 779.7 | 0 | 4,100 | 0 | 4,100 |
+| カフェ | 539 | 265.3 | 41.7 | 40.7 | 773.3 | 27,105 | 0 | -5,120 | 21,985 |
+| 広場 | 549 | 267.3 | 48 | 26.2 | 785.3 | 0 | 0 | 4,480 | 4,480 |
+<!-- town-results:end -->
+
+3DではOSM由来の建物を、国土地理院の標高タイル（DEM5A/DEM10B）を加工した地形に置きます。高さ不明の建物・街路樹・街灯・降車演出等には推定・装飾を含みます。追加の降車演出は計算上の住民ではありません。
+`web3d/sol`（既定）・`web3d/astra`・`web3d/terra` は同じ制作指示から作った3つのレンダラーです。
+
+### 任意のLLM
+
+`OPENAI_API_KEY` がある場合、既定8人（`--llm-agents`）の予定と架空の口コミにLLMを使います。キーなし・API失敗時は確率ルールへ戻り、`--no-llm` で無効にできます。架空の属性・予定をAPIへ送り、利用料が発生し得ます。
+`ASAGAYA_LLM_MODEL` の既定は `gpt-4o-mini`、`OPENAI_BASE_URL` の既定は `https://api.openai.com/v1`。HTTPSを使用し、HTTPは明示指定したループバック開発用のみ、リダイレクトは拒否します。
+応答キャッシュは `XDG_CACHE_HOME`（既定 `~/.cache`）内の `asagaya-town-sim/llm.json` です。
+
+## 店舗販促14日間
+
+架空カフェ「ひだまり珈琲」に対し、施策なし・SNS広告・チラシ看板・広報メディア・クーポンと組合せを比較します。来訪増と費用回収の関係を試す実験です。
+
+```bash
+asagaya-town-sim promo demo --serve --no-open --port 8765
+asagaya-town-sim promo demo --json
+asagaya-town-sim promo build -o /tmp/promo_site
+```
+
+ブラウザは `http://127.0.0.1:8765/promo/`。既定4画面は「施策なし」「SNS広告」「SNS広告＋クーポン」「全4施策」で、同じカメラ・住民・乱数を使います。
+青は認知、黄色は来訪意向、橙は初訪問、赤は再訪です。点の位置は自宅と店舗の模式的な補間で、道路上の経路や同時在店人数を表しません。
+
+**画面・動画の途中経過はseed 0の1試行、表・CLIは既定8試行の平均です。** 各パネルに試行と平均ROIを併記し、再生終了後に平均・95%区間を示します。
+全4施策はseed 0で810来訪・ROI **+27.0%**、8試行平均では740.62来訪・ROI **−3.0%**。同じモデルでも乱数により符号が変わります。来訪が増えても費用を回収できるとは限りません。
+
+表示サンプルは既定200体（上限300体）、総エージェント400体、人口倍率5で架空住民2,000人分を表します。来訪・クーポン利用・利益は人口倍率込み、点・認知段階の集計はエージェント単位です。店舗ラベルは「この時間枠の表示サンプルの来訪」で、全体の枠別来訪も別表示します。
+
+### 主要指標
+
+| 指標 | 定義 |
 | --- | --- |
-| Visits / 来訪 | Visit episodes (including repeat visits), multiplied by `agent_scale`, driven by `organic_visit`, `aware_to_want`, `want_to_visit`, `repeat_visit` and `channels.*` reach/conversion boosts. One resident can visit once per time slot. |
-| Uplift / 増分 | Mean over seeds of visits(combo) − visits(none), using common random numbers within each seed; percent divides by that seed’s baseline visits (null if zero). |
-| Would have come anyway / 元々来訪 | Share of promotion visit episodes whose same agent also visits on the same day and time slot in the paired baseline. Summary pools episode counts across seeds; live counters use seed 0. It is at most baseline visits / promotion visits, and is 1 for `none`. Empty visit sets return 1 by convention. |
-| Incremental gross profit / 増分粗利 | Uplift × `store.avg_spend` × `store.margin`, before discounts. |
-| Discount cost / 割引費 | Scaled redeemed visits × `coupon_discount` (¥200 off ¥900 placeholder spend). Includes visitors who would have come anyway. `coupon_redeem_rate` controls redemption after coupon exposure. |
-| Cost / 費用 | Sum of channel `fixed_cost` plus `daily_cost` for each simulated day in `active_days` (zero-based). Fictional yen. |
-| ROI | (Incremental gross profit − discount cost − channel cost) / channel cost; null / N/A for zero cost. Averaged across seeds; the anyway share instead pools episodes. |
+| 来訪 | 再訪を含む訪問回数 × 人口倍率。同一人物は1時間枠に最大1回 |
+| 増分 | 同一seedの施策あり来訪 − 施策なし来訪の平均。増分%は各seedのベースライン比（0ならN/A） |
+| 重複来訪（元々来訪） | ベースラインと同一人物・同一日・同一時間枠で重なる来訪割合。複数seedは来訪回数で重み付け。来訪0はN/A |
+| 増分粗利 | 増分来訪 × 仮定客単価900円 × 仮定粗利率65%。割引前 |
+| 割引費 | 人口倍率込みクーポン利用回数 × 仮定割引200円。元々来訪する人への割引も含む |
+| 全期間チャネル費 | 各施策の固定費＋対象期間の有効日の運用費。SNS6万円・チラシ看板4万円・PR10万円・クーポン設定3万円（仮定） |
+| 総費用・増分利益 | 総費用＝割引費＋チャネル費。増分利益＝増分粗利−総費用 |
+| ROI（チャネル費基準、%） | `(増分粗利 − 割引費 − チャネル費) / チャネル費 × 100`。分母に割引費は含めない。0%が損益分岐、チャネル費0はN/A |
 
-`channels` defines `sns_ad`, `flyer_signboard`, `pr_media`, and `campaign_coupon`.
-`daily_reach` applies on `active_days`; flyer reach decreases linearly with home distance
-to the store out to `proximity_radius_m`. `word_of_mouth` spreads awareness through a
-fixed synthetic contact network (`contacts`), including visited residents.
-PR has a single `coverage_probability` draw per seed; its ¥100,000 campaign cost is paid
-even without coverage. SNS costs ¥60,000, flyers/signboard ¥40,000, and coupon setup
-¥30,000; coupon redemption discounts are additional. These are fictional campaign yen.
-Exposure strength decays with `half_life_days`, while achieved funnel states remain
-monotonic. `aware_to_want_boost` and `want_to_visit_boost` scale with that strength.
-The strongest channel response wins, then `boost_saturation` smoothly caps it;
-additional channels broaden exposure with diminishing returns.
-An organic visitor can pass through the early funnel within one slot.
+途中のROIは**累積増分粗利と累積割引費から全期間チャネル費を引く**定義です。初期の−100%は全期間費用を先に計上した途中経過です。画面に3つの金額も併記します。
+既定14日・seed 0〜7の結果。角括弧は独立seedの平均に対する両側95% Student t区間で、乱数の変動だけを表します。仮置き係数の不確実性は含みません。1試行は区間なしです。
 
-`weather.sequence` cycles when provided; otherwise `weather.probabilities` draws daily
-sunny/cloudy/rain conditions. `weather.multipliers`, `weekday_multipliers` (Monday first),
-`start_weekday`, `hours`/`hour_multipliers`, `event.day`/`boost`, and
-`competitor.days`/`penalty` multiply visit intent. These also affect organic visits.
-`population`, `days`, `seeds`, `record_agents`, and `combinations` control the run and export.
-Daily reach is converted to per-slot probability; word of mouth is added per slot.
-Channel costs stop after active days, but awareness and decaying effects persist.
+<!-- promo-results:start -->
+| 組合せ | 来訪 | 増分 [95%区間] | 重複来訪 | 割引費 ¥ | チャネル費 ¥ | 総費用 ¥ | 増分利益 ¥ | ROI（チャネル費基準、%）[95%区間] |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| none | 214.38 | 0.00 [0.00, 0.00] | 100.0% | 0 | 0 | 0 | 0 | N/A |
+| sns_only | 423.75 | 209.38 [167.90, 250.85] | 50.6% | 0 | 60,000 | 60,000 | 62,484 | 104.14 [63.70, 144.58] |
+| flyer_only | 338.75 | 124.38 [95.54, 153.21] | 63.3% | 0 | 40,000 | 40,000 | 32,759 | 81.90 [39.73, 124.06] |
+| pr_only | 291.25 | 76.88 [-13.71, 167.46] | 73.6% | 0 | 100,000 | 100,000 | -55,028 | -55.03 [-108.02, -2.04] |
+| coupon_only | 416.25 | 201.88 [164.75, 239.00] | 51.5% | 50,125 | 30,000 | 80,125 | 37,972 | 126.57 [70.96, 182.19] |
+| sns+coupon | 643.12 | 428.75 [366.51, 490.99] | 33.3% | 76,375 | 90,000 | 166,375 | 84,444 | 93.83 [61.60, 126.06] |
+| all_four | 740.62 | 526.25 [443.06, 609.44] | 28.9% | 84,750 | 230,000 | 314,750 | -6,894 | -3.00 [-21.11, 15.12] |
+<!-- promo-results:end -->
 
-Default 14-day run, seeds 0–7: baseline 214.38 visits for 2,000 represented residents
-(10.7 visit episodes per 100 residents). The following numbers are illustrative outputs,
-not calibration against measured cafe data. Brackets are two-sided 95% Student t
-intervals for the mean across independent seeds; they describe seed variation only,
-not uncertainty in placeholder coefficients. One seed gives no interval; zero channel
-cost gives no ROI. Intervals are not clipped to physically possible outcome ranges.
+### 設定の詳細
 
-| Combination | Visits | Uplift [95% interval] | Anyway | Discount ¥ | Channel ¥ | ROI [95% interval] |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| none | 214.38 | 0.00 [0.00, 0.00] | 100.0% | 0 | 0 | N/A |
-| sns_only | 423.75 | 209.38 [167.90, 250.85] | 50.6% | 0 | 60,000 | 1.04 [0.64, 1.45] |
-| flyer_only | 338.75 | 124.38 [95.54, 153.21] | 63.3% | 0 | 40,000 | 0.82 [0.40, 1.24] |
-| pr_only | 291.25 | 76.88 [−13.71, 167.46] | 73.6% | 0 | 100,000 | −0.55 [−1.08, −0.02] |
-| coupon_only | 416.25 | 201.88 [164.75, 239.00] | 51.5% | 50,125 | 30,000 | 1.27 [0.71, 1.82] |
-| sns+coupon | 643.12 | 428.75 [366.51, 490.99] | 33.3% | 76,375 | 90,000 | 0.94 [0.62, 1.26] |
-| all_four | 740.62 | 526.25 [443.06, 609.44] | 28.9% | 84,750 | 230,000 | −0.03 [−0.21, 0.15] |
+`src/asagaya_town_sim/data/promo.json` の行動・環境・経済係数はすべて仮定値です。`--config FILE` でJSONを部分上書きでき、辞書は再帰マージ・リストは置換します。TOMLはPython 3.11以上、3.9/3.10はJSONを使ってください。`--days D`・`--seeds N` も指定できます。
 
-All combinations use identical pre-generated random draws, homes, contacts and weather
-within each seed. This allows direct counterfactual comparison inside this toy world;
-it does not establish real-world causality. There are no capacity limits, calibrated
-responses, validated contact networks, measured acquisition costs or demand estimates.
-Positions are illustrative home/store samples with interpolation, not walking routes.
-Sensitivity to the placeholder coefficients can be substantial.
+`channels` は `sns_ad / flyer_signboard / pr_media / campaign_coupon`。有効日の `daily_reach` を時間枠ごとの確率に変換します。チラシ到達率は自宅距離で線形減衰し、固定の架空接触網で口コミが広がります。PR掲載はseedごとの1回の抽選で、未掲載でも費用が発生します。効果は `half_life_days` で減衰し、認知段階は戻りません。複数施策の反応は最大効果と飽和を使い、単純加算しません。
 
-To build, serve and record 30 seconds with bilingual captions, run
-`bash tools/record_promo.sh`. It requires the same Playwright/browser and ffmpeg setup
-as `tools/record3d.py`. The helper sets `CAPS` JSON, serves only on localhost, and writes
-`promo.mp4` in the current directory. It is intended to be run manually.
+天候・曜日・時間・イベント・競合条件が来訪意向に掛かります。人口・日数・表示対象数等も設定可能です。実測の需要・獲得費・接触網・供給能力には合わせていません。現実の因果効果を立証するものではありません。
+`/promo/?combos=none,sns_only,sns%2Bcoupon,all_four&speed=30` の `speed` は全期間の再生秒数です。`window.__promoState` は使用データ・フレーム・指標・準備状態を公開します。
 
-## Static Pages / 静的サイト
+## 30秒動画
 
-```sh
+公開動画URLは公開・録画担当が後で追加します。現時点では公開操作・再録画を行っていません。
+`bash tools/record_promo.sh` は25秒で14日間を再生し、最後の5秒で8試行平均と95%区間を表示する、日英字幕付き30秒動画を `promo.mp4` に保存します。
+Playwright Chromiumとffmpegが必要です。字幕専用帯とOSM・ODbL・国土地理院の加工クレジットを画面に保持します。
+投稿説明欄にも [OSM帰属](https://www.openstreetmap.org/copyright)・[ODbL](https://opendatacommons.org/licenses/odbl/1-0/)・[国土地理院](https://maps.gsi.go.jp/development/ichiran.html)・[加工済みデータ取得先（Pages公開後）](https://haginot.github.io/asagaya-town-sim/web3d/data/index.html)を記載してください。
+
+## 静的サイト・再生成・開発
+
+```bash
 uv run python tools/build_pages.py --out _site
 python3 -m http.server --directory _site
 ```
 
-Precomputed 3D, promotion 2×2 and 2D views; no Python server is needed on Pages.
-2D uses external Leaflet and OSM tiles. 出典・ライセンス / attribution: [NOTICE](NOTICE).
-[Pages](https://haginot.github.io/asagaya-town-sim/) (公開後 / after publishing).
-The manual workflow requires Pages enabled after the repository is public.
+Pages用は両エリアと販促を事前計算します。公開は手動workflowです。ビルドだけでは公開しません。
+同梱JSONとREADME表の更新順序：
 
-30秒デモ動画 / 30 s demo video: 準備中 / coming after publishing.
-<!-- 30 s demo: to be uploaded as GitHub release asset or user-attachments link after going public -->
+```bash
+uv run python tools/export_engine.py asagaya web3d/data/engine.json
+uv run python tools/export_engine.py koenji web3d/data/engine_koenji.json
+uv run asagaya-town-sim promo build -o /tmp/promo_site
+cp /tmp/promo_site/data/promo.json web3d/data/promo.json
+uv run python tools/update_readme_tables.py
+```
+
+開発にはPythonと **Node.js 20以上** が必要です。
+
+```bash
+uv venv
+uv pip install -e . pytest
+uv run pytest -q
+node --experimental-vm-modules web3d/sol/verify.mjs
+node --experimental-vm-modules web3d/astra/check.mjs
+node --experimental-vm-modules web3d/promo/verify.mjs
+python3 tools/update_readme_tables.py --check
+```
+
+`prototype/` は最初の20人版（NetworkX・NumPy・Matplotlibが別途必要）です。
+
+## ライセンス・出典
+
+コードは[MIT](LICENSE)。OSM由来の両地域GeoJSON・建物・engineの道路/POIは[ODbL 1.0](https://opendatacommons.org/licenses/odbl/1-0/)、© OpenStreetMap contributorsです。国土地理院の標高タイルを加工して地形を作成しています。店名はOSM由来で各店舗とは無関係です。
+同梱three.js、CDNのLeaflet、開発・生成依存、対象データの範囲は[NOTICE](NOTICE)を参照してください。出力サイトには同じNOTICEと加工済みデータの取得ページを含めます。

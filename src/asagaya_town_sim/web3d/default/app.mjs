@@ -4,7 +4,7 @@ import { Batch, basic, standard, ll, initWorld, terrainHeight, random, palette, 
 window.__ready = false;
 const $ = id => document.getElementById(id);
 const params = new URLSearchParams(location.search);
-const scenarioKeys = ['baseline', 'rain', 'event', 'newcafe'], altKeys = ['bike', 'cafe', 'plaza'];
+const scenarioKeys = ['baseline', 'rain', 'event'], altKeys = ['bike', 'cafe', 'plaza'];
 const finite = (v, fallback) => v !== null && v !== '' && Number.isFinite(Number(v)) ? Number(v) : fallback;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const cameraMode = ['intro', 'site'].includes(params.get('cam')) ? params.get('cam') : '';
@@ -16,7 +16,7 @@ const timelapse = lapseParts.length === 2 && lapseParts.every(v => v.trim() !== 
 const hideUI = params.get('hideui') === '1', compare = params.get('compare') === '1';
 const state = {
   scenario: scenarioKeys.includes(params.get('scenario')) ? params.get('scenario') : 'baseline',
-  alt: altKeys.includes(params.get('alt')) ? params.get('alt') : 'bike',
+  alt: params.get('scenario') === 'newcafe' ? 'cafe' : altKeys.includes(params.get('alt')) ? params.get('alt') : 'bike',
   t: clamp(finite(params.get('t'), 1108.65), 360, 1439.99),
   speed: clamp(finite(params.get('speed'), 1), 0, 120),
   orbit: params.get('orbit') !== '0', playing: true, ui: params.get('ui') !== '0' && !hideUI
@@ -55,12 +55,12 @@ async function start() {
   renderer.shadowMap.autoUpdate = false;
   $('world').append(renderer.domElement);
   const defaultEngine = await fetchJSON('../data/engine.json');
-  const area = ['asagaya', 'koenji'].includes(params.get('area')) ? params.get('area')
+  const area = (defaultEngine.available_areas || ['asagaya', 'koenji']).includes(params.get('area')) ? params.get('area')
     : defaultEngine.area === 'koenji' ? 'koenji' : 'asagaya';
   const suffix = area === 'koenji' ? '_koenji' : '';
   const [buildings, engine, terrain] = await Promise.all([
     fetchJSON(`../data/buildings${suffix}.json`),
-    suffix ? fetchJSON(`../data/engine${suffix}.json`) : defaultEngine,
+    area === (defaultEngine.area || 'asagaya') ? defaultEngine : fetchJSON(`../data/engine${suffix}.json`),
     fetchJSON(`../data/terrain${suffix}.json`)
   ]);
   initWorld(buildings, terrain, exag, finite(params.get('seed'), 4281));
@@ -122,7 +122,7 @@ async function start() {
   figure.add(new THREE.CapsuleGeometry(.48, 2.04, 4, 8), 0, 1.5, 0, 1, 1, 1, 0xffffff);
   const personMat = basic({ toneMapped: false });
   const figureGeometry = figure.geometry();
-  const capacity = Math.max(...Object.values(engine.scenarios).map(s => s.tracks.length));
+  const capacity = Math.max(...['scenarios', 'alternatives', 'scenario_alternatives'].flatMap(g => Object.values(engine[g] || {}).map(s => s.tracks.length)));
   const agents = new THREE.InstancedMesh(figureGeometry, personMat, capacity); agents.instanceMatrix.setUsage(THREE.DynamicDrawUsage); agents.frustumCulled = false; scene.add(agents); agents.name = 'Recorded people';
   const tokens = new THREE.InstancedMesh(new THREE.CircleGeometry(1.7, 12).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: .25, depthWrite: false, toneMapped: false }), capacity); tokens.instanceMatrix.setUsage(THREE.DynamicDrawUsage); tokens.frustumCulled = false; scene.add(tokens);
   const dummy = new THREE.Object3D();
@@ -257,8 +257,9 @@ async function start() {
   function updateBadges() {
     for (const b of badges) b.el.remove(); badges = [];
     const candidates = [];
-    for (const [name, count] of activeData.summary.top_pois || []) {
-      const matches = [...engine.pois, ...(activeData.extra || [])].filter(p => p.name === name && ['cafe', 'food', 'shop', 'grocery', 'bar'].includes(p.cat));
+    for (const item of activeData.summary.poi_visits || []) {
+      const count = item.visits;
+      const matches = [...engine.pois, ...(activeData.extra || [])].filter(p => p.id === item.id && ['cafe', 'food', 'shop', 'grocery', 'bar'].includes(p.cat));
       matches.sort((a, b) => ll(a.lat, a.lon).length() - ll(b.lat, b.lon).length());
       if (matches.length) candidates.push({ p: matches[0], count });
     }
@@ -270,7 +271,8 @@ async function start() {
     }
   }
   function updateScenario() {
-    activeData = engine.scenarios[state.scenario]; tracks = prepareTracks(activeData);
+    activeData = state.scenario === 'baseline' ? engine.alternatives[state.alt] : engine.scenario_alternatives[`${state.scenario}:${state.alt}`];
+    tracks = prepareTracks(activeData);
     if (heat) disposeGroup(heat.group); heat = buildHeat(scene, activeData);
     const wet = state.scenario === 'rain';
     rain.visible = wetPatches.visible = wetSheen.visible = wet; eventGroup.visible = state.scenario === 'event';
@@ -284,26 +286,27 @@ async function start() {
     updateBadges();
   }
   function updateAlternative() {
+    updateScenario();
     disposeGroup(alternative); alternative = buildAlternative(scene, state.alt, site);
     renderer.shadowMap.needsUpdate = true;
-    const summary = engine.alternatives[state.alt].summary;
+    const summary = activeData.summary;
     $('site-visits').textContent = Math.round(summary.site_visits).toLocaleString();
-    $('foot-traffic').textContent = Math.round(engine.toy_econ?.alts[state.alt]?.foot_traffic ?? summary.site_foot_traffic).toLocaleString();
+    $('foot-traffic').textContent = Math.round(summary.site_foot_traffic).toLocaleString();
     $('shop-visits').textContent = Math.round(summary.nearby_shop_visits).toLocaleString();
     $('bike-walk').replaceChildren(document.createTextNode(Math.round(summary.bike_extra_walk_min_total).toLocaleString()));
     const unit = document.createElement('em'); unit.textContent = ' min'; $('bike-walk').append(unit);
-    const econ = engine.toy_econ;
+    const econ = engine.toy_econ_by_scenario?.[state.scenario] || engine.toy_econ;
     const toy = econ?.alts[state.alt];
-    const salesText = value => value == null ? 'Toy sales estimate unavailable' : `toy sales estimate ¥${Math.round(value).toLocaleString()}/day (toy assumption, not a forecast)`;
+    const salesText = value => value == null ? 'Income + nearby change unavailable' : `区画収入＋周辺売上差分（仮定） / Site income + nearby sales change ¥${Math.round(value).toLocaleString()}/day`;
     $('dwell-min').textContent = toy ? Number(toy.dwell_min).toFixed(1) : '—';
     $('toy-sales').textContent = salesText(toy?.toy_total_yen);
-    $('econ-formula').textContent = econ ? `Formula: ${econ.assumptions.formula}` : '';
+    $('econ-formula').textContent = toy ? `Site sales ¥${toy.site_sales_yen.toLocaleString()} + bike fees ¥${toy.bike_fee_yen.toLocaleString()} + nearby change ¥${toy.nearby_delta_yen.toLocaleString()}. Formula: ${econ.assumptions.formula}` : '';
     const siteTitle = document.createElement('strong');
     siteTitle.textContent = `STATION CORNER · ${{ bike: 'Bike parking', cafe: 'Corner café', plaza: 'Pocket plaza' }[state.alt]}`;
     const siteNumbers = document.createElement('span');
-    siteNumbers.textContent = `${$('foot-traffic').textContent} foot traffic/day · ${$('dwell-min').textContent} min dwell`;
+    siteNumbers.textContent = `${$('foot-traffic').textContent} passages/day · ${summary.site_unique_people} people/day · ${$('dwell-min').textContent} min dwell`;
     const siteSales = document.createElement('span');
-    siteSales.textContent = toy ? `Toy sales ¥${Math.round(toy.toy_total_yen).toLocaleString()}/day` : 'Toy sales unavailable';
+    siteSales.textContent = toy ? `Income + nearby change ¥${Math.round(toy.toy_total_yen).toLocaleString()}/day (assumed)` : 'Income + nearby change unavailable';
     siteLabel.el.replaceChildren(siteTitle, siteNumbers, siteSales);
     $('compare-bar').hidden = !compare;
     $('compare-bar').replaceChildren();
@@ -313,7 +316,7 @@ async function start() {
       card.dataset.compareAlt = key; card.setAttribute('aria-pressed', key === state.alt);
       const title = document.createElement('strong'); title.textContent = { bike: 'Bike parking', cafe: 'Corner café', plaza: 'Pocket plaza' }[key];
       const numbers = document.createElement('span');
-      numbers.textContent = metrics ? `${Math.round(metrics.foot_traffic).toLocaleString()} foot traffic · ${Number(metrics.dwell_min).toFixed(1)} min avg dwell` : 'Metrics unavailable';
+      numbers.textContent = metrics ? `${Math.round(metrics.foot_traffic).toLocaleString()} passages · ${Number(metrics.dwell_min).toFixed(1)} min avg dwell` : 'Metrics unavailable';
       const sales = document.createElement('b'); sales.textContent = salesText(metrics?.toy_total_yen);
       card.append(title, numbers, sales); card.onclick = () => { state.alt = key; updateAlternative(); };
       $('compare-bar').append(card);
@@ -321,7 +324,7 @@ async function start() {
     $('alt-tag').textContent = state.alt.toUpperCase();
     document.querySelectorAll('[data-alt]').forEach(b => { b.classList.toggle('active', b.dataset.alt === state.alt); b.setAttribute('aria-pressed', b.dataset.alt === state.alt); });
   }
-  updateScenario(); updateAlternative();
+  updateAlternative();
 
   let azimuth = 2.75, elevation = .76, distance = innerWidth < 761 ? 510 : 525;
   const target = new THREE.Vector3(0, terrainHeight(0, -8), -8);
@@ -368,12 +371,15 @@ async function start() {
   $('speed').onclick = () => { state.speed = speeds.find(s => s > state.speed) || 1; $('speed').textContent = `${state.speed}×`; };
   $('speed').textContent = `${state.speed}×`;
   $('time').oninput = event => { state.t = Number(event.target.value); };
-  document.querySelectorAll('[data-scenario]').forEach(button => button.onclick = () => { state.scenario = button.dataset.scenario; updateScenario(); });
+  document.querySelectorAll('[data-scenario]').forEach(button => button.onclick = () => { state.scenario = button.dataset.scenario; updateAlternative(); });
   document.querySelectorAll('[data-alt]').forEach(button => button.onclick = () => { state.alt = button.dataset.alt; updateAlternative(); });
   window.__set = patch => {
     if (!patch || typeof patch !== 'object') return { ...state };
-    if (scenarioKeys.includes(patch.scenario) && state.scenario !== patch.scenario) { state.scenario = patch.scenario; updateScenario(); }
-    if (altKeys.includes(patch.alt) && state.alt !== patch.alt) { state.alt = patch.alt; updateAlternative(); }
+    let experimentChanged = false;
+    if (scenarioKeys.includes(patch.scenario) && state.scenario !== patch.scenario) { state.scenario = patch.scenario; experimentChanged = true; }
+    if (altKeys.includes(patch.alt) && state.alt !== patch.alt) { state.alt = patch.alt; experimentChanged = true; }
+    if (patch.scenario === 'newcafe') { state.scenario = 'baseline'; state.alt = 'cafe'; experimentChanged = true; }
+    if (experimentChanged) updateAlternative();
     if (patch.t != null && Number.isFinite(Number(patch.t))) state.t = clamp(Number(patch.t), 360, 1439.99);
     if (patch.speed != null && Number.isFinite(Number(patch.speed))) state.speed = clamp(Number(patch.speed), 0, 120);
     if (patch.orbit != null) setOrbit(Boolean(patch.orbit));
@@ -602,7 +608,17 @@ async function start() {
       const pitch = THREE.MathUtils.radToDeg(Math.atan2(p.y - siteFocus.y, horizontal));
       candidates.push({ position: p, score: blocked * 1000 + Math.abs(pitch - 40) * 4 + Math.abs(p.distanceTo(siteFocus) - 100) + Math.abs(angle - 2.6) * .1 });
     }
-    candidates.sort((a, b) => a.score - b.score); siteCamera = candidates[0].position;
+    candidates.sort((a, b) => a.score - b.score);
+    // Footprint bounds omit trees and other street details. Check the actual
+    // city triangles too so regenerated street activity cannot obscure the parcel.
+    city.root.updateMatrixWorld(true);
+    const meshes = city.root.children.filter(o => o.isMesh), ray = new THREE.Raycaster();
+    const visible = candidates.find(candidate => targets.every(target => {
+      const direction = target.clone().sub(candidate.position);
+      ray.set(candidate.position, direction.clone().normalize()); ray.far = direction.length() - .4;
+      return ray.intersectObjects(meshes, false).length === 0;
+    }));
+    siteCamera = (visible || candidates[0]).position;
   }
   function directCamera(seconds) {
     let focus = platform.clone(), radius, angle, height;
@@ -704,7 +720,7 @@ async function start() {
       $('arrival-info').textContent = trainPhase === 'stopped' ? `${arrivalCount} recorded arrivals · decorative passenger burst` : trainPhase === 'approaching' ? '10 cars · doors opening shortly' : 'Chūō rapid · six-minute service';
       lastHUD = now;
     }
-    window.__stats = { area, exag, agentScale, cameraMode, elapsed, time: state.t, scenario: state.scenario, alt: state.alt, train: trainPhase, recordedArrivals: arrivalCount, activeAgents: visiblePeople, decorativePassengers: burst.count, drawCalls: renderer.info.render.calls, triangles: renderer.info.render.triangles };
+    window.__stats = { area, exag, agentScale, cameraMode, elapsed, time: state.t, scenario: state.scenario, alt: state.alt, dataKey: `${state.scenario}:${state.alt}`, trackCount: tracks.length, heatSegments: activeData.heat.length, train: trainPhase, recordedArrivals: arrivalCount, activeAgents: visiblePeople, decorativePassengers: burst.count, drawCalls: renderer.info.render.calls, triangles: renderer.info.render.triangles };
   }
   const readyAt = performance.now();
   let previous = readyAt;

@@ -56,6 +56,31 @@ def is_open(poi, t, need=10):
 IMPULSE = {"cafe": 0.012, "food": 0.006, "grocery": 0.008, "shop": 0.004, "bar": 0.004, "plaza": 0.02}
 IMPULSE_DWELL = {"cafe": 20, "food": 30, "grocery": 8, "shop": 10, "bar": 45, "plaza": 12}
 IMPULSE_RADIUS = 30.0  # m
+# 周辺売上の仮定単価を適用する店舗。公園・学校・医療・公共サービスは含めない。
+SHOP_CATEGORIES = frozenset(("cafe", "food", "bar", "grocery", "shop"))
+
+
+def nonnegative_int(name, value, minimum=0):
+    if isinstance(value, bool) or not isinstance(value, int) or value < minimum:
+        raise ValueError(f"{name} must be an integer >= {minimum}")
+    return value
+
+
+def site_passages(coords, center, radius=40):
+    """徒歩経路と円形区画の連続した交差を数える。道路ノードの分割数に依存しない。"""
+    points = [((p[1]-center[1])*111320*COSLAT, (p[0]-center[0])*111320) for p in coords]
+    count, previous_hit = 0, False
+    for a, b in zip(points, points[1:]):
+        dx, dy = b[0]-a[0], b[1]-a[1]
+        length2 = dx*dx+dy*dy
+        if not length2:
+            continue
+        u = max(0, min(1, -(a[0]*dx+a[1]*dy)/length2))
+        hit = (a[0]+u*dx)**2+(a[1]+u*dy)**2 < radius*radius
+        if hit and not (previous_hit and a[0]**2+a[1]**2 < radius*radius):
+            count += 1
+        previous_hit = hit
+    return count
 
 
 # ---------------------------------------------------------------- 町（地図）
@@ -305,6 +330,8 @@ ALTERNATIVES = {
 
 class Sim:
     def __init__(self, town=None, residents=400, visitors=350, commuters=150, bike_share=0.35, llm=None):
+        for name, value in (("residents", residents), ("visitors", visitors), ("commuters", commuters)):
+            nonnegative_int(name, value)
         self.town = town or Town()
         self.n_res, self.n_vis, self.n_com = residents, visitors, commuters
         self.bike_share = bike_share
@@ -320,7 +347,8 @@ class Sim:
         }
         self.event_poi = dict(id=-2, name="★駅前イベント(仮想)", cat="event", lat=sc[0], lon=sc[1], node=T.station["node"], attr=1.0)
         self.site_nodes = set(T.near_nodes(T.coord[sn], 40))
-        self.site_vicinity = {p["name"] for p in T.pois if dist((p["lat"], p["lon"]), T.coord[sn]) < 150}
+        self.site_vicinity = {p["id"] for p in T.pois if p["cat"] in SHOP_CATEGORIES
+                              and dist((p["lat"], p["lon"]), T.coord[sn]) < 150}
         self.work_pois = [p for p in T.pois if p["cat"] in ("shop", "clinic", "school", "service", "food", "grocery")]
         self._impulse_base = self._impulse_index(T.pois)
 
@@ -335,6 +363,7 @@ class Sim:
 
     # -- 1日分のシミュレーション
     def run(self, sc, seed=0, record=0):
+        nonnegative_int("record", record)
         T = self.town
         rain = bool(sc.get("rain"))
         speed = 65.0 if rain else 78.0  # m/分
@@ -361,10 +390,10 @@ class Sim:
         bycat["plaza"] = [self.site_poi["plaza"]] if site == "plaza" else []
 
         M = dict(visits=Counter(), induced=Counter(), dwell=defaultdict(list), edges=Counter(), walk_m=0.0,
-                 board=Counter(), alight=Counter(), site_pass=0, site_minutes=0.0, bike_extra_walk_m=0.0,
+                 board=Counter(), alight=Counter(), site_pass=0, site_people=0, visit_events=[],
+                 site_minutes=0.0, bike_extra_walk_m=0.0,
                  bike_users=0, closed_skips=0, people=0)
         tracks = []
-        names = []
 
         def choose(cat, frm, t, rnd):
             cands = bycat.get(cat) or bycat["shop"]
@@ -387,6 +416,7 @@ class Sim:
             cur, t = start_node, float(start_t)
             fr = [] if rec else None
             n_imp = 0
+            site_pass = 0
             away = False
 
             def put(state):
@@ -423,6 +453,7 @@ class Sim:
                     cur = park
                     put("自転車")
                 nodes, cum = T.path(cur, dst)
+                site_pass += site_passages([T.coord[n] for n in nodes], T.coord[T.site_node])
                 seen_imp = set()
                 t_start = t
                 prev = nodes[0]
@@ -433,17 +464,18 @@ class Sim:
                         M["edges"][e] += 1
                         prev = n
                     tn = t_start + cum[i] / speed + induced_extra
-                    if n in self.site_nodes and i:
-                        M["site_pass"] += 1
                     if n_imp < 2 and n in imp_idx:
                         for p in imp_idx[n]:
-                            if p is tgt or p["name"] in seen_imp:
+                            if p is tgt or p["id"] in seen_imp:
                                 continue
-                            seen_imp.add(p["name"])
+                            seen_imp.add(p["id"])
                             pr = IMPULSE[p["cat"]] * p["attr"] * imp_mult
                             if rnd.random() < pr and is_open(p, tn, 5):
                                 dd = IMPULSE_DWELL[p["cat"]] * rnd.uniform(0.6, 1.4)
-                                M["induced"][p["name"]] += 1
+                                closing = next(b for a, b in p.get("hours") or HOURS[p["cat"]] if a <= tn < b)
+                                dd = min(dd, closing-tn)
+                                M["induced"][p["id"]] += 1
+                                M["visit_events"].append((p["id"], tn, tn+dd, "induced"))
                                 M["dwell"][p["cat"]].append(dd)
                                 if p.get("id", 0) < 0 and p["cat"] != "event":
                                     M["site_minutes"] += dd
@@ -453,6 +485,7 @@ class Sim:
                                     c = T.coord[n]
                                     fr.append([int(tn), c[0], c[1], "寄り道:" + p["name"]])
                                     fr.append([int(tn + dd), c[0], c[1], "移動"])
+                                tn += dd
                                 break
                     if fr is not None and (i % 3 == 0 or i == len(nodes) - 1):
                         c = T.coord[n]
@@ -478,6 +511,7 @@ class Sim:
                         if bike and not away:
                             park = T.site_node if site == "bike" else T.alt_bike_node
                             nodes2, cum2 = T.path(cur, park)
+                            site_pass += site_passages([T.coord[n] for n in nodes2], T.coord[T.site_node])
                             t += cum2[-1] / speed
                             M["walk_m"] += cum2[-1]
                             cur = park
@@ -495,7 +529,8 @@ class Sim:
                     if a <= t < b:
                         dd = min(dd, b - t)  # 閉店時刻で退店
                 if cat != "work":
-                    M["visits"][tgt["name"]] += 1
+                    M["visits"][tgt["id"]] += 1
+                    M["visit_events"].append((tgt["id"], t, t+dd, "planned"))
                     M["dwell"][tgt["cat"]].append(dd)
                     if tgt["node"] == T.site_node and tgt.get("id", 0) < 0:
                         M["site_minutes"] += dd
@@ -506,6 +541,8 @@ class Sim:
                 M["board"][min(23, int(t // 60))] += 1
             if fr is not None:
                 put("乗車" if ext else "在宅")
+            M["site_pass"] += site_pass
+            M["site_people"] += bool(site_pass)
             return fr
 
         rec_every = max(1, (self.n_res + self.n_vis + self.n_com) // record) if record else 0
@@ -555,9 +592,10 @@ def summarize(sim, runs):
     """複数シードの結果を平均して指標にする"""
     T = sim.town
     n = len(runs)
+    nonnegative_int("runs", n, 1)
     tot = lambda key: sum(sum(r[key].values()) for r in runs) / n
-    cat_of = {p["name"]: p["cat"] for p in T.pois}
-    cat_of.update({p["name"]: p["cat"] for p in list(sim.site_poi.values()) + [sim.event_poi]})
+    poi_of = {p["id"]: p for p in T.pois + list(sim.site_poi.values()) + [sim.event_poi]}
+    cat_of = {pid: p["cat"] for pid, p in poi_of.items()}
     by_cat = Counter()
     for r in runs:
         for k in ("visits", "induced"):
@@ -567,7 +605,7 @@ def summarize(sim, runs):
     for r in runs:
         for c, v in r["dwell"].items():
             dwell_all[c] += v
-    site_names = {p["name"] for p in sim.site_poi.values()}
+    site_names = {p["id"] for p in sim.site_poi.values()}
     site_planned = sum(r["visits"][nm] for r in runs for nm in site_names) / n
     site_induced = sum(r["induced"][nm] for r in runs for nm in site_names) / n
     site_vis = site_planned + site_induced
@@ -590,6 +628,7 @@ def summarize(sim, runs):
         boardings=round(sum(hourly_b), 0), alightings=round(sum(hourly_a), 0),
         hourly_board=hourly_b, hourly_alight=hourly_a,
         site_foot_traffic=round(sum(r["site_pass"] for r in runs) / n, 0),
+        site_unique_people=round(sum(r["site_people"] for r in runs) / n, 1),
         site_visits=round(site_vis, 1), site_visits_induced=round(site_induced, 1),
         site_dwell_mean=round(sum(r["site_minutes"] for r in runs) / n / site_vis, 1) if site_vis else 0.0,
         site_person_minutes=round(sum(r["site_minutes"] for r in runs) / n, 0),
@@ -597,11 +636,15 @@ def summarize(sim, runs):
         bike_users=round(sum(r["bike_users"] for r in runs) / n, 1),
         bike_extra_walk_min_total=round(sum(r["bike_extra_walk_m"] for r in runs) / n / 78.0, 0),
         closed_skips=round(sum(r["closed_skips"] for r in runs) / n, 1),
-        top_pois=[(nm, round(v / n, 1)) for nm, v in top.most_common(8)],
+        top_pois=[(poi_of[pid]["name"], round(v / n, 1)) for pid, v in top.most_common(8)],
+        poi_visits=[dict(id=pid, name=poi_of[pid]["name"], cat=poi_of[pid]["cat"], visits=round(v/n, 1))
+                    for pid, v in top.most_common()],
     )
 
 
 def run_all(sim=None, seeds=5, record=200, which=("scenarios", "alternatives"), progress=None):
+    nonnegative_int("seeds", seeds, 1)
+    nonnegative_int("record", record)
     sim = sim or Sim()
     out = {"scenarios": {}, "alternatives": {}}
     groups = []
@@ -609,14 +652,23 @@ def run_all(sim=None, seeds=5, record=200, which=("scenarios", "alternatives"), 
         groups.append(("scenarios", SCENARIOS))
     if "alternatives" in which:
         groups.append(("alternatives", ALTERNATIVES))
+    if "scenarios" in which and "alternatives" in which:
+        out["scenario_alternatives"] = {}
+        groups.append(("scenario_alternatives", {
+            f"{scenario}:{alt}": dict(SCENARIOS[scenario], site=alt, label=f"{SCENARIOS[scenario]['label']} / {a['label']}")
+            for scenario in ("rain", "event") for alt, a in ALTERNATIVES.items()}))
+    cache = {}
     for g, table in groups:
         for key, sc in table.items():
-            runs = [sim.run(sc, s, record=record if s == 0 else 0) for s in range(seeds)]
+            cache_key = (sc.get("site", "bike"), bool(sc.get("rain")), bool(sc.get("event")))
+            if cache_key not in cache:
+                cache[cache_key] = [sim.run(sc, s, record=record if s == 0 else 0) for s in range(seeds)]
+            runs = cache[cache_key]
             heat = Counter()
             for r in runs:
                 heat.update(r["edges"])
             out[g][key] = dict(label=sc["label"], summary=summarize(sim, runs), tracks=runs[0]["tracks"],
-                               extra=[dict(name=p["name"], lat=p["lat"], lon=p["lon"], cat=p["cat"]) for p in runs[0]["extra"]],
+                               extra=[dict(id=p["id"], name=p["name"], lat=p["lat"], lon=p["lon"], cat=p["cat"]) for p in runs[0]["extra"]],
                                heat=[[*sim.town.coord[u], *sim.town.coord[v], round(c / seeds, 2)] for (u, v), c in heat.items()])
             if progress:
                 progress(g, key)
@@ -642,6 +694,7 @@ def toy_econ(alternatives):
                       toy_total_yen=round(site + fee + near_delta), foot_traffic=s["site_foot_traffic"],
                       dwell_min=s["site_dwell_mean"], person_minutes=s["site_person_minutes"], site_visits=s["site_visits"])
     return dict(alts=out, assumptions=dict(spend_per_site_visit_yen=TOY_SPEND_YEN, nearby_spend_per_visit_yen=TOY_NEARBY_SPEND_YEN,
-                                          bike_fee_yen=TOY_BIKE_FEE_YEN,
+                                          bike_fee_yen=TOY_BIKE_FEE_YEN, nearby_shop_categories=sorted(SHOP_CATEGORIES),
+                                          label="区画収入＋周辺売上差分（仮定） / Site income + nearby sales change (assumed)",
                                           formula="site_visits×単価 + (駐輪案のみ bike_users×料金) + (nearby_shop_visits − 駐輪案のnearby_shop_visits)×周辺単価",
                                           note="toy assumption — not real sales data / 仮定の単価による試算。売上予測ではありません"))

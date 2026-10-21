@@ -33,6 +33,7 @@
     .metric span { color:var(--muted); font-size:9px; line-height:1.2; display:block; margin-top:3px; }
     #legend { position:absolute; left:20px; bottom:29px; padding:9px 12px; font-size:10px; display:flex; align-items:center; gap:11px; }
     .dot { width:8px; height:8px; border-radius:50%; display:inline-block; margin-right:4px; vertical-align:middle; box-shadow:0 0 8px currentColor; }
+    #footnote a { color:inherit; pointer-events:auto; }
     #footnote { position:absolute; right:20px; bottom:22px; color:rgba(225,239,247,.78); font-size:10px; text-align:right; line-height:1.55; text-shadow:0 1px 3px #000; }
     #badges { position:fixed; inset:0; z-index:3; pointer-events:none; }
     .badge { position:absolute; transform:translate(-50%,-100%); padding:4px 7px; border-radius:99px; background:rgba(6,15,24,.83); border:1px solid rgba(255,169,72,.5); color:#fff6df; font-weight:700; font-size:10px; box-shadow:0 3px 12px rgba(0,0,0,.38); white-space:nowrap; }
@@ -58,7 +59,7 @@
       <div class="button-grid scenarios" id="scenario-buttons"><button data-scenario="baseline">Baseline</button><button data-scenario="newcafe">New café</button><button data-scenario="event">Event day</button><button data-scenario="rain">Rain</button></div>
     </div>
     <div id="legend" class="panel"><span><i class="dot" style="color:#70d6ff;background:#70d6ff"></i>Residents</span><span><i class="dot" style="color:#ffd166;background:#ffd166"></i>Visitors</span><span><i class="dot" style="color:#ff6b89;background:#ff6b89"></i>Commuters</span><span style="color:#9eb2c0">drag orbit · wheel zoom</span></div>
-    <div id="footnote">not a prediction; a toy model for testing hypotheses<br>© OpenStreetMap contributors</div>
+    <div id="footnote">not a prediction; a toy model for testing hypotheses<br><a href="https://www.openstreetmap.org/copyright">© OpenStreetMap contributors · openstreetmap.org/copyright</a> · <a href="https://opendatacommons.org/licenses/odbl/1-0/">ODbL 1.0</a> · <a href="../data/NOTICE">NOTICE</a> · <a href="../data/index.html">Data</a></div>
     <div id="toast" class="panel"></div>
   </div>
   <div id="badges"></div>

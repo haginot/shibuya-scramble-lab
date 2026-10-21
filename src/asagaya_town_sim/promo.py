@@ -9,7 +9,8 @@ import statistics
 from importlib import resources
 from pathlib import Path
 
-from .model import Town, dist
+from .model import Town, dist, nonnegative_int
+from .publication import write_notices
 
 DISCLAIMER = 'トイモデル / toy model: coefficients are placeholders, not a forecast'
 STATES = ['unaware', 'aware', 'want_to_visit', 'visited', 'repeat']
@@ -72,7 +73,8 @@ def _run(c, town, seed):
                 effects[name] = [v * 0.5**(1/c['channels'][name]['half_life_days']) for v in effects[name]]
             for slot, hour in enumerate(hours):
                 old = states[:]
-                positions = []
+                positions, sample_visitors = [], []
+                visits_before = visits
                 env = weather['multipliers'][skies[day]] * c['weekday_multipliers'][(c['start_weekday']+day)%7] * c['hour_multipliers'][slot]
                 env *= 1 + (c['event']['boost'] if day == c['event']['day'] else 0)
                 env *= 1 - (c['competitor']['penalty'] if day in c['competitor']['days'] else 0)
@@ -110,10 +112,12 @@ def _run(c, town, seed):
                         if 'campaign_coupon' in enabled and effects['campaign_coupon'][i] > 0 and r[4] < c['coupon_redeem_rate']:
                             redeemed += 1
                     if i < min(300,c['record_agents']):
+                        if visiting:
+                            sample_visitors.append(i)
                         target = store if visiting else homes[i]
                         # Small deterministic offsets make gathering visible.
                         positions.append([round(target[0]+(r[4]-.5)*.00008,6),round(target[1]+(r[5]-.5)*.00008,6),states[i]])
-                frames.append(dict(day=day,hour=hour,agents=positions,funnel=[states.count(s) for s in range(5)],visits=visits,visitor_ids=visit_ids.copy(),redeemed=redeemed))
+                frames.append(dict(day=day,hour=hour,agents=positions,sample_visitor_ids=sample_visitors,slot_visits=(visits-visits_before)*c['agent_scale'],funnel=[states.count(s) for s in range(5)],visits=visits,visitor_ids=visit_ids.copy(),redeemed=redeemed))
             daily.append(dict(day=day,weather=skies[day],funnel=[states.count(s) for s in range(5)],visits=visits))
         outputs[combo] = dict(total_visits=visits,coupon_redeemed=redeemed,visitor_ids=visit_ids,frames=frames,daily=daily)
     base = outputs['none']
@@ -125,7 +129,7 @@ def _run(c, town, seed):
             uplift = visits-baseline_visits
             profit = uplift*c['store']['avg_spend']*c['store']['margin']
             discount = redeemed*c['coupon_discount']
-            return dict(total_visits=visits,uplift=uplift,uplift_pct=100*uplift/baseline_visits if baseline_visits else None,would_have_come_anyway_share=len(ids & baseline_ids)/len(ids) if ids else 1.0,incremental_gross_profit=profit,discount_cost=discount,coupon_redeemed=redeemed,cost=cost,roi=(profit-discount-cost)/cost if cost else None)
+            return dict(total_visits=visits,uplift=uplift,uplift_pct=100*uplift/baseline_visits if baseline_visits else None,would_have_come_anyway_share=len(ids & baseline_ids)/len(ids) if ids else None,incremental_gross_profit=profit,discount_cost=discount,coupon_redeemed=redeemed,cost=cost,total_cost=cost+discount,incremental_profit=profit-discount-cost,roi=(profit-discount-cost)/cost if cost else None)
         out['metrics'] = metrics(out['total_visits'],out['coupon_redeemed'],out['visitor_ids'],base['total_visits'],base['visitor_ids'])
         for f,b in zip(out['frames'],base['frames']):
             f['metrics'] = metrics(f['visits'],f['redeemed'],set(f['visitor_ids']),b['visits'],set(b['visitor_ids']))
@@ -141,8 +145,9 @@ def simulate(config=None, seeds=None, days=None):
     c = copy.deepcopy(config if config is not None else load_config())
     if seeds is not None: c['seeds'] = seeds
     if days is not None: c['days'] = days
-    if min(c['seeds'],c['days'],c['population']) < 1:
-        raise ValueError('seeds, days and population must be positive')
+    for key in ('seeds', 'days', 'population'):
+        nonnegative_int(key, c[key], 1)
+    nonnegative_int('record_agents', c['record_agents'])
     town = Town()
     runs = [_run(c,town,seed) for seed in range(c['seeds'])]
     results = {}
@@ -150,7 +155,7 @@ def simulate(config=None, seeds=None, days=None):
         values = [run[combo]['metrics'] for run in runs]
         means = {key:sum(v[key] for v in values)/len(values) if all(v[key] is not None for v in values) else None for key in values[0]}
         total = sum(v['total_visits'] for v in values)
-        means['would_have_come_anyway_share'] = sum(v['would_have_come_anyway_share']*v['total_visits'] for v in values)/total if total else 1.0
+        means['would_have_come_anyway_share'] = sum((v['would_have_come_anyway_share'] or 0)*v['total_visits'] for v in values)/total if total else None
         intervals = {}
         for key in ('uplift', 'roi'):
             sample = [v[key] for v in values]
@@ -178,5 +183,6 @@ def write_site(directory, data):
     engine = dict(site=list(town.coord[town.site_node]), center=[town.station['lat'],town.station['lon']], pois=town.pois, scenarios={'map': {'heat': [[*town.coord[u],*town.coord[v],1] for u in town.nodes for v in town.adj[u] if u < v]}})
     (directory/'data'/'engine.json').write_text(json.dumps(engine),encoding='utf-8')
     (directory/'data'/'promo.json').write_text(json.dumps(data,ensure_ascii=False,separators=(',',':')),encoding='utf-8')
+    write_notices(directory, directory/'data')
     (directory/'index.html').write_text('<!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="0;url=promo/"><a href="promo/">Promotion toy model</a>',encoding='utf-8')
     return directory

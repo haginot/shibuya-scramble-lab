@@ -158,19 +158,23 @@ const noon = app.scene().background.clone();
 w.__set({ t: 1290 }); assert.equal(elements.get('clock').textContent, '21:30');
 assert(app.scene().background.getHSL({}).l < noon.getHSL({}).l);
 
-for (const scenario of Object.keys(engine.scenarios)) {
+for (const scenario of ['baseline','rain','event']) {
   for (const alt of Object.keys(engine.alternatives)) {
     w.__set({ scenario, alt, t: 1110.8 });
-    const summary = engine.alternatives[alt].summary;
+    const selected = scenario === 'baseline' ? engine.alternatives[alt] : engine.scenario_alternatives[`${scenario}:${alt}`];
+    const summary = selected.summary;
+    assert.equal(w.__stats.dataKey, `${scenario}:${alt}`);
+    assert.equal(w.__stats.trackCount, selected.tracks.length);
+    assert.equal(w.__stats.heatSegments, selected.heat.length);
     assert.equal(w.__stats.scenario, scenario); assert.equal(w.__stats.alt, alt);
     assert.equal(Number(elements.get('site-visits').textContent.replaceAll(',', '')), Math.round(summary.site_visits));
-    assert.equal(Number(elements.get('foot-traffic').textContent.replaceAll(',', '')), engine.toy_econ.alts[alt].foot_traffic);
+    assert.equal(Number(elements.get('foot-traffic').textContent.replaceAll(',', '')), engine.toy_econ_by_scenario[scenario].alts[alt].foot_traffic);
     assert.equal(Number(elements.get('shop-visits').textContent.replaceAll(',', '')), Math.round(summary.nearby_shop_visits));
     assert.equal(Number(elements.get('bike-walk').textContent.replace(/[^\d]/g, '')), Math.round(summary.bike_extra_walk_min_total));
     assert.equal(w.__stats.train, 'stopped'); assert(w.__stats.recordedArrivals > 0);
     assert(w.__stats.drawCalls < 65);
     for (const t of [360, 550, 900, 1190, 1439.9]) {
-      w.__set({ t }); assert(Number.isFinite(w.__stats.time)); assert(w.__stats.activeAgents <= engine.scenarios[scenario].tracks.length);
+      w.__set({ t }); assert(Number.isFinite(w.__stats.time)); assert(w.__stats.activeAgents <= selected.tracks.length);
     }
   }
 }
@@ -226,7 +230,7 @@ function checkGround(world) {
   assert.equal(train.position.y, world.city.terrainHeight(train.position.x, train.position.z));
 }
 checkGround(app); checkGround(capture);
-assert(html.includes('標高: 国土地理院'));
+for (const credit of ['国土地理院の標高タイルを加工して作成','https://maps.gsi.go.jp/development/ichiran.html','https://www.openstreetmap.org/copyright','https://opendatacommons.org/licenses/odbl/1-0/','../data/NOTICE','../data/index.html']) assert(html.includes(credit),credit);
 assert.equal(typeof w.__caption, 'function');
 w.__caption('街の可能性を試す', 'Try a different corner');
 assert.equal(elements.get('caption').hidden, false);
@@ -310,7 +314,7 @@ for (const [index, key] of ['bike', 'cafe', 'plaza'].entries()) {
   assert(card.textContent.includes(Math.round(metrics.foot_traffic).toLocaleString()));
   assert(card.textContent.includes(Number(metrics.dwell_min).toFixed(1)));
   assert(card.textContent.includes(`¥${Math.round(metrics.toy_total_yen).toLocaleString()}/day`));
-  assert(card.textContent.includes('toy assumption, not a forecast'));
+  assert(card.textContent.includes('Site income + nearby sales change'));
 }
 koenji.elements.get('compare-bar').children[1].onclick();
 assert.equal(kw.__stats.alt, 'bike', 'UI changes take effect on the next frame');
@@ -318,8 +322,9 @@ koenji.advance(1.1);
 assert.equal(kw.__stats.alt, 'cafe'); assert.equal(kw.__stats.train, 'stopped');
 assert(kw.__stats.decorativePassengers > 20); assert(Math.abs(kw.__stats.time - 1062.1) < .000001);
 checkOpening(koenji); checkFigurePixels(koenji);
-assert.equal(koenji.elements.get('dwell-min').textContent, '45.3');
-assert.equal(koenji.elements.get('econ-formula').textContent, `Formula: ${ke.toy_econ.assumptions.formula}`);
+assert.equal(koenji.elements.get('dwell-min').textContent, Number(ke.toy_econ.alts.cafe.dwell_min).toFixed(1));
+assert(koenji.elements.get('econ-formula').textContent.includes(`Formula: ${ke.toy_econ.assumptions.formula}`));
+assert(koenji.elements.get('econ-formula').textContent.includes('bike fees'));
 const lowShot = koenji.camera().position.clone(), dawn = koenji.scene().background.clone();
 checkGround(koenji);
 const recorded = koenji.scene().getObjectByName('Recorded people');
@@ -379,7 +384,7 @@ assert(!/\.capture-ui[^{}]*#labels[^{}]*\{[^}]*display\s*:\s*none/.test(css), 'h
 const initialSiteLabel = siteView.elements.get('labels').children.find(el => el.className.includes('site-label'));
 assert.notEqual(initialSiteLabel.style.display, 'none');
 assert(initialSiteLabel.textContent.includes('Bike parking'));
-assert(initialSiteLabel.textContent.includes('foot traffic/day') && initialSiteLabel.textContent.includes('min dwell') && initialSiteLabel.textContent.includes('Toy sales ¥'));
+assert(initialSiteLabel.textContent.includes('passages/day') && initialSiteLabel.textContent.includes('min dwell') && initialSiteLabel.textContent.includes('Income + nearby change ¥'));
 
 function checkSite(world, width = 1280, height = 800) {
   const suffix = world.context.__stats.area === 'koenji' ? '_koenji' : '';
@@ -403,7 +408,8 @@ function checkSite(world, width = 1280, height = 800) {
     assert(Math.abs(p.x) < .9 && Math.abs(p.y) < .9, 'Entire site parcel must fit in frame');
     const direction = target.clone().sub(camera.position);
     ray.set(camera.position, direction.clone().normalize()); ray.far = direction.length() - .4;
-    assert.equal(ray.intersectObjects(meshes, false).length, 0, 'Actual city triangles must not hide the site');
+    const hits = ray.intersectObjects(meshes, false);
+    assert.equal(hits.length, 0, `Actual city triangles must not hide ${world.context.__stats.area}/${world.context.__stats.alt} site at ${x},${z}; hit ${hits[0]?.object.name} near ${hits[0]?.point.toArray()}`);
   }
   const spanX = (Math.max(...screen.map(p => p.x)) - Math.min(...screen.map(p => p.x))) * width * .5;
   const spanY = (Math.max(...screen.map(p => p.y)) - Math.min(...screen.map(p => p.y))) * height * .5;
@@ -452,7 +458,7 @@ const cityFingerprint = world => {
 };
 const defaultFingerprint = cityFingerprint(koenji);
 const fromEngine = await boot('?cam=intro&exag=3', 1280, 800, {
-  '../data/engine.json': { ...engine, area: 'koenji' }
+  '../data/engine.json': { ...ke, area: 'koenji' }
 });
 assert.equal(fromEngine.context.__stats.area, 'koenji', 'Default area follows engine.json');
 assert.equal(cityFingerprint(fromEngine), defaultFingerprint);
@@ -520,5 +526,18 @@ portrait.advance(1.2); checkOpening(portrait, true); checkFigurePixels(portrait,
 console.log(`PASS: opening ${openingMetrics.altitude.toFixed(1)}m above terrain / ${openingMetrics.pitch.toFixed(1)}° down; ${unobstructed}/96 passengers unoccluded; full train fits landscape + portrait.`);
 console.log(`PASS: real data + three.js geometry; ${meshes} meshes, ${vertices.toLocaleString()} vertices, ${defaultCalls} visible draw batches.`);
 console.log('PASS: both areas/defaults, bilinear terrain/grounding, seeded decoration, toy economics/comparison, cinematic/site cameras, 30s timelapse/repeated trains, captions/hideui.');
-console.log('PASS: opening arrival <3s, all 12 scenario/alternative combinations, controls/hooks, clock/lighting, deterministic scrubbing, geometry winding/finite buffers.');
+console.log('PASS: opening arrival <3s, all 9 scenario/alternative combinations, controls/hooks, clock/lighting, deterministic scrubbing, geometry winding/finite buffers.');
 console.log('WebGL shader compilation and visual appearance require a browser; this check uses a renderer shim.');
+
+// A single-area CLI export must reject a query for an unavailable area.
+for(const area of ['asagaya','koenji']){
+ const source=datasets[`../data/engine${area==='koenji'?'_koenji':''}.json`];
+ const one=structuredClone(source);one.available_areas=[area];
+ const other=area==='koenji'?'asagaya':'koenji';
+ const single=await boot(`?area=${other}`,1280,720,{'../data/engine.json':one});
+ assert.equal(single.context.__stats.area,area);
+ assert(!single.fetched.includes(`../data/engine${other==='koenji'?'_koenji':''}.json`) || other==='asagaya');
+}
+const alias=await boot('?scenario=newcafe');
+assert.equal(alias.context.__stats.scenario,'baseline');assert.equal(alias.context.__stats.alt,'cafe');
+console.log('PASS: single-area exports and legacy newcafe alias.');

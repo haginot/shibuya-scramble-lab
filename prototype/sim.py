@@ -170,10 +170,11 @@ col={'cafe':'brown','food':'orange','bar':'purple','grocery':'green','shop':'blu
 for p in pois: ax.scatter(p['lon'],p['lat'],s=60 if p['cat']=='station' else 12,c=col.get(p['cat'],'gray'),zorder=3)
 ax.annotate('阿佐ケ谷駅',(STATION['lon'],STATION['lat']),fontsize=12,weight='bold')
 ax.set_xlim(LON0-.0047,LON0+.0047); ax.set_ylim(LAT0-.0038,LAT0+.0038); ax.set_aspect(1/math.cos(math.radians(LAT0)))
-ax.set_title('ベースライン: 道路区間別の歩行者通過量 (30試行累計) と POI'); ax.axis('off'); plt.tight_layout(); plt.savefig('map.png',dpi=110)
+ax.set_title('ベースライン: 道路区間別の歩行者通過量 (30試行累計) と POI'); ax.axis('off'); fig.text(.5,.015,'© OpenStreetMap contributors · ODbL 1.0 · https://www.openstreetmap.org/copyright',ha='center',fontsize=8)
+plt.tight_layout(rect=(0,.04,1,1)); plt.savefig('map.png',dpi=110)
 # ---------- 5. HTML ----------
 data=dict(center=[LAT0,LON0],station=STATION,pois=[{k:p[k] for k in('name','cat','lat','lon')} for p in pois],
   scenarios={k:dict(label=JP[k],tracks=results[k]['tracks'],extra=[SC[k][x] for x in('newcafe','event_poi') if x in SC[k]] and [{kk:SC[k][x][kk] for kk in('name','cat','lat','lon')} for x in('newcafe','event_poi') if x in SC[k]],
     heat=[[nodes[u][0],nodes[u][1],nodes[v][0],nodes[v][1],c] for (u,v),c in results[k]['edges'].items()],summary=summary[k]) for k in SC})
-html=open('template.html',encoding='utf-8').read().replace('__DATA__',json.dumps(data,ensure_ascii=False,separators=(',',':')))
+html=open('template.html',encoding='utf-8').read().replace('__DATA__',json.dumps(data,ensure_ascii=False,separators=(',',':')).replace('<', '\\u003c'))
 open('index.html','w',encoding='utf-8').write(html); print('done')

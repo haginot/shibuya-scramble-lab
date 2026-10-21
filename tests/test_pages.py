@@ -18,6 +18,9 @@ def test_pages_build(tmp_path):
     promo = json.loads((out / 'web3d/data/promo.json').read_text())
     assert {'none', 'sns_only', 'sns+coupon', 'all_four'} <= promo['combinations'].keys()
     assert promo['config']['days'] == 14
+    assert promo == json.loads((ROOT/'web3d/data/promo.json').read_text())
+    for name in ('engine.json','engine_koenji.json'):
+        assert json.loads((out/'web3d/data'/name).read_text()) == json.loads((ROOT/'web3d/data'/name).read_text())
     # Match the fields consumed by promo/app.mjs throughout the animation.
     config = promo['config']
     assert len(promo['store']['position']) == 2
@@ -58,7 +61,10 @@ def test_pages_build(tmp_path):
     for name in ('web3d/default/index.html', 'web3d/promo/index.html', '2d.html'):
         html = (out / name).read_text()
         assert 'https://www.openstreetmap.org/copyright' in html
-        assert '出典：国土地理院（地理院タイル）' in html
+        if name == '2d.html':
+            assert '国土地理院' not in html
+        else:
+            assert '国土地理院の標高タイルを加工して作成' in html
     assert 'https://{s}.tile.openstreetmap.org' not in (out / '2d.html').read_text()
 
 

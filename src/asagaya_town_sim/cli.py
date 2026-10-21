@@ -14,8 +14,9 @@ from pathlib import Path
 from . import DISCLAIMER, __version__
 from . import llm as llm_mod
 from .model import AREAS, Sim, Town, run_all, toy_econ
+from .publication import write_notices
 
-ROWS = [("site_foot_traffic", "区画の通行量"), ("site_visits", "区画への来訪"), ("site_visits_induced", " うちついで寄り"),
+ROWS = [("site_foot_traffic", "区画の通過回数/日"), ("site_unique_people", "区画を通った実人数/日"), ("site_visits", "区画への来訪"), ("site_visits_induced", " うちついで寄り"),
         ("site_dwell_mean", "区画の平均滞在(分)"), ("site_person_minutes", "区画の延べ滞在(人分)"), ("nearby_shop_visits", "周辺150m店舗の来訪"),
         ("other_cafe_visits", "既存カフェの来訪"), ("bike_extra_walk_min_total", "駐輪移転の追加徒歩(延べ分)")]
 SROWS = [("agents", "エージェント数"), ("visits_planned", "計画訪問"), ("visits_induced", "ついで寄り"), ("station_area_traversals", "駅周辺の通過"),
@@ -57,16 +58,20 @@ def build(args):
         if planner.failures:
             mode += f"（失敗{planner.failures}件はルールで代替）"
     T = sim.town
+    econ_by_scenario = {"baseline": toy_econ(res["alternatives"])}
+    for scenario in ("rain", "event"):
+        econ_by_scenario[scenario] = toy_econ({alt: res["scenario_alternatives"][f"{scenario}:{alt}"] for alt in ("bike", "cafe", "plaza")})
     data = dict(center=[T.station["lat"], T.station["lon"]], site=list(T.coord[T.site_node]), seeds=args.seeds,
                 agents=args.residents + args.visitors + args.commuters, residents=args.residents, visitors=args.visitors,
-                commuters=args.commuters, llm=mode, reviews=reviews, area=sim.town.area, toy_econ=toy_econ(res["alternatives"]),
-                pois=[dict(name=p["name"], cat=p["cat"], lat=p["lat"], lon=p["lon"]) for p in T.pois + [T.station]], **res)
+                commuters=args.commuters, llm=mode, reviews=reviews, area=sim.town.area, available_areas=[sim.town.area],
+                toy_econ=econ_by_scenario["baseline"], toy_econ_by_scenario=econ_by_scenario,
+                pois=[dict(id=p.get("id"), name=p["name"], cat=p["cat"], lat=p["lat"], lon=p["lon"]) for p in T.pois + [T.station]], **res)
     return sim, res, data, mode, el, reviews
 
 
 def render_html(data):
     tpl = resources.files("asagaya_town_sim").joinpath("template.html").read_text(encoding="utf-8")
-    return tpl.replace("__DATA__", json.dumps(data, ensure_ascii=False, separators=(",", ":")))
+    return tpl.replace("__DATA__", json.dumps(data, ensure_ascii=False, separators=(",", ":")).replace("<", "\\u003c"))
 
 
 def print_report(res, mode, el, args, reviews):
@@ -101,8 +106,8 @@ def write_site(d, html, data):
     area = data.get("area", "asagaya")
     blob = json.dumps(data, ensure_ascii=False, separators=(",", ":"))
     (w / "data" / "engine.json").write_text(blob, encoding="utf-8")
-    if area != "asagaya":
-        (w / "data" / f"engine_{area}.json").write_text(blob, encoding="utf-8")
+    (w / "data" / f"engine_{area}.json").write_text(blob, encoding="utf-8")
+    write_notices(d, w / "data")
     (d / "index.html").write_text(f'<!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="0;url=web3d/{WEB3D_DEFAULT}/">'
                                   f'<a href="web3d/{WEB3D_DEFAULT}/">3D</a> / <a href="2d.html">2D</a>', encoding="utf-8")
     return d
@@ -130,8 +135,8 @@ def promo_main(argv):
     for name in ("demo", "build"):
         p = sub.add_parser(name)
         p.add_argument("--config")
-        p.add_argument("--seeds", type=int)
-        p.add_argument("--days", type=int)
+        p.add_argument("--seeds", type=positive_int)
+        p.add_argument("--days", type=positive_int)
         p.add_argument("--json", action="store_true")
         p.add_argument("--serve", action="store_true")
         p.add_argument("--port", type=int, default=8765)
@@ -149,18 +154,20 @@ def promo_main(argv):
         print(data["store"]["name"])
         print(f"Seeds: {data['config']['seeds']} · represented residents: {data['config']['population'] * data['config']['agent_scale']}")
         print("Uplift = mean paired visits(combo) - visits(none), common random numbers.")
-        print("Anyway = same agent/day/slot baseline overlap / promo visits (pooled across seeds); none = 1.")
-        print("ROI = (incremental gross profit - discount cost - channel cost) / channel cost.")
+        print("Anyway = same agent/day/slot baseline overlap / promo visits (pooled across seeds); empty = N/A.")
+        print("ROI (channel cost basis, %) = (incremental gross profit - discount cost - channel cost) / channel cost × 100. Break-even = 0%.")
         print("95% intervals: Student t intervals over independent seed results; N/A for one seed or zero-cost ROI.")
-        print("組合せ/Combination | 来訪/Visits | 増分/Uplift [95% interval] | 増分% | 元々来訪/Anyway | 増分粗利/Profit ¥ | 割引/Discount ¥ | 費用/Channel cost ¥ | ROI [95% interval]")
+        print("組合せ/Combination | 来訪/Visits | 増分/Uplift [95% interval] | 増分% | 元々来訪/Anyway | 増分粗利/Profit ¥ | 割引/Discount ¥ | 全期間チャネル費/Full-period channel cost ¥ | 総費用/Total cost ¥ | 増分利益/Incremental profit ¥ | ROI (channel cost basis, %) [95% interval]")
         def fmt(v):
             return "N/A" if v is None else f"{v:.2f}"
         for name, result in data["combinations"].items():
             m = result["metrics"]
             def interval(key):
+                factor = 100 if key == "roi" else 1
+                value = m[key]*factor if m[key] is not None else None
                 bounds = result['intervals_95'][key]
-                return fmt(m[key]) + (f" [{fmt(bounds[0])}, {fmt(bounds[1])}]" if bounds else " [N/A]")
-            print(" | ".join([name, fmt(m['total_visits']), interval('uplift')] + [fmt(m[k]) for k in ('uplift_pct','would_have_come_anyway_share','incremental_gross_profit','discount_cost','cost')] + [interval('roi')]))
+                return fmt(value) + (f" [{fmt(bounds[0]*factor)}, {fmt(bounds[1]*factor)}]" if bounds else " [N/A]")
+            print(" | ".join([name, fmt(m['total_visits']), interval('uplift')] + [fmt(m[k]) for k in ('uplift_pct','would_have_come_anyway_share','incremental_gross_profit','discount_cost','cost','total_cost','incremental_profit')] + [interval('roi')]))
     if args.action == "build" or args.serve:
         directory = Path(args.out) if args.action == "build" else Path(os.environ.get("TMPDIR", "/tmp")) / f"asagaya-promo-{os.getpid()}"
         promo.write_site(directory, data)
@@ -179,6 +186,23 @@ def promo_main(argv):
                     pass
 
 
+def nonnegative_int(value):
+    try:
+        result = int(value)
+        if result >= 0:
+            return result
+    except ValueError:
+        pass
+    raise argparse.ArgumentTypeError("must be an integer >= 0")
+
+
+def positive_int(value):
+    result = nonnegative_int(value)
+    if result < 1:
+        raise argparse.ArgumentTypeError("must be an integer >= 1")
+    return result
+
+
 def main(argv=None):
     effective = list(argv if argv is not None else sys.argv[1:])
     if effective[:1] == ["promo"]:
@@ -189,14 +213,14 @@ def main(argv=None):
     sub.add_parser("promo", help="架空店舗の販促トイモデル / fictional store promotion")
     for name, hlp in (("demo", "全シナリオと3案を実行して数値を表示"), ("serve", "Web UIを起動"), ("build", "HTMLとJSONを書き出す")):
         p = sub.add_parser(name, help=hlp)
-        p.add_argument("--seeds", type=int, default=5)
+        p.add_argument("--seeds", type=positive_int, default=5)
         p.add_argument("--area", choices=sorted(AREAS), default="asagaya", help="対象エリア（koenji は実験的）")
-        p.add_argument("--residents", type=int, default=400)
-        p.add_argument("--visitors", type=int, default=350, help="電車で来る来訪者（外部エージェント）")
-        p.add_argument("--commuters", type=int, default=150, help="電車で来る町内勤務者（外部エージェント）")
-        p.add_argument("--record", type=int, default=250, help="地図に表示する軌跡の人数")
+        p.add_argument("--residents", type=nonnegative_int, default=400)
+        p.add_argument("--visitors", type=nonnegative_int, default=350, help="電車で来る来訪者（外部エージェント）")
+        p.add_argument("--commuters", type=nonnegative_int, default=150, help="電車で来る町内勤務者（外部エージェント）")
+        p.add_argument("--record", type=nonnegative_int, default=250, help="地図に表示する軌跡の人数")
         p.add_argument("--no-llm", action="store_true", help="OPENAI_API_KEY があってもLLMを使わない")
-        p.add_argument("--llm-agents", type=int, default=8)
+        p.add_argument("--llm-agents", type=nonnegative_int, default=8)
         p.add_argument("--json", action="store_true", help="指標をJSONで出力")
         p.add_argument("--serve", action="store_true", help="実行後にWeb UIを起動")
         p.add_argument("--port", type=int, default=8765)

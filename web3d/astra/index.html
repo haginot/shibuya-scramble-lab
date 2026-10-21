@@ -6,7 +6,7 @@
   <title>ASAGAYA / A living miniature</title>
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="style.css">
-</head>
+<style>footer a{color:inherit;pointer-events:auto}</style></head>
 <body>
   <main id="world" aria-label="Interactive 3D simulation of Asagaya station"></main>
   <div id="labels" aria-hidden="true"></div>
@@ -46,7 +46,7 @@
     <div class="playback"><button id="play" aria-label="Pause simulation">Ⅱ</button><select id="speed" aria-label="Simulation speed"><option value="0.5">0.5 min/s</option><option value="1.5" selected>1.5 min/s</option><option value="5">5 min/s</option><option value="15">15 min/s</option><option value="60">60 min/s</option></select><button id="orbit" class="active" aria-label="Toggle cinematic orbit" title="Toggle cinematic orbit">↻</button></div>
   </section>
   <div class="ui help">DRAG TO EXPLORE <span>·</span> SCROLL TO ZOOM <span>·</span> <button id="reset">RESET VIEW</button></div>
-  <footer><span>not a prediction; a toy model for testing hypotheses</span><span>© OpenStreetMap contributors</span></footer>
+  <footer><span>not a prediction; a toy model for testing hypotheses</span><span><a href="https://www.openstreetmap.org/copyright">© OpenStreetMap contributors · openstreetmap.org/copyright</a> · <a href="https://opendatacommons.org/licenses/odbl/1-0/">ODbL 1.0</a> · <a href="../data/NOTICE">NOTICE</a> · <a href="../data/index.html">Data</a></span></footer>
   <script type="module" src="main.mjs"></script>
 </body>
 </html>

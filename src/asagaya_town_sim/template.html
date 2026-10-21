@@ -17,19 +17,20 @@ table{border-collapse:collapse;margin:8px 0 18px}td,th{border:1px solid #ccc;pad
 <div id="warn">⚠ 仮説検証用のトイモデルです。予測ではありません（係数はすべて仮定値・実測データではありません）</div>
 <div id="tabs"><button id="b1" class="on">地図</button><button id="b2">比較（駅前の角：3案）</button><span id="meta"></span></div>
 <div id="mapv"><div id="map"></div><div id="p">
-<b>阿佐ケ谷 町シミュレーション</b><br><small>地図 <a href="https://www.openstreetmap.org/copyright">© OpenStreetMap contributors</a> · <a href="https://maps.gsi.go.jp/development/ichiran.html">出典：国土地理院（地理院タイル）</a></small><br><br>
+<b>阿佐ケ谷 町シミュレーション</b><br><small>地図 <a href="https://www.openstreetmap.org/copyright">© OpenStreetMap contributors</a> · <a href="https://opendatacommons.org/licenses/odbl/1-0/">ODbL 1.0</a> · <a href="web3d/data/NOTICE">NOTICE</a> · <a href="web3d/data/index.html">データ取得</a></small><br><br>
 表示: <select id="sc"></select><br><label><input type="checkbox" id="hm" checked>通過量ヒートマップ(シード平均)</label><br><br>
 <span id="t">05:00</span> <button id="play">▶</button> 速度<select id="spd"><option>1</option><option selected>4</option><option>10</option></select>
 <input type="range" id="sl" min="300" max="1439" value="300" style="width:100%">
 <div id="legend"></div><div id="sum"></div><div id="hours"></div><div id="who"></div></div></div>
 <div id="cmp"></div>
 <script>
+function textElement(tag,text){const el=document.createElement(tag);el.textContent=String(text);return el;}
 const D=__DATA__;
 const C={'会社員':'#1f77b4','子育て世帯':'#e377c2','学生':'#2ca02c','高齢者':'#ff7f0e','在宅ワーカー':'#9467bd','来訪者':'#d62728','通勤者':'#555'};
 const PC={cafe:'brown',food:'orange',bar:'purple',grocery:'green',shop:'#36c',park:'lime',school:'red',clinic:'pink',library:'cyan',service:'gray',station:'black',event:'gold',plaza:'teal'};
 document.getElementById('meta').textContent=`エージェント ${D.agents}人（住民${D.residents}・電車来訪者${D.visitors}・通勤者${D.commuters}） / ${D.seeds}シード平均 / 計画: ${D.llm}`;
 const m=L.map('map',{preferCanvas:true}).setView(D.center,17);L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'<a href="https://www.openstreetmap.org/copyright">© OpenStreetMap contributors</a>',maxZoom:19}).addTo(m);
-D.pois.forEach(p=>L.circleMarker([p.lat,p.lon],{radius:p.cat=='station'?9:3,color:PC[p.cat]||'gray',weight:p.cat=='station'?3:1}).bindTooltip(p.name+' ('+p.cat+')').addTo(m));
+D.pois.forEach(p=>L.circleMarker([p.lat,p.lon],{radius:p.cat=='station'?9:3,color:PC[p.cat]||'gray',weight:p.cat=='station'?3:1}).bindTooltip(textElement('span',p.name+' ('+p.cat+')')).addTo(m));
 L.circle(D.site,{radius:40,color:'#f0a030',weight:2,dashArray:'4'}).bindTooltip('評価区画（駅前の角）',{permanent:true,direction:'left'}).addTo(m);
 const all={};for(const g of ['scenarios','alternatives'])for(const k in D[g]){all[g+':'+k]=D[g][k]}
 const sel=document.getElementById('sc');for(const k in all)sel.add(new Option((k.startsWith('alt')?'[比較] ':'')+all[k].label,k));
@@ -39,22 +40,22 @@ function hbars(s){const mx=Math.max(...s.hourly_board,...s.hourly_alight,1);let 
  for(let i=0;i<s.hourly_board.length;i++)h+=`<div title="${i+5}時 乗車${s.hourly_board[i]}" style="height:${60*s.hourly_board[i]/mx}px"></div><div class="a" title="${i+5}時 降車${s.hourly_alight[i]}" style="height:${60*s.hourly_alight[i]/mx}px"></div>`;
  return h+'</div><small>5時 … 23時</small>'}
 function load(){S=all[sel.value];lay.clearLayers();hl.clearLayers();mk=[];
- (S.extra||[]).forEach(p=>L.marker([p.lat,p.lon]).bindTooltip(p.name,{permanent:true}).addTo(lay));
+ (S.extra||[]).forEach(p=>L.marker([p.lat,p.lon]).bindTooltip(textElement('span',p.name),{permanent:true}).addTo(lay));
  if(hm.checked){const mx=Math.max(...S.heat.map(h=>h[4]));S.heat.forEach(h=>L.polyline([[h[0],h[1]],[h[2],h[3]]],{color:'red',weight:1+8*h[4]/mx,opacity:.12+.6*h[4]/mx}).addTo(hl));}
- S.tracks.forEach(a=>{a.f.sort((x,y)=>x[0]-y[0]);mk.push(L.circleMarker(D.center,{radius:a.llm?7:4,color:a.llm?'#000':'#fff',weight:1,fillColor:C[a.kind],fillOpacity:.9}).bindTooltip(a.name+' / '+a.kind+(a.llm?' (LLM計画)':'')).addTo(lay))});
- const s=S.summary;document.getElementById('sum').innerHTML=`<h4>指標（${s.seeds}シード平均・1日）</h4>計画訪問 ${s.visits_planned} / ついで寄り ${s.visits_induced}<br>駅周辺の通過 ${s.station_area_traversals}<br>評価区画の通行 ${s.site_foot_traffic} / 区画への来訪 ${s.site_visits}<br>乗車 ${s.boardings} / 降車 ${s.alightings}<br>営業時間外で断念 ${s.closed_skips}<br>上位POI:<br>`+s.top_pois.map(x=>x[0]+': '+x[1]).join('<br>');
+ S.tracks.forEach(a=>{a.f.sort((x,y)=>x[0]-y[0]);mk.push(L.circleMarker(D.center,{radius:a.llm?7:4,color:a.llm?'#000':'#fff',weight:1,fillColor:C[a.kind],fillOpacity:.9}).bindTooltip(textElement('span',a.name+' / '+a.kind+(a.llm?' (LLM計画)':''))).addTo(lay))});
+ const s=S.summary;document.getElementById('sum').innerHTML=`<h4>指標（${s.seeds}シード平均・1日）</h4>計画訪問 ${s.visits_planned} / ついで寄り ${s.visits_induced}<br>駅周辺の通過 ${s.station_area_traversals}<br>評価区画の通行 ${s.site_foot_traffic} / 区画への来訪 ${s.site_visits}<br>乗車 ${s.boardings} / 降車 ${s.alightings}<br>営業時間外で断念 ${s.closed_skips}<br>上位POI:<br>`;s.top_pois.forEach(x=>document.getElementById('sum').append(textElement('div',x[0]+': '+x[1])));
  document.getElementById('hours').innerHTML=hbars(s);draw();}
 function at(f,t){let lo=0,hi=f.length-1;if(t<=f[0][0])return f[0];if(t>=f[hi][0])return f[hi];while(hi-lo>1){const mid=(lo+hi)>>1;if(f[mid][0]<=t)lo=mid;else hi=mid}
  const a=f[lo],b=f[hi];if(a[1]==null||b[1]==null)return a;const r=(t-a[0])/Math.max(1,b[0]-a[0]);return[t,a[1]+(b[1]-a[1])*r,a[2]+(b[2]-a[2])*r,a[3]]}
 function draw(){const t=+sl.value;document.getElementById('t').textContent=String(t/60|0).padStart(2,'0')+':'+String(t%60).padStart(2,'0');
  const cnt={};S.tracks.forEach((a,i)=>{const f=at(a.f,t);const hide=f[1]==null||(a.kind.match(/来訪者|通勤者/)&&(t<a.f[0][0]||t>a.f[a.f.length-1][0]));
   if(hide)mk[i].setStyle({opacity:0,fillOpacity:0});else mk[i].setLatLng([f[1],f[2]]).setStyle({opacity:1,fillOpacity:.9});const st=hide?'不在/外出':String(f[3]).split(':')[0];cnt[st]=(cnt[st]||0)+1});
- document.getElementById('who').innerHTML=`<h4>表示中 ${S.tracks.length}人の状態</h4>`+Object.entries(cnt).sort((a,b)=>b[1]-a[1]).map(([k,v])=>k+': '+v).join('<br>');}
+ document.getElementById('who').replaceChildren(textElement('h4',`表示中 ${S.tracks.length}人の状態`),...Object.entries(cnt).sort((a,b)=>b[1]-a[1]).map(([k,v])=>textElement('div',k+': '+v)));}
 sel.onchange=load;hm.onchange=load;sl.oninput=draw;let tm=null;
 play.onclick=()=>{if(tm){clearInterval(tm);tm=null;play.textContent='▶';return}play.textContent='⏸';tm=setInterval(()=>{sl.value=+sl.value+ +spd.value>1439?300:+sl.value+ +spd.value;draw()},80)};
 // ---- 比較画面
 const A=D.alternatives,K=Object.keys(A);
-const ROWS=[['site_foot_traffic','区画の通行量（人・回/日）',1],['site_visits','区画への来訪（人/日）',1],['site_visits_induced','　うち ついで寄り',1],['site_dwell_mean','区画の平均滞在（分）',1],['site_person_minutes','区画の滞在 延べ人・分',1],
+const ROWS=[['site_foot_traffic','区画の連続した通過（回/日）',1],['site_unique_people','区画を通った実人数（人/日）',0],['site_visits','区画への来訪（人/日）',1],['site_visits_induced','　うち ついで寄り',1],['site_dwell_mean','区画の平均滞在（分）',1],['site_person_minutes','区画の滞在 延べ人・分',1],
  ['nearby_shop_visits','周辺150m店舗の来訪',1],['other_cafe_visits','既存カフェの来訪（共食い）',1],['visits_induced','町全体 ついで寄り',1],['bike_users','自転車で駅へ来る住民',0],['bike_extra_walk_min_total','駐輪場移転による追加徒歩（延べ分）',-1],['walk_km_total','町全体の歩行距離（km）',0]];
 let h='<h2>駅前の角をどう使う？ 3案の並行シミュレーション</h2><p class="note">同じ住民・同じ乱数（共通乱数法）で、評価区画だけを入れ替えて比較。'+D.seeds+'シード平均。数値はモデル内の相対比較用で、実際の来店数の予測ではありません。</p><div class="cards">';
 K.forEach(k=>{const s=A[k].summary;h+=`<div class="card"><h3>${A[k].label}</h3>区画の通行 <b>${s.site_foot_traffic}</b><br>区画への来訪 <b>${s.site_visits}</b>（ついで寄り ${s.site_visits_induced}）<br>平均滞在 <b>${s.site_dwell_mean}分</b><br>周辺店舗の来訪 ${s.nearby_shop_visits}<br>追加徒歩 ${s.bike_extra_walk_min_total}分</div>`});
@@ -64,8 +65,9 @@ ROWS.forEach(([key,lab,dir])=>{const v=K.map(k=>A[k].summary[key]);const mx=Math
 h+='</table><p class="note">緑＝その指標で最も望ましい値（向きはモデル上の仮定）。トレードオフ例：カフェは来訪と滞在を生むが既存カフェと客を取り合う／広場は通行と周辺店舗のついで寄りを増やすが売上は直接生まない／駐輪場の維持は自転車利用者の徒歩を増やさない。</p>';
 const SK=Object.keys(D.scenarios);h+='<h3>町全体のシナリオ</h3><table><tr><th>指標</th>'+SK.map(k=>'<th>'+D.scenarios[k].label+'</th>').join('')+'</tr>';
 [['agents','エージェント数'],['visits_planned','計画訪問'],['visits_induced','ついで寄り'],['station_area_traversals','駅周辺の通過'],['boardings','乗車'],['alightings','降車'],['walk_km_total','歩行距離 km'],['closed_skips','営業時間外で断念']].forEach(([key,lab])=>{h+='<tr><td>'+lab+'</td>'+SK.map(k=>'<td>'+D.scenarios[k].summary[key]+'</td>').join('')+'</tr>'});
-h+='</table>';if(D.reviews&&D.reviews.length){h+='<h3>LLM住民の口コミ（生成文・架空）</h3><ul>'+D.reviews.map(r=>`<li>[${r.persona}/${r.scenario}] ${r.review}</li>`).join('')+'</ul>'}
+h+='</table>';
 document.getElementById('cmp').innerHTML=h;
+if(D.reviews&&D.reviews.length){const list=document.createElement('ul');for(const r of D.reviews)list.append(textElement('li',`[${r.persona}/${r.scenario}] ${r.review}`));document.getElementById('cmp').append(textElement('h3','LLM住民の口コミ（生成文・架空）'),list);}
 function tab(i){document.getElementById('mapv').style.display=i?'none':'block';document.getElementById('cmp').style.display=i?'block':'none';b1.className=i?'':'on';b2.className=i?'on':'';if(!i)m.invalidateSize()}
 b1.onclick=()=>tab(0);b2.onclick=()=>tab(1);if(location.hash=='#compare')tab(1);
 load();
