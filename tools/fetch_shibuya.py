@@ -25,7 +25,7 @@ CENTER = (35.65948, 139.70055)
 BBOX = (35.6559, 139.6961, 35.6631, 139.7050)
 PLATEAU = 'https://assets.cms.plateau.reearth.io/assets/e5/29b4f5-f0bf-433d-8f98-deb594bfbebd/13113_shibuya-ku_pref_2023_citygml_2_op.zip'
 POLICY = 'https://www.mlit.go.jp/plateau/site-policy/'
-OSM_LICENSE = 'https://www.openstreetmap.org/copyright'
+OSM_LICENSE = 'https://opendatacommons.org/licenses/odbl/1-0/'
 UA = 'ShibuyaScrambleToy/0.5 (small public-data extract)'
 
 
@@ -108,16 +108,36 @@ def osm(cache):
     bbox = ','.join(map(str,BBOX))
     query = f'[out:json][timeout:120];(way[highway]({bbox});way[railway=rail]({bbox});nwr[shop]({bbox});nwr[amenity~"restaurant|cafe|fast_food|bar|pub|food_court"]({bbox});node[name="ハチ公"]({bbox}););out body geom;'
     rawfile = cache/'osm.json'
-    if not rawfile.exists():
-        failures = []
-        for endpoint in ('https://overpass-api.de/api/interpreter','https://overpass.kumi.systems/api/interpreter'):
-            try:
-                rawfile.write_bytes(fetch(endpoint, urllib.parse.urlencode({'data':query}).encode()))
-                break
-            except Exception as exc: failures.append(str(exc))
-        else: raise RuntimeError('; '.join(failures))
-    raw = rawfile.read_bytes()
+    failures = []
+    if rawfile.exists():
+        try:
+            return parse_osm(rawfile.read_bytes(), query)
+        except (ValueError, KeyError, TypeError) as exc:
+            failures.append(f'Invalid cached response: {exc}')
+    for endpoint in ('https://overpass-api.de/api/interpreter','https://overpass.kumi.systems/api/interpreter'):
+        try:
+            raw = fetch(endpoint, urllib.parse.urlencode({'data':query}).encode())
+            result = parse_osm(raw, query)
+            atomic_write(rawfile, raw)
+            return result
+        except Exception as exc:
+            failures.append(str(exc))
+    raise RuntimeError('; '.join(failures))
+
+
+def atomic_write(path, body):
+    temporary = path.with_suffix(path.suffix+'.tmp')
+    try:
+        temporary.write_bytes(body)
+        temporary.replace(path)
+    finally:
+        temporary.unlink(missing_ok=True)
+
+
+def parse_osm(raw, query):
     data = json.loads(raw)
+    if data.get('remark') or not data.get('elements'):
+        raise ValueError('Incomplete Overpass response (remark or empty elements)')
     roads, shops, railways = [], [], []
     for e in data['elements']:
         tags = e.get('tags',{})
@@ -135,12 +155,16 @@ def osm(cache):
             if not (BBOX[0] <= lat <= BBOX[2] and BBOX[1] <= lon <= BBOX[3]): continue
             if tags.get('shop') == 'vacant': continue
             shops.append({'id':f"{e['type']}/{e['id']}", 'name':tags.get('name',tags.get('brand','名称未登録 / unnamed')), 'kind':tags.get('shop',tags.get('amenity')), 'position':xy(lat,lon)})
+    if not roads or not railways or not shops:
+        raise ValueError('Incomplete Shibuya roads, railways or shops')
+    if any(len(r['points'])<2 or any(not all(math.isfinite(v) for v in p) for p in r['points']) for r in roads+railways):
+        raise ValueError('Invalid road/rail geometry')
     counts = {}
     for s in shops: counts[s['kind']] = counts.get(s['kind'],0)+1
     nearby_counts={}
     for s in shops:
         if math.hypot(*s['position'])<=150: nearby_counts[s['kind']]=nearby_counts.get(s['kind'],0)+1
-    return {'source':'© OpenStreetMap contributors', 'license':'ODbL 1.0', 'license_url':OSM_LICENSE, 'timestamp':data.get('osm3s',{}).get('timestamp_osm_base'), 'sha256':hashlib.sha256(raw).hexdigest(), 'query':query, 'bbox':BBOX, 'center':CENTER, 'units':'metres; x east, z south', 'roads':roads, 'railways':railways, 'shops':shops, 'shop_counts':counts, 'nearby_150m_counts':nearby_counts,'nearby_150m_total':sum(nearby_counts.values()), 'shop_count_note':'OSM mapped shop/food objects, including unnamed objects, excluding shop=vacant, centroid clipped to bbox. Incomplete inventory; not a census. Node and area representations can overlap. Radius 150 m uses planar distance from crossing centre.'}
+    return {'source':'© OpenStreetMap contributors', 'license':'ODbL 1.0', 'license_url':OSM_LICENSE, 'copyright_url':'https://www.openstreetmap.org/copyright', 'timestamp':data.get('osm3s',{}).get('timestamp_osm_base'), 'sha256':hashlib.sha256(raw).hexdigest(), 'query':query, 'bbox':BBOX, 'center':CENTER, 'units':'metres; x east, z south', 'roads':roads, 'railways':railways, 'shops':shops, 'shop_counts':counts, 'nearby_150m_counts':nearby_counts,'nearby_150m_total':sum(nearby_counts.values()), 'shop_count_note':'OSM mapped shop/food objects, including unnamed objects, excluding shop=vacant, centroid clipped to bbox. Incomplete inventory; not a census. Node and area representations can overlap. Radius 150 m uses planar distance from crossing centre.'}
 
 
 def main():
@@ -156,10 +180,10 @@ def main():
         if args.only and args.only != kind: continue
         data = loader(args.cache)
         dest = DEST/f'shibuya_{kind}.json'
-        dest.write_text(json.dumps(data,ensure_ascii=False,separators=(',',':')),encoding='utf-8')
+        atomic_write(dest, json.dumps(data,ensure_ascii=False,separators=(',',':')).encode('utf-8'))
         print(dest, dest.stat().st_size, flush=True)
         other = ROOT/'web3d/data'/dest.name
-        other.write_bytes(dest.read_bytes())
+        atomic_write(other, dest.read_bytes())
 
 
 if __name__ == '__main__': main()

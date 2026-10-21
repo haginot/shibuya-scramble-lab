@@ -246,3 +246,12 @@ def test_promo_export_includes_licenses(tmp_path):
         for name in ('LICENSE','NOTICE'):
             assert (base/name).read_bytes() == Path(name).read_bytes()
     assert 'promo.json' in (tmp_path/'data/index.html').read_text()
+
+
+def test_unobserved_pr_branch_suppresses_intervals():
+    c = promo.load_config(area='shibuya')
+    result = promo.simulate(c)['combinations']['pr_only']
+    assert result['coverage_branches']['pr_media']['observed'] == 0
+    assert result['metrics']['roi'] == -1
+    assert result['intervals_95'] == {'uplift': None, 'roi': None}
+    assert result['interval_note'] == 'insufficient coverage branches'

@@ -121,7 +121,7 @@ def _run(c, town, seed):
                         positions.append([round(target[0]+(r[4]-.5)*.00008,6),round(target[1]+(r[5]-.5)*.00008,6),states[i]])
                 frames.append(dict(day=day,hour=hour,agents=positions,sample_visitor_ids=sample_visitors,slot_visits=(visits-visits_before)*c['agent_scale'],funnel=[states.count(s) for s in range(5)],visits=visits,visitor_ids=visit_ids.copy(),redeemed=redeemed))
             daily.append(dict(day=day,weather=skies[day],funnel=[states.count(s) for s in range(5)],visits=visits))
-        outputs[combo] = dict(total_visits=visits,coupon_redeemed=redeemed,visitor_ids=visit_ids,frames=frames,daily=daily)
+        outputs[combo] = dict(coverage={name:coverage[name] for name in enabled},total_visits=visits,coupon_redeemed=redeemed,visitor_ids=visit_ids,frames=frames,daily=daily)
     base = outputs['none']
     for combo, out in outputs.items():
         cost = sum(c['channels'][name]['fixed_cost'] + c['channels'][name]['daily_cost']*sum(d in c['channels'][name]['active_days'] for d in range(days)) for name in c['combinations'][combo])
@@ -162,10 +162,14 @@ def simulate(config=None, seeds=None, days=None):
         means = {key:sum(v[key] for v in values)/len(values) if all(v[key] is not None for v in values) else None for key in values[0]}
         total = sum(v['total_visits'] for v in values)
         means['would_have_come_anyway_share'] = sum((v['would_have_come_anyway_share'] or 0)*v['total_visits'] for v in values)/total if total else None
+        branches = {name:dict(observed=sum(run[combo]['coverage'][name] for run in runs), trials=len(runs), probability=c['channels'][name]['coverage_probability'])
+                    for name in c['combinations'][combo]
+                    if 0 < c['channels'][name].get('coverage_probability', 1) < 1}
+        missing_branch = any(v['observed'] in (0, v['trials']) for v in branches.values())
         intervals = {}
         for key in ('uplift', 'roi'):
             sample = [v[key] for v in values]
-            if sample[0] is None or len(sample) < 2:
+            if sample[0] is None or len(sample) < 2 or missing_branch:
                 intervals[key] = None
             else:
                 # Two-sided Student t interval for independent seed means.
@@ -173,7 +177,7 @@ def simulate(config=None, seeds=None, days=None):
                 critical = (12.706,4.303,3.182,2.776,2.571,2.447,2.365,2.306,2.262,2.228,2.201,2.179,2.160,2.145,2.131,2.120,2.110,2.101,2.093,2.086,2.080,2.074,2.069,2.064,2.060,2.056,2.052,2.048,2.045,2.042)[df-1] if df <= 30 else 1.96 + 2.4/df
                 half = critical*statistics.stdev(sample)/math.sqrt(len(sample))
                 intervals[key] = [means[key]-half, means[key]+half]
-        results[combo] = dict(metrics=means,intervals_95=intervals,frames=runs[0][combo]['frames'],daily=runs[0][combo]['daily'])
+        results[combo] = dict(metrics=means,intervals_95=intervals,interval_note='insufficient coverage branches' if missing_branch else 'independent seed Student t interval',coverage_branches=branches,frames=runs[0][combo]['frames'],daily=runs[0][combo]['daily'])
     return dict(disclaimer=DISCLAIMER,store=dict(c['store'],position=list(town.coord[town.site_node])),config=c,states=STATES,timeline_seed=0,timeline_note='Frames and live metrics use seed 0; summary metrics average seeds except anyway share, which pools same-agent/day/slot episode overlap.',combinations=results)
 
 

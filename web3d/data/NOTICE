@@ -17,7 +17,7 @@ tiles (dem5a_png, 5 m), falling back to DEM10B PNG (dem_png, 10 m).
 The Asagaya/Koenji terrain grids are sampled, rebased and used for visualization.
 Shibuya uses flat local ground; terrain_shibuya.json is an authored zero grid.
 
-Shibuya buildings (separate from the OSM database):
+Shibuya PLATEAU building component:
 Source: 国土交通省 Project PLATEAU / 渋谷区 2023年度 3D都市モデル,
 CityGML v4, 13113_shibuya-ku_pref_2023_citygml_2_op.zip.
 https://www.geospatial.jp/ckan/dataset/plateau-13113-shibuya-ku-2023
@@ -26,13 +26,17 @@ License reviewed BEFORE acquisition on 2026-10-21: dataset license is
 "PLATEAU Site Policy". Section 3 explicitly permits use under CC BY 4.0;
 we use that permission, rather than assuming all PLATEAU datasets share a license.
 https://creativecommons.org/licenses/by/4.0/
-shibuya_plateau.json and buildings_shibuya.json are modified extracts:
+shibuya_plateau.json and the buildings component of buildings_shibuya.json
+are modified extracts:
 ground exterior footprints and measuredHeight (or geometry Z extent), clipped
 to the local area, rounded to centimetres, rendered as flat-roof extrusions.
 No original textures, LOD2 roofs, CityGML archive or scanned Hachiko statue
 are redistributed. Building coordinates/heights are data, not our MIT code.
 Archive member names and SHA-256 hashes are in shibuya_plateau.json.
 Credit: 国土交通省 Project PLATEAU・渋谷区 2023 を加工して作成 / modified.
+
+The rails component of buildings_shibuya.json is derived from shibuya_osm.json
+and remains ODbL 1.0, not CC BY. component_licenses records both licenses.
 
 Shibuya OSM: shibuya_osm.json, engine_shibuya_promo.json and the road-derived
 shibuya_traffic.json: © OpenStreetMap contributors, ODbL 1.0.

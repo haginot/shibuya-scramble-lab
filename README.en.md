@@ -2,11 +2,19 @@
 
 [日本語](README.md) · English · [Demo entry after publishing](https://haginot.github.io/asagaya-town-sim/)
 
-**公的統計で較正したトイモデル・予測ではない / Toy model calibrated to public stats — not a prediction**
+**公開統計の規模・時間帯を参考にしたトイモデル・予測ではない / Toy model scaled to public ridership stats — not a prediction**
+
+Change hypothetical demand and promotion settings to observe crowd clearance and visit-state changes. **Crossing volumes and behaviour remain uncalibrated.**
 
 A metre-scale Shibuya crossing, Hachiko square and Yamanote/Ginza arrival waves, with 20,000 individual agents by default. Every person has a position, velocity, random stream and awareness → intent → visit funnel. A spatial grid, social forces, a Web Worker, GPU point billboards and vehicle InstancedMesh handle computation and drawing. This is an individual-agent simulation. The Shibuya runtime calls no LLM or external API.
 
 Buildings use 1,050 PLATEAU ground footprints and heights; OSM supplies roads, railways and mapped shop objects. Vehicles replay trajectories generated with SUMO on the OSM network. LOD2 roofs/textures, terrain, real OD, controller timings, train schedules and promotion effects remain approximate or uncalibrated.
+
+[Watch the video (separate 42 s MP4)](docs/media/index.html) · [Overhead crossing](docs/media/crossing.webp) · [14-day promotion results](docs/media/promo.webp) · [Try in a browser](https://haginot.github.io/asagaya-town-sim/) · [Run locally](#run)
+
+![Overhead crossing](docs/media/crossing.webp)
+
+Codex CLI implements the simulation, UI, recording tools and regression tests. The human role is review and verification of the evidence/assumption labels, attribution and pedestrian/vehicle release checks. Runtime agents follow numerical rules.
 
 ## Run
 
@@ -22,7 +30,7 @@ uv run asagaya-town-sim serve --area shibuya --agents 30000 --normal-demand --ho
 
 `shibuya` is the new default for ordinary CLI, promotion CLI and Pages. `--agents` accepts 0–60,000; `--seed` selects individual random streams; `--hour` holds demand at a chosen hour in [0,24). Default: 15:00, upper-demand preset. CLI JSON exports configuration and requested demand; actual physical crossings run in the browser. The displayed population is not an observed simultaneous census.
 
-After the verification owner commits the work and makes that Git revision available, installed use outside the checkout works with bundled package data. This implementation performs no commit, push or deployment.
+When the `shibuya` revision is available from the repository, use the following commands. Wheels include map data; NOTICE specifies the separate data licenses.
 
 ```bash
 uvx --from 'git+https://github.com/haginot/asagaya-town-sim.git@shibuya' asagaya-town-sim serve --area shibuya --no-llm --no-open
@@ -43,7 +51,7 @@ FY2024 daily averages: [JR East](https://www.jreast.co.jp/press/2025/20250912_ho
 
 Assuming balanced JR exits produces a scale proxy of 2,145,705 station events, still including transfer/daily-return overlap. An assumed 12% street capture gives a 257,484.6 trips/day reference. Our approximate hourly shape follows published Shibuya City timing constraints: rise around 07:00, peak 14:00–16:00, faster decline after 19:00. It is not a quantitative fit to observed hourly crossing counts. Normalising this curve gives about 789 requested departures per 150 s phase at 15:00.
 
-The separate 3,000-person peak preset multiplies that curve by 3.803. It is a requested upper-demand demonstration, not a verified current official count. Full formulas, source URLs, limitations, neighbour truncation and uncalibrated values: [CALIBRATION.md](docs/CALIBRATION.md).
+The separate 3,000-person peak preset multiplies that curve by 3.803. It is an arbitrary demonstration target, not a verified current official count. Full formulas, source URLs, limitations, neighbour truncation and uncalibrated values: [CALIBRATION.md](docs/CALIBRATION.md).
 
 ## Shibuya promotion comparison
 
@@ -66,7 +74,7 @@ uv run python tools/build_pages.py --out _site
 python3 -m http.server --directory _site
 ```
 
-The video is 30 s, 1280×720, 30 fps, with an overhead simultaneous-crossing opening for the first three seconds. Bilingual captions have a dedicated band separate from numeric rows. Requires Playwright Chromium and ffmpeg; unavailable headless WebGL falls back to DISPLAY/Xvfb. Override outputs with `SHIBUYA_VIDEO` / `SHIBUYA_STILLS`. Building Pages does not publish it.
+The video is 42 s (30 s scene + 12 s credits), 1280×720, 30 fps; simulation time runs at ×8, with an overhead simultaneous-crossing opening for the first three seconds. Bilingual captions have a dedicated band separate from numeric rows. Requires Playwright Chromium and ffmpeg; unavailable headless WebGL falls back to DISPLAY/Xvfb. Override outputs with `SHIBUYA_VIDEO` / `SHIBUYA_STILLS`. 
 
 ```bash
 uv run python tools/fetch_shibuya.py --cache /tmp/shibuya-source
@@ -86,7 +94,7 @@ Bilingual five-minute ai& Build Day talk: [presentation.md](docs/presentation.md
 
 ## Data and licenses
 
-Code and three.js: MIT. Buildings: modified MLIT Project PLATEAU / Shibuya City 2023 CityGML v4, reduced to ground exterior footprints plus heights. The [dataset](https://www.geospatial.jp/ckan/dataset/plateau-13113-shibuya-ku-2023) specifies [PLATEAU Site Policy](https://www.mlit.go.jp/plateau/site-policy/), whose explicit CC BY 4.0 permission was checked before use. Roads, railways, shop objects and derived vehicle trajectories: © OpenStreetMap contributors / ODbL 1.0. OSM was acquired 2026-10-21; query, bbox and checksums are bundled. Full extent: 1,102 mapped shop/food objects. Source databases remain separate and exports include the full small derived datasets.
+Code and three.js: MIT. Buildings: modified MLIT Project PLATEAU / Shibuya City 2023 CityGML v4, reduced to ground exterior footprints plus heights. The [dataset](https://www.geospatial.jp/ckan/dataset/plateau-13113-shibuya-ku-2023) specifies [PLATEAU Site Policy](https://www.mlit.go.jp/plateau/site-policy/), whose explicit CC BY 4.0 permission was checked before use. Roads, railways, shop objects and derived vehicle trajectories: © OpenStreetMap contributors / ODbL 1.0. OSM was acquired 2026-10-21; query, bbox and checksums are bundled. Full extent: 1,102 mapped shop/food objects. Source databases are separate and exports include the derived datasets. The promo adapter `buildings_shibuya.json` contains `buildings` under CC BY 4.0 and `rails` under ODbL 1.0, explicitly licensed per component.
 
 SUMO 1.28.0 was actually used during generation (EPL-2.0); the viewer needs no SUMO installation and is not a live TraCI co-simulation. Railway statistics are attributed factual values, without claiming a blanket open license for their websites. Screenshots/video retain on-screen credits. Details: [NOTICE](NOTICE).
 

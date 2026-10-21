@@ -80,3 +80,11 @@ def test_shibuya_source_mirrors():
         assert p.read_bytes()==(ROOT/'web3d/shibuya'/p.name).read_bytes()
     for name in ('shibuya_osm.json','shibuya_plateau.json','shibuya_traffic.json','shibuya_config.json','shibuya_calibration.json'):
         assert (ROOT/'web3d/data'/name).read_bytes()==(ROOT/'src/asagaya_town_sim/web3d/data'/name).read_bytes()
+
+
+def test_mixed_adapter_component_licenses(tmp_path):
+    shibuya.promo_assets(tmp_path)
+    data=json.loads((tmp_path/'buildings_shibuya.json').read_text())
+    assert data['component_licenses']['buildings']['license']=='CC BY 4.0'
+    assert data['component_licenses']['rails']['license']=='ODbL 1.0'
+    assert data['rails']

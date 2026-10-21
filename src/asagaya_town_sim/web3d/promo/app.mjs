@@ -9,7 +9,7 @@ async function start(){
  const defaultData=await json('../data/promo.json');
  const shibuya=params.get('area')==='shibuya'||(!params.has('area')&&defaultData.config.area==='shibuya');
  const [data,buildings,terrain,engine]=await (shibuya?Promise.all([defaultData.config.area==='shibuya'?defaultData:json('../data/promo_shibuya.json'),json('../data/buildings_shibuya.json'),json('../data/terrain_shibuya.json'),json('../data/engine_shibuya_promo.json')]):Promise.all([defaultData,json('../data/buildings.json'),json('../data/terrain.json'),json('../data/engine.json')]));
- if(shibuya){document.title='Shibuya · Fictional promotion';document.getElementById('model-note').textContent='公的統計で較正したトイモデル・予測ではない / Toy model calibrated to public stats — not a prediction';document.getElementById('source-note').textContent='国土交通省 Project PLATEAU・渋谷区 2023 / footprints + heights · CC BY 4.0 · Promotion coefficients are placeholders.';document.getElementById('plateau-credit').hidden=false;}
+ if(shibuya){document.title='Shibuya · Fictional promotion';document.getElementById('model-note').textContent='販促・売上・費用係数は仮置き / Promotion, sales and cost coefficients are placeholders — not a prediction';document.getElementById('source-note').textContent='国土交通省 Project PLATEAU・渋谷区 2023 / footprints + heights · CC BY 4.0 · Promotion coefficients are placeholders.';document.getElementById('plateau-credit').hidden=false;}
  const requested=(params.get('combos')||'none,sns_only,sns+coupon,all_four').replaceAll(' ','+').split(',');
  const combos=requested.filter((n,i)=>data.combinations[n]&&requested.indexOf(n)===i).slice(0,4);
  if(!combos.length)throw new Error('No valid combinations selected');
@@ -50,10 +50,10 @@ async function start(){
  const pct=v=>v===null?'N/A':`${(v*100).toFixed(1)}%`;
  const yen=v=>`¥${Math.round(v).toLocaleString()}`;
  const bounds=(result,key,factor=1)=>result.intervals_95[key]?.map(v=>(v*factor).toFixed(1)).join(', ')||'N/A';
- const roiSummary=result=>`${pct(result.metrics.roi)} · 95% [${bounds(result,'roi',100)}${result.intervals_95.roi?'%':''}]`;
+ const roiSummary=result=>result.interval_note==='insufficient coverage branches'?`${pct(result.metrics.roi)} · 95% 推定不足 / insufficient: 掲載分岐未観測 / coverage branch missing`:`${pct(result.metrics.roi)} · 95% [${bounds(result,'roi',100)}${result.intervals_95.roi?'%':''}]`;
  const line=(className,text)=>{const el=document.createElement('div');el.className=className;el.textContent=text;return el;};
  document.getElementById('sample-note').textContent=`表示 ${people.length}体 / 全${data.config.population}体 × 人口倍率${data.config.agent_scale} / shown agents · total agents × population scale`;
- document.getElementById('summary-title').textContent=`${data.config.days}日間・${data.config.seeds}試行平均 / ${data.config.seeds}-trial mean · 95%区間 / intervals`;
+ document.getElementById('summary-title').textContent=`${data.config.days}日間終了・${data.config.seeds}試行平均 / ${data.config.seeds}-trial mean · 95%区間 / intervals`;
  for(const name of combos){
   const result=data.combinations[name],m=result.metrics,card=document.createElement('div');card.className='summary-result';
   const title=document.createElement('strong');title.textContent=titles[name]||name;
@@ -66,12 +66,13 @@ async function start(){
  function animate(now){
   renderer.setSize(innerWidth,innerHeight,false);
   // The first animation timestamp can precede setup’s performance.now().
-  const day=Math.min(data.config.days-0.00001,Math.max(0,now-startTime)/1000/speed*data.config.days);
+  const finished=params.get('end')==='1'||now-startTime>=speed*1000;
+  const day=Math.min(data.config.days-0.00001,(finished?data.config.days:Math.max(0,now-startTime)/1000/speed*data.config.days));
   const idx=Math.min(data.combinations[combos[0]].frames.length-1,Math.floor(day*data.config.hours.length));
-  Object.assign(window.__promoState,{frameIndex:idx,day,metrics:Object.fromEntries(combos.map(name=>[name,data.combinations[name].frames[idx].metrics]))});
+  Object.assign(window.__promoState,{frameIndex:idx,day,finished,metrics:Object.fromEntries(combos.map(name=>[name,data.combinations[name].frames[idx].metrics]))});
   document.getElementById('clock').textContent=`Day ${Math.floor(day)+1}/${data.config.days} · ${data.config.hours[idx%data.config.hours.length]}:00 · ${data.combinations[combos[0]].daily[Math.floor(day)].weather}`;
   const rect=panels.getBoundingClientRect(),top=rect.top,w=rect.width/cols,h=rect.height/rows;
-  document.getElementById('summary-card').hidden=now-startTime<speed*1000;
+  document.getElementById('summary-card').hidden=!finished;
   const orbit=(now-startTime)/1000*.025+.65;
   camera.position.set(store.x+Math.sin(orbit)*400,store.y+550,store.z+Math.cos(orbit)*400);camera.lookAt(focus);
   combos.forEach((name,k)=>{
@@ -96,7 +97,7 @@ async function start(){
    labels[k].tag.textContent=`この枠の来訪：表示サンプル ${current.visitors}体 / sample visits · 全体 ${frame.slot_visits}回 / scaled visits`;
    labels[k].tag.style.display = h < 190 ? 'none' : '';
    renderer.render(scene,camera);
-   labels[k].tag.style.top=`${Math.min(Math.max(60,parseFloat(labels[k].tag.style.top)),h-labels[k].stats.offsetHeight-12)}px`;
+   labels[k].tag.style.top=`${Math.min(Math.max(60+labels[k].tag.offsetHeight,parseFloat(labels[k].tag.style.top)),h-labels[k].stats.offsetHeight-12)}px`;
   });
   requestAnimationFrame(animate);
  }

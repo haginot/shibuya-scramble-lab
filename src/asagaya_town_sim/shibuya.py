@@ -10,7 +10,7 @@ import math
 from importlib import resources
 from pathlib import Path
 
-DISCLAIMER = '公的統計で較正したトイモデル・予測ではない / Toy model calibrated to public stats — not a prediction'
+DISCLAIMER = '公開統計の規模・時間帯を参考にしたトイモデル・予測ではない / Toy model scaled to public ridership stats — not a prediction; 横断量・行動は未較正 / crossings and behaviour uncalibrated'
 CENTER = [35.65948, 139.70055]
 STORE = [-46.0, -42.0]
 
@@ -73,12 +73,12 @@ class PromoTown:
 
 
 def promo_assets(directory):
-    """Small map adapters; do not mix PLATEAU and OSM source databases."""
+    """Map adapter: component licenses remain explicit within the mixed file."""
     directory = Path(directory)
     directory.mkdir(parents=True,exist_ok=True)
     buildings = load('shibuya_plateau.json')
     osm = load('shibuya_osm.json')
-    b = dict(origin=CENTER, buildings=[dict(p=[[x,-z] for x,z in r['ring']],h=r['height'],s='plateau',k='commercial') for r in buildings['buildings']],rails=[[[x,-z] for x,z in r['points']] for r in osm['railways'] if float(r['tags'].get('layer',0))>=0])
+    b = dict(origin=CENTER, component_licenses={'buildings':{'source':'MLIT Project PLATEAU / Shibuya City 2023; modified footprints + heights','license':'CC BY 4.0','license_url':'https://creativecommons.org/licenses/by/4.0/'},'rails':{'source':'© OpenStreetMap contributors; derived from shibuya_osm.json','license':'ODbL 1.0','license_url':'https://opendatacommons.org/licenses/odbl/1-0/','copyright_url':'https://www.openstreetmap.org/copyright'}}, buildings=[dict(p=[[x,-z] for x,z in r['ring']],h=r['height'],s='plateau',k='commercial') for r in buildings['buildings']],rails=[[[x,-z] for x,z in r['points']] for r in osm['railways'] if float(r['tags'].get('layer',0))>=0])
     terrain = dict(origin=CENTER,size=2,x0=-500,y0=-500,step=1000,grid=[[0,0],[0,0]],base_m=0,source='flat local ground; no GSI terrain used in Shibuya')
     town = PromoTown()
     engine = dict(area='shibuya',site=latlon(*STORE),center=CENTER,pois=town.pois,roads=[dict(kind=r['kind'],points=r['points']) for r in osm['roads'] if float(r['tags'].get('layer',0))>=0 and r['tags'].get('indoor')!='yes' and r['tags'].get('tunnel')!='yes'],scenarios={'map':{'heat':[[*town.coord[a],*town.coord[b],1] for a in town.adj for b in town.adj[a] if a < b]}})

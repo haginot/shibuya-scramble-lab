@@ -2,11 +2,19 @@
 
 [English](README.en.md) · 日本語 · [デモ入口（公開後）](https://haginot.github.io/asagaya-town-sim/)
 
-**公的統計で較正したトイモデル・予測ではない / Toy model calibrated to public stats — not a prediction**
+**公開統計の規模・時間帯を参考にしたトイモデル・予測ではない / Toy model scaled to public ridership stats — not a prediction**
+
+仮の需要や販促条件を変え、混雑の解消と来訪状態の変化を観察する実験場です。**横断量・行動は未較正**です。
 
 渋谷の交差点、ハチ公前、山手線・銀座線の降車の波を、既定20,000体の個別エージェントで動かします。一人ずつ位置・速度・乱数と「認知→意向→来訪」の状態を持ちます。近傍グリッドを使うsocial-force、Web Worker、GPUビルボード・車両のthree.js InstancedMeshで計算・描画します。流体モデルや動画の点群再生ではありません。渋谷の実行時にLLM・外部APIは使いません。
 
 建物はPLATEAU渋谷区の1,050棟の足元形状＋高さ、道路・鉄道・店舗の地物はOSMです。単位はm、人物は約1.7m。車両はSUMO＋OSMで生成した軌跡。LOD2の屋根・テクスチャ、地形、列車ダイヤ、信号時間、実際のOD、販促効果は再現・実測較正していません。
+
+[動画を見る（別添MP4・42秒）](docs/media/index.html) · [真上の横断](docs/media/crossing.webp) · [14日販促比較の結果](docs/media/promo.webp) · [ブラウザで試す](https://haginot.github.io/asagaya-town-sim/) · [ローカル実行](#実行)
+
+![真上からの一斉横断](docs/media/crossing.webp)
+
+制作にはCodex CLIを使用し、シミュレーション・画面・録画処理の実装と回帰テスト作成を担当させました。人がレビューし、統計と仮定の表示、ライセンス、車両と歩行者の待機判定を検証する分担です。実行時の個体行動は数値ルールで決まります。
 
 ## 実行
 
@@ -20,9 +28,9 @@ uv run asagaya-town-sim demo --area shibuya --json --no-llm
 uv run asagaya-town-sim serve --area shibuya --agents 30000 --normal-demand --hour 8 --no-open
 ```
 
-`--area shibuya` が通常CLI・販促CLI・Pagesの新しい既定。`--agents` は0〜60,000、`--seed` は個体の乱数、`--hour` は固定需要時刻（0以上24未満）。既定は15時・ピーク上限シナリオ。`demo --json` は設定と要求人数を出力し、実際の歩行・横断完了はブラウザで計算します。表示用の人数を通行実測人数と解釈しないでください。
+`--area shibuya` が通常CLI・販促CLI・Pagesの新しい既定。`--agents` は0〜60,000、`--seed` は個体の乱数、`--hour` は固定需要時刻（0以上24未満）。既定は15時・任意のデモ目標シナリオ。`demo --json` は設定と要求人数を出力し、実際の歩行・横断完了はブラウザで計算します。表示用の人数を通行実測人数と解釈しないでください。
 
-検証担当が変更をcommitし、対象Git revisionが利用可能になった後は、作業ディレクトリ外からも次で実行できます。データはwheelのpackage dataに含まれます。この作業ではcommit・push・公開は行いません。
+取得可能な `shibuya` revisionでは、次のコマンドで実行できます。地図データはwheelに同梱され、各データの利用条件はNOTICEに記載しています。
 
 ```bash
 uvx --from 'git+https://github.com/haginot/asagaya-town-sim.git@shibuya' asagaya-town-sim serve --area shibuya --no-llm --no-open
@@ -31,7 +39,7 @@ uvx --from 'git+https://github.com/haginot/asagaya-town-sim.git@shibuya' asagaya
 
 ## 画面の読み方
 
-真上・交差点・ハチ公カメラを切り替えられます。需要はピーク約3,000人・駅統計スケール・朝8時。上段の「今期の出発」は割り当てた人数、「横断完了」は反対側へ到達した人数です。高密度時は歩行者が渡り切るまで共有信号時計を止め、SUMO車両を待たせます。2万体は周辺歩行者・待機者・降車の波を含み、全員が毎フェーズ横断するわけではありません。
+真上・交差点・ハチ公カメラを切り替えられます。需要は任意のデモ目標3,000人・駅統計スケール・朝8時。上段の「今期の出発」は割り当てた人数、「横断完了」は反対側へ到達した人数です。高密度時は歩行者が渡り切るまで共有信号時計を止め、SUMO車両を待たせます。2万体は周辺歩行者・待機者・降車の波を含み、全員が毎フェーズ横断するわけではありません。
 
 画面下段の白・青・黄・橙は個体ごとの未認知・認知・意向・来訪です。販促スイッチはその場で接触確率を変える探索用で、因果効果の推定ではありません。ハチ公像は自作の象徴的形状。列車の到着間隔・降車数・出口配分は仮定で、波は既存エージェントを出口へ移すため総数を増やしません。
 
@@ -66,7 +74,7 @@ uv run python tools/build_pages.py --out _site
 python3 -m http.server --directory _site
 ```
 
-動画は30秒・1280×720・30fps、最初の3秒は真上、一斉横断。日英字幕の専用帯は数値行と重なりません。録画にはPlaywright Chromium・ffmpegが必要です。WebGLを使えないheadless環境ではDISPLAYまたはXvfbへ切り替えます。出力先は `SHIBUYA_VIDEO` / `SHIBUYA_STILLS` で変更可能。Pagesはビルドのみで公開しません。
+動画は42秒（本編30秒＋クレジット12秒）・1280×720・30fps、シミュレーション時間は8倍速、最初の3秒は真上、一斉横断。日英字幕の専用帯は数値行と重なりません。録画にはPlaywright Chromium・ffmpegが必要です。WebGLを使えないheadless環境ではDISPLAYまたはXvfbへ切り替えます。出力先は `SHIBUYA_VIDEO` / `SHIBUYA_STILLS` で変更可能。
 
 ```bash
 uv run python tools/fetch_shibuya.py --cache /tmp/shibuya-source
@@ -86,7 +94,7 @@ uv run python tools/update_readme_tables.py --check
 
 ## 出典・ライセンス
 
-コード・three.jsはMIT。**建物**は国土交通省 Project PLATEAU・渋谷区2023 CityGML v4を足元形状＋高さへ加工。[データセット](https://www.geospatial.jp/ckan/dataset/plateau-13113-shibuya-ku-2023)の指定する[PLATEAU規約](https://www.mlit.go.jp/plateau/site-policy/)でCC BY 4.0による利用許諾を確認して使用しました。**道路・店舗・鉄道と派生車両軌跡**は© OpenStreetMap contributors / ODbL 1.0。2026-10-21取得、bboxとクエリ・チェックサムをJSONに同梱。全範囲1,102店舗地物。加工データを出力サイトにも同梱し、建物とOSMのデータベースは別ファイルにしています。
+コード・three.jsはMIT。**建物**は国土交通省 Project PLATEAU・渋谷区2023 CityGML v4を足元形状＋高さへ加工。[データセット](https://www.geospatial.jp/ckan/dataset/plateau-13113-shibuya-ku-2023)の指定する[PLATEAU規約](https://www.mlit.go.jp/plateau/site-policy/)でCC BY 4.0による利用許諾を確認して使用しました。**道路・店舗・鉄道と派生車両軌跡**は© OpenStreetMap contributors / ODbL 1.0。2026-10-21取得、bboxとクエリ・チェックサムをJSONに同梱。全範囲1,102店舗地物。加工データを出力サイトにも同梱し、主な元データは別ファイルです。販促用 `buildings_shibuya.json` は混合アダプターで、`buildings` はCC BY 4.0、`rails` はODbL 1.0です。
 
 SUMO 1.28.0は生成時のみ（EPL-2.0）、実際に使用済み。ブラウザは同梱軌跡を再生し、ライブTraCI連成ではありません。鉄道統計は出典付きの事実数値のみで、原ページへの包括的なオープンライセンスは主張しません。動画・静止画にも画面クレジットを保持します。[NOTICE](NOTICE)に全帰属条件。
 
