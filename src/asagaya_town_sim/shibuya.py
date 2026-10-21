@@ -113,5 +113,5 @@ def write_site(directory, data=None):
     if not (dest/'promo.json').exists():
         (dest/'promo.json').write_text(promo_blob,encoding='utf-8')
     write_notices(directory,dest)
-    (directory/'index.html').write_text('<!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="0;url=web3d/shibuya/"><a href="web3d/shibuya/">Shibuya scramble</a>',encoding='utf-8')
+    (directory/'index.html').write_text('<!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="0;url=web3d/shibuya/"><p>トイモデル・予測ではない / Toy model — not a real traffic prediction</p><a href="web3d/shibuya/">Shibuya scramble</a>',encoding='utf-8')
     return directory

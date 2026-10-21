@@ -36,4 +36,4 @@ uv run --with playwright python tools/benchmark_shibuya.py _site --agents 20000 
 
 For each population the benchmark requests at least 180 wall seconds and 180 simulation seconds, capped at 3× the requested wall duration. `event_window_complete` marks whether signal and arrival windows were observed. `--agents 20000 40000` measures both populations; the table above reports only the completed 20,000-agent run.
 
-Raw measurement: [performance.json](performance.json), also `/workspace/demos/shibuya-scramble/performance.json`. Recording log: `/workspace/demos/shibuya-scramble/recording.json`.
+Raw measurement: [performance.json](performance.json), also written to `out/media/shibuya-scramble/performance.json`. Recording log: `out/media/shibuya-scramble/recording.json`.

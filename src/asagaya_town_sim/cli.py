@@ -115,7 +115,7 @@ def write_site(d, html, data):
     (w / "data" / "engine.json").write_text(blob, encoding="utf-8")
     (w / "data" / f"engine_{area}.json").write_text(blob, encoding="utf-8")
     write_notices(d, w / "data")
-    (d / "index.html").write_text(f'<!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="0;url=web3d/{WEB3D_DEFAULT}/">'
+    (d / "index.html").write_text(f'<!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="0;url=web3d/{WEB3D_DEFAULT}/"><p>トイモデル・予測ではない / Toy model — not a real traffic prediction</p>'
                                   f'<a href="web3d/{WEB3D_DEFAULT}/">3D</a> / <a href="2d.html">2D</a>', encoding="utf-8")
     return d
 

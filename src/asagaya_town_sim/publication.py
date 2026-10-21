@@ -20,6 +20,7 @@ def refresh_data_index(directory):
     (directory / 'index.html').write_text(
         '<!doctype html><meta charset="utf-8"><title>Data and attribution</title>'
         '<h1>加工済みデータ / Derived data</h1>'
+        '<p>トイモデル・予測ではない / Toy model — not a real traffic prediction</p>'
         '<p><a href="https://www.openstreetmap.org/copyright">© OpenStreetMap contributors</a> · '
         '<a href="https://opendatacommons.org/licenses/odbl/1-0/">ODbL 1.0</a>. '
         '道路・POI・建物 / roads, POIs and buildings.</p>'

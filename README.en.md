@@ -8,7 +8,7 @@ Change hypothetical demand and promotion settings to observe crowd clearance and
 
 A metre-scale Shibuya crossing, Hachiko square and Yamanote/Ginza arrival waves, with 20,000 individual agents by default. Every person has a position, velocity, random stream and awareness → intent → visit funnel. A spatial grid, social forces, a Web Worker, GPU point billboards and vehicle InstancedMesh handle computation and drawing. This is an individual-agent simulation. The Shibuya runtime calls no LLM or external API.
 
-Buildings use 1,050 PLATEAU ground footprints and heights; OSM supplies roads, railways and mapped shop objects. Vehicles replay trajectories generated with SUMO on the OSM network. LOD2 roofs/textures, terrain, real OD, controller timings, train schedules and promotion effects remain approximate or uncalibrated.
+Buildings use 1,050 PLATEAU ground footprints and heights; OSM supplies roads, railways and mapped shop objects. Vehicles replay trajectories generated with SUMO on the OSM network. LOD2 roofs and textures are omitted and the ground is flat; real OD, controller timings, train schedules and promotion effects remain approximate or uncalibrated.
 
 [Watch the video (separate 42 s MP4)](docs/media/index.html) · [Overhead crossing](docs/media/crossing.webp) · [14-day promotion results](docs/media/promo.webp) · [Try in a browser](https://haginot.github.io/shibuya-scramble-lab/) · [Run locally](#run)
 
@@ -70,8 +70,8 @@ The existing 14-day experiment uses 400 fictional agents × scale 5 and 8 seeds,
 
 ```bash
 bash tools/record_shibuya.sh
-# /workspace/demos/shibuya-scramble.mp4
-# /workspace/demos/shibuya-scramble/*.png and recording.json
+# out/media/shibuya-scramble.mp4
+# out/media/shibuya-scramble/*.png and recording.json
 uv run python tools/build_pages.py --out _site
 python3 -m http.server --directory _site
 ```
@@ -96,7 +96,7 @@ Bilingual five-minute ai& Build Day talk: [presentation.md](docs/presentation.md
 
 ## Data and licenses
 
-Code and three.js: MIT. Buildings: modified MLIT Project PLATEAU / Shibuya City 2023 CityGML v4, reduced to ground exterior footprints plus heights. The [dataset](https://www.geospatial.jp/ckan/dataset/plateau-13113-shibuya-ku-2023) specifies [PLATEAU Site Policy](https://www.mlit.go.jp/plateau/site-policy/), whose explicit CC BY 4.0 permission was checked before use. Roads, railways, shop objects and derived vehicle trajectories: © OpenStreetMap contributors / ODbL 1.0. OSM was acquired 2026-10-21; query, bbox and checksums are bundled. Full extent: 1,102 mapped shop/food objects. Source databases are separate and exports include the derived datasets. The promo adapter `buildings_shibuya.json` contains `buildings` under CC BY 4.0 and `rails` under ODbL 1.0, explicitly licensed per component.
+Code and three.js: MIT. Buildings: modified MLIT Project PLATEAU / Shibuya City 2023 CityGML 2.0, reduced to ground exterior footprints plus heights. The [dataset](https://www.geospatial.jp/ckan/dataset/plateau-13113-shibuya-ku-2023) specifies [PLATEAU Site Policy](https://www.mlit.go.jp/plateau/site-policy/), whose explicit CC BY 4.0 permission was checked before use. Roads, railways, shop objects and derived vehicle trajectories: © OpenStreetMap contributors / ODbL 1.0. OSM was acquired 2026-10-21; query, bbox and checksums are bundled. Full extent: 1,102 mapped shop/food objects. Source databases are separate and exports include the derived datasets. The promo adapter `buildings_shibuya.json` contains `buildings` under CC BY 4.0 and `rails` under ODbL 1.0, explicitly licensed per component.
 
 SUMO 1.28.0 was actually used during generation (EPL-2.0); the viewer needs no SUMO installation and is not a live TraCI co-simulation. Railway statistics are attributed factual values, without claiming a blanket open license for their websites. Screenshots/video retain on-screen credits. Details: [NOTICE](NOTICE).
 

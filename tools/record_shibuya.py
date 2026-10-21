@@ -147,6 +147,6 @@ def record(site,output,stills):
 if __name__=='__main__':
     ap=argparse.ArgumentParser(description=__doc__)
     ap.add_argument('site',type=Path)
-    ap.add_argument('--output',type=Path,default=Path('/workspace/demos/shibuya-scramble.mp4'))
-    ap.add_argument('--stills',type=Path,default=Path('/workspace/demos/shibuya-scramble'))
+    ap.add_argument('--output',type=Path,default=Path('out/media/shibuya-scramble.mp4'))
+    ap.add_argument('--stills',type=Path,default=Path('out/media/shibuya-scramble'))
     args=ap.parse_args();record(args.site.resolve(),args.output.resolve(),args.stills.resolve())

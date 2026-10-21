@@ -70,8 +70,8 @@ uv run shibuya-scramble-lab promo build --area shibuya -o out-promo
 
 ```bash
 bash tools/record_shibuya.sh
-# /workspace/demos/shibuya-scramble.mp4
-# /workspace/demos/shibuya-scramble/*.png と recording.json
+# out/media/shibuya-scramble.mp4
+# out/media/shibuya-scramble/*.png と recording.json
 uv run python tools/build_pages.py --out _site
 python3 -m http.server --directory _site
 ```
@@ -96,7 +96,7 @@ uv run python tools/update_readme_tables.py --check
 
 ## 出典・ライセンス
 
-コード・three.jsはMIT。**建物**は国土交通省 Project PLATEAU・渋谷区2023 CityGML v4を足元形状＋高さへ加工。[データセット](https://www.geospatial.jp/ckan/dataset/plateau-13113-shibuya-ku-2023)の指定する[PLATEAU規約](https://www.mlit.go.jp/plateau/site-policy/)でCC BY 4.0による利用許諾を確認して使用しました。**道路・店舗・鉄道と派生車両軌跡**は© OpenStreetMap contributors / ODbL 1.0。2026-10-21取得、bboxとクエリ・チェックサムをJSONに同梱。全範囲1,102店舗地物。加工データを出力サイトにも同梱し、主な元データは別ファイルです。販促用 `buildings_shibuya.json` は混合アダプターで、`buildings` はCC BY 4.0、`rails` はODbL 1.0です。
+コード・three.jsはMIT。**建物**は国土交通省 Project PLATEAU・渋谷区2023 CityGML 2.0を足元形状＋高さへ加工。[データセット](https://www.geospatial.jp/ckan/dataset/plateau-13113-shibuya-ku-2023)の指定する[PLATEAU規約](https://www.mlit.go.jp/plateau/site-policy/)でCC BY 4.0による利用許諾を確認して使用しました。**道路・店舗・鉄道と派生車両軌跡**は© OpenStreetMap contributors / ODbL 1.0。2026-10-21取得、bboxとクエリ・チェックサムをJSONに同梱。全範囲1,102店舗地物。加工データを出力サイトにも同梱し、主な元データは別ファイルです。販促用 `buildings_shibuya.json` は混合アダプターで、`buildings` はCC BY 4.0、`rails` はODbL 1.0です。
 
 SUMO 1.28.0は生成時のみ（EPL-2.0）、実際に使用済み。ブラウザは同梱軌跡を再生し、ライブTraCI連成ではありません。鉄道統計は出典付きの事実数値のみで、原ページへの包括的なオープンライセンスは主張しません。動画・静止画にも画面クレジットを保持します。[NOTICE](NOTICE)に全帰属条件。
 

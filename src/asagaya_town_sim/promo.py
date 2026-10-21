@@ -196,12 +196,12 @@ def write_site(directory, data):
         (directory/'data/promo_shibuya.json').write_text(blob,encoding='utf-8')
         (directory/'data/promo.json').write_text(blob,encoding='utf-8')
         write_notices(directory,directory/'data')
-        (directory/'index.html').write_text('<!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="0;url=promo/?area=shibuya"><a href="promo/?area=shibuya">Shibuya promotion</a>',encoding='utf-8')
+        (directory/'index.html').write_text('<!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="0;url=promo/?area=shibuya"><p>トイモデル・予測ではない / Toy model — not a real traffic prediction</p><a href="promo/?area=shibuya">Shibuya promotion</a>',encoding='utf-8')
         return directory
     town = Town()
     engine = dict(site=list(town.coord[town.site_node]), center=[town.station['lat'],town.station['lon']], pois=town.pois, scenarios={'map': {'heat': [[*town.coord[u],*town.coord[v],1] for u in town.nodes for v in town.adj[u] if u < v]}})
     (directory/'data'/'engine.json').write_text(json.dumps(engine),encoding='utf-8')
     (directory/'data'/'promo.json').write_text(json.dumps(data,ensure_ascii=False,separators=(',',':')),encoding='utf-8')
     write_notices(directory, directory/'data')
-    (directory/'index.html').write_text('<!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="0;url=promo/"><a href="promo/">Promotion toy model</a>',encoding='utf-8')
+    (directory/'index.html').write_text('<!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="0;url=promo/"><p>トイモデル・予測ではない / Toy model — not a real traffic prediction</p><a href="promo/">Promotion toy model</a>',encoding='utf-8')
     return directory
