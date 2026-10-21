@@ -5,10 +5,10 @@
 /** @typedef {[number, number]} Point2 Metres in the building's local x/z plane. */
 /** @typedef {Point2[]} Ring Unclosed polygon; the final edge returns to the first vertex. */
 /** @typedef {{id: string, elevation_m: number, height_m: number, outline: Ring}} IndoorFloor */
-/** @typedef {{id: string, floor_id: string, kind: 'concourse'|'tenant'|'popup', polygon: Ring}} IndoorZone */
+/** @typedef {{id: string, floor_id: string, kind: 'concourse'|'tenant'|'popup', polygon: Ring, fixture_polygon?: Ring}} IndoorZone Optional solid fixture inside a popup's visit area. */
 /** @typedef {{id: string, name: string, zone_id: string, entry_node_id: string, entry_width_m: number}} IndoorTenant */
-/** @typedef {{id: string, floor_id: string|null, position_m: Point2}} IndoorNode */
-/** @typedef {{from: string, to: string, width_m: number, bidirectional: boolean}} IndoorEdge */
+/** @typedef {{id: string, floor_id: string|null, position_m: Point2}} IndoorNode null floor denotes outdoors; position is still building-local. */
+/** @typedef {{from: string, to: string, width_m: number, bidirectional: boolean}} IndoorEdge Same-floor walking link; portal links are separate. */
 /**
  * @typedef {Object} IndoorPortal
  * @property {string} id
@@ -20,6 +20,7 @@
  * @property {number} travel_s
  * @property {boolean} bidirectional
  * @property {boolean} accessible
+ * @description Endpoints reference navigation nodes. Do not duplicate a portal as an edge.
  */
 /**
  * @typedef {Object} IndoorAd
@@ -30,6 +31,7 @@
  * @property {number} fov_deg Full viewing cone.
  * @property {number} range_m
  * @property {number} min_exposure_s Continuous visible time required for reach.
+ * @description heading_deg is the outward display normal, not the pedestrian heading.
  */
 /**
  * @typedef {Object} IndoorStoreDetail
@@ -63,7 +65,7 @@
  * @property {'outdoor'|'indoor'} destination
  * @property {number} time_s Simulation time, independent of the signal clock.
  * @property {number} random_state
- * @property {number} funnel_state
+ * @property {number} funnel_state Outdoor state 0..3; indoor visits use a separate event ledger.
  * @property {Point2} velocity_m_s
  * @property {string} resume_node_id Outdoor routing goal on return.
  */
@@ -73,6 +75,9 @@
  * @property {IndoorFloorplan|null} floorplan Data, never a network URL.
  * @property {boolean} storeDetail
  */
+
+/** @type {ReadonlyArray<IndoorScene>} */
+export const INDOOR_SCENES=Object.freeze(['outdoor_top','building_zoom','plan_rise','indoor_flow','store_detail']);
 
 /** @type {Readonly<IndoorOptions>} */
 export const INDOOR_DEFAULTS=Object.freeze({enabled:false,floorplan:null,storeDetail:false});
