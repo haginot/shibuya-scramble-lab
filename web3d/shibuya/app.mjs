@@ -1,5 +1,6 @@
 import * as THREE from '../vendor/three.module.min.js';
 import {CORNERS,trainPhaseAt} from './simulation.mjs';
+import {requestIndoorScene} from './indoor.mjs';
 const $=id=>document.getElementById(id),params=new URLSearchParams(location.search);
 window.__ready=false;window.__caption=(ja,en)=>{$('ja').textContent=ja;$('en').textContent=en;};
 async function json(path){const r=await fetch(path);if(!r.ok)throw Error(`${path}: ${r.status}`);return r.json();}
@@ -63,6 +64,7 @@ function render(){if(!state)return;const rect=view();if(state.positions!==render
  window.__shibuyaState={ready:true,agents:n,fps,simulationMs:simMs,drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,phase:state.phase,clock:state.clock,time:state.time,admitted:state.admitted,completed:state.completed,active:state.active,funnel:state.funnel,trainWaves:state.trainWaves,clearanceHold:state.clearanceHold,trafficModel:traffic.model,camera:cameraMode};
 }
 window.__setCamera=mode=>{cameraMode=mode;if(!recording)render();};
+window.__setIndoorScene=requestIndoorScene;
 window.__advance=async seconds=>{const t=performance.now();state=await request({type:'advance',seconds});simMs=performance.now()-t;cameraTime+=seconds/5;render();return window.__shibuyaState;};
 $('pause').onclick=()=>{paused=!paused;$('pause').textContent=paused?'再開 / Play':'一時停止 / Pause';};document.querySelectorAll('[data-camera]').forEach(b=>b.onclick=()=>window.__setCamera(b.dataset.camera));$('promotion').onchange=async e=>{state=await request({type:'promo',enabled:e.target.checked});};$('demand').value=config.peak?'peak':'normal';$('demand').onchange=async e=>{busy=true;config.peak=e.target.value==='peak';config.hour=e.target.value==='morning'?8:15;await reset();busy=false;render();};
 // Drag rotates the scene; wheel changes the camera preset without changing metre units.
