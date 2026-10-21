@@ -129,6 +129,32 @@ def test_cli_demo_json(capsys):
 
 def test_cli_build_html(tmp_path, capsys):
     cli.main(["build", "--seeds", "1", "--residents", "40", "--visitors", "20", "--commuters", "10", "--no-llm", "-o", str(tmp_path)])
-    html = (tmp_path / "index.html").read_text(encoding="utf-8")
+    html = (tmp_path / "2d.html").read_text(encoding="utf-8")
     assert "予測ではありません" in html and "__DATA__" not in html
     assert "予測ではありません" in capsys.readouterr().out
+
+
+def test_koenji_area_loads():
+    t = Town(area="koenji")
+    assert "高円寺" in t.station["name"] and len(t.pois) > 300
+
+
+def test_toy_econ_formula(sim):
+    from asagaya_town_sim.model import TOY_SPEND_YEN, toy_econ
+    res = run_all(sim, seeds=1, record=0, which=("alternatives",))
+    e = toy_econ(res["alternatives"])
+    c = res["alternatives"]["cafe"]["summary"]
+    assert e["alts"]["cafe"]["site_sales_yen"] == round(c["site_visits"] * TOY_SPEND_YEN["cafe"])
+    assert e["alts"]["bike"]["nearby_delta_yen"] == 0
+    assert "not" in e["assumptions"]["note"]
+
+
+def test_build_writes_3d_site(tmp_path):
+    cli.main(["build", "--no-llm", "--seeds", "1", "--residents", "60", "--visitors", "40", "--commuters", "20", "--record", "10", "-o", str(tmp_path)])
+    assert (tmp_path / "2d.html").exists() and (tmp_path / "index.html").exists()
+    w = tmp_path / "web3d"
+    assert (w / "vendor" / "three.module.min.js").exists() and (w / "default" / "index.html").exists()
+    d = json.loads((w / "data" / "engine.json").read_text(encoding="utf-8"))
+    assert "toy_econ" in d and "tracks" in d["alternatives"]["cafe"]
+    assert "not a prediction; a toy model for testing hypotheses" in (w / "default" / "index.html").read_text(encoding="utf-8") + "".join(
+        p.read_text(encoding="utf-8") for p in (w / "default").glob("*.mjs"))

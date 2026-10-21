@@ -14,6 +14,9 @@ from importlib import resources
 LAT0, LON0 = 35.7047, 139.6358
 DAY_START, DAY_END = 5 * 60, 24 * 60
 COSLAT = math.cos(math.radians(LAT0))
+# 対応エリア: (geojson, 駅名の手がかり, 表示名, 駅の既定座標)
+AREAS = {"asagaya": ("data/asagaya_osm.geojson", "阿佐", "JR阿佐ケ谷駅", (35.7047, 139.6358)),
+         "koenji": ("data/koenji_osm.geojson", "高円寺", "JR高円寺駅", (35.70533, 139.64995))}
 
 
 def dist(a, b):
@@ -57,11 +60,13 @@ IMPULSE_RADIUS = 30.0  # m
 
 # ---------------------------------------------------------------- 町（地図）
 class Town:
-    def __init__(self, geojson_path=None):
+    def __init__(self, geojson_path=None, area="asagaya"):
+        self.area = area
+        gfile, hint, label, (lat0, lon0) = AREAS[area]
         if geojson_path:
             gj = json.load(open(geojson_path, encoding="utf-8"))
         else:
-            gj = json.loads(resources.files("asagaya_town_sim").joinpath("data/asagaya_osm.geojson").read_text(encoding="utf-8"))
+            gj = json.loads(resources.files("asagaya_town_sim").joinpath(gfile).read_text(encoding="utf-8"))
         idx = {}
         self.coord = []
         adj = defaultdict(dict)
@@ -116,13 +121,13 @@ class Town:
             p["node"] = self.nearest((p["lat"], p["lon"]))
             p["attr"] = 1.0
             if p["cat"] == "station":
-                if self.station is None or "阿佐" in p["name"]:
+                if self.station is None or hint in p["name"]:
                     self.station = p
                 continue
             self.pois.append(p)
         if self.station is None:
-            self.station = dict(name="阿佐ケ谷駅", cat="station", lat=LAT0, lon=LON0, node=self.nearest((LAT0, LON0)), attr=1.0)
-        self.station["name"] = "JR阿佐ケ谷駅"
+            self.station = dict(name=label, cat="station", lat=lat0, lon=lon0, node=self.nearest((lat0, lon0)), attr=1.0)
+        self.station["name"] = label
         for i, p in enumerate(self.pois):
             p["id"] = i
         sc = (self.station["lat"], self.station["lon"])
@@ -616,3 +621,27 @@ def run_all(sim=None, seeds=5, record=200, which=("scenarios", "alternatives"), 
             if progress:
                 progress(g, key)
     return out
+
+
+# 売上の「おもちゃ試算」用の仮定（実データではない。仮説検証のための置き数字）
+TOY_SPEND_YEN = {"bike": 0, "cafe": 650, "plaza": 0}   # 区画1来訪あたり客単価（円）
+TOY_NEARBY_SPEND_YEN = 800                              # 周辺150m店舗の1来訪あたり客単価（円）
+TOY_BIKE_FEE_YEN = 100                                  # 駐輪1回あたり料金（円）
+
+
+def toy_econ(alternatives):
+    """3案それぞれについて、エンジン出力×仮定単価 で1日あたりの売上を試算する。予測ではない。"""
+    base_near = alternatives["bike"]["summary"]["nearby_shop_visits"]
+    out = {}
+    for k, a in alternatives.items():
+        s = a["summary"]
+        site = s["site_visits"] * TOY_SPEND_YEN.get(k, 0)
+        fee = s.get("bike_users", 0) * TOY_BIKE_FEE_YEN if k == "bike" else 0
+        near_delta = (s["nearby_shop_visits"] - base_near) * TOY_NEARBY_SPEND_YEN
+        out[k] = dict(site_sales_yen=round(site), bike_fee_yen=round(fee), nearby_delta_yen=round(near_delta),
+                      toy_total_yen=round(site + fee + near_delta), foot_traffic=s["site_foot_traffic"],
+                      dwell_min=s["site_dwell_mean"], person_minutes=s["site_person_minutes"], site_visits=s["site_visits"])
+    return dict(alts=out, assumptions=dict(spend_per_site_visit_yen=TOY_SPEND_YEN, nearby_spend_per_visit_yen=TOY_NEARBY_SPEND_YEN,
+                                          bike_fee_yen=TOY_BIKE_FEE_YEN,
+                                          formula="site_visits×単価 + (駐輪案のみ bike_users×料金) + (nearby_shop_visits − 駐輪案のnearby_shop_visits)×周辺単価",
+                                          note="toy assumption — not real sales data / 仮定の単価による試算。売上予測ではありません"))

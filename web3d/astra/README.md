@@ -1,0 +1,5 @@
+A buildless Three.js miniature of Asagaya: merged OSM extrusions, instanced walkers, a ten-car Chūō train, and clock-driven light, street heat, windows, and rain.
+Serve the repository root with `python3 -m http.server 8000`, then open `/web3d/astra/`; all assets load locally. Drag to orbit, scroll to zoom, or use the timeline and experiment controls.
+Recording: `?scenario=baseline&alt=bike&t=1120.6&speed=1.5&orbit=1&ui=1`; wait for `window.__ready`, then use `window.__set({scenario,alt,t,speed})`. `window.__stats` exposes render/arrival diagnostics; omit parameters for the opening train and passenger burst within three seconds.
+Train timing and decorative bursts are illustrative; actual station-start tracks alight while doors are open. Baseline uses alternative tracks; other scenarios use independent runs. Badges distinguish model-day totals from sampled-track counts.
+Offline checks: `node --check web3d/astra/main.mjs` and `node --experimental-vm-modules web3d/astra/check.mjs` (from repo root). Tests use real Three.js geometry with DOM/renderer doubles; browser visuals and WebGL performance are unverified in this sandbox.

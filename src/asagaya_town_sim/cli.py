@@ -13,7 +13,7 @@ from pathlib import Path
 
 from . import DISCLAIMER, __version__
 from . import llm as llm_mod
-from .model import Sim, run_all
+from .model import AREAS, Sim, Town, run_all, toy_econ
 
 ROWS = [("site_foot_traffic", "区画の通行量"), ("site_visits", "区画への来訪"), ("site_visits_induced", " うちついで寄り"),
         ("site_dwell_mean", "区画の平均滞在(分)"), ("site_person_minutes", "区画の延べ滞在(人分)"), ("nearby_shop_visits", "周辺150m店舗の来訪"),
@@ -47,7 +47,7 @@ def build(args):
     if not args.no_llm and llm_mod.available():
         planner = llm_mod.LLMPlanner(n_agents=args.llm_agents)
         mode = f"LLM {planner.model}（住民{args.llm_agents}人）＋ルール"
-    sim = Sim(residents=args.residents, visitors=args.visitors, commuters=args.commuters, llm=planner)
+    sim = Sim(town=Town(area=getattr(args, "area", "asagaya")), residents=args.residents, visitors=args.visitors, commuters=args.commuters, llm=planner)
     t0 = time.time()
     res = run_all(sim, seeds=args.seeds, record=args.record)
     el = time.time() - t0
@@ -59,7 +59,7 @@ def build(args):
     T = sim.town
     data = dict(center=[T.station["lat"], T.station["lon"]], site=list(T.coord[T.site_node]), seeds=args.seeds,
                 agents=args.residents + args.visitors + args.commuters, residents=args.residents, visitors=args.visitors,
-                commuters=args.commuters, llm=mode, reviews=reviews,
+                commuters=args.commuters, llm=mode, reviews=reviews, area=sim.town.area, toy_econ=toy_econ(res["alternatives"]),
                 pois=[dict(name=p["name"], cat=p["cat"], lat=p["lat"], lon=p["lon"]) for p in T.pois + [T.station]], **res)
     return sim, res, data, mode, el, reviews
 
@@ -83,15 +83,38 @@ def print_report(res, mode, el, args, reviews):
         print(f"  LLM口コミ[{r['persona']}] {r['review']}")
 
 
-def serve(html, port, open_browser):
-    d = Path(os.environ.get("TMPDIR", "/tmp")) / f"asagaya-town-sim-{os.getpid()}"
+WEB3D_DEFAULT = "default"
+
+
+def write_site(d, html, data):
+    """d/ に 3D版(既定) と 2D版を書き出す。3D: d/web3d/<variant>/ が ../data/*.json を読む。"""
+    import shutil
+    d = Path(d)
     d.mkdir(parents=True, exist_ok=True)
-    (d / "index.html").write_text(html, encoding="utf-8")
+    (d / "2d.html").write_text(html, encoding="utf-8")
+    src = resources.files("asagaya_town_sim").joinpath("web3d")
+    w = d / "web3d"
+    if w.exists():
+        shutil.rmtree(w)
+    with resources.as_file(src) as sp:
+        shutil.copytree(sp, w)
+    area = data.get("area", "asagaya")
+    blob = json.dumps(data, ensure_ascii=False, separators=(",", ":"))
+    (w / "data" / "engine.json").write_text(blob, encoding="utf-8")
+    if area != "asagaya":
+        (w / "data" / f"engine_{area}.json").write_text(blob, encoding="utf-8")
+    (d / "index.html").write_text(f'<!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="0;url=web3d/{WEB3D_DEFAULT}/">'
+                                  f'<a href="web3d/{WEB3D_DEFAULT}/">3D</a> / <a href="2d.html">2D</a>', encoding="utf-8")
+    return d
+
+
+def serve(html, port, open_browser, data=None):
+    d = write_site(Path(os.environ.get("TMPDIR", "/tmp")) / f"asagaya-town-sim-{os.getpid()}", html, data or {})
     h = functools.partial(http.server.SimpleHTTPRequestHandler, directory=str(d))
     http.server.SimpleHTTPRequestHandler.log_message = lambda *a: None
     srv = http.server.ThreadingHTTPServer(("127.0.0.1", port), h)
     url = f"http://127.0.0.1:{srv.server_address[1]}/"
-    print(f"Web UI: {url}  （比較画面: {url}#compare）  Ctrl+C で終了", flush=True)
+    print(f"Web UI (3D): {url}  （2D版: {url}2d.html / 比較: {url}2d.html#compare）  Ctrl+C で終了", flush=True)
     if open_browser:
         webbrowser.open(url)
     try:
@@ -100,13 +123,74 @@ def serve(html, port, open_browser):
         pass
 
 
+def promo_main(argv):
+    from . import promo
+    ap = argparse.ArgumentParser(prog="asagaya-town-sim promo")
+    sub = ap.add_subparsers(dest="action", required=True)
+    for name in ("demo", "build"):
+        p = sub.add_parser(name)
+        p.add_argument("--config")
+        p.add_argument("--seeds", type=int)
+        p.add_argument("--days", type=int)
+        p.add_argument("--json", action="store_true")
+        p.add_argument("--serve", action="store_true")
+        p.add_argument("--port", type=int, default=8765)
+        p.add_argument("--no-open", action="store_true")
+        p.add_argument("-o", "--out", default="out-promo")
+    args = ap.parse_args(argv)
+    try:
+        data = promo.simulate(promo.load_config(args.config), seeds=args.seeds, days=args.days)
+    except (ValueError, KeyError) as exc:
+        ap.error(str(exc))
+    if args.json:
+        print(json.dumps(data, ensure_ascii=False, separators=(",", ":")))
+    else:
+        print(promo.DISCLAIMER)
+        print(data["store"]["name"])
+        print(f"Seeds: {data['config']['seeds']} · represented residents: {data['config']['population'] * data['config']['agent_scale']}")
+        print("Uplift = mean paired visits(combo) - visits(none), common random numbers.")
+        print("Anyway = same agent/day/slot baseline overlap / promo visits (pooled across seeds); none = 1.")
+        print("ROI = (incremental gross profit - discount cost - channel cost) / channel cost.")
+        print("95% intervals: Student t intervals over independent seed results; N/A for one seed or zero-cost ROI.")
+        print("組合せ/Combination | 来訪/Visits | 増分/Uplift [95% interval] | 増分% | 元々来訪/Anyway | 増分粗利/Profit ¥ | 割引/Discount ¥ | 費用/Channel cost ¥ | ROI [95% interval]")
+        def fmt(v):
+            return "N/A" if v is None else f"{v:.2f}"
+        for name, result in data["combinations"].items():
+            m = result["metrics"]
+            def interval(key):
+                bounds = result['intervals_95'][key]
+                return fmt(m[key]) + (f" [{fmt(bounds[0])}, {fmt(bounds[1])}]" if bounds else " [N/A]")
+            print(" | ".join([name, fmt(m['total_visits']), interval('uplift')] + [fmt(m[k]) for k in ('uplift_pct','would_have_come_anyway_share','incremental_gross_profit','discount_cost','cost')] + [interval('roi')]))
+    if args.action == "build" or args.serve:
+        directory = Path(args.out) if args.action == "build" else Path(os.environ.get("TMPDIR", "/tmp")) / f"asagaya-promo-{os.getpid()}"
+        promo.write_site(directory, data)
+        if not args.json:
+            print(f"Site: {directory / 'index.html'}")
+        if args.serve:
+            handler = functools.partial(http.server.SimpleHTTPRequestHandler, directory=str(directory))
+            with http.server.ThreadingHTTPServer(("127.0.0.1", args.port), handler) as server:
+                url = f"http://127.0.0.1:{server.server_address[1]}/promo/"
+                print(url, file=sys.stderr, flush=True)
+                if not args.no_open:
+                    webbrowser.open(url)
+                try:
+                    server.serve_forever()
+                except KeyboardInterrupt:
+                    pass
+
+
 def main(argv=None):
+    effective = list(argv if argv is not None else sys.argv[1:])
+    if effective[:1] == ["promo"]:
+        return promo_main(effective[1:])
     ap = argparse.ArgumentParser(prog="asagaya-town-sim", description="阿佐ケ谷 AI住民 町シミュレーション（仮説検証用トイモデル。予測ではありません）")
     ap.add_argument("--version", action="version", version=__version__)
     sub = ap.add_subparsers(dest="cmd")
+    sub.add_parser("promo", help="架空店舗の販促トイモデル / fictional store promotion")
     for name, hlp in (("demo", "全シナリオと3案を実行して数値を表示"), ("serve", "Web UIを起動"), ("build", "HTMLとJSONを書き出す")):
         p = sub.add_parser(name, help=hlp)
         p.add_argument("--seeds", type=int, default=5)
+        p.add_argument("--area", choices=sorted(AREAS), default="asagaya", help="対象エリア（koenji は実験的）")
         p.add_argument("--residents", type=int, default=400)
         p.add_argument("--visitors", type=int, default=350, help="電車で来る来訪者（外部エージェント）")
         p.add_argument("--commuters", type=int, default=150, help="電車で来る町内勤務者（外部エージェント）")
@@ -130,8 +214,8 @@ def main(argv=None):
     if args.cmd == "build":
         o = Path(args.out)
         o.mkdir(parents=True, exist_ok=True)
-        (o / "index.html").write_text(html, encoding="utf-8")
+        write_site(o, html, data)
         (o / "results.json").write_text(json.dumps({g: {k: v["summary"] for k, v in res[g].items()} for g in res}, ensure_ascii=False, indent=1), encoding="utf-8")
         print(f"\n書き出し: {o / 'index.html'}, {o / 'results.json'}")
     if args.cmd == "serve" or args.serve:
-        serve(html, args.port, not args.no_open)
+        serve(html, args.port, not args.no_open, data)

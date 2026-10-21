@@ -1,0 +1,19 @@
+You are building ONE self-contained 3D web renderer for an existing town simulation of Asagaya station (Tokyo). Work only inside web3d/sol/ (create it). Do NOT modify anything else in the repo. No network access needed: everything is local.
+
+Inputs (already present, load via fetch with relative paths from web3d/sol/index.html):
+- ../vendor/three.module.min.js  (three.js r160 ES module; import from it directly; no other libs, no CDN). If you need OrbitControls etc., write your own minimal version.
+- ../data/buildings.json : {buildings:[{h:height_m, s:'osm'|'est', k:building_tag, p:[[x,y],...]}], rails:[[[x,y],...]]}. Local metres, origin = station (lat0 35.7047, lon0 139.6358), x=east, y=north. x=(lon-139.6358)*111320*cos(35.7047deg), y=(lat-35.7047)*111320. Rails = Chuo line.
+- ../data/engine.json : engine output. Keys: center, site [lat,lon] (station-front corner site), pois[{name,cat,lat,lon}], scenarios{baseline,newcafe,event,rain}, alternatives{bike,cafe,plaza}; each has label, summary (visits_planned, visits_induced, site_foot_traffic, site_visits, site_dwell_mean, nearby_shop_visits, bike_extra_walk_min_total, alightings, hourly_alight (19 hourly values from 6:00), top_pois ...), tracks[{name,kind,f:[[minute_of_day,lat,lon,state],...]}] (name prefix 住民=resident, 来訪者=visitor, 通勤者=commuter; interpolate positions between frames; state strings like 在宅 (at home - hide), 移動, 寄り道...), heat[[lat1,lon1,lat2,lon2,count]] street segment usage, extra[] virtual POIs.
+
+Required features:
+1. Extruded building footprints with heights, tasteful stylised look; ground, street glow from heat segments (busy streets glow, stronger at night).
+2. Agents as small figures/capsules color-coded: residents, visitors, commuters (+ legend). Walking with interpolation by sim clock.
+3. Chuo line train (orange/yellow 10-car style) running on the rails, arriving and stopping at the station; when it stops, people pour out (use the visitor/commuter tracks whose first moving frame starts near the station around that time, plus decorative burst particles). The DEFAULT start (no params) must begin at a moment where a train is arriving within the first 3 seconds and passengers pour out.
+4. Oblique camera (~45deg), slow cinematic orbit by default; mouse drag/zoom.
+5. Lighting by sim clock: day -> evening (warm) -> night (dark, windows lit, street lamps). 
+6. Visit-count badges (sprites/CSS2D-like DOM labels) above top shops (from top_pois / counting track states) showing numbers.
+7. UI to switch station-front alternative (bike parking / cafe / plaza): the 3D form at `site` changes (bike racks with bikes / small cafe building with awning / open plaza with benches & trees), and an on-screen panel shows the numbers from alternatives[*].summary (site_visits, site_foot_traffic, nearby_shop_visits, bike_extra_walk_min_total). Also scenario switch (baseline/rain/event/newcafe); rain scenario shows rain particles and wet look.
+8. Always-visible label exactly: "not a prediction; a toy model for testing hypotheses" plus "© OpenStreetMap contributors".
+9. Clock display (HH:MM) and play/pause/speed.
+10. Recording hooks: URL params ?scenario=baseline&alt=bike&t=<minute_of_day>&speed=<sim minutes per real second>&orbit=1&ui=1 ; set window.__ready=true once rendered; expose window.__set({scenario,alt,t,speed}). Use preserveDrawingBuffer:true. Must run in headless Chromium with SwiftShader WebGL at decent speed (keep draw calls low: merge building geometry, InstancedMesh for agents).
+Make it look impressive and like a live game-like miniature city (viral X demo quality). Test by serving the repo root with `python3 -m http.server` and checking with node/headless if available; at least ensure no JS syntax errors (`node --check` on module files). Write web3d/sol/README.md (2-5 lines describing your approach). Finish with a short summary.

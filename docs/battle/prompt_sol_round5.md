@@ -1,0 +1,7 @@
+Polish web3d/sol/ (only that folder). Headless render feedback after your last fix (intro framing now good):
+1. Passenger burst on platform is too faint: figures look like pale beige specks. Make them saturated, emissive colored by type (residents #4fc3ff cyan-blue, visitors #ffb02e orange, commuters #ff5fa2 pink), bigger (~3 m tall capsules + additive glow halo sprite), and have them clearly stream out of the station exits into surrounding streets over 3-10 s, leaving short light trails. Also make real track agents equally colored/glowing at all zoom levels.
+2. ?hideui=1 must still show the shop visit-count badges (and the station-front site label), only hide control panels.
+3. ?cam=site: currently the camera sits inside/behind a big building (view filled by a flat roof). Apply the same building-avoidance (>=40 m above nearby roofs, look down ~40deg at the site, site in the centre, distance ~80-110 m). The site 3D form (bike racks / cafe / plaza) must be clearly visible and large in frame; add a floating label over the site with the alternative name and its numbers (foot traffic, dwell, toy sales ¥/day).
+4. Night after 21:00 is slightly too dark: raise ambient a bit so building silhouettes remain readable; keep windows and street glow.
+5. Rain scenario: visible rain streaks + darker wet ground with reflections-ish sheen; event scenario: a glowing crowd/stage marker at the event POI (engine extra[]).
+node --check everything; update README.
