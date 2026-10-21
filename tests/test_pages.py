@@ -81,6 +81,7 @@ def test_promo_animation_timestamp_bounds():
                       combinations: {{none: {{frames: Array(42)}}}}}};
         const combos = ['none'], startTime = 100, speed = 30;
         for (const [now, expected] of [[99, 0], [100, 0], [15100, 21], [40100, 41]]) {{
+            const finished = now-startTime >= speed*1000;
             const day = {expressions[1]};
             const idx = {expressions[2]};
             assert.equal(idx, expected);

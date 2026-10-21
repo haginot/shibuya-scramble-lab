@@ -23,7 +23,10 @@ export class Simulation{
   // This is routing geometry, not a crowd-density field: every person still
   // integrates its own velocity, force, random stream and funnel state.
 
-  this.exitGoals=CORNERS.map(p=>{const len=Math.hypot(...p),ux=p[0]/len,uz=p[1]/len,goals=[];for(let z=-24;z<=24;z+=1.25)for(let x=-24;x<=24;x+=1.25){const outward=x*ux+z*uz;if(outward>=3&&outward<=24&&Math.abs(-x*uz+z*ux)<=10&&!this.sidewalkBlocked(p[0]+x,p[1]+z))goals.push([p[0]+x,p[1]+z]);}if(!goals.length)throw Error('No walkable destination apron');return goals;});
+  // Exclude disconnected footprint pockets from crossing origins/destinations.
+  const reachable=new Uint8Array(this.solid.length),queue=new Int32Array(this.solid.length);let read=0,write=0;const origin=this.key(0,0);reachable[origin]=1;queue[write++]=origin;
+  while(read<write){const k=queue[read++],x=k%this.size;for(const j of [x>0?k-1:-1,x<this.size-1?k+1:-1,k-this.size,k+this.size])if(j>=0&&j<reachable.length&&!this.solid[j]&&!reachable[j]){reachable[j]=1;queue[write++]=j;}}
+  this.exitGoals=CORNERS.map(p=>{const len=Math.hypot(...p),ux=p[0]/len,uz=p[1]/len,goals=[];for(let z=-36;z<=36;z+=1.25)for(let x=-36;x<=36;x+=1.25){const outward=x*ux+z*uz;if(reachable[this.key(p[0]+x,p[1]+z)]&&outward>=3&&outward<=34&&Math.abs(-x*uz+z*ux)<=16&&!this.sidewalkBlocked(p[0]+x,p[1]+z)&&[[1.3,0],[-1.3,0],[0,1.3],[0,-1.3]].every(([dx,dz])=>!this.blocked(p[0]+x+dx,p[1]+z+dz)))goals.push([p[0]+x,p[1]+z]);}if(!goals.length)throw Error('No walkable destination apron');return goals;});
   this.routes=this.exitGoals.map(goals=>{const distances=new Int32Array(this.solid.length).fill(-1),queue=new Int32Array(this.solid.length);let read=0,write=0;for(const p of goals){const start=this.key(...p);if(distances[start]<0){distances[start]=0;queue[write++]=start;}}while(read<write){const k=queue[read++],x=k%this.size;for(const j of [x>0?k-1:-1,x<this.size-1?k+1:-1,k-this.size,k+this.size])if(j>=0&&j<distances.length&&!this.solid[j]&&distances[j]<0){distances[j]=distances[k]+1;queue[write++]=j;}}return distances;});
   this.segments=[];
   for(const road of osm.roads){if(!['footway','pedestrian','path','living_street'].includes(road.kind)||Number(road.tags.layer||0)<0||road.tags.indoor==='yes'||road.tags.tunnel==='yes'||road.tags.footway==='crossing')continue;for(let k=1;k<road.points.length;k++){
@@ -31,7 +34,7 @@ export class Simulation{
    // Split paths at boundaries, buildings and carriageways. Both endpoints
    // and every metre of each retained interval must be safe.
    let run=[];const finish=()=>{if(run.length>=8){const a=run[0],b=run.at(-1),len=Math.hypot(b[0]-a[0],b[1]-a[1]);if(len>=7)this.segments.push({a,b,len,width:road.kind==='pedestrian'?5:2});}run=[];};
-   for(let j=0;j<=Math.ceil(len);j++){const u=j/Math.ceil(len),p=[a[0]+(b[0]-a[0])*u,a[1]+(b[1]-a[1])*u];if(Math.hypot(...p)>=38&&!this.sidewalkBlocked(...p))run.push(p);else finish();}finish();
+   for(let j=0;j<=Math.ceil(len);j++){const u=j/Math.ceil(len),p=[Math.fround(a[0]+(b[0]-a[0])*u),Math.fround(a[1]+(b[1]-a[1])*u)];if(Math.hypot(...p)>=38&&!this.sidewalkBlocked(...p))run.push(p);else finish();}finish();
   }}
   if(!this.segments.length)throw Error('No outdoor walking segments');
   for(let i=0;i<this.n;i++){this.randomState[i]=(this.seed+Math.imul(i+1,2654435761))>>>0;this.speed[i]=1.05+this.rand(i)*.60;this.lane[i]=(this.rand(i)-.5)*7;this.placeBackground(i);if(i<this.primary){this.source[i]=i%6;this.placeQueue(i,i%6);}}
@@ -45,14 +48,14 @@ export class Simulation{
  conflictCount(){let count=0;for(let i=0;i<this.n;i++)if(this.roadBlocked(this.x[i],this.z[i]))count++;return count;}
  placeBackground(i){
   this.motion[i]=3;this.direction[i]=this.rand(i)<.5?1:-1;
-  for(let attempt=0;attempt<100;attempt++){const s=Math.floor(this.rand(i)*this.segments.length),r=this.segments[s],u=this.rand(i),dx=(r.b[0]-r.a[0])/r.len,dz=(r.b[1]-r.a[1])/r.len,off=(this.rand(i)-.5)*r.width,x=r.a[0]+u*(r.b[0]-r.a[0])-dz*off,z=r.a[1]+u*(r.b[1]-r.a[1])+dx*off;
+  for(let attempt=0;attempt<100;attempt++){const s=Math.floor(this.rand(i)*this.segments.length),r=this.segments[s],u=this.rand(i),dx=(r.b[0]-r.a[0])/r.len,dz=(r.b[1]-r.a[1])/r.len,off=(this.rand(i)-.5)*r.width,x=Math.fround(r.a[0]+u*(r.b[0]-r.a[0])-dz*off),z=Math.fround(r.a[1]+u*(r.b[1]-r.a[1])+dx*off);
    if(!this.sidewalkBlocked(x,z)){this.segment[i]=s;this.x[i]=x;this.z[i]=z;this.backgroundGoal(i);return;}
   }
   // Every segment endpoint was checked while splitting; no unchecked fallback.
   const r=this.segments[0];this.segment[i]=0;this.x[i]=r.a[0];this.z[i]=r.a[1];this.backgroundGoal(i);
  }
  backgroundGoal(i){const s=this.segments[this.segment[i]],p=this.direction[i]>0?s.b:s.a;this.gx[i]=p[0];this.gz[i]=p[1];}
- placeQueue(i,corner){const goals=this.exitGoals[corner],p=goals[Math.floor(this.rand(i)*goals.length)];this.x[i]=p[0];this.z[i]=p[1];this.gx[i]=p[0];this.gz[i]=p[1];this.motion[i]=0;}
+ placeQueue(i,corner){const c=CORNERS[corner],length=Math.hypot(...c),goals=this.exitGoals[corner].filter(p=>(p[0]-c[0])*c[0]/length+(p[1]-c[1])*c[1]/length>=15),p=goals[Math.floor(this.rand(i)*goals.length)];this.x[i]=p[0];this.z[i]=p[1];this.gx[i]=p[0];this.gz[i]=p[1];this.motion[i]=0;}
  beginCycle(){this.cycle=Math.floor((this.clock+1e-7)/this.c.signal.cycle_s);this.admitted=0;this.completed=0;this.quota=Math.min(this.primary,Math.round(demandAt(this.config.hour,this.c,this.config.peak)));this.cursor=(this.cursor+this.quota)%Math.max(1,this.primary);for(let j=0;j<this.quota;j++){const i=(this.cursor+j)%this.primary;if(this.motion[i]===1)continue;let nearest=0,d=Infinity;for(let k=0;k<6;k++){const p=CORNERS[k],dd=(this.x[i]-p[0])**2+(this.z[i]-p[1])**2;if(dd<d){d=dd;nearest=k;}}this.source[i]=nearest;this.destination[i]=(nearest+2+Math.floor(this.rand(i)*3))%6;const goal=CORNERS[this.destination[i]],length=Math.hypot(...goal),ux=goal[0]/length,uz=goal[1]/length,tx=goal[0]+ux*6-uz*this.lane[i],tz=goal[1]+uz*6+ux*this.lane[i];let best=Infinity;for(const p of this.exitGoals[this.destination[i]]){const d=(p[0]-tx)**2+(p[1]-tz)**2;if(d<best){best=d;this.gx[i]=p[0];this.gz[i]=p[1];}}this.motion[i]=1;this.admitted++;}this.active=this.admitted;}
  advance(seconds){if(!Number.isFinite(seconds)||seconds<0||seconds>60)throw Error('advance expects 0..60 seconds');this.accumulator+=seconds;while(this.accumulator>=.1-1e-8){this.step(.1);this.accumulator-=.1;}return this.snapshot();}
  step(dt){
@@ -63,13 +66,14 @@ export class Simulation{
   if(Math.floor((this.clock+1e-7)/s.cycle_s)>this.cycle)this.beginCycle();
   
   this.c.trains.forEach((line,k)=>{const wave=Math.floor((this.time-line.offset_s-line.walk_delay_s)/line.headway_s);if(wave>=0&&wave>this.lastTrain[k]){this.lastTrain[k]=wave;this.trainWaves[k]++;const count=Math.min(line.alight_wave_agents,Math.max(0,this.n-this.primary));for(let j=0;j<count;j++){const i=this.primary+(wave*197+k*97+j)%Math.max(1,this.n-this.primary); // Existing identities emerge from the exit; no extra particles.
-    if(this.state[i]===3)continue;this.placeBackground(i);for(let attempt=0;attempt<40;attempt++){const x=8+(this.rand(i)-.5)*10,z=46+this.rand(i)*20;if(!this.sidewalkBlocked(x,z)){this.x[i]=x;this.z[i]=z;break;}}this.vx[i]=this.vz[i]=0;this.gx[i]=5+(this.rand(i)-.5)*8;this.gz[i]=23;let nearest=0,best=Infinity;for(let k=0;k<this.segments.length;k++){const s=this.segments[k],d=(s.a[0]-5)**2+(s.a[1]-23)**2;if(d<best){best=d;nearest=k;}}this.segment[i]=nearest;this.motion[i]=4;}}});
+    if(this.state[i]===3)continue;this.placeBackground(i);for(let attempt=0;attempt<40;attempt++){const x=Math.fround(8+(this.rand(i)-.5)*10),z=Math.fround(46+this.rand(i)*20);if(!this.sidewalkBlocked(x,z)){this.x[i]=x;this.z[i]=z;break;}}this.vx[i]=this.vz[i]=0;let nearest=0,best=Infinity;for(let k=0;k<this.segments.length;k++){const s=this.segments[k],d=(s.a[0]-5)**2+(s.a[1]-48)**2;if(d<best){best=d;nearest=k;}}this.segment[i]=nearest;this.gx[i]=this.segments[nearest].a[0];this.gz[i]=this.segments[nearest].a[1];this.motion[i]=4;}}});
+  const crossingPhase=phaseAt(this.clock,this.c.signal);
   this.head.fill(-1);for(let i=0;i<this.n;i++){const k=this.key(this.x[i],this.z[i]);if(k>=0){this.next[i]=this.head[k];this.head[k]=i;}}
   for(let i=0;i<this.n;i++){
    let x=this.x[i],z=this.z[i],dx=this.gx[i]-x,dz=this.gz[i]-z,d=Math.hypot(dx,dz),speed=this.speed[i];
    if(this.motion[i]===0)speed=0;
    const corner=CORNERS[this.destination[i]];
-   if(this.motion[i]===1&&!this.roadBlocked(x,z)&&(d<4||(this.routes[this.destination[i]][this.key(x,z)]>=0&&this.routes[this.destination[i]][this.key(x,z)]<=1))&&(x-corner[0])*corner[0]+(z-corner[1])*corner[1]>Math.hypot(...corner)){this.motion[i]=2;this.active--;this.completed++;this.totalCompleted++;const goal=corner,len=Math.hypot(...goal);this.gx[i]=goal[0]+goal[0]/len*12+this.lane[i];this.gz[i]=goal[1]+goal[1]/len*12;}
+   if(this.motion[i]===1&&!this.roadBlocked(x,z)&&(d<4||(this.routes[this.destination[i]][this.key(x,z)]>=0&&this.routes[this.destination[i]][this.key(x,z)]<=1))&&(x-corner[0])*corner[0]+(z-corner[1])*corner[1]>Math.hypot(...corner)){this.motion[i]=2;this.active--;this.completed++;this.totalCompleted++;const goals=this.exitGoals[this.destination[i]],goal=goals[Math.floor(this.rand(i)*goals.length)];this.gx[i]=goal[0];this.gz[i]=goal[1];}
    if(this.motion[i]===1&&d>4){const key=this.key(x,z),field=this.routes[this.destination[i]];if(key>=0){let best=key,value=field[key];const cx=key%this.size,cz=Math.floor(key/this.size);for(let zz=Math.max(0,cz-1);zz<=Math.min(this.size-1,cz+1);zz++)for(let xx=Math.max(0,cx-1);xx<=Math.min(this.size-1,cx+1);xx++){const j=zz*this.size+xx;if(field[j]>=0&&(value<0||field[j]<value)){best=j;value=field[j];}}if(best!==key){dx=(best%this.size+.5)*this.cell-this.offset-x;dz=(Math.floor(best/this.size)+.5)*this.cell-this.offset-z;d=Math.hypot(dx,dz);}}}
    if(this.motion[i]===2&&d<3){this.motion[i]=0;this.gx[i]=x;this.gz[i]=z;}
    if(this.motion[i]===4&&d<3){this.motion[i]=3;this.backgroundGoal(i);}
@@ -81,15 +85,18 @@ export class Simulation{
    const exposure=Math.hypot(x+46,z+42)<75,draw=this.rand(i);
    if(this.state[i]===0&&exposure&&draw<(this.promo?.04:.002)*dt)this.state[i]=1;
    else if(this.state[i]===1&&draw<(this.promo?.012:.001)*dt)this.state[i]=2;
-   let ax=((d>.05?dx/d*speed:0)-this.vx[i])/.5,az=((d>.05?dz/d*speed:0)-this.vz[i])/.5;
+   let ax=((d>.05?dx/d*speed:0)-this.vx[i])/.5,az=((d>.05?dz/d*speed:0)-this.vz[i])/.5,repelX=0,repelZ=0;
    const k=this.key(x,z);let neighbors=0;
-   if(k>=0){const cx=k%this.size,cz=Math.floor(k/this.size);for(let zz=Math.max(0,cz-1);zz<=Math.min(this.size-1,cz+1)&&neighbors<32;zz++)for(let xx=Math.max(0,cx-1);xx<=Math.min(this.size-1,cx+1)&&neighbors<32;xx++)for(let j=this.head[zz*this.size+xx];j>=0&&neighbors<32;j=this.next[j]){if(i===j)continue;const rx=x-this.x[j],rz=z-this.z[j],r2=rx*rx+rz*rz;if(r2>5.76)continue;neighbors++;const r=Math.sqrt(Math.max(.0001,r2)),force=Math.min(8,2.1*Math.exp((.46-r)/.32));ax+=rx/r*force;az+=rz/r*force;}}
+   if(k>=0){const cx=k%this.size,cz=Math.floor(k/this.size);for(let zz=Math.max(0,cz-1);zz<=Math.min(this.size-1,cz+1)&&neighbors<32;zz++)for(let xx=Math.max(0,cx-1);xx<=Math.min(this.size-1,cx+1)&&neighbors<32;xx++)for(let j=this.head[zz*this.size+xx];j>=0&&neighbors<32;j=this.next[j]){if(i===j)continue;const rx=x-this.x[j],rz=z-this.z[j],r2=rx*rx+rz*rz;if(r2>5.76)continue;neighbors++;const r=Math.sqrt(Math.max(.0001,r2)),force=Math.min(8,1.0*Math.exp((.46-r)/.32));repelX+=rx/r*force;repelZ+=rz/r*force;}}
+   // Soft avoidance is bounded so a dense stationary queue cannot pin a
+   // crossing identity in the carriageway indefinitely. Bodies may overlap.
+   const repulsion=Math.hypot(repelX,repelZ),weight=repulsion>.9?.9/repulsion:1;ax+=repelX*weight;az+=repelZ*weight;
    // Building boundary repulsion from the local footprint occupancy raster.
-   for(const [ox,oz] of [[1,0],[-1,0],[0,1],[0,-1]])if(this.blocked(x+ox*1.2,z+oz*1.2)){ax-=ox*3;az-=oz*3;}
+   for(const [ox,oz] of [[1,0],[-1,0],[0,1],[0,-1]])if(this.blocked(x+ox*1.2,z+oz*1.2)){ax-=ox;az-=oz;}
    let vx=this.vx[i]+ax*dt,vz=this.vz[i]+az*dt,v=Math.hypot(vx,vz);if(v>1.95){vx*=1.95/v;vz*=1.95/v;}
-   const mayCross=this.motion[i]===1&&['walk','clearance'].includes(phaseAt(this.clock,this.c.signal));
+   const mayCross=this.motion[i]===1&&(crossingPhase==='walk'||crossingPhase==='clearance');
    const blocked=(a,b)=>this.blocked(a,b)||(!mayCross&&this.roadBlocked(a,b));
-   let nx=x+vx*dt,nz=z+vz*dt;if(blocked(nx,nz)){if(!blocked(nx,z)){nz=z;vz=0;}else if(!blocked(x,nz)){nx=x;vx=0;}else{nx=x;nz=z;vx=vz=0;}}
+   let nx=Math.fround(x+vx*dt),nz=Math.fround(z+vz*dt);if(blocked(nx,nz)){if(!blocked(nx,z)){nz=z;vz=0;}else if(!blocked(x,nz)){nx=x;vx=0;}else{nx=x;nz=z;vx=vz=0;}}
    this.x[i]=nx;this.z[i]=nz;this.vx[i]=vx;this.vz[i]=vz;
   }
  }

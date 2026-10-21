@@ -77,6 +77,8 @@ def browser_with_webgl(playwright):
 def record(site,output,stills):
     from playwright.sync_api import sync_playwright
     output.parent.mkdir(parents=True,exist_ok=True);stills.mkdir(parents=True,exist_ok=True)
+    for name in ('NOTICE','LICENSE'):
+        shutil.copyfile(site/name,stills/name)
     handler=functools.partial(QuietHandler,directory=str(site))
     server=http.server.ThreadingHTTPServer(('127.0.0.1',0),handler)
     thread=threading.Thread(target=server.serve_forever,daemon=True);thread.start()
@@ -106,7 +108,7 @@ def record(site,output,stills):
                     (stills/f'{seconds:05.1f}s.png').write_bytes(png)
                     snapshots.append(dict(video_seconds=seconds,**state))
                     print(f'{seconds:4.1f}/30s · {state["agents"]} agents · {state["phase"]} · cleared {state["completed"]}',flush=True)
-                if frame in (179,181,576,580):
+                if frame in (178,181,576,580):
                     snapshots.append(dict(video_seconds=seconds,**state))
                     (stills/f'wave-{frame}.png').write_bytes(png)
                 if errors: raise RuntimeError('; '.join(errors))
@@ -118,6 +120,10 @@ def record(site,output,stills):
             if encoder.wait(timeout=60): raise RuntimeError('ffmpeg failed')
             encoder=None
             assert any(s['phase']=='vehicles' for s in snapshots),'Peak crowd never released the vehicle phase'
+            waves={round(s['video_seconds']*30):s for s in snapshots}
+            for before,after,line in ((178,181,1),(576,580,0)):
+                assert waves[after]['trainWaves'][line]==waves[before]['trainWaves'][line]+1
+                assert waves[before]['camera']==waves[after]['camera']=='hachiko'
             # Show the completed 14-day means/intervals, rather than Day 1 seed 0.
             page.goto(f'http://127.0.0.1:{server.server_address[1]}/web3d/promo/?area=shibuya&end=1')
             page.wait_for_function('window.__ready===true && window.__promoState.finished===true',timeout=60000)

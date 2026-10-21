@@ -22,7 +22,7 @@
 ## 想定問答 / Questions
 
 **本当の3,000人を予測した？ / Did you predict 3,000 real people?**
-いいえ。公開統計で規模・時間的特徴を参照し、要求に基づくピーク目標を別に載せたトイモデル。街頭換算や各行動係数は仮定。 / No. Published facts inform scale and timing; 3,000 is an arbitrary demo target. Street conversion and behaviour remain assumed.
+いいえ。公開統計で規模・時間的特徴を参照し、任意のデモ目標を別に載せたトイモデル。街頭換算や各行動係数は仮定。 / No. Published facts inform scale and timing; 3,000 is an arbitrary demo target. Street conversion and behaviour remain assumed.
 
 **AIが全員の行動を毎フレーム考える？ / Does an LLM control every person?**
 渋谷の実行時は依存なし・外部APIなし。個々のエージェントは決定的な数値ルールで動く。 / The Shibuya runtime calls no LLM or external API. Each person follows reproducible numeric rules.

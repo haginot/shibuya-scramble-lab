@@ -69,6 +69,7 @@ async function start(){
   const finished=params.get('end')==='1'||now-startTime>=speed*1000;
   const day=Math.min(data.config.days-0.00001,(finished?data.config.days:Math.max(0,now-startTime)/1000/speed*data.config.days));
   const idx=Math.min(data.combinations[combos[0]].frames.length-1,Math.floor(day*data.config.hours.length));
+  if(finished&&!window.__promoState.finished)window.__caption('14日終了・試行平均。来訪増と費用回収は別。','14-day trial means: more visits need not recover campaign costs.');
   Object.assign(window.__promoState,{frameIndex:idx,day,finished,metrics:Object.fromEntries(combos.map(name=>[name,data.combinations[name].frames[idx].metrics]))});
   document.getElementById('clock').textContent=`Day ${Math.floor(day)+1}/${data.config.days} · ${data.config.hours[idx%data.config.hours.length]}:00 · ${data.combinations[combos[0]].daily[Math.floor(day)].weather}`;
   const rect=panels.getBoundingClientRect(),top=rect.top,w=rect.width/cols,h=rect.height/rows;

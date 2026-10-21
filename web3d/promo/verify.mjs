@@ -78,3 +78,12 @@ for(const required of ['国土地理院の標高タイルを加工して作成',
 assert(css.includes('--caption-height:74px'));
 assert(css.includes('var(--footer-height) + var(--caption-height)'));
 console.log('PASS: promotion data, 4 viewports, caption band, one-trial/mean ROI, end card, N/A, captions and attribution.');
+
+const ending=await boot('?speed=25&end=1');ending.advance(0);
+assert.equal(ending.context.__promoState.finished,true);
+assert.equal(ending.elements.get('summary-card').hidden,false);
+assert.equal(ending.context.__promoState.frameIndex,data.combinations.none.frames.length-1);
+const insufficient=structuredClone(data);
+insufficient.combinations.none.interval_note='insufficient coverage branches';
+const unobserved=await boot('?end=1',{'../data/promo.json':insufficient});unobserved.advance(0);
+assert(unobserved.elements.get('summary-results').textContent.includes('推定不足 / insufficient'));

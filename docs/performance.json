@@ -4,37 +4,41 @@
   "runs": [
     {
       "agents": 20000,
-      "mean_fps": 8.53,
-      "min_fps": 6.89,
-      "max_fps": 10.64,
-      "mean_worker_request_ms": 27.43,
+      "mean_fps": 6.68,
+      "min_fps": 3.38,
+      "max_fps": 10.99,
+      "mean_worker_request_ms": 62.66,
       "draw_calls": 57,
-      "triangles": 76436,
+      "triangles": 76448,
       "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
       "browser": "156.0.8078.4",
       "viewport": [
         1280,
         720
       ],
-      "sample_seconds": 6,
-      "errors": []
-    },
-    {
-      "agents": 40000,
-      "mean_fps": 7.84,
-      "min_fps": 5.92,
-      "max_fps": 8.71,
-      "mean_worker_request_ms": 59.72,
-      "draw_calls": 57,
-      "triangles": 76436,
-      "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
-      "browser": "156.0.8078.4",
-      "viewport": [
-        1280,
-        720
+      "sample_seconds": 180,
+      "errors": [],
+      "simulation_seconds": 181.1,
+      "wall_seconds": 180.474,
+      "simulation_wall_ratio": 1.0035,
+      "lag_seconds": -0.626,
+      "backlog_seconds": 0,
+      "worker_request_ms": {
+        "p50": 57.5,
+        "p95": 120,
+        "p99": 167.1
+      },
+      "observed_phases": [
+        "all-red",
+        "clearance",
+        "vehicles",
+        "walk"
       ],
-      "sample_seconds": 6,
-      "errors": []
+      "observed_train_waves": [
+        2,
+        1
+      ],
+      "event_window_complete": true
     }
   ],
   "note": "Interactive RAF/render FPS. Worker requests batch 0.1 s fixed steps; latency is not per-step CPU time. Hardware and software rendering vary. Encoding FPS is unrelated."

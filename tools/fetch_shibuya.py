@@ -136,7 +136,7 @@ def atomic_write(path, body):
 
 def parse_osm(raw, query):
     data = json.loads(raw)
-    if data.get('remark') or not data.get('elements'):
+    if not isinstance(data,dict) or data.get('remark') or not isinstance(data.get('elements'),list) or not data['elements'] or any(not isinstance(e,dict) or 'type' not in e or 'id' not in e for e in data['elements']):
         raise ValueError('Incomplete Overpass response (remark or empty elements)')
     roads, shops, railways = [], [], []
     for e in data['elements']:

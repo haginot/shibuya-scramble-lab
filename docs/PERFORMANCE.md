@@ -1,28 +1,39 @@
 # Performance / 性能測定
 
-2026-10-21, Chromium 156.0.8078.4, Linux x86_64, 1280×720, device pixel ratio 1.
-ANGLE / Vulkan SwiftShader (software GPU), headful Chromium on Xvfb. These measurements are not hardware-GPU benchmarks.
+2026-10-21 · Chromium 156.0.8078.4 · Linux x86_64 · 1280×720 · device pixel ratio 1.
+ANGLE / Vulkan SwiftShader (software GPU), headful Chromium on Xvfb.
+This is a shared-workspace measurement; a local still capture and Pages build overlapped briefly. It is not a hardware-GPU benchmark.
 
-| Individual agents | Mean FPS | Min–max FPS | Worker request latency (mean ms) | Draw calls |
+| Agents | Mean FPS | Min–max FPS | Worker request latency, mean ms | Draw calls |
 | ---: | ---: | ---: | ---: | ---: |
-| 20,000 | 8.53 | 6.89–10.64 | 27.43 | 57 |
-| 40,000 | 7.84 | 5.92–8.71 | 59.72 | 57 |
+| 20,000 | 6.68 | 3.38–10.99 | 62.66 | 57 |
 
-**Historical pre-review run**, 3 s warm-up, 6 s sampling per population, one sample every 0.5 s. This short run did not measure simulation/wall ratio or span a signal cycle or arrival waves; it cannot establish real-time throughput. Concurrent local load and the software rasterizer affect FPS; no percentile or hardware guarantee is inferred.
+3 s warm-up; 180.474 wall seconds sampled every 0.5 s. Simulation advanced **181.1 s** within that interval.
 
-Agents use one GPU Points billboard draw, individual CPU social-force motion in a Worker, typed arrays and a 2.5 m neighbour grid. About 76,000 static/vehicle triangles are drawn; adding agents adds points rather than solid-body triangles. The short historical run cannot isolate the render and simulation bottlenecks.
+| Progress / 進行 | Value |
+| --- | ---: |
+| ΔsimulationTime / ΔwallTime | 1.0035 |
+| ΔwallTime − ΔsimulationTime (s) | -0.626 |
+| Pending unsent time at last sample (s) | 0 |
+| Latest acknowledged request latency p50 / p95 / p99 (ms) | 57.5 / 120 / 167.1 |
 
-Worker request latency includes messaging, any batched 0.1 s simulation steps, scheduling and snapshot copying; it is not per-agent or per-step CPU time. The main loop preserves pending simulation time, capped per request, and can fall behind real time under overload. Dense neighbour interactions are truncated at 32; see CALIBRATION.md.
+Observed phases: all-red, clearance, vehicles, walk. Train waves at end: JR 2, Ginza 1. The event window completed; browser errors: 0.
 
-録画の30fpsは出力ファイルの時間基準であり、この実時間FPSとは異なる。固定刻みで待ちながら全フレームを撮るため、録画処理は30秒より長くかかる。
+The lag value is a **change over the sampled interval**, not an absolute start-to-finish clock offset. A negative value can reflect catch-up of previously queued work and asynchronous sampling boundaries. The main loop retains all elapsed time and limits each request to 0.5 s; it can accumulate backlog under overload. The 4 FPS regression separately checks that ten wall seconds produce ten requested simulation seconds.
 
-Reproduce after a local build:
+Latency includes messaging, batched 0.1 s steps, scheduling and snapshot copying. Percentiles describe the latest completed request seen at each 0.5 s observation, rather than all requests or per-step CPU time. FPS and throughput both depend on the browser, GPU, CPU and local load. The earlier six-second run did not cover signal/arrival events and is superseded by this measurement.
+
+Agents use one GPU Points draw, individual CPU social-force motion in a Worker, typed arrays and a 2.5 m neighbour grid. This run drew 76,448 static/vehicle triangles. Neighbour interactions are capped at 32 and soft repulsion is bounded; see [CALIBRATION.md](CALIBRATION.md).
+
+録画の30fpsは出力ファイルの時間基準です。本編30秒はシミュレーション時間×8、その後に12秒のクレジットが続きます。実時間で操作するときのFPSとは異なります。
+
+Reproduce:
 
 ```bash
-uv run python tools/build_pages.py --out _site
-uv run --with playwright python tools/benchmark_shibuya.py _site --agents 20000 40000 --seconds 180 --min-sim-seconds 180
+python3 tools/build_pages.py
+uv run --with playwright python tools/benchmark_shibuya.py _site --agents 20000 --seconds 180 --min-sim-seconds 180
 ```
 
-Raw measurement: `/workspace/demos/shibuya-scramble/performance.json`. Recording log: `/workspace/demos/shibuya-scramble/recording.json`. Machine-readable project copy: [performance.json](performance.json).
+For each population the benchmark requests at least 180 wall seconds and 180 simulation seconds, capped at 3× the requested wall duration. `event_window_complete` marks whether signal and arrival windows were observed. `--agents 20000 40000` measures both populations; the table above reports only the completed 20,000-agent run.
 
-Updated benchmark reports ΔsimulationTime / ΔwallTime, lag and backlog seconds, p50/p95/p99 worker request latency, observed signal phases and train-wave counters. Each population samples for at least 180 wall seconds and 180 simulated seconds; a 3× wall-time cap explicitly marks incomplete event windows. FPS alone is insufficient.
+Raw measurement: [performance.json](performance.json), also `/workspace/demos/shibuya-scramble/performance.json`. Recording log: `/workspace/demos/shibuya-scramble/recording.json`.

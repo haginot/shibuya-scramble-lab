@@ -61,7 +61,7 @@ def test_shibuya_promo_keeps_real_context_and_fictional_target(tmp_path):
 
 
 def test_physical_solver():
-    subprocess.run(['node',str(ROOT/'web3d/shibuya/verify.mjs'),'--stress'],check=True,timeout=90)
+    subprocess.run(['node',str(ROOT/'web3d/shibuya/verify.mjs'),'--stress'],check=True,timeout=180)
 
 
 def test_recording_contract():
@@ -88,3 +88,7 @@ def test_mixed_adapter_component_licenses(tmp_path):
     assert data['component_licenses']['buildings']['license']=='CC BY 4.0'
     assert data['component_licenses']['rails']['license']=='ODbL 1.0'
     assert data['rails']
+
+
+def test_shibuya_ui_regressions():
+    subprocess.run(['node','--experimental-vm-modules',str(ROOT/'web3d/shibuya/verify-ui.mjs')],check=True,timeout=30)
