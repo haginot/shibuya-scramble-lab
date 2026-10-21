@@ -1,0 +1,108 @@
+{
+  "implementation_commit": "175a7d606bd6507f05c85845bd9ae1c3bede6e6e",
+  "video": "/workspace/demos/shibuya-halloween.mp4",
+  "sha256": "75a3259a1729d12404e84cd5429041c96eff8599b90bacbbadde20eeaa2b617e",
+  "probe": {
+    "programs": [],
+    "stream_groups": [],
+    "streams": [
+      {
+        "codec_name": "h264",
+        "width": 1080,
+        "height": 1920,
+        "pix_fmt": "yuvj420p",
+        "r_frame_rate": "24/1"
+      }
+    ],
+    "format": {
+      "duration": "28.000000",
+      "size": "34081336"
+    }
+  },
+  "renderer": "authored CPU rasterizer of actual three.js scene",
+  "source_sha256": "478e7b720fede9265bd7ccb456d80dc0094da3c1b5b3432a53789497d1920df8",
+  "resume_verified": "Second full invocation reused checkpointed frames and produced a byte-identical MP4 (sha256sum -c: OK).",
+  "screenshots": [
+    {
+      "path": "/workspace/demos/shibuya-halloween/01-wide-night.png",
+      "sha256": "5338bc8e929d86c952ae0b12816a37d36dafaf06d8f955879f6bf6338a640312",
+      "width": 1080,
+      "height": 1920
+    },
+    {
+      "path": "/workspace/demos/shibuya-halloween/02-red-heatmap-peak.png",
+      "sha256": "9d082f28efee67fc07b38368a45708a3dd86534707a78dee888cbaad57ab2b17",
+      "width": 1080,
+      "height": 1920
+    },
+    {
+      "path": "/workspace/demos/shibuya-halloween/03-promo-dispersal.png",
+      "sha256": "73a02de983b4d2475d0d29efb6f32fbced0dd6b591e2f492b9a3bd30019b6315",
+      "width": 1080,
+      "height": 1920
+    },
+    {
+      "path": "/workspace/demos/shibuya-halloween/04-comparison.png",
+      "sha256": "20f575ebc8daec888d9ff8e3041b5c56fd037bf18962930e16ef7a9db84590ea",
+      "width": 1080,
+      "height": 1920
+    },
+    {
+      "path": "/workspace/demos/shibuya-halloween/05-credits.png",
+      "sha256": "2ffd8c4aa1ebb4918d643d03ba227d6ceaeb44b6d04270191ec8013382cf369c",
+      "width": 1080,
+      "height": 1920
+    }
+  ],
+  "visual_review": "Viewed all five final PNGs and a contact sheet of decoded MP4 frames at 1, 11.708, 18.5, 22 and 26 seconds. Checked text, crowd/heatmap transition, route lines, witch, pumpkins, ghosts, open cauldron and source card.",
+  "metrics": {
+    "seed": 1031,
+    "agents": 960,
+    "horizon_s": 900,
+    "no_promo": {
+      "peak_density_per_m2": 0.4349,
+      "visits": 24
+    },
+    "promo": {
+      "peak_density_per_m2": 0.1509,
+      "visits": 750
+    }
+  },
+  "plateau_unchanged_sha256": "f2a37b190148d7b09e2c1c638798aef5f6b1fd7b57600c15ec4fac840a74d6e5",
+  "fonts": [
+    {
+      "path": "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
+      "family": [
+        "Noto Sans CJK JP",
+        "Regular"
+      ],
+      "sha256": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a",
+      "license": "SIL OFL 1.1"
+    },
+    {
+      "path": "/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc",
+      "family": [
+        "Noto Sans CJK JP",
+        "Bold"
+      ],
+      "sha256": "faa5f3656a78b2e2d450d27fe8382c778bc2b6bb5ea29c986664a6a435056ceb",
+      "license": "SIL OFL 1.1"
+    }
+  ],
+  "tests": {
+    "pytest": "102 passed in 92.55s; follow-up focused 4 passed in 2.38s",
+    "node": [
+      "web3d/sol/verify.mjs",
+      "web3d/astra/check.mjs",
+      "web3d/promo/verify.mjs",
+      "web3d/shibuya/verify.mjs",
+      "web3d/shibuya/verify-ui.mjs",
+      "web3d/shibuya/verify-halloween.mjs"
+    ],
+    "all_passed": true
+  },
+  "limitations": [
+    "Chromium/local sockets prohibited by this sandbox; interactive WebGL shader compilation was not browser-tested here. Actual same procedural three.js geometry was CPU-rendered.",
+    "Original Git metadata read-only. Writable recovery metadata at /workspace/demos/shibuya-halloween.git. Push origin halloween repeatedly failed: Could not resolve host github.com."
+  ]
+}

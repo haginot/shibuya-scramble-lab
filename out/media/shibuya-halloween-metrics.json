@@ -1,0 +1,391 @@
+{
+  "schema": 1,
+  "notice": "トイモデルの値 / toy-model values. Uncalibrated routing assumptions, not a prediction or causal evidence.",
+  "settings": {
+    "seed": 1031,
+    "agents": 960,
+    "horizon_s": 900,
+    "promo_start_s": 300,
+    "arrival_window_s": 600,
+    "central_radius_m": 24,
+    "cell_m": 2.5,
+    "extent_m": 220
+  },
+  "definitions": {
+    "density": "Active individual centres inside a 24 m radius disk at the junction / (pi * 24^2 m²); peak sampled every simulated second over 0–900 s.",
+    "visits": "Distinct individuals who physically reach a fictional shop destination by 900 s; at most one visit per individual.",
+    "promotion": "At 300 s, 82% acceptance assumption diverts to 3 farther shops; 30% of accepting not-yet-arrived agents defer 180 s. Others keep their original arrival. No capacity or economic calibration.",
+    "movement": "1.05–1.50 m/s grid routes avoiding the unchanged building footprints, pedestrian-only illustrative scenario. No vehicles, physical pressure, collision or crowd-safety model."
+  },
+  "shops": [
+    {
+      "name": "ひだまり珈琲",
+      "en": "Hidamari Coffee",
+      "position": [
+        -91.25,
+        -78.75
+      ],
+      "offer": "遠回りで、珈琲20%オフ",
+      "offerEn": "20% off coffee, a little farther away",
+      "kind": "distance"
+    },
+    {
+      "name": "月あかり書房",
+      "en": "Moonlit Books",
+      "position": [
+        -111.25,
+        43.75
+      ],
+      "offer": "3分後から使える栞クーポン",
+      "offerEn": "Bookmark coupon opens in 3 minutes",
+      "kind": "time-shift"
+    },
+    {
+      "name": "こはく菓子店",
+      "en": "Amber Sweets",
+      "position": [
+        61.25,
+        86.25
+      ],
+      "offer": "10分限定、焼き菓子セット",
+      "offerEn": "A 10-minute baked treat offer",
+      "kind": "distance"
+    }
+  ],
+  "no_promo": {
+    "time_s": 900,
+    "central_count": 530,
+    "density": 0.29288930499550186,
+    "peak_central_count": 787,
+    "visits": 24,
+    "shop_visits": [
+      7,
+      5,
+      12
+    ],
+    "active": 554,
+    "waiting": 0,
+    "gone": 406,
+    "peak_density_per_m2": 0.4349,
+    "history": [
+      {
+        "time_s": 30,
+        "central_count": 0,
+        "visits": 0
+      },
+      {
+        "time_s": 60,
+        "central_count": 0,
+        "visits": 0
+      },
+      {
+        "time_s": 90,
+        "central_count": 3,
+        "visits": 0
+      },
+      {
+        "time_s": 120,
+        "central_count": 6,
+        "visits": 0
+      },
+      {
+        "time_s": 150,
+        "central_count": 37,
+        "visits": 0
+      },
+      {
+        "time_s": 180,
+        "central_count": 84,
+        "visits": 0
+      },
+      {
+        "time_s": 210,
+        "central_count": 135,
+        "visits": 0
+      },
+      {
+        "time_s": 240,
+        "central_count": 187,
+        "visits": 0
+      },
+      {
+        "time_s": 270,
+        "central_count": 237,
+        "visits": 0
+      },
+      {
+        "time_s": 300,
+        "central_count": 273,
+        "visits": 0
+      },
+      {
+        "time_s": 330,
+        "central_count": 320,
+        "visits": 0
+      },
+      {
+        "time_s": 360,
+        "central_count": 359,
+        "visits": 0
+      },
+      {
+        "time_s": 390,
+        "central_count": 418,
+        "visits": 0
+      },
+      {
+        "time_s": 420,
+        "central_count": 464,
+        "visits": 0
+      },
+      {
+        "time_s": 450,
+        "central_count": 519,
+        "visits": 0
+      },
+      {
+        "time_s": 480,
+        "central_count": 569,
+        "visits": 0
+      },
+      {
+        "time_s": 510,
+        "central_count": 618,
+        "visits": 0
+      },
+      {
+        "time_s": 540,
+        "central_count": 651,
+        "visits": 0
+      },
+      {
+        "time_s": 570,
+        "central_count": 699,
+        "visits": 0
+      },
+      {
+        "time_s": 600,
+        "central_count": 736,
+        "visits": 0
+      },
+      {
+        "time_s": 630,
+        "central_count": 753,
+        "visits": 1
+      },
+      {
+        "time_s": 660,
+        "central_count": 768,
+        "visits": 2
+      },
+      {
+        "time_s": 690,
+        "central_count": 784,
+        "visits": 2
+      },
+      {
+        "time_s": 720,
+        "central_count": 779,
+        "visits": 2
+      },
+      {
+        "time_s": 750,
+        "central_count": 761,
+        "visits": 4
+      },
+      {
+        "time_s": 780,
+        "central_count": 729,
+        "visits": 7
+      },
+      {
+        "time_s": 810,
+        "central_count": 687,
+        "visits": 9
+      },
+      {
+        "time_s": 840,
+        "central_count": 634,
+        "visits": 11
+      },
+      {
+        "time_s": 870,
+        "central_count": 574,
+        "visits": 16
+      },
+      {
+        "time_s": 900,
+        "central_count": 530,
+        "visits": 24
+      }
+    ]
+  },
+  "promo": {
+    "time_s": 900,
+    "central_count": 99,
+    "density": 0.054709511687839024,
+    "peak_central_count": 273,
+    "visits": 750,
+    "shop_visits": [
+      270,
+      245,
+      235
+    ],
+    "active": 149,
+    "waiting": 0,
+    "gone": 811,
+    "peak_density_per_m2": 0.1509,
+    "history": [
+      {
+        "time_s": 30,
+        "central_count": 0,
+        "visits": 0
+      },
+      {
+        "time_s": 60,
+        "central_count": 0,
+        "visits": 0
+      },
+      {
+        "time_s": 90,
+        "central_count": 3,
+        "visits": 0
+      },
+      {
+        "time_s": 120,
+        "central_count": 6,
+        "visits": 0
+      },
+      {
+        "time_s": 150,
+        "central_count": 37,
+        "visits": 0
+      },
+      {
+        "time_s": 180,
+        "central_count": 84,
+        "visits": 0
+      },
+      {
+        "time_s": 210,
+        "central_count": 135,
+        "visits": 0
+      },
+      {
+        "time_s": 240,
+        "central_count": 187,
+        "visits": 0
+      },
+      {
+        "time_s": 270,
+        "central_count": 237,
+        "visits": 0
+      },
+      {
+        "time_s": 300,
+        "central_count": 273,
+        "visits": 0
+      },
+      {
+        "time_s": 330,
+        "central_count": 74,
+        "visits": 9
+      },
+      {
+        "time_s": 360,
+        "central_count": 65,
+        "visits": 42
+      },
+      {
+        "time_s": 390,
+        "central_count": 78,
+        "visits": 69
+      },
+      {
+        "time_s": 420,
+        "central_count": 91,
+        "visits": 176
+      },
+      {
+        "time_s": 450,
+        "central_count": 98,
+        "visits": 326
+      },
+      {
+        "time_s": 480,
+        "central_count": 107,
+        "visits": 388
+      },
+      {
+        "time_s": 510,
+        "central_count": 116,
+        "visits": 417
+      },
+      {
+        "time_s": 540,
+        "central_count": 128,
+        "visits": 449
+      },
+      {
+        "time_s": 570,
+        "central_count": 145,
+        "visits": 486
+      },
+      {
+        "time_s": 600,
+        "central_count": 142,
+        "visits": 522
+      },
+      {
+        "time_s": 630,
+        "central_count": 143,
+        "visits": 553
+      },
+      {
+        "time_s": 660,
+        "central_count": 146,
+        "visits": 580
+      },
+      {
+        "time_s": 690,
+        "central_count": 150,
+        "visits": 602
+      },
+      {
+        "time_s": 720,
+        "central_count": 150,
+        "visits": 642
+      },
+      {
+        "time_s": 750,
+        "central_count": 144,
+        "visits": 667
+      },
+      {
+        "time_s": 780,
+        "central_count": 139,
+        "visits": 687
+      },
+      {
+        "time_s": 810,
+        "central_count": 131,
+        "visits": 714
+      },
+      {
+        "time_s": 840,
+        "central_count": 118,
+        "visits": 731
+      },
+      {
+        "time_s": 870,
+        "central_count": 107,
+        "visits": 739
+      },
+      {
+        "time_s": 900,
+        "central_count": 99,
+        "visits": 750
+      }
+    ]
+  }
+}
