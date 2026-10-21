@@ -3,7 +3,7 @@ import {mkdir,writeFile} from 'node:fs/promises';
 import {readFileSync,writeFileSync} from 'node:fs';
 import {makeNightScene} from '../web3d/shibuya/halloween-scene.mjs';
 import {HalloweenModel,navigation,experiment} from '../web3d/shibuya/halloween-model.mjs';
-import {storyAt} from '../web3d/shibuya/halloween-story.mjs';
+import {storyAt,cameraAt,DURATION,FPS,STILL_FRAMES} from '../web3d/shibuya/halloween-story.mjs';
 const canvases=[];
 class Canvas{
  constructor(){this.width=0;this.height=0;this.ops=[];canvases.push(this);this.context={fillStyle:'#fff',beginPath:()=>{},arc:(...args)=>this.arc=args,fill:()=>this.ops.push({kind:'arc',args:this.arc,style:this.context.fillStyle}),fillRect:(...args)=>this.ops.push({kind:'rect',args,style:JSON.parse(JSON.stringify(this.context.fillStyle))}),clearRect:()=>this.ops=[],createLinearGradient:(...args)=>gradient('linear',args),createRadialGradient:(...args)=>gradient('radial',args)};}
@@ -26,15 +26,23 @@ await writeFile(`${out}/geometry.bin`,Buffer.concat(chunks));
 await writeFile(`${out}/scene.json`,JSON.stringify({geometries,objects:descriptors,textures:staticCanvas(),dynamic:dynamic.map(({o,i})=>({object:i,position_count:o.geometry.attributes.position.array.length,color_count:o.geometry.attributes.color?.array.length||0}))}));
 const metrics=experiment(plateau);await writeFile(`${out}/metrics.json`,JSON.stringify(metrics,null,2)+'\n');
 let no=new HalloweenModel(nav),promo=new HalloweenModel(nav,{promotion:true});
-const selected=process.argv.includes('--preview')?[24,281,444,528,624]:Array.from({length:577},(_,i)=>i);
-const camera=new THREE.PerspectiveCamera(43,1080/1310,.5,2500);
+const selected=process.argv.includes('--preview')?STILL_FRAMES:Array.from({length:DURATION*FPS+1},(_,i)=>i);
+const camera=new THREE.PerspectiveCamera(43,1080/1920,.5,2500);
 function frame(model,seconds,promoted,fixed=false){
- const x=Math.max(0,Math.min(1,(seconds-3)/15)),u=fixed?0:x*x*(3-2*x);camera.position.set(-200+u*70+(fixed?0:Math.min(seconds,6)*6),285-u*55,-220+u*70);camera.lookAt(0,5,4);camera.updateMatrixWorld();night.update(model,seconds,promoted);night.scene.updateMatrixWorld(true);
+ const pose=cameraAt(seconds,fixed);camera.position.set(...pose.position);camera.lookAt(...pose.target);camera.updateMatrixWorld();night.update(model,seconds,promoted);night.scene.updateMatrixWorld(true);
  const data=[...camera.projectionMatrix.elements,...camera.matrixWorldInverse.elements];
  for(const o of objects){let visible=true;for(let p=o;p;p=p.parent)visible&&=p.visible;data.push(...o.matrixWorld.elements,visible?1:0,o.geometry.drawRange.count===Infinity?o.geometry.attributes.position.count:o.geometry.drawRange.count);}
  for(const{o}of dynamic){data.push(...o.geometry.attributes.position.array);if(o.geometry.attributes.color)data.push(...o.geometry.attributes.color.array);}
  return Buffer.from(new Float32Array(data).buffer);
 }
-for(const i of selected){const seconds=i/24,story=storyAt(seconds),model=story.promoted?promo:no;model.advanceTo(story.simTime);writeFileSync(`${out}/frame-${String(i).padStart(5,'0')}.bin`,frame(model,seconds,story.promoted));writeFileSync(`${out}/state-${String(i).padStart(5,'0')}.json`,JSON.stringify({...story,seconds,state:model.snapshot()}));}
-for(const[prefix,promoted]of[['no',false],['promo',true]]){const model=new HalloweenModel(nav,{promotion:promoted});model.advanceTo(900);await writeFile(`${out}/compare-${prefix}.bin`,frame(model,19,promoted,true));}
+for(const i of selected){
+ const seconds=i/FPS,story=storyAt(seconds);
+ let model=story.promoted?promo:no;
+ if(model.time>story.simTime){model=new HalloweenModel(nav,{promotion:story.promoted});if(story.promoted)promo=model;else no=model;}
+ model.advanceTo(story.simTime);
+ writeFileSync(`${out}/frame-${String(i).padStart(5,'0')}.bin`,frame(model,seconds,story.promoted));
+ const project=(x,y,z)=>{const p=new THREE.Vector3(x,y,z).project(camera);return[(p.x+1)*540,(1-p.y)*960,p.z];};
+ writeFileSync(`${out}/state-${String(i).padStart(5,'0')}.json`,JSON.stringify({...story,seconds,state:model.snapshot(),shops:nav.shops.map(s=>({...s,screen:project(s.position[0],24,s.position[1])})),cauldron:project(26,12,14)}));
+}
+for(const[prefix,promoted]of[['no',false],['promo',true]]){const model=new HalloweenModel(nav,{promotion:promoted});model.advanceTo(900);await writeFile(`${out}/compare-${prefix}.bin`,frame(model,15.5,promoted,true));}
 console.log(`Exported ${selected.length} scene frames, ${objects.length} objects, ${offset} geometry bytes.`);

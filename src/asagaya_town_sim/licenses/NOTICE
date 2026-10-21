@@ -88,3 +88,14 @@ Pillow (MIT-CMU), Playwright (Apache-2.0), pytest and Hatchling (MIT).
 Optional acquisition inspection: Shapely (BSD-3-Clause), pyproj (MIT).
 FFmpeg/libx264 are external recording commands, not bundled binaries;
 their licensing depends on build configuration (LGPL/GPL).
+
+Halloween film / Iteration 1 (2026-10-21):
+All decorative meshes, window/heat/light textures, rounded dot mask, purple
+sparkles, fictional shop kiosks, coupon pictograms and bilingual film graphics
+are original procedural work by HAGINO, 2026 (project MIT license).
+The original PLATEAU footprint/height geometry and OSM attribution are retained.
+The film is an 18-second toy-model comparison, with a paired replay at film 6s;
+its fictional offers and behavioural coefficients are assumptions, not measured
+effects. Only the actual deterministic model metrics appear as results.
+Noto Sans CJK JP (system regular/bold): SIL OFL 1.1. No font binary or audio is
+redistributed. See docs/HALLOWEEN_ASSETS.md and accompanying media ASSETS.md.

@@ -53,7 +53,7 @@ class SoftwareScene:
         self.geometries=[]
         for g in self.info['geometries']:
             attrs={k:self.data[v['offset']//4:v['offset']//4+v['count']].reshape(-1,2 if k=='uv' else 3) for k,v in g['attrs'].items()};self.geometries.append(attrs)
-        self.textures=[canvas_texture(c) for c in self.info['textures']];self.width=900;self.height=1092
+        self.textures=[canvas_texture(c) for c in self.info['textures']];self.width=900;self.height=1600
         source=ROOT/'tools/halloween_raster.c';lib=directory/'raster.so'
         subprocess.run(['cc','-O3','-ffast-math','-shared','-fPIC',str(source),'-lm','-o',str(lib)],check=True)
         self.lib=C.CDLL(str(lib));P=C.c_void_p;I=C.c_int;F=C.c_float
@@ -71,8 +71,8 @@ class SoftwareScene:
             if 0<=ix<16 and 0<=iz<16:a[iz,ix]+=1
         yy,xx=np.mgrid[:128,:128]
         for iz,ix in np.argwhere(a>0):
-            n=a[iz,ix];rgb=(255,70,93) if n>8 else (255,165,75) if n>3 else (98,239,200)
-            alpha=np.maximum(0,1-np.sqrt((xx-(ix*8+4))**2+(yy-(iz*8+4))**2)/13)*min(.85,.13+n*.065)*255
+            n=a[iz,ix];rgb=(255,35,88) if n>8 else (255,95,126) if n>3 else (55,208,255)
+            alpha=np.maximum(0,1-np.sqrt((xx-(ix*8+4))**2+(yy-(iz*8+4))**2)/13)*min(.98,.22+n*.09)*255
             arr=np.empty((128,128,4),dtype=np.uint8);arr[:,:,:3]=rgb;arr[:,:,3]=alpha;heat=Image.alpha_composite(heat,Image.fromarray(arr))
         return np.array(heat)
     def render(self,path):
@@ -111,7 +111,12 @@ class SoftwareScene:
             uv=attrs.get('uv',np.zeros((len(pos),2),dtype=np.float32));attribute=np.ascontiguousarray(np.column_stack((base,uv,distance)),dtype=np.float32)
             tid=mat['map'] if mat['map']>=0 else mat['emissiveMap'];kind=1 if mat['map']>=0 else 2 if mat['emissiveMap']>=0 else 0;texture=textures[tid] if tid>=0 else None;emission=np.array(mat['emissive'])*mat['emissiveIntensity']
             self.lib.triangles(canvas.ctypes.data,depth.ctypes.data,self.width,self.height,screen.ctypes.data,attribute.ctypes.data,len(pos),texture.ctypes.data if texture is not None else None,texture.shape[1] if texture is not None else 0,texture.shape[0] if texture is not None else 0,kind,*emission,mat['opacity'],int(mat['depthWrite']))
-        return Image.fromarray(canvas).resize((1080,1310),Image.Resampling.LANCZOS)
+        im=Image.fromarray(canvas).resize((1080,1920),Image.Resampling.LANCZOS)
+        # Local emissive bloom, authored from the rendered pixels; no image assets.
+        bright=np.array(im);mask=np.maximum(bright.max(axis=2).astype(float)-185,0)/70
+        glow=Image.fromarray((bright*mask[:,:,None]*.35).clip(0,255).astype('uint8')).filter(ImageFilter.GaussianBlur(8))
+        from PIL import ImageChops
+        return ImageChops.add(im,glow)
 
 class Film:
     def __init__(self,scene,metrics):
@@ -124,66 +129,92 @@ class Film:
         draw.polygon([(x,y-r),(x+r*.18,y-r*.18),(x+r,y),(x+r*.18,y+r*.18),(x,y+r),(x-r*.18,y+r*.18),(x-r,y),(x-r*.18,y-r*.18)],fill=AMBER)
     def text(self,draw,xy,text,size=24,fill=WHITE,bold=False):
         draw.text(xy,text,font=self.font(size,bold),fill=fill,spacing=int(size*.32))
-    def frame(self,state,scene_image):
-        im=Image.new('RGB',(1080,1920),BG);im.paste(scene_image,(0,280));d=ImageDraw.Draw(im)
-        # Gentle authored fades separate typography from the 3D stage.
-        overlay=Image.new('RGBA',im.size);p=np.zeros((1920,1080,4),dtype=np.uint8);p[:,:,:3]=(16,19,38)
-        for y in range(280,650):p[y,:,3]=int(max(0,1-(y-280)/370)*245)
-        for y in range(1200,1590):p[y,:,3]=int(min(1,(y-1200)/390)*245)
-        im=Image.alpha_composite(im.convert('RGBA'),Image.fromarray(p)).convert('RGB');d=ImageDraw.Draw(im)
-        d.ellipse((55,55,64,64),fill=AMBER);self.text(d,(80,43),'SHIBUYA SCRAMBLE LAB',19,AMBER,True);self.text(d,(720,46),'HALLOWEEN STUDY / 01',16,AMBER)
-        self.text(d,(51,80),'SHIBUYA',98,WHITE,True);self.text(d,(51,185),'AFTER DARK',84,PURPLE,True);self.sparkle(d,709,245,27)
-        self.text(d,(55,306),'毎年荒れる渋谷ハロウィンを、\nお店のプロモーションで分散できるか？',28)
-        d.line((55,407,1025,407),fill='#65516d',width=1);n,ja,en=state['chapter'];self.text(d,(55,426),n,45,PURPLE);self.text(d,(135,430),ja,30,WHITE,True);self.text(d,(136,477),en,15,MUTED)
-        promo=state['promoted'];accent=MINT if promo else RED
-        d.rounded_rectangle((830,436,1025,483),radius=24,fill='#2a2032',outline=accent);self.text(d,(855,445),'PROMO ON' if promo else 'NO PROMO',19,accent)
-        self.text(d,(55,535),'PLATEAU 1,050棟 · 建物形状はそのまま\nOriginal footprints & heights · procedural night materials',17,'#dbd3e1')
-        s=state['state'];clock=state['simTime'];self.text(d,(55,1230),f'SIM {clock//60:02d}:{clock%60:02d}',18);self.text(d,(285,1232),'SEED 1031 · 960 AGENTS',16,MUTED);self.text(d,(650,1230),'同じ到着条件で再試行 / Paired replay' if promo else '販促なし / No promotion',16,accent)
-        d.rounded_rectangle((44,1290,1036,1622),radius=22,fill='#171829',outline='#6c536e',width=1)
-        self.text(d,(74,1310),'JUNCTION OBSERVATION / 交差点の様子',15,MUTED);self.text(d,(775,1310),'● LOW → HIGH ●',13,AMBER)
-        self.text(d,(74,1351),'中心部の密度 / Central density',20,MUTED);self.text(d,(620,1351),'店舗への来訪 / Shop visits',20,MUTED)
-        self.text(d,(72,1371),f"{s['density']:.3f}",77,accent,True);self.text(d,(618,1371),str(s['visits']),77,accent,True);d.line((580,1356,580,1500),fill='#493b52')
-        self.text(d,(75,1479),'人/m² · people/m²',16,MUTED);self.text(d,(620,1479),'到着を計数 / completed arrivals',16,MUTED)
-        d.line((74,1526,1006,1526),fill='#493b52');self.text(d,(74,1535),state['offer'][0],22,AMBER);self.text(d,(74,1574),state['offer'][1],16,MUTED)
-        self.text(d,(55,1640),state['captions'][0],33,WHITE,True);self.text(d,(55,1701),state['captions'][1],22,PURPLE)
-        self.footer(d)
-        d.rectangle((0,1915,int(state['seconds']/28*1080),1919),fill=AMBER)
-        return im
+    def shade(self,im):
+        p=np.zeros((1920,1,4),dtype=np.uint8);p[:,:,:3]=(10,12,30)
+        for y in range(1920):
+            p[y,:,3]=int(max(max(0,1-y/590)*235,max(0,(y-1430)/490)*250))
+        return Image.alpha_composite(im.convert('RGBA'),Image.fromarray(p).resize(im.size)).convert('RGB')
     def footer(self,d):
-        self.text(d,(55,1772),'トイモデル・予測ではない / Toy model — not a prediction',20,AMBER)
-        self.text(d,(55,1810),'横断量・行動・販促効果は未較正 / Uncalibrated movement & promotion effects',15,MUTED)
-        self.text(d,(55,1850),'国土交通省 Project PLATEAU・渋谷区 2023 加工 · CC BY 4.0\n© OpenStreetMap contributors · ODbL 1.0 · three.js MIT · HAGINO 2026',14,'#a9a0b8')
+        self.text(d,(64,1734),'*Toy-model simulation / トイモデル・予測ではない',24,AMBER)
+        self.text(d,(64,1780),'PLATEAU 渋谷2023 加工 · CC BY 4.0 | © OSM contributors · ODbL',16,MUTED)
+        self.text(d,(64,1810),'HAGINO 2026 · Original procedural art · Full credits in NOTICE / ASSETS',16,MUTED)
+    def ticket(self,im,x,y,word,u):
+        # Self-made coupon pictogram; pop overshoot is tied to film time.
+        size=1+.17*math.exp(-u*4)*math.sin(u*12);w,h=int(164*size),int(112*size)
+        layer=Image.new('RGBA',(w+48,h+48));d=ImageDraw.Draw(layer)
+        d.rounded_rectangle((24,24,w+24,h+24),radius=18,fill='#d9fcff',outline='#6ae3ff',width=4)
+        for xx in (24,w+24):d.ellipse((xx-11,24+h/2-11,xx+11,24+h/2+11),fill='#273252')
+        for yy in range(38,h+12,13):d.line((w-15,yy,w-15,yy+5),fill='#53899b',width=2)
+        self.text(d,(42,38),'COUPON',17,'#3b6477',True);self.text(d,(39,61),word,26,'#292744',True)
+        glow=layer.filter(ImageFilter.GaussianBlur(13));im.paste(glow,(int(x-w/2-24),int(y-h/2-24)),glow);im.paste(layer,(int(x-w/2-24),int(y-h/2-24)),layer)
+    def frame(self,state,scene_image):
+        im=self.shade(scene_image);d=ImageDraw.Draw(im);t=state['seconds']
+        self.text(d,(64,80),'SHIBUYA / HALLOWEEN',25,AMBER,True);self.sparkle(d,984,106,15)
+        self.text(d,(58,150),state['captions'][0],82,WHITE,True)
+        en=state['captions'][1]
+        if en=='Free pumpkin latte solves it?':en='Free pumpkin latte\nsolves it?'
+        self.text(d,(64,281),en,49,PURPLE,True)
+        if state['promoted']:
+            for i,shop in enumerate(state['shops']):
+                age=t-(6+i*1.5);x,y,z=shop['screen']
+                if age>=0 and z<1:
+                    px=max(130,min(950,x));py=max(515,min(1400,y-20))
+                    d=ImageDraw.Draw(im);d.line((px,py,max(30,min(1050,x)),max(460,min(1470,y))),fill='#6ae3ff',width=2)
+                    self.ticket(im,px,py,['LATTE','BOOK','SWEET'][i],age)
+            d=ImageDraw.Draw(im)
+            self.text(d,(64,1505),state['replay'],23,MINT,True)
+            if t<12:
+                shop=state['shops'][state['shopIndex']]
+                d.rounded_rectangle((64,1563,1016,1696),radius=25,fill='#191a32',outline='#6ae3ff',width=2)
+                self.sparkle(d,110,1629,22)
+                self.text(d,(155,1573),shop['name']+' · 架空 / FICTIONAL',27,WHITE,True)
+                self.text(d,(155,1622),shop['offer'],29,MINT,True)
+            else:
+                self.text(d,(64,1572),'SIDE QUEST COMPLETE?',38,MINT,True)
+                self.text(d,(64,1632),'仮定の販促効果 / Assumed offer response',23,MUTED)
+        elif not state['hook']:
+            self.text(d,(64,1558),'ONE MEETING POINT. AGAIN.',34,RED,True)
+            self.text(d,(64,1624),'同じ交差点に、集合。',34,WHITE,True)
+        else:
+            self.text(d,(64,1570),'このパズル、解ける？',40,WHITE,True)
+            self.text(d,(64,1638),'Can one little deal change the map?',31,PURPLE)
+        self.footer(d)
+        return im
     def compare(self):
         if self.comparison:return self.comparison.copy()
         im=Image.new('RGB',(1080,1920),BG);d=ImageDraw.Draw(im)
-        self.text(d,(55,55),'03 / SAME ARRIVALS. DIFFERENT DESTINATIONS.',19,AMBER,True)
-        self.text(d,(55,114),'行き先を、',70,WHITE,True);self.text(d,(55,215),'増やしてみた。',70,PURPLE,True)
-        self.text(d,(55,337),'同じ960人・seed 1031・900秒の比較\nSame 960 agents · matched seed · 900 simulated seconds',23,MUTED)
-        for x,prefix,title,subtitle,accent in [(55,'no','販促なし','NO PROMO',RED),(550,'promo','販促あり','PROMO',MINT)]:
-            result=self.metrics['no_promo' if prefix=='no' else 'promo'];d.rounded_rectangle((x,454,x+475,1350),radius=20,fill='#201d2d',outline='#66506e')
-            self.text(d,(x+24,471),title,30,accent,True);self.text(d,(x+24,523),subtitle,15,accent)
-            view=self.scene.render(self.scene.directory/f'compare-{prefix}.bin');view=view.resize((475,576),Image.Resampling.LANCZOS);im.paste(view.crop((0,50,475,500)),(x,568));d=ImageDraw.Draw(im)
-            self.text(d,(x+25,1036),'ピーク密度 / Peak density',20,MUTED);self.text(d,(x+24,1062),f"{result['peak_density_per_m2']:.4f}",67,accent,True);self.text(d,(x+25,1154),'人/m² · people/m²',18,MUTED)
-            self.text(d,(x+25,1204),'店舗来訪 / Shop visits',20,MUTED);self.text(d,(x+25,1235),str(result['visits']),64,WHITE,True)
-        self.text(d,(245,1384),'トイモデルの値 / toy-model values',28,AMBER)
-        d.rounded_rectangle((55,1450,1025,1650),radius=15,outline='#55435e');d.line((80,1603,1000,1603),fill='#484254');d.line((80,1530,1000,1530),fill='#484254')
-        for key,accent in [('no_promo',RED),('promo',MINT)]:
-            points=[(80,1603)]+[(80+s['time_s']/900*920,1603-s['central_count']/800*130) for s in self.metrics[key]['history']];d.line(points,fill=accent,width=5)
-        self.text(d,(80,1613),'0 s',15,MUTED);self.text(d,(290,1613),'中心部の人数 / Central occupancy',15,MUTED);self.text(d,(945,1613),'900 s',15,MUTED)
-        self.text(d,(55,1680),'密度：交差点中心の半径24m内の人数 ÷ 面積。ピークは全900秒。\n来訪：架空店に到着した人数。受諾率82%などを仮定。\nDensity: centres in a 24m disk / area. Peak over 900s.\nVisits count arrivals at fictional shops. Assumed acceptance: 82%.\n静止画は両条件とも900秒時点 / Both images at sim 900s.',18,MUTED)
-        self.comparison=im;return im.copy()
-    def credit(self):
-        if self.credits:return self.credits.copy()
-        im=Image.new('RGB',(1080,1920),BG);d=ImageDraw.Draw(im);self.text(d,(55,55),'04 / CREDITS & SOURCES',19,AMBER,True)
-        self.text(d,(55,115),'街の夜に、',76,WHITE,True);self.text(d,(55,225),'余白を。',76,PURPLE,True)
-        self.text(d,(55,367),'荒れる渋谷、施策で散らせるか？\nCan promos tame the Shibuya crush?',26,PURPLE)
-        blocks=[(505,'地理データ / GEOGRAPHY','国土交通省 Project PLATEAU・渋谷区 2023\n足元形状＋高さに加工 / Modified footprints & heights\nCC BY 4.0 · geometry unchanged for this night mode', 'geospatial.jp/ckan/dataset/plateau-13113-shibuya-ku-2023\ncreativecommons.org/licenses/by/4.0/'),(805,'','© OpenStreetMap contributors · ODbL 1.0\n道路・鉄道 / Roads & rails','openstreetmap.org/copyright\nopendatacommons.org/licenses/odbl/1-0/'),(1030,'制作・素材 / MADE FOR THIS FILM','HAGINO · 2026 · MIT code & original procedural art\nthree.js r160 · MIT · three.js authors\n木・かぼちゃ・おばけ・魔女・窓・粒子：自作\nTrees, pumpkins, ghosts, witch, windows, particles: authored geometry','書体 / Font: Noto Sans CJK JP · SIL OFL 1.1\n音声なし / Silent film · No external decorative assets'),(1405,'トイモデル / TOY EXPERIMENT','seed 1031 · 960 agents · 900s · paired arrivals\n架空店舗・販促・経路・時間は仮定。予測ではありません。\nUncalibrated routes, behaviour and offers. Not a prediction.\n車両なしの歩行者経路実験 / Pedestrian-only routing experiment','Existing vehicle data: Eclipse SUMO 1.28.0 / OSM; unused here.\nStatistical/train source notes retained in local web3d/data/NOTICE.\nMetrics: out/media/shibuya-halloween-metrics.json')]
-        for y,title,body,small in blocks:
-            if title:d.line((55,y-15,1025,y-15),fill='#55415e');self.text(d,(55,y),title,19,AMBER,True)
-            start=y+42 if title else y
-            self.text(d,(55,start),body,22);lines=body.count('\n')+1;self.text(d,(55,start+lines*30+18),small,17,MUTED)
-        self.text(d,(55,1844),'SHIBUYA  /  AFTER DARK',25,PURPLE,True);self.sparkle(d,998,1861,23)
-        self.credits=im;return im.copy()
+        self.text(d,(64,80),'SAME ARRIVALS / 同じ到着条件',25,AMBER,True)
+        self.text(d,(60,157),'赤 vs 青。',90,WHITE,True)
+        self.text(d,(64,296),'One tiny toy experiment.',43,PURPLE,True)
+        for x,prefix,title,accent in [(36,'no','特典なし / OFF',RED),(558,'promo','特典あり / ON',MINT)]:
+            result=self.metrics['no_promo' if prefix=='no' else 'promo']
+            view=self.scene.render(self.scene.directory/f'compare-{prefix}.bin')
+            # Both sides use the same camera, sim time, crop and scale.
+            view=view.crop((160,460,920,1470)).resize((486,646),Image.Resampling.LANCZOS)
+            im.paste(view,(x,470));d=ImageDraw.Draw(im)
+            self.text(d,(x+12,398),title,34,accent,True)
+            d.rectangle((x,1108,x+486,1115),fill=accent)
+            self.text(d,(x+10,1160),'ピーク密度 / Peak density',24,MUTED)
+            self.text(d,(x+8,1198),f"{result['peak_density_per_m2']:.4f}",77,accent,True)
+            self.text(d,(x+12,1310),'人/m² · people/m²',23,MUTED)
+            self.text(d,(x+12,1376),'店舗来訪 / Shop visits',25,MUTED)
+            self.text(d,(x+10,1418),str(result['visits']),84,WHITE,True)
+        self.text(d,(64,1580),'960 agents · seed 1031 · 900 simulated seconds',26,PURPLE)
+        self.text(d,(64,1633),'ピークは全900秒。両画像は900秒時点。',24,MUTED)
+        self.text(d,(64,1674),'Peak over full run; both views at 900s. Visits count arrivals.',20,MUTED)
+        self.footer(d);self.comparison=im;return im.copy()
+    def credit(self,scene_image):
+        im=self.shade(scene_image);layer=Image.new('RGBA',im.size,(12,14,33,195));im=Image.alpha_composite(im.convert('RGBA'),layer).convert('RGB');d=ImageDraw.Draw(im)
+        self.text(d,(64,470),'MADE AFTER DARK',57,WHITE,True)
+        self.text(d,(64,585),'HAGINO · 2026 · Original art + code · MIT',33,PURPLE,True)
+        self.sparkle(d,950,508,30)
+        self.text(d,(64,800),'PLATEAU 渋谷2023 加工 · CC BY 4.0',32,WHITE,True)
+        self.text(d,(64,900),'© OpenStreetMap contributors · ODbL 1.0',30,WHITE,True)
+        self.text(d,(64,1000),'three.js · MIT | Noto Sans CJK JP · SIL OFL 1.1',27,MUTED)
+        self.text(d,(64,1210),'架空の店舗・特典・行動。実測・予測ではありません。',27,PURPLE)
+        self.text(d,(64,1270),'Fictional offers + behaviour. Not a prediction.',27,PURPLE)
+        self.text(d,(64,1440),'Full sources / licenses: NOTICE + ASSETS.md',26,MUTED)
+        self.footer(d);return im
 
 def record(output,stills,metrics_path,preview=False):
     start=time.monotonic();output.parent.mkdir(parents=True,exist_ok=True);stills.mkdir(parents=True,exist_ok=True);frames=stills/'.software-frames';frames.mkdir(exist_ok=True);directory=stills/'.scene-cache';directory.mkdir(exist_ok=True)
@@ -202,18 +233,18 @@ def record(output,stills,metrics_path,preview=False):
     for frame in selected:
         path=frames/f'frame-{frame:05d}.jpg'
         if not preview and path.exists() and frame not in STILLS:continue
-        if frame>=576:im=film.credit()
-        elif frame>=480:im=film.compare()
-        else:
-            state=json.loads((directory/f'state-{frame:05d}.json').read_text());im=film.frame(state,scene.render(directory/f'frame-{frame:05d}.bin'))
+        state=json.loads((directory/f'state-{frame:05d}.json').read_text())
+        if state['comparison']:im=film.compare()
+        elif state['credits']:im=film.credit(scene.render(directory/f'frame-{frame:05d}.bin'))
+        else:im=film.frame(state,scene.render(directory/f'frame-{frame:05d}.bin'))
         if frame in STILLS:im.save(stills/STILLS[frame]);snapshots.append({'frame':frame,'video_seconds':frame/FPS})
         if not preview:
             temporary=path.with_suffix('.tmp');im.save(temporary,format='JPEG',quality=96,subsampling=0);temporary.replace(path)
         if frame%24==0 or preview:print(f'{frame/FPS:.2f}/{DURATION}s · CPU rendering actual three.js geometry',flush=True)
     probe=None
     if not preview:
-        partial=output.with_name(output.stem+'.partial.mp4');subprocess.run(['ffmpeg','-hide_banner','-loglevel','error','-y','-framerate',str(FPS),'-i',str(frames/'frame-%05d.jpg'),'-frames:v',str(FPS*DURATION),'-an','-c:v','libx264','-preset','fast','-crf','18','-pix_fmt','yuv420p','-movflags','+faststart+use_metadata_tags','-metadata',f'credit={CREDIT}','-metadata','comment=Toy-model values; same procedural three.js geometry, local CPU raster capture; paired replay at 12s.',str(partial)],check=True);probe=probe_video(partial);partial.replace(output)
-    result={'video':str(output),'renderer':'authored CPU rasterizer of actual three.js scene','source_sha256':signature,'preview':preview,'width':1080,'height':1920,'fps':24,'duration_s':28,'wall_seconds':round(time.monotonic()-start,2),'screenshots':[str(stills/p) for p in STILLS.values()],'snapshots':snapshots,'probe':probe,'errors':[]}
+        partial=output.with_name(output.stem+'.partial.mp4');subprocess.run(['ffmpeg','-hide_banner','-loglevel','error','-y','-framerate',str(FPS),'-i',str(frames/'frame-%05d.jpg'),'-frames:v',str(FPS*DURATION),'-an','-c:v','libx264','-preset','fast','-crf','18','-pix_fmt','yuv420p','-movflags','+faststart+use_metadata_tags','-metadata',f'credit={CREDIT}','-metadata','comment=Toy-model values; same procedural three.js geometry, local CPU raster capture; paired replay at 6s; 18s loop.',str(partial)],check=True);probe=probe_video(partial);partial.replace(output)
+    result={'video':str(output),'renderer':'authored CPU rasterizer of actual three.js scene','source_sha256':signature,'preview':preview,'width':1080,'height':1920,'fps':24,'duration_s':DURATION,'wall_seconds':round(time.monotonic()-start,2),'screenshots':[str(stills/p) for p in STILLS.values()],'snapshots':snapshots,'probe':probe,'errors':[]}
     (stills/('preview.json' if preview else 'recording.json')).write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n');print(json.dumps(result,ensure_ascii=False,indent=2),flush=True)
 
 if __name__=='__main__':

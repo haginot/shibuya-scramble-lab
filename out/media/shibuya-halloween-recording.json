@@ -1,7 +1,11 @@
 {
-  "implementation_commit": "175a7d606bd6507f05c85845bd9ae1c3bede6e6e",
-  "video": "/workspace/demos/shibuya-halloween.mp4",
-  "sha256": "75a3259a1729d12404e84cd5429041c96eff8599b90bacbbadde20eeaa2b617e",
+  "iteration": 1,
+  "base_commit": "eb487177a705413bd4e54766ee42826515ed4bfd",
+  "video": "/workspace/projects/ssl-halloween/out/media/iteration-1/shibuya-halloween.mp4",
+  "requested_video": "/workspace/demos/shibuya-halloween.mp4",
+  "requested_stills": "/workspace/demos/shibuya-halloween/",
+  "delivery_status": "Repo copy rendered. Requested demos destination is outside this session writable roots; existing demos files were not modified.",
+  "sha256": "edeca1115b91c12c73dba5c0e562f63411d42287e2b2dbf76c98d71b6e992596",
   "probe": {
     "programs": [],
     "stream_groups": [],
@@ -11,50 +15,72 @@
         "width": 1080,
         "height": 1920,
         "pix_fmt": "yuvj420p",
-        "r_frame_rate": "24/1"
+        "r_frame_rate": "24/1",
+        "nb_read_frames": "432"
       }
     ],
     "format": {
-      "duration": "28.000000",
-      "size": "34081336"
+      "duration": "18.000000",
+      "size": "28623017",
+      "tags": {
+        "major_brand": "isom",
+        "minor_version": "512",
+        "compatible_brands": "isomiso2avc1mp41",
+        "credit": "MLIT Project PLATEAU / Shibuya 2023; modified footprints + heights, CC BY 4.0. https://www.geospatial.jp/ckan/dataset/plateau-13113-shibuya-ku-2023 https://creativecommons.org/licenses/by/4.0/ © OpenStreetMap contributors, ODbL 1.0. https://www.openstreetmap.org/copyright https://opendatacommons.org/licenses/odbl/1-0/ three.js r160 MIT. HAGINO 2026 procedural art and code MIT. Noto Sans CJK JP SIL OFL 1.1. See accompanying NOTICE and ASSETS.md. Toy model, not a prediction. Seed 1031; 960 agents; 900 simulated seconds per scenario. Pedestrian-only routing experiment; underlying SUMO trajectories are unused.",
+        "comment": "Toy-model values; same procedural three.js geometry, local CPU raster capture; paired replay at 6s; 18s loop.",
+        "encoder": "Lavf61.7.103"
+      }
     }
   },
   "renderer": "authored CPU rasterizer of actual three.js scene",
-  "source_sha256": "478e7b720fede9265bd7ccb456d80dc0094da3c1b5b3432a53789497d1920df8",
-  "resume_verified": "Second full invocation reused checkpointed frames and produced a byte-identical MP4 (sha256sum -c: OK).",
+  "source_sha256": "ca601f6af6ec3a85fb331e7d72c6e7aff02c97512c5a1d4145340ac1a03848b0",
+  "resume_verified": "Repeated full invocation reused checkpointed frames and produced a byte-identical MP4; sha256sum -c passed.",
+  "loop_verified": "0.0s and 18.0s: exact camera/transforms/visibility/draw counts and active particle positions/colors; native endpoint renders pixel-identical. Unused particle-buffer tails excluded.",
   "screenshots": [
     {
-      "path": "/workspace/demos/shibuya-halloween/01-wide-night.png",
-      "sha256": "5338bc8e929d86c952ae0b12816a37d36dafaf06d8f955879f6bf6338a640312",
+      "path": "/workspace/projects/ssl-halloween/out/media/iteration-1/shibuya-halloween/01-macro-hook.png",
       "width": 1080,
-      "height": 1920
+      "height": 1920,
+      "sha256": "1944c5efd0dc18b1d91eadd49543c547ad8f3e54ad220536da6a2a5207fb1e6f"
     },
     {
-      "path": "/workspace/demos/shibuya-halloween/02-red-heatmap-peak.png",
-      "sha256": "9d082f28efee67fc07b38368a45708a3dd86534707a78dee888cbaad57ab2b17",
+      "path": "/workspace/projects/ssl-halloween/out/media/iteration-1/shibuya-halloween/02-red-heatmap-peak.png",
       "width": 1080,
-      "height": 1920
+      "height": 1920,
+      "sha256": "e190b16150c012def82c3808c21fc8f88ce5c66e7ed52462aa26788c5a45a6be"
     },
     {
-      "path": "/workspace/demos/shibuya-halloween/03-promo-dispersal.png",
-      "sha256": "73a02de983b4d2475d0d29efb6f32fbced0dd6b591e2f492b9a3bd30019b6315",
+      "path": "/workspace/projects/ssl-halloween/out/media/iteration-1/shibuya-halloween/03-coupon-powerups.png",
       "width": 1080,
-      "height": 1920
+      "height": 1920,
+      "sha256": "5342a12ff52f40f57615443c413bc308e0f9f61627a8989afaa5e129473fd731"
     },
     {
-      "path": "/workspace/demos/shibuya-halloween/04-comparison.png",
-      "sha256": "20f575ebc8daec888d9ff8e3041b5c56fd037bf18962930e16ef7a9db84590ea",
+      "path": "/workspace/projects/ssl-halloween/out/media/iteration-1/shibuya-halloween/04-cyan-payoff.png",
       "width": 1080,
-      "height": 1920
+      "height": 1920,
+      "sha256": "f3c9f4a06d3ba09d823f4b91598d99e71ca4927b016d5d979e5a1ef35a7f48db"
     },
     {
-      "path": "/workspace/demos/shibuya-halloween/05-credits.png",
-      "sha256": "2ffd8c4aa1ebb4918d643d03ba227d6ceaeb44b6d04270191ec8013382cf369c",
+      "path": "/workspace/projects/ssl-halloween/out/media/iteration-1/shibuya-halloween/05-comparison.png",
       "width": 1080,
-      "height": 1920
+      "height": 1920,
+      "sha256": "0dbe43e9f32cf2ee55d7f47c0672909138e2a017f4ddbd89159ad495133dcbe5"
+    },
+    {
+      "path": "/workspace/projects/ssl-halloween/out/media/iteration-1/shibuya-halloween/06-credits.png",
+      "width": 1080,
+      "height": 1920,
+      "sha256": "1dabbb711e1443c8dd2b6fb31e283a893a83bda7641fd36b08b588392e2fa35a"
+    },
+    {
+      "path": "/workspace/projects/ssl-halloween/out/media/iteration-1/shibuya-halloween/07-loop-return.png",
+      "width": 1080,
+      "height": 1920,
+      "sha256": "129256338d873885d8c7a25f97f253c1beaa67d6260aa20d97f087396e414fa7"
     }
   ],
-  "visual_review": "Viewed all five final PNGs and a contact sheet of decoded MP4 frames at 1, 11.708, 18.5, 22 and 26 seconds. Checked text, crowd/heatmap transition, route lines, witch, pumpkins, ghosts, open cauldron and source card.",
+  "visual_review": "Reviewed the seven full-resolution PNG story frames and decoded MP4 contact sheet at 0, 0.5, 5.5, 10, 14, 16, 17 and 17.958 seconds; hook witch is visible, bilingual captions fit, coupon pins visible, density turns from cherry red to cyan, same-time comparison is labeled, short credits and toy-model notice remain.",
   "metrics": {
     "seed": 1031,
     "agents": 960,
@@ -90,7 +116,7 @@
     }
   ],
   "tests": {
-    "pytest": "102 passed in 92.55s; follow-up focused 4 passed in 2.38s",
+    "pytest": "102 passed in 93.16s; final focused Halloween + source mirror checks: 4 passed in 3.61s",
     "node": [
       "web3d/sol/verify.mjs",
       "web3d/astra/check.mjs",
@@ -99,10 +125,19 @@
       "web3d/shibuya/verify-ui.mjs",
       "web3d/shibuya/verify-halloween.mjs"
     ],
-    "all_passed": true
+    "all_passed": true,
+    "export": "433 finite geometry states including loop endpoint; 82px Japanese captions within 952px safe width; DOM ID references valid."
+  },
+  "git": {
+    "metadata": "/workspace/projects/ssl-halloween/out/media/iteration-1/halloween.git",
+    "branch": "halloween",
+    "author": "HAGINO <hagino@local>",
+    "push": "Pending exact git push origin halloween after commit."
   },
   "limitations": [
-    "Chromium/local sockets prohibited by this sandbox; interactive WebGL shader compilation was not browser-tested here. Actual same procedural three.js geometry was CPU-rendered.",
-    "Original Git metadata read-only. Writable recovery metadata at /workspace/demos/shibuya-halloween.git. Push origin halloween repeatedly failed: Could not resolve host github.com."
+    "Sandbox writable roots are repo and /tmp; requested /workspace/demos deliverables cannot be updated here.",
+    "Original worktree Git metadata is mounted read-only; independent local metadata is stored under the ignored output directory.",
+    "Native CPU capture was used; interactive WebGL shader appearance was not browser-tested in this sandbox.",
+    "No X engagement metrics are available; virality is a creative objective, not a measured outcome."
   ]
 }

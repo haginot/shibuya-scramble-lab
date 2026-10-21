@@ -1,4 +1,4 @@
-"""Record the deterministic 28-second Halloween film; local files only.
+"""Record the deterministic 18-second Halloween film; local files only.
 
 Checkpointed frames survive interrupted captures. Reuse is gated by a source
 fingerprint. The browser always steps by film time, never by elapsed wall time.
@@ -20,9 +20,10 @@ import time
 
 from record_shibuya import QuietHandler, browser_with_webgl
 
-WIDTH, HEIGHT, FPS, DURATION = 1080, 1920, 24, 28
-STILLS = {24: '01-wide-night.png', 281: '02-red-heatmap-peak.png',
-          444: '03-promo-dispersal.png', 528: '04-comparison.png', 624: '05-credits.png'}
+WIDTH, HEIGHT, FPS, DURATION = 1080, 1920, 24, 18
+STILLS = {12: '01-macro-hook.png', 132: '02-red-heatmap-peak.png',
+          240: '03-coupon-powerups.png', 336: '04-cyan-payoff.png',
+          384: '05-comparison.png', 408: '06-credits.png', 431: '07-loop-return.png'}
 CREDIT = ('MLIT Project PLATEAU / Shibuya 2023; modified footprints + heights, CC BY 4.0. '
           'https://www.geospatial.jp/ckan/dataset/plateau-13113-shibuya-ku-2023 '
           'https://creativecommons.org/licenses/by/4.0/ '
@@ -91,7 +92,7 @@ def record(site, output, stills, metrics_path, preview=False):
             metrics_path.write_text(json.dumps(metrics, ensure_ascii=False, indent=2) + '\n')
             (stills / 'metrics.json').write_text(json.dumps(metrics, ensure_ascii=False, indent=2) + '\n')
             selected = list(STILLS) if preview else range(FPS * DURATION)
-            credits_jpeg = None
+
             for frame in selected:
                 path = frames / f'frame-{frame:05d}.jpg'
                 if not preview and path.exists() and frame not in STILLS:
@@ -102,18 +103,13 @@ def record(site, output, stills, metrics_path, preview=False):
                     raise RuntimeError('; '.join(errors))
                 if frame in STILLS:
                     # Validate the actual ending text, not just the exported JSON.
-                    if frame == 528:
+                    if frame == 384:
                         assert page.locator('#no-visits').inner_text() == str(metrics['no_promo']['visits'])
                         assert page.locator('#promo-density').inner_text() == f"{metrics['promo']['peak_density_per_m2']:.4f}"
                     page.screenshot(path=str(stills / STILLS[frame]), type='png', animations='disabled')
                     snapshots.append(dict(frame=frame, **state))
                 if not preview:
-                    if seconds >= 24:
-                        if credits_jpeg is None:
-                            credits_jpeg = page.screenshot(type='jpeg', quality=94, animations='disabled')
-                        path.write_bytes(credits_jpeg)
-                    else:
-                        path.write_bytes(page.screenshot(type='jpeg', quality=94, animations='disabled'))
+                    path.write_bytes(page.screenshot(type='jpeg', quality=94, animations='disabled'))
                 if frame % FPS == 0 or preview:
                     print(f'{seconds:5.2f}/{DURATION}s · {state["scenario"]} · density {state["density"]:.3f} · visits {state["visits"]}', flush=True)
             assert not errors, errors
@@ -129,7 +125,7 @@ def record(site, output, stills, metrics_path, preview=False):
                         '-frames:v', str(FPS * DURATION), '-an', '-c:v', 'libx264',
                         '-preset', 'fast', '-crf', '18', '-pix_fmt', 'yuv420p',
                         '-movflags', '+faststart+use_metadata_tags', '-metadata', f'credit={CREDIT}',
-                        '-metadata', 'comment=Toy-model values; seeded paired experiment; film-time replay at 12s. No audio.',
+                        '-metadata', 'comment=Toy-model values; seeded paired experiment; film-time paired replay at 6s; 18s loop. No audio.',
                         str(partial)], check=True)
         probe = probe_video(partial)
         partial.replace(output)
