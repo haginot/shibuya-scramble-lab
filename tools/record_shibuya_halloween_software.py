@@ -111,13 +111,14 @@ class SoftwareScene:
             if obj['kind']=='triangles' and count<len(pos):
                 attrs={k:v[:count] for k,v in attrs.items()};pos=attrs['position'];col=attrs.get('color')
             if i in dynamic and obj['kind']!='instances':pos,col=dynamic[i]
-            normal_attr=attrs.get('normal')
+            normal_attr=attrs.get('normal');uv_attr=attrs.get('uv')
             if obj['kind']=='instances':
                 if not count:continue
                 transforms_i=dynamic[i][:count];rot=transforms_i[:,:3,:3];origin=transforms_i[:,:3,3]
                 pos=(np.einsum('nj,ikj->ink',pos,rot)+origin[:,None,:]).reshape(-1,3)
                 normal_attr=np.einsum('nj,ikj->ink',attrs['normal'],rot).reshape(-1,3)
-                col=np.tile(attrs['color'],(count,1))
+                col=np.tile(attrs['color'],(count,1)) if 'color' in attrs else None
+                if uv_attr is not None:uv_attr=np.tile(uv_attr,(count,1))
 
             if obj['kind']=='segments':continue
             # The huge authored base slab is filled as the ground plane below.
@@ -135,7 +136,7 @@ class SoftwareScene:
                 sun=np.array([-.46,.86,-.24]);fill=np.array([.15,.4,.9]);light=.45+np.maximum(0,normal@sun)*.72+np.maximum(0,normal@fill)*.28+np.maximum(0,normal[:,1])*.22
                 base*=light[:,None]*(1+daylight*.55)
                 base+=daylight*.05
-            uv=attrs.get('uv',np.zeros((len(pos),2),dtype=np.float32));attribute=np.ascontiguousarray(np.column_stack((base,uv,distance)),dtype=np.float32)
+            uv=uv_attr if uv_attr is not None else np.zeros((len(pos),2),dtype=np.float32);attribute=np.ascontiguousarray(np.column_stack((base,uv,distance)),dtype=np.float32)
             tid=mat['map'] if mat['map']>=0 else mat['emissiveMap'];kind=1 if mat['map']>=0 else 2 if mat['emissiveMap']>=0 else 0;texture=textures[tid] if tid>=0 else None;emission=np.array(mat['emissive'])*mat['emissiveIntensity']
             self.lib.triangles(canvas.ctypes.data,depth.ctypes.data,self.width,self.height,screen.ctypes.data,attribute.ctypes.data,len(pos),texture.ctypes.data if texture is not None else None,texture.shape[1] if texture is not None else 0,texture.shape[0] if texture is not None else 0,kind,*emission,mat['opacity'],int(mat['depthWrite']))
         im=Image.fromarray(canvas).resize((1080,1920),Image.Resampling.LANCZOS)
@@ -203,10 +204,12 @@ class Film:
         elif state['green']:
             self.card(im,(60,1510,1020,1630));d=ImageDraw.Draw(im)
             self.text(d,(90,1532),'● GREEN / みんなで、渡ろう。',43,MINT,True)
-        elif 8.95<=t<12:
-            if state.get('pairedMelt'):self.text(d,(60,1480),'比較再生 OFF → ON / PAIRED REPLAY',31,AMBER,True)
-            self.text(d,(60,1550),'同じ時刻、同じ青。行き先が増えた。',35,MINT,True)
-            self.text(d,(60,1615),'Same green. More places to go.',32,PURPLE)
+        elif state.get('pairedMelt'):
+            self.text(d,(60,1550),'同じ青で比較 / MATCHED GREEN · OFF → ON',33,MINT,True)
+        elif state.get('departureBeat'):
+            self.card(im,(60,1510,1020,1670));d=ImageDraw.Draw(im)
+            self.text(d,(90,1525),'光のしっぽ＝街へ向かう人',39,MINT,True)
+            self.text(d,(90,1598),'TRAILS = PEOPLE HEADING TO EVENTS',29,PURPLE,True)
         self.footer(d)
         return im
     def hub_labels(self,im,state):
@@ -227,28 +230,30 @@ class Film:
     def results(self,im,t):
         a=self.metrics['no_events'];b=self.metrics['events_on'];change=round(self.metrics['density_change_pct']);gain=round((self.metrics['attendance_ratio']-1)*100)
         self.card(im,(32,100,1048,1702),fill='#151c35f5');d=ImageDraw.Draw(im)
-        self.text(d,(60,120),f'交差点ピーク {change}%',76,MINT,True)
-        self.text(d,(64,230),f'Crossing peak {change}% · arrivals +{gain}%',36,PURPLE,True)
-        self.text(d,(64,300),f"{a['peak_central_count']} → {b['peak_central_count']}人  |  {a['peak_density_per_m2']:.2f} → {b['peak_density_per_m2']:.2f} people/m²",29,WHITE,True)
-        self.text(d,(64,356),'同じ時刻・同じ青 / Matched green',28,MUTED)
+        self.text(d,(64,118),'トイモデルの値 / TOY-MODEL VALUES',28,AMBER,True)
+        self.text(d,(64,168),f'{change}%',110,MINT,True)
+        self.text(d,(555,168),f'+{gain}%',110,PURPLE,True)
+        self.text(d,(66,326),'交差点ピーク / Peak crowd',31,MINT,True)
+        self.text(d,(557,326),'街への到着 / Event arrivals',31,PURPLE,True)
+        self.text(d,(66,378),f"{a['peak_central_count']} → {b['peak_central_count']}人",35,WHITE,True)
+        self.text(d,(557,378),f"{a['visits']} → {b['visits']}人",35,WHITE,True)
         for j,prefix in enumerate(['no','promo']):
             if prefix not in self.comparison:
-                self.comparison[prefix]=self.scene.render(self.scene.directory/f'compare-{prefix}.bin').crop((80,615,1000,1355)).resize((460,370),Image.Resampling.LANCZOS)
-            x=64+j*490;im.paste(self.comparison[prefix],(x,414));d=ImageDraw.Draw(im)
-            self.card(im,(x+6,422,x+284,479),fill='#101326ed');d=ImageDraw.Draw(im)
-            self.text(d,(x+18,423),'催しなし / OFF' if j==0 else '催しあり / ON',29,RED if j==0 else MINT,True)
-        self.text(d,(66,815),f"街への到着 {a['visits']} → {b['visits']}人 (+{gain}%)",46,WHITE,True)
-        self.text(d,(68,892),'Completed arrivals · OFF → ON',30,PURPLE,True)
+                self.comparison[prefix]=self.scene.render(self.scene.directory/f'compare-{prefix}.bin').crop((80,565,1000,1305)).resize((460,370),Image.Resampling.LANCZOS)
+            x=64+j*490;im.paste(self.comparison[prefix],(x,470));d=ImageDraw.Draw(im)
+            self.card(im,(x+6,478,x+284,535),fill='#101326ed');d=ImageDraw.Draw(im)
+            self.text(d,(x+18,479),'催しなし / OFF' if j==0 else '催しあり / ON',29,RED if j==0 else MINT,True)
+        self.text(d,(66,866),'同じ時刻・同じ青 / Matched green',28,MUTED)
         best=self.metrics['best_event']
         for i,e in enumerate(self.metrics['events']):
-            y=964+i*112;color=AMBER if e['en']==best['district'] else WHITE
+            y=945+i*108;color=AMBER if e['en']==best['district'] else WHITE
             if e['en']==best['district']:
-                d.rounded_rectangle((62,y-2,1018,y+105),radius=16,fill='#4b3a4d',outline=AMBER,width=2)
+                d.rounded_rectangle((62,y-2,1018,y+101),radius=16,fill='#4b3a4d',outline=AMBER,width=2)
             self.text(d,(84,y),e['name'],43,color,True)
             self.text(d,(284,y+12),e['en'],28,PURPLE)
             self.text(d,(640,y-3),f"{a['district_people'][i]} → {b['district_people'][i]}",48,color,True)
-        self.text(d,(84,1550),f"最多到着：代々木 {best['people']}人 (+{self.metrics['largest_lift']['people']})",41,AMBER,True)
-        self.text(d,(86,1621),'MOST ARRIVALS · Yoyogi lantern garden',28,AMBER,True)
+        self.text(d,(84,1538),f"最多到着：代々木 {best['people']}人",43,AMBER,True)
+        self.text(d,(86,1614),'MOST ARRIVALS · Yoyogi lantern garden',28,AMBER,True)
         self.footer(d);return im
     def compare(self):
         raise RuntimeError('Comparison is integrated into the live city view')

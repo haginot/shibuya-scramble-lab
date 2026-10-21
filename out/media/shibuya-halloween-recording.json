@@ -1,42 +1,44 @@
 {
-  "video": "out/media/iteration-7/shibuya-halloween.mp4",
+  "video": "out/media/iteration-8/shibuya-halloween.mp4",
   "renderer": "authored CPU rasterizer of actual three.js scene",
-  "source_sha256": "c013016da54f8ee8699fe4f2168039ae0954dc4f6d0d922bc6a3e43389e0e7ed",
+  "source_sha256": "096c97be8be9806e8a3901f39fce263b1fa572ff0383a2ef99ab3a2f80589a6c",
   "preview": false,
   "width": 1080,
   "height": 1920,
   "fps": 24,
   "duration_s": 20,
-  "wall_seconds": 186.03,
+  "wall_seconds": 166.46,
   "screenshots": [
-    "out/media/iteration-7/shibuya-halloween/01-blueprint.png",
-    "out/media/iteration-7/shibuya-halloween/02-day-extrusion.png",
-    "out/media/iteration-7/shibuya-halloween/03-dusk.png",
-    "out/media/iteration-7/shibuya-halloween/04-witch-hook.png",
-    "out/media/iteration-7/shibuya-halloween/05-curb-queues.png",
-    "out/media/iteration-7/shibuya-halloween/06-green-start.png",
-    "out/media/iteration-7/shibuya-halloween/07-whole-crossing.png",
-    "out/media/iteration-7/shibuya-halloween/08-crossing-release.png",
-    "out/media/iteration-7/shibuya-halloween/09-event-lift.png",
-    "out/media/iteration-7/shibuya-halloween/10-five-events.png",
-    "out/media/iteration-7/shibuya-halloween/11-yamanote-boarding.png",
-    "out/media/iteration-7/shibuya-halloween/12-inokashira-boarding.png",
-    "out/media/iteration-7/shibuya-halloween/13-departure.png",
-    "out/media/iteration-7/shibuya-halloween/14-follow-train.png",
-    "out/media/iteration-7/shibuya-halloween/15-lantern-platform.png",
-    "out/media/iteration-7/shibuya-halloween/16-alighting.png",
-    "out/media/iteration-7/shibuya-halloween/17-lantern-garden.png",
-    "out/media/iteration-7/shibuya-halloween/18-matched-off.png",
-    "out/media/iteration-7/shibuya-halloween/19-colour-melt.png",
-    "out/media/iteration-7/shibuya-halloween/20-calm-crossing.png",
-    "out/media/iteration-7/shibuya-halloween/21-pedestrian-return.png",
-    "out/media/iteration-7/shibuya-halloween/22-results.png",
-    "out/media/iteration-7/shibuya-halloween/23-results-hold.png",
-    "out/media/iteration-7/shibuya-halloween/24-results-end.png",
-    "out/media/iteration-7/shibuya-halloween/25-credits.png",
-    "out/media/iteration-7/shibuya-halloween/26-calm-loop-return.png",
-    "out/media/iteration-7/shibuya-halloween/27-visual-rewind.png",
-    "out/media/iteration-7/shibuya-halloween/28-loop-blueprint.png"
+    "out/media/iteration-8/shibuya-halloween/01-blueprint.png",
+    "out/media/iteration-8/shibuya-halloween/02-day-extrusion.png",
+    "out/media/iteration-8/shibuya-halloween/03-dusk.png",
+    "out/media/iteration-8/shibuya-halloween/04-witch-hook.png",
+    "out/media/iteration-8/shibuya-halloween/05-curb-queues.png",
+    "out/media/iteration-8/shibuya-halloween/06-green-start.png",
+    "out/media/iteration-8/shibuya-halloween/07-whole-crossing.png",
+    "out/media/iteration-8/shibuya-halloween/08-crossing-release.png",
+    "out/media/iteration-8/shibuya-halloween/09-pedestrian-descent.png",
+    "out/media/iteration-8/shibuya-halloween/09-event-lift.png",
+    "out/media/iteration-8/shibuya-halloween/10-five-events.png",
+    "out/media/iteration-8/shibuya-halloween/11-yamanote-boarding.png",
+    "out/media/iteration-8/shibuya-halloween/12-inokashira-boarding.png",
+    "out/media/iteration-8/shibuya-halloween/13-departure.png",
+    "out/media/iteration-8/shibuya-halloween/14-follow-train.png",
+    "out/media/iteration-8/shibuya-halloween/15-lantern-platform.png",
+    "out/media/iteration-8/shibuya-halloween/16-alighting.png",
+    "out/media/iteration-8/shibuya-halloween/17-lantern-garden.png",
+    "out/media/iteration-8/shibuya-halloween/18-matched-off.png",
+    "out/media/iteration-8/shibuya-halloween/19-colour-melt.png",
+    "out/media/iteration-8/shibuya-halloween/20-departure-trails.png",
+    "out/media/iteration-8/shibuya-halloween/21-people-outward.png",
+    "out/media/iteration-8/shibuya-halloween/22-calm-crossing.png",
+    "out/media/iteration-8/shibuya-halloween/22-results.png",
+    "out/media/iteration-8/shibuya-halloween/23-results-hold.png",
+    "out/media/iteration-8/shibuya-halloween/24-results-end.png",
+    "out/media/iteration-8/shibuya-halloween/25-credits.png",
+    "out/media/iteration-8/shibuya-halloween/26-calm-loop-return.png",
+    "out/media/iteration-8/shibuya-halloween/27-visual-rewind.png",
+    "out/media/iteration-8/shibuya-halloween/28-loop-blueprint.png"
   ],
   "snapshots": [
     {
@@ -44,12 +46,12 @@
       "video_seconds": 0.0
     },
     {
-      "frame": 8,
-      "video_seconds": 0.3333333333333333
+      "frame": 6,
+      "video_seconds": 0.25
     },
     {
-      "frame": 18,
-      "video_seconds": 0.75
+      "frame": 15,
+      "video_seconds": 0.625
     },
     {
       "frame": 29,
@@ -70,6 +72,10 @@
     {
       "frame": 68,
       "video_seconds": 2.8333333333333335
+    },
+    {
+      "frame": 83,
+      "video_seconds": 3.4583333333333335
     },
     {
       "frame": 103,
@@ -112,16 +118,20 @@
       "video_seconds": 9.375
     },
     {
-      "frame": 244,
-      "video_seconds": 10.166666666666666
+      "frame": 237,
+      "video_seconds": 9.875
     },
     {
-      "frame": 269,
-      "video_seconds": 11.208333333333334
+      "frame": 253,
+      "video_seconds": 10.541666666666666
     },
     {
-      "frame": 293,
-      "video_seconds": 12.208333333333334
+      "frame": 280,
+      "video_seconds": 11.666666666666666
+    },
+    {
+      "frame": 303,
+      "video_seconds": 12.625
     },
     {
       "frame": 322,
@@ -136,8 +146,8 @@
       "video_seconds": 16.041666666666668
     },
     {
-      "frame": 405,
-      "video_seconds": 16.875
+      "frame": 409,
+      "video_seconds": 17.041666666666668
     },
     {
       "frame": 433,

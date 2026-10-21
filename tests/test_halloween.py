@@ -3,6 +3,7 @@ import ctypes as C
 from pathlib import Path
 import shutil
 import subprocess
+import sys
 
 import pytest
 
@@ -44,3 +45,34 @@ def test_cpu_capture_depth_and_transparency(tmp_path):
 
 def test_halloween_recorder_shell_syntax():
     subprocess.run(['bash','-n',str(ROOT/'tools/record_shibuya_halloween.sh')],check=True)
+
+
+def test_cpu_capture_uniform_instances_with_uvs(tmp_path):
+    """Uniform-colour passenger rings may carry UVs and have multiple instances."""
+    if not shutil.which('cc'):
+        pytest.skip('optional CPU recorder requires a C compiler')
+    # Use the recorder's system interpreter, which supplies NumPy and Pillow.
+    interpreter = getattr(sys, '_base_executable', sys.executable)
+    if subprocess.run([interpreter, '-c', 'import numpy, PIL'], capture_output=True).returncode:
+        pytest.skip('optional CPU recorder requires NumPy and Pillow')
+    subprocess.run([interpreter, '-c', r'''
+import json, sys
+from pathlib import Path
+import numpy as np
+sys.path.insert(0, str(Path.cwd()/'tools'))
+from record_shibuya_halloween_software import SoftwareScene
+directory=Path(sys.argv[1])
+positions=[-.5,-.5,0,.5,-.5,0,0,.5,0]
+np.array(positions+[0,0,1]*3+[0,0,1,0,.5,1],dtype=np.float32).tofile(directory/'geometry.bin')
+material=dict(color=[1,.65,0],emissive=[0,0,0],emissiveIntensity=0,opacity=1,basic=True,transparent=False,depthWrite=True,vertexColors=False,map=-1,emissiveMap=-1)
+info=dict(object_stride=26,geometries=[dict(attrs=dict(position=dict(offset=0,count=9),normal=dict(offset=36,count=9),uv=dict(offset=72,count=6)))],objects=[dict(geometry=0,kind='instances',material=material)],textures=[],dynamic=[dict(object=0,instance_count=32)])
+(directory/'scene.json').write_text(json.dumps(info))
+projection=np.diag([1.5,2,1,1]);identity=np.eye(4)
+values=[*projection.T.flat,*identity.T.flat,*identity.T.flat,1,2,1,.65,0,1,0,0,0,0]
+for x in [-1,1]:
+    transform=np.eye(4);transform[:3,3]=[x,0,-8];values.extend(transform.T.flat)
+np.array(values,dtype=np.float32).tofile(directory/'frame.bin')
+pixels=np.asarray(SoftwareScene(directory).render(directory/'frame.bin'))
+amber=(pixels[:,:,0]>200)&(pixels[:,:,1]>100)&(pixels[:,:,2]<30)
+assert amber[:,:540].sum()>1000 and amber[:,540:].sum()>1000, 'both uniform-material UV instances must render'
+''', str(tmp_path)], cwd=ROOT, check=True, timeout=60)

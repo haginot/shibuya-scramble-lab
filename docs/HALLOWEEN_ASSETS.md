@@ -196,3 +196,26 @@ uses a later red phase with actual curb queues before the blueprint rewind.
 The 20s endpoint restores the opening camera, people, exposure and captions.
 The original PLATEAU source files, 3km coverage and eastern Omotesando gap
 remain unchanged; selected source boxes are omitted only for shot visibility.
+
+Iteration 8 (2026-10-22): original procedural MIT assets only. A sparse flat
+blueprint uses clipped source footprints plus three schematic crossing axes;
+its strokes fade before the solid city rises. The foreground ad block is
+omitted to expose every crossing arm. Existing fictional shop screens remain.
+The six-arm green launch holds overhead, then descends through the costumed
+crowd before the aerial event reveal. Both named rail routes have authored
+platform signs and elevated supports. The Yamanote toy train has an open
+middle carriage so the featured riders can be followed during travel.
+
+Golden rings identify exactly three existing model people: group 288, IDs
+864/865/866 (witch hat, pumpkin head, cape). All board at 900s and arrive in
+Yoyogi at 1185s. Their platform/carriage/event placements and scales are
+schematic; each identity is shown in only one stage at a time. Rings and
+velocity-derived four-point local departure tails are visual annotations,
+not extra people. No model coefficients, journeys or outcomes were changed.
+A short matched-green OFF/ON replay at 1092s precedes accelerated actual event
+trial movement with the departing people highlighted. Heat opacity is reduced
+equally in both trials. The quick comparison shows peak −17% and arrivals +56%,
+explicitly labelled toy-model values, five district pairs and Yoyogi's attendance
+lead; the credit card now holds for 1.15s. The 20s loop closes on the exact
+opening plan/camera/crowd. No external art/audio or new data were added; original
+PLATEAU source files and the eastern Omotesando coverage gap are unchanged.

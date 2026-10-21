@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {SETTINGS,EVENTS,navigation,HalloweenModel,experiment,signalAt} from './halloween-model.mjs';
-import {storyAt,cameraAt,witchAt,DURATION,FPS} from './halloween-story.mjs';
+import {storyAt,cameraAt,witchAt,DURATION,FPS,FEATURED_GROUP,RELIEF_TIME} from './halloween-story.mjs';
 const plateau=JSON.parse(await readFile(new URL('../data/shibuya_plateau.json',import.meta.url),'utf8'));
 const original=JSON.stringify(plateau),nav=navigation(plateau),a=new HalloweenModel(nav),b=new HalloweenModel(nav,{events:true});
 a.advanceTo(299);b.advanceTo(299);assert.deepEqual(a.people,b.people,'identical demand and individuals before intervention');
@@ -9,6 +9,8 @@ let photo=false,rail=false,curve=false,queued=[];
 for(let t=300;t<=SETTINGS.horizon_s;t++){
  a.step();b.step();
  if(t===1079)queued=a.people.filter(p=>p.stage==='plaza').map(p=>({id:p.id,x:p.x,z:p.z}));
+ if(t===900){const trio=b.people.filter(p=>p.group===FEATURED_GROUP);assert.equal(trio.length,3);assert(trio.every(p=>p.mode==='Yamanote'&&p.boardedAt===900&&p.stage==='rail'),'the golden trio really boards the same train');}
+ if(t===1200)assert(b.people.filter(p=>p.group===FEATURED_GROUP).every(p=>p.visited&&p.district===2&&p.arrivedAt>=1185),'the same trio completes its Yoyogi journey');
  if(t===1085){const movers=queued.filter(p=>Math.hypot(a.people[p.id].x-p.x,a.people[p.id].z-p.z)>2);assert(movers.length>queued.length*.75,'most curbside people physically start together on green');assert(queued.filter(p=>Math.hypot(p.x,p.z)<12).length<queued.length*.1,'red phase leaves the scramble centre open');}
  for(const model of[a,b]){
   const s=model.snapshot();assert.equal(s.active+s.waiting+s.gone,SETTINGS.agents);assert.equal(s.visits,model.people.filter(p=>p.visited).length);assert.equal(s.district_people.reduce((x,y)=>x+y,0),s.visits);
@@ -35,25 +37,26 @@ assert.equal(first.best_event.people,Math.max(...first.events_on.district_people
 const changed=new HalloweenModel(nav,{seed:1032,events:true});assert.notDeepEqual(changed.people,b.people,'seed changes people');
 assert.equal(JSON.stringify(plateau),original);assert.equal(EVENTS.length,5);
 assert.equal(signalAt(storyAt(1.5).simTime),'green','release must coincide with real model green');
-assert.equal(storyAt(9.3).simTime,1084,'return begins in matched green rather than empty tail');
+assert.equal(storyAt(9.3).simTime,RELIEF_TIME,'return begins in matched green rather than empty tail');
 assert(storyAt(11).simTime>storyAt(9.3).simTime,'people keep walking during the return');
-assert.equal(signalAt(storyAt(15.5).simTime),'green');
-assert(storyAt(2.9).green&&cameraAt(2.9).position[1]>100,'hold whole scramble while every curb group steps off');
+assert.equal(signalAt(RELIEF_TIME),'green');
+assert(storyAt(2.8).green&&cameraAt(2.8).position[1]>100,'hold whole scramble while every curb group steps off');
 assert(storyAt(8.7).regional&&cameraAt(8.7).target[2]<-2500,'lantern destination stays framed through alighting');
 assert(!storyAt(8.95).regional&&storyAt(8.95).pairedMelt,'return lands directly on the matched comparison');
-assert.equal(storyAt(9).simTime,1084,'no empty late-trial tail before the matched relief');
+assert.equal(storyAt(9).simTime,RELIEF_TIME,'no empty late-trial tail before the matched relief');
 assert.equal(signalAt(storyAt(18).simTime),'red','calm ending uses real curb queues before the next green');
-assert(storyAt(4.66).activeHub===4,'all five towns including Ebisu activate in the overview');
+assert(storyAt(4.8).activeHub===4,'all five towns including Ebisu activate in the overview');
 for(const t of [6.05,6.3,8.55]){const a=cameraAt(t-1e-5),b=cameraAt(t+1e-5);assert(Math.hypot(...a.position.map((v,i)=>v-b.position[i]))<.2,'follow-train camera joins continuously');}
 assert(cameraAt(2.05).position[1]>100,'whole crossing visible during release before descent');
 assert(storyAt(18.8).loop&&!storyAt(18.8).reset,'visual rewind replaces the reset instruction');
 assert.equal(DURATION,20);assert.equal(FPS,24);assert(storyAt(6).regional);assert(storyAt(13.5).comparison);assert(storyAt(16.7).credits);
 assert.equal(storyAt(DURATION).simTime,storyAt(0).simTime);assert.deepEqual(cameraAt(DURATION),cameraAt(0));
 for(const key of['position'])for(let i=0;i<3;i++)assert(Math.abs(witchAt(DURATION)[key][i]-witchAt(0)[key][i])<1e-9);
-assert.equal(storyAt(0).extrusion,0,'opening is flat');assert.equal(storyAt(1.2).extrusion,1,'city rises during hook');assert(storyAt(.33).daylight>.8&&storyAt(.75).dusk>.8,'day and dusk are visible');assert.equal(storyAt(1.3).daylight,0,'night before first green');assert.equal(storyAt(0).speed,6);assert.equal(storyAt(1.2).speed,100);assert(cameraAt(12.3).position[1]<3,'pedestrian-eye passage');assert(storyAt(0).captions[0].replace('\n','').includes('荒れる渋谷、周りの街で散らせるか？'));
+assert.equal(storyAt(0).extrusion,0,'opening is flat');assert.equal(storyAt(1.2).extrusion,1,'city rises during hook');assert(storyAt(.33).daylight>.8&&storyAt(.75).dusk>.8,'day and dusk are visible');assert.equal(storyAt(1.3).daylight,0,'night before first green');assert.equal(storyAt(0).speed,6);assert.equal(storyAt(1.2).speed,100);assert(cameraAt(3.55).position[1]<3,'pedestrian-eye passage');assert(storyAt(0).captions[0].replace('\n','').includes('荒れる渋谷、周りの街で散らせるか？'));
 assert(witchAt(1.1).scale>2.5,'foreground witch pass within the first 1.5 seconds');
-assert(storyAt(11.13).renderFraction>0,'subsecond velocity interpolation keeps the return moving between model samples');
+assert(storyAt(10.13).renderFraction>0,'subsecond velocity interpolation keeps the return moving between model samples');
 assert(storyAt(13.5).comparison&&storyAt(16).comparison&&!storyAt(15).districtResults,'one consolidated three-second proof includes all five districts');assert(storyAt(5).overview&&!storyAt(6).overview&&storyAt(6).journey,'brief overview gives way to station journey');
+assert(storyAt(10.4).departureBeat&&!storyAt(9.4).departureBeat,'actual outward walking continues after the short paired replay');assert(storyAt(.25).blueprint===0,'plan lines leave before the solid reveal');
 for(let i=0;i<=DURATION*FPS;i++){const s=storyAt(i/FPS);assert(Number.isInteger(s.simTime)&&s.simTime<=SETTINGS.horizon_s&&s.simTime>=300);for(const v of[...cameraAt(i/FPS).position,...cameraAt(i/FPS).target])assert(Number.isFinite(v));}
 const region=JSON.parse(await readFile(new URL('../data/shibuya_halloween_region.json',import.meta.url),'utf8'));assert(region.buildings.length>10000&&region.radius_m===3000&&region.files.every(f=>f.sha256.length===64));assert(region.coverage_gaps.length>0);
 const stored=JSON.parse(await readFile(new URL('../../out/media/shibuya-halloween-metrics.json',import.meta.url),'utf8'));assert.deepEqual(stored,first,'all published metrics generated by the model');assert.throws(()=>storyAt(NaN));assert.throws(()=>a.advanceTo(899));

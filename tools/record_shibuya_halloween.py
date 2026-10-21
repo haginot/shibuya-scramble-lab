@@ -21,7 +21,7 @@ import time
 from record_shibuya import QuietHandler, browser_with_webgl
 
 WIDTH, HEIGHT, FPS, DURATION = 1080, 1920, 24, 20
-STILLS = {0:'01-blueprint.png',8:'02-day-extrusion.png',18:'03-dusk.png',29:'04-witch-hook.png',35:'05-curb-queues.png',38:'06-green-start.png',51:'07-whole-crossing.png',68:'08-crossing-release.png',103:'09-event-lift.png',119:'10-five-events.png',132:'11-yamanote-boarding.png',145:'12-inokashira-boarding.png',154:'13-departure.png',167:'14-follow-train.png',179:'15-lantern-platform.png',193:'16-alighting.png',209:'17-lantern-garden.png',225:'18-matched-off.png',244:'19-colour-melt.png',269:'20-calm-crossing.png',293:'21-pedestrian-return.png',322:'22-results.png',354:'23-results-hold.png',385:'24-results-end.png',405:'25-credits.png',433:'26-calm-loop-return.png',456:'27-visual-rewind.png',479:'28-loop-blueprint.png'}
+STILLS = {0:'01-blueprint.png',6:'02-day-extrusion.png',15:'03-dusk.png',29:'04-witch-hook.png',35:'05-curb-queues.png',38:'06-green-start.png',51:'07-whole-crossing.png',68:'08-crossing-release.png',83:'09-pedestrian-descent.png',103:'09-event-lift.png',119:'10-five-events.png',132:'11-yamanote-boarding.png',145:'12-inokashira-boarding.png',154:'13-departure.png',167:'14-follow-train.png',179:'15-lantern-platform.png',193:'16-alighting.png',209:'17-lantern-garden.png',225:'18-matched-off.png',237:'19-colour-melt.png',253:'20-departure-trails.png',280:'21-people-outward.png',303:'22-calm-crossing.png',322:'22-results.png',354:'23-results-hold.png',385:'24-results-end.png',409:'25-credits.png',433:'26-calm-loop-return.png',456:'27-visual-rewind.png',479:'28-loop-blueprint.png'}
 CREDIT = ('MLIT Project PLATEAU / Shibuya 2023; modified footprints + heights, CC BY 4.0. '
           'https://www.geospatial.jp/ckan/dataset/plateau-13113-shibuya-ku-2023 '
           'https://creativecommons.org/licenses/by/4.0/ '
@@ -123,7 +123,7 @@ def record(site, output, stills, metrics_path, preview=False):
                         '-frames:v', str(FPS * DURATION), '-an', '-c:v', 'libx264',
                         '-preset', 'fast', '-crf', '18', '-pix_fmt', 'yuv420p',
                         '-movflags', '+faststart+use_metadata_tags', '-metadata', f'credit={CREDIT}',
-                        '-metadata', 'comment=Toy-model values; seeded paired experiment; fictional-event paired replay; matched green comparison at sim 1084s; 20s loop. No audio.',
+                        '-metadata', 'comment=Toy-model values; seeded paired experiment; fictional-event paired replay; matched green comparison at sim 1092s; 20s loop. No audio.',
                         str(partial)], check=True)
         probe = probe_video(partial)
         partial.replace(output)
@@ -140,7 +140,7 @@ if __name__ == '__main__':
     ap.add_argument('--output', type=Path, default=Path('/workspace/demos/shibuya-halloween.mp4'))
     ap.add_argument('--stills', type=Path, default=Path('/workspace/demos/shibuya-halloween'))
     ap.add_argument('--metrics', type=Path, default=Path('out/media/shibuya-halloween-metrics.json'))
-    ap.add_argument('--preview', action='store_true', help='Capture the twenty PNG story frames without encoding')
+    ap.add_argument('--preview', action='store_true', help='Capture the PNG story frames without encoding')
     ap.add_argument('--renderer', choices=('auto', 'browser', 'software'), default='auto')
     args = ap.parse_args()
     def software():

@@ -1,0 +1,108 @@
+{
+  "iteration": 8,
+  "video": "/workspace/projects/ssl-halloween/out/media/iteration-8/shibuya-halloween.mp4",
+  "sha256": "b6d853cfaa8e2da7db64bf11dacb7d66345a44d5a6506807861929d5fba7fe50",
+  "bytes": 24340289,
+  "probe": {
+    "programs": [],
+    "stream_groups": [],
+    "streams": [
+      {
+        "codec_name": "h264",
+        "width": 1080,
+        "height": 1920,
+        "r_frame_rate": "24/1"
+      }
+    ],
+    "format": {
+      "duration": "20.000000",
+      "tags": {
+        "major_brand": "isom",
+        "minor_version": "512",
+        "compatible_brands": "isomiso2avc1mp41",
+        "credit": "MLIT Project PLATEAU / Shibuya 2023; modified footprints + heights, CC BY 4.0. https://www.geospatial.jp/ckan/dataset/plateau-13113-shibuya-ku-2023 https://creativecommons.org/licenses/by/4.0/ © OpenStreetMap contributors, ODbL 1.0. https://www.openstreetmap.org/copyright https://opendatacommons.org/licenses/odbl/1-0/ three.js r160 MIT. HAGINO 2026 procedural art and code MIT. Noto Sans CJK JP SIL OFL 1.1. See accompanying NOTICE and ASSETS.md. Toy model, not a prediction. Seed 1031; 960 agents; 1800 simulated seconds per scenario. Walking and schematic Yamanote/Inokashira routing; underlying SUMO trajectories are unused.",
+        "comment": "Toy-model values; same procedural three.js geometry, local CPU raster capture; fictional neighborhood events, matched arrivals and rail journeys; 20s loop.",
+        "encoder": "Lavf61.7.103"
+      }
+    }
+  },
+  "source_sha256": "096c97be8be9806e8a3901f39fce263b1fa572ff0383a2ef99ab3a2f80589a6c",
+  "renderer": "authored CPU rasterizer of actual three.js scene",
+  "stills": {
+    "01-blueprint.png": "4358bec81d7943e57fdc532fea7642de9e9015aa2a78a8bf9c70278abe6dbc9c",
+    "02-day-extrusion.png": "13a5503419856812a61f155d3775b1a1ee1d6ed5164dc4b357bc4f8e8b43479b",
+    "03-dusk.png": "027de8e2de794ef3e4dbe17a3323bc8ee09365b733bc18b69f198a4fa1481272",
+    "04-witch-hook.png": "de7a44bb4e51487140aa8eed3de63c617490f91111c7946826ced4631de10108",
+    "05-curb-queues.png": "11d10bdc82c5483521162335fc8446ef82a45e79fe7ac676cf9f5fc1ca41434c",
+    "06-green-start.png": "e35bebd3494adf20e2189a5a0bbf45ff65d0b61809b3e0dc3b089151990bedbc",
+    "07-whole-crossing.png": "aa6d6297e2cf837bd83c090865504910f584c1c07c4ed2f3dad3fc98a925a5fd",
+    "08-crossing-release.png": "e361e619051261f449f5822f8e4106e1576637d51ad54dc54649291e2ce6cff9",
+    "09-event-lift.png": "72bf908e60e38f501c75a34b0e8fcd37457b5dbaf0e6987048d08cd17a245ac3",
+    "09-pedestrian-descent.png": "75b74bc0d5272f8ac31330819f317e1ecd3ab04eae960a280dab05cbd6f963f1",
+    "10-five-events.png": "de3196713fff51f2f7ab399a2e00f8243bb8186ca46d787afaf906b6a5e6b798",
+    "11-yamanote-boarding.png": "ab5ab370105aa1fd7658d82a084ca1fa8dda3bb1d7bca6a2597cda62bb87fc10",
+    "12-inokashira-boarding.png": "dbb3653a7a1152c8b60a77750b7de1886194fff0d94c4cd99187f00f6673af18",
+    "13-departure.png": "bbbb4ebf146844c3f12093530a9905560b4d3c9c8dd5c809c1db68cbb02a7e34",
+    "14-follow-train.png": "1a43fb033246d1ffc6ab4c99bc2a6085b9d14899c10d5b0463669835334388cf",
+    "15-lantern-platform.png": "7824d88e934859b914d9ee5c7c40d436ef33a76cd4ba86eddf8294f467aa5a57",
+    "16-alighting.png": "be2f06e077914a13f432f12357146ba6b695f1084aaa74cb205c5cf2b5c75471",
+    "17-lantern-garden.png": "6d1b66bcd9f4894ee25093fddf0bd0d46a9912cab98418b30900eb8888b2d0a5",
+    "18-matched-off.png": "0dc0e1667016cdf8c76669ba5ec03c052c9f87d564faf859628a7639165ccb88",
+    "19-colour-melt.png": "448e0a3b2d48a3b0bd66634abc9d745b0940b8061141773c6a371e5485c2e068",
+    "20-departure-trails.png": "6fe0e847b511c64d97e5fd5882fd5f2fdee9eceae658e5ebb9b32ade8a06cc71",
+    "21-people-outward.png": "9e91e9f7e8346b4bd8316db13f437c671afe59bcc39ed042d9649b3a0f181054",
+    "22-calm-crossing.png": "593b3794dc9c75cfbfb64e63d6460b3062a882201661d817adceefc7ba7eebbc",
+    "22-results.png": "094bbde37dec2ce5b7b187df85c84357b03b959b01f0302840aafcf78fb8293e",
+    "23-results-hold.png": "cda215f08064391d47b4a850a90ced0008d2c6222227001ba9c56d771f64f2de",
+    "24-results-end.png": "9864e729196fdb082ff6a3b226d83bfa0f73035f37d4546ba3d772dc6d0dc1cc",
+    "25-credits.png": "fddff4d7c3c12eba954e7d4a409004808c262e7fd550e82c553dda0822ed40dc",
+    "26-calm-loop-return.png": "307a1f7417bffd5f6340e35d06b70c490c785e63273bd5c25dcf350cdf10e8cc",
+    "27-visual-rewind.png": "d99dab38e958a1e3b25ff8c48cca968070c8b2309f32a4696e548989986e5544",
+    "28-loop-blueprint.png": "4358bec81d7943e57fdc532fea7642de9e9015aa2a78a8bf9c70278abe6dbc9c"
+  },
+  "finite_exported_states": 481,
+  "objects": 699,
+  "geometry_bytes": 11442768,
+  "regional_source_buildings": 47816,
+  "regional_lod_boxes": 2236,
+  "full_native_endpoint_pixels_equal": true,
+  "source_first_last_jpeg_equal": true,
+  "decoded_last_first_mean_abs_rgb_difference": 0.8053054269547325,
+  "largest_JA_headline_width_px": 851.40625,
+  "green_release": {
+    "queued": 584,
+    "waiting_in_centre": 1,
+    "moved_over_2m_after_green": 574
+  },
+  "featured_group": {
+    "group": 288,
+    "ids": [
+      864,
+      865,
+      866
+    ],
+    "mode": "Yamanote",
+    "boardedAt": 900,
+    "arrivedAt": 1185,
+    "destination": "Yoyogi"
+  },
+  "coverage_gap": "Eastern Omotesando fringe outside municipal PLATEAU extract; regional routes/station access/attraction dimensions schematic.",
+  "metrics": {
+    "no_events_peak": 608,
+    "events_peak": 507,
+    "density_change_pct": -16.6,
+    "arrivals_off": 152,
+    "arrivals_on": 237,
+    "best_event": {
+      "criterion": "most completed arrivals",
+      "district": "Yoyogi",
+      "event": "Ghost lantern garden",
+      "people": 72
+    }
+  },
+  "tests": {
+    "pytest": "103 passed in 120.20s (0:02:00)",
+    "node": "all six Node verifiers passed; VM-dependent checks use --experimental-vm-modules"
+  },
+  "review_samples": "30 full-resolution PNGs and 40 decoded half-second H.264 samples, plus first/last decoded frames"
+}

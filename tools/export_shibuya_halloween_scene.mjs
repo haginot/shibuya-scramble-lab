@@ -3,7 +3,7 @@ import {mkdir,writeFile} from 'node:fs/promises';
 import {readFileSync,writeFileSync} from 'node:fs';
 import {makeNightScene} from '../web3d/shibuya/halloween-scene.mjs';
 import {EVENTS,HalloweenModel,navigation,experiment} from '../web3d/shibuya/halloween-model.mjs';
-import {storyAt,cameraAt,DURATION,FPS,STILL_FRAMES,ACTIVATIONS} from '../web3d/shibuya/halloween-story.mjs';
+import {storyAt,cameraAt,DURATION,FPS,STILL_FRAMES,ACTIVATIONS,FEATURED_GROUP,RELIEF_TIME} from '../web3d/shibuya/halloween-story.mjs';
 const canvases=[];
 class Canvas{
  constructor(){this.width=0;this.height=0;this.ops=[];canvases.push(this);this.context={font:'20px sans-serif',fillText:(text,x,y)=>this.ops.push({kind:'text',text,args:[x,y],font:this.context.font,style:this.context.fillStyle}),fillStyle:'#fff',beginPath:()=>{},arc:(...args)=>this.arc=args,fill:()=>this.ops.push({kind:'arc',args:this.arc,style:this.context.fillStyle}),fillRect:(...args)=>this.ops.push({kind:'rect',args,style:JSON.parse(JSON.stringify(this.context.fillStyle))}),clearRect:()=>this.ops=[],createLinearGradient:(...args)=>gradient('linear',args),createRadialGradient:(...args)=>gradient('radial',args)};}
@@ -42,7 +42,7 @@ for(const i of selected){
  model.advanceTo(story.simTime);
  writeFileSync(`${out}/frame-${String(i).padStart(5,'0')}.bin`,frame(model,seconds,story.promoted));
  const project=(x,y,z)=>{const p=new THREE.Vector3(x,y,z).project(camera);return[(p.x+1)*540,(1-p.y)*960,p.z];};
- writeFileSync(`${out}/state-${String(i).padStart(5,'0')}.json`,JSON.stringify({...story,seconds,activations:ACTIVATIONS,state:model.snapshot(),hubs:EVENTS.map(s=>({...s,screen:project(s.position[0],80,s.position[1])})),heat_people:model.people.filter(p=>!['waiting','gone','event','rail','regional'].includes(p.stage)).map(p=>[p.x,1,p.z]),cauldron:project(26,12,14),shopVisits:model.shopVisits.reduce((a,b)=>a+b,0),transport:['Yamanote','Inokashira'].map(line=>({line,boardings:model.boardings[line],riders:model.people.filter(p=>p.stage==='rail'&&p.mode===line).length,completed:model.modes[line]})),departures:model.people.filter(p=>p.goal===1&&p.stage==='walking').map(p=>({id:p.id,district:p.district,screen:project(p.x,2,p.z)}))}));
+ writeFileSync(`${out}/state-${String(i).padStart(5,'0')}.json`,JSON.stringify({...story,seconds,activations:ACTIVATIONS,state:model.snapshot(),hubs:EVENTS.map(s=>({...s,screen:project(s.position[0],80,s.position[1])})),heat_people:model.people.filter(p=>!['waiting','gone','event','rail','regional'].includes(p.stage)).map(p=>[p.x,1,p.z]),cauldron:project(26,12,14),shopVisits:model.shopVisits.reduce((a,b)=>a+b,0),featured:model.people.filter(p=>p.group===FEATURED_GROUP).map(p=>({id:p.id,group:p.group,stage:p.stage,mode:p.mode,boardedAt:p.boardedAt,arrivedAt:p.arrivedAt})),transport:['Yamanote','Inokashira'].map(line=>({line,boardings:model.boardings[line],riders:model.people.filter(p=>p.stage==='rail'&&p.mode===line).length,completed:model.modes[line]})),departures:model.people.filter(p=>p.goal===1&&p.stage==='walking').map(p=>({id:p.id,district:p.district,screen:project(p.x,2,p.z)}))}));
  if(story.pairedMelt){
   if(no.time>story.simTime)no=new HalloweenModel(nav);no.advanceTo(story.simTime);
   writeFileSync(`${out}/frame-off-${String(i).padStart(5,'0')}.bin`,frame(no,seconds,false));
@@ -50,5 +50,5 @@ for(const i of selected){
  }
 
 }
-for(const[prefix,promoted]of[['no',false],['promo',true]]){const model=new HalloweenModel(nav,{promotion:promoted});model.advanceTo(1084);await writeFile(`${out}/compare-${prefix}.bin`,frame(model,12.5,promoted,true));await writeFile(`${out}/compare-${prefix}.json`,JSON.stringify({simTime:1084,signal:model.snapshot().signal,state:model.snapshot(),heat_people:model.people.filter(p=>!['waiting','gone','event','rail','regional'].includes(p.stage)).map(p=>[p.x,1,p.z])}));}
+for(const[prefix,promoted]of[['no',false],['promo',true]]){const model=new HalloweenModel(nav,{promotion:promoted});model.advanceTo(RELIEF_TIME);await writeFile(`${out}/compare-${prefix}.bin`,frame(model,13.1,promoted,true));await writeFile(`${out}/compare-${prefix}.json`,JSON.stringify({simTime:RELIEF_TIME,signal:model.snapshot().signal,state:model.snapshot(),heat_people:model.people.filter(p=>!['waiting','gone','event','rail','regional'].includes(p.stage)).map(p=>[p.x,1,p.z])}));}
 console.log(`Exported ${selected.length} scene frames, ${objects.length} objects, ${offset} geometry bytes.`);

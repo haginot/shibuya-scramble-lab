@@ -185,3 +185,21 @@ Paired results remain 608→507 peak people and 152→237 completed arrivals.
 The ending waits for the next green with actual curb queues before flattening
 into the opening blueprint. PLATEAU source geometry and the eastern Omotesando
 coverage gap are unchanged. See delivered ASSETS.md, metrics.json and RESULTS.txt.
+
+Halloween film iteration 8 (2026-10-22): simplified source-footprint blueprint,
+open foreground crossing framing, an earlier pedestrian-level camera passage,
+open toy carriage, original rail-route platform signs, golden passenger rings,
+velocity-derived departure trails and simplified result graphics are authored
+procedural MIT work, HAGINO 2026. No external art, audio or geographic assets.
+The highlighted group comprises actual model identities 864, 865 and 866,
+boarding Yamanote together at model 900s and completing their Yoyogi journeys
+at 1185s. The three rings identify people and are not extra passengers. Their
+costume sizes, open carriage, platform positions and in-car placement are
+schematic presentation, excluded from all measurements. Departure tails use
+actual walking people with event destinations; tail points are not extra people.
+The brief matched OFF/ON replay and thumbnails now use model 1092s, identical
+camera and green signal. Heat opacity is reduced equally in both scenarios to
+let physical movement remain visible. Full-run results are unchanged: peak
+608→507 people (−16.6%), completed arrivals 152→237 (+55.9%). These are toy-model
+values, not observed effects. The 47,816-source-building 3km extract and the
+eastern Omotesando coverage gap remain unchanged. See ASSETS.md and metrics.json.
