@@ -1,0 +1,42 @@
+ITERATION 5 — FICTIONAL NEIGHBORHOOD EVENTS
+Toy-model values only. Fictional events and assumed behaviour; not a forecast.
+
+960 seeded identities; seed 1031; 1800 simulated seconds in each paired run.
+Peak count in a fixed 24m-radius disk: 602 -> 502 (-16.6%).
+Peak disk-average density: 0.3327 -> 0.2774 people/m².
+Completed district arrivals: 156 -> 244 (+56.4%; 1.564x).
+
+District / fictional event | no events -> events | gain | ratio
+神泉 Shinsen / Moonmask costume contest | 30 -> 47 | +17 | 1.567x
+原宿 Harajuku / Stardust costume parade | 23 -> 43 | +20 | 1.870x
+代々木 Yoyogi / Ghost lantern garden | 56 -> 79 | +23 | 1.411x
+表参道 Omotesando / Spelllight promenade | 25 -> 40 | +15 | 1.600x
+恵比寿 Ebisu / Pumpkin food-stall village | 22 -> 35 | +13 | 1.591x
+
+Winner by MOST COMPLETED ARRIVALS: Yoyogi, 79; also largest additional arrivals (+23).
+Harajuku has the largest percentage gain; the film winner is attendance, not percentage.
+
+Completed modes (no events -> events):
+walk: 28 -> 62
+Yamanote: 100 -> 147
+Inokashira: 28 -> 35
+
+Definitions and calibration:
+Individual centres within 24m of crossing / (pi * 24² m²). Maximum of whole-second samples over full paired 1800s runs.
+Unique actual district arrivals by 1800s, including completed walking and rail journeys; excludes people still travelling.
+Common arrivals, groups, speeds and tastes. Decisions from 300s: 30% baseline versus 50% event participation (40% Ebisu), subject to per-event capacity. No shop coupon intervention.
+0.25s social-force steps with mutual avoidance, per-person speed/acceleration, group cohesion, photo pauses, late jogging, smooth heading. Central paths avoid PLATEAU footprints. Regional corridors are schematic, distances in metres.
+Assumed 180s Yamanote / 240s Inokashira headways; wait at station, actual boarding then 95–285s travel. Rail corridors/stations schematic; no timetable or operational prediction.
+
+Display:
+18s, 1080x1920, 24fps H.264, silent. Real paired outcomes; no invented percentages.
+The return colour melt explicitly compares OFF/ON states at the same time and camera.
+Comparison images use model second 1084, both green; peak labels refer to full runs.
+Local counts control heat opacity. Hue uses measured running peak / fixed 0.26–0.33 scale.
+Near bodies interpolate velocity between sampled states; no model coefficient changed.
+Regional people and rail journeys are actual model states. Motion tails are decorative, not extra people.
+Completed people gather around event markers with schematic offsets/scales excluded from metrics.
+All five per-district counters in the aerial scene are current completed arrivals.
+47,816 PLATEAU source buildings within 3km; 2,650 distant actual-building LOD boxes.
+Eastern Omotesando fringe outside municipal PLATEAU data remains a gap; no invented infill.
+All added art/code are self-made MIT. PLATEAU CC BY 4.0; OSM ODbL. See NOTICE / ASSETS.md.

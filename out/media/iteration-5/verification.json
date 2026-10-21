@@ -1,0 +1,121 @@
+{
+  "iteration": 5,
+  "video": "/workspace/projects/ssl-halloween/out/media/iteration-5/shibuya-halloween.mp4",
+  "video_sha256": "82dfbde7eb7dbe652a44d01a1a577339c9cf8e052cea98d41ba0e4a07ea7534c",
+  "video_bytes": 31750431,
+  "source_sha256": "c901d8f529f1c4a3800ba99f4aca26c46e5b597aa789da1c6594f9865fe209d2",
+  "probe": {
+    "programs": [],
+    "stream_groups": [],
+    "streams": [
+      {
+        "codec_name": "h264",
+        "width": 1080,
+        "height": 1920,
+        "r_frame_rate": "24/1"
+      }
+    ],
+    "format": {
+      "duration": "18.000000",
+      "tags": {
+        "major_brand": "isom",
+        "minor_version": "512",
+        "compatible_brands": "isomiso2avc1mp41",
+        "credit": "MLIT Project PLATEAU / Shibuya 2023; modified footprints + heights, CC BY 4.0. https://www.geospatial.jp/ckan/dataset/plateau-13113-shibuya-ku-2023 https://creativecommons.org/licenses/by/4.0/ © OpenStreetMap contributors, ODbL 1.0. https://www.openstreetmap.org/copyright https://opendatacommons.org/licenses/odbl/1-0/ three.js r160 MIT. HAGINO 2026 procedural art and code MIT. Noto Sans CJK JP SIL OFL 1.1. See accompanying NOTICE and ASSETS.md. Toy model, not a prediction. Seed 1031; 960 agents; 1800 simulated seconds per scenario. Walking and schematic Yamanote/Inokashira routing; underlying SUMO trajectories are unused.",
+        "comment": "Toy-model values; same procedural three.js geometry, local CPU raster capture; fictional neighborhood events, matched arrivals and rail journeys; 18s loop.",
+        "encoder": "Lavf61.7.103"
+      }
+    }
+  },
+  "decoded_video_frames": 432,
+  "loop": {
+    "endpoint_pixels_identical": true,
+    "endpoint_rgb_sha256": "0345fd3986dd2c8f9d95b9198568a4d038edf946d29cd51d39a889e2513190fa",
+    "finite_exported_frames": 433,
+    "png_count": 20,
+    "png_size": [
+      1080,
+      1920
+    ]
+  },
+  "renderer": "authored CPU rasterizer of actual three.js scene",
+  "scene_objects": 512,
+  "geometry_bytes": 16015152,
+  "lod_buildings": 2650,
+  "regional_source_buildings": 47816,
+  "coverage_gap": "Eastern Omotesando fringe remains outside municipal PLATEAU data; no invented real-world infill.",
+  "metrics": {
+    "peak_count_off": 602,
+    "peak_count_on": 502,
+    "peak_density_off": 0.3327,
+    "peak_density_on": 0.2774,
+    "density_change_pct": -16.6,
+    "district_arrivals_off": 156,
+    "district_arrivals_on": 244,
+    "arrival_change_pct": 56.4,
+    "district_people_off": [
+      30,
+      23,
+      56,
+      25,
+      22
+    ],
+    "district_people_on": [
+      47,
+      43,
+      79,
+      40,
+      35
+    ],
+    "best_event": {
+      "criterion": "most completed arrivals",
+      "district": "Yoyogi",
+      "event": "Ghost lantern garden",
+      "people": 79
+    },
+    "largest_lift": {
+      "criterion": "additional completed arrivals",
+      "district": "Yoyogi",
+      "people": 23
+    }
+  },
+  "tests": {
+    "full_pytest": "102 passed in 118.21s",
+    "final_focused": "4 passed in 29.34s",
+    "node": [
+      "sol/verify.mjs",
+      "astra/check.mjs",
+      "promo/verify.mjs",
+      "shibuya/verify.mjs",
+      "shibuya/verify-ui.mjs",
+      "shibuya/verify-halloween.mjs (via pytest)"
+    ],
+    "git_diff_check": "passed"
+  },
+  "plateau_source_sha256": "f2a37b190148d7b09e2c1c638798aef5f6b1fd7b57600c15ec4fac840a74d6e5",
+  "protected_v1_sha256": "75a3259a1729d12404e84cd5429041c96eff8599b90bacbbadde20eeaa2b617e",
+  "png_sha256": {
+    "01-blueprint.png": "8e9e0033489a908deec8136f510bd50d2a213a6bfdd17050c7680fae67f137c7",
+    "02-day-extrusion.png": "1f360122af115e208be51ef721851b2a4c71a5164c7083ea2fe79b296b66ed4d",
+    "03-dusk.png": "3db48d3da0ec4a75c5dbbef00835218b0826aed84c8168980a31345f43fcb57e",
+    "04-witch-hook.png": "22d5e3713cb8dfceefadc89ac95fb3dc7c527df2e2301bc8ea32e79a65c88032",
+    "05-green-start.png": "515b8a438fe5ea4081d002722cbc8b47af4f9454940065240a15b204f9675f11",
+    "06-whole-crossing.png": "f721152c5faf85af98627190a63c4da0c83d37c5e2af530673187f32128d720f",
+    "07-pedestrian-view.png": "664d28533a783558be0563fb583bf12abaf8928ddd54e254fbfb25264ee92ead",
+    "08-shinsen.png": "4cc5fcf6ad3c4e3e461f84a3b568bdb987e87d90b6682e882ba961deac07c93f",
+    "09-harajuku-yoyogi.png": "e399d841f759927089bb3136a705664d33a2fe74234c616c324c81e545b0060d",
+    "10-five-beacons.png": "9b9039e47154db5afec1e74794eaa7bfb08611249906d1e14a961463b51db76e",
+    "11-outward-journeys.png": "f3c9b7c839d0f65906ac0cb8cff3d8c5a0adee1a1999dcc05c719647cfe882f8",
+    "12-party-arrivals.png": "253d762c39ae55add307ac67e1f36e72b4cd04e21036515ccb59396edd0f481a",
+    "13-rail-return.png": "b8c0c735a99798cde1a07d362d36c845b2b25dd345e9dbfa2c5593eb0161b42a",
+    "14-paired-melt.png": "3218d9cef56d49819d02abe4d6ce566772a723ab2f45d44e03e422720322a861",
+    "15-calm-crossing.png": "6e142a4ef453b8e1cd8d76ef191aa9a6d1d0da0e58887033e1185c1fbf6d7494",
+    "16-comparison.png": "1c3f3ecf75d78bc0eb4fd7f66fd25ab68936f695654366874bfc12852e2c5726",
+    "17-result-winner.png": "113832c5e3a62c784a014c0405fe32a784bac0142519a7a12d8a6abb19ddc49a",
+    "18-credits.png": "042fff26d6923a93337b75f0567937d0d870451650e46709458e83133abc9c31",
+    "19-visual-rewind.png": "fdb00d8daf321a852c9f59ba9cacb17b0068c8fc162652099e16d5e7a0f42d7f",
+    "20-loop-blueprint.png": "8e9e0033489a908deec8136f510bd50d2a213a6bfdd17050c7680fae67f137c7"
+  },
+  "notice": "Actual paired toy-model output; coefficients unchanged. Marker offsets/scales and motion tails are decorative. OFF/ON colour melt compares matched states. Winner means most completed arrivals.",
+  "visual_review": "Reviewed all twenty PNGs and 36 half-second decoded H.264 samples across the hook, green release, 2.4m crowd passage, five beacons, walking and both railway journeys, actual celebration arrivals, matched colour melt, short proof card, credits and visual rewind."
+}

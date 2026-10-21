@@ -1,4 +1,4 @@
-"""Record the deterministic 20-second Halloween film; local files only.
+"""Record the deterministic 18-second Halloween film; local files only.
 
 Checkpointed frames survive interrupted captures. Reuse is gated by a source
 fingerprint. The browser always steps by film time, never by elapsed wall time.
@@ -20,8 +20,8 @@ import time
 
 from record_shibuya import QuietHandler, browser_with_webgl
 
-WIDTH, HEIGHT, FPS, DURATION = 1080, 1920, 24, 20
-STILLS = {0:'01-blueprint.png',9:'02-day-extrusion.png',20:'03-dusk.png',30:'04-night-hook.png',48:'05-green-release.png',68:'06-pedestrian-view.png',90:'07-shinsen.png',103:'08-harajuku.png',115:'09-yoyogi.png',128:'10-omotesando.png',142:'11-ebisu.png',162:'12-five-towns.png',192:'13-rail-return.png',240:'14-calm-crossing.png',288:'15-comparison.png',336:'16-district-results.png',380:'17-winner.png',402:'18-credits.png',432:'19-model-reset.png',479:'20-loop-blueprint.png'}
+WIDTH, HEIGHT, FPS, DURATION = 1080, 1920, 24, 18
+STILLS = {0:'01-blueprint.png',8:'02-day-extrusion.png',17:'03-dusk.png',28:'04-witch-hook.png',38:'05-green-start.png',51:'06-whole-crossing.png',65:'07-pedestrian-view.png',88:'08-shinsen.png',103:'09-harajuku-yoyogi.png',118:'10-five-beacons.png',139:'11-outward-journeys.png',165:'12-party-arrivals.png',192:'13-rail-return.png',222:'14-paired-melt.png',255:'15-calm-crossing.png',299:'16-comparison.png',330:'17-result-winner.png',360:'18-credits.png',390:'19-visual-rewind.png',431:'20-loop-blueprint.png'}
 CREDIT = ('MLIT Project PLATEAU / Shibuya 2023; modified footprints + heights, CC BY 4.0. '
           'https://www.geospatial.jp/ckan/dataset/plateau-13113-shibuya-ku-2023 '
           'https://creativecommons.org/licenses/by/4.0/ '
@@ -101,7 +101,7 @@ def record(site, output, stills, metrics_path, preview=False):
                     raise RuntimeError('; '.join(errors))
                 if frame in STILLS:
                     # Validate the actual ending text, not just the exported JSON.
-                    if frame == 336:
+                    if frame == 330:
                         assert page.locator('#no-visits').text_content() == str(metrics['no_events']['visits'])
                         assert page.locator('#promo-density').inner_text() == f"{metrics['events_on']['peak_density_per_m2']:.2f}"
                     page.screenshot(path=str(stills / STILLS[frame]), type='png', animations='disabled')
@@ -123,7 +123,7 @@ def record(site, output, stills, metrics_path, preview=False):
                         '-frames:v', str(FPS * DURATION), '-an', '-c:v', 'libx264',
                         '-preset', 'fast', '-crf', '18', '-pix_fmt', 'yuv420p',
                         '-movflags', '+faststart+use_metadata_tags', '-metadata', f'credit={CREDIT}',
-                        '-metadata', 'comment=Toy-model values; seeded paired experiment; fictional-event paired replay; matched green comparison at sim 1084s; 20s loop. No audio.',
+                        '-metadata', 'comment=Toy-model values; seeded paired experiment; fictional-event paired replay; matched green comparison at sim 1084s; 18s loop. No audio.',
                         str(partial)], check=True)
         probe = probe_video(partial)
         partial.replace(output)
@@ -140,7 +140,7 @@ if __name__ == '__main__':
     ap.add_argument('--output', type=Path, default=Path('/workspace/demos/shibuya-halloween.mp4'))
     ap.add_argument('--stills', type=Path, default=Path('/workspace/demos/shibuya-halloween'))
     ap.add_argument('--metrics', type=Path, default=Path('out/media/shibuya-halloween-metrics.json'))
-    ap.add_argument('--preview', action='store_true', help='Capture the nine PNG story frames without encoding')
+    ap.add_argument('--preview', action='store_true', help='Capture the twenty PNG story frames without encoding')
     ap.add_argument('--renderer', choices=('auto', 'browser', 'software'), default='auto')
     args = ap.parse_args()
     def software():

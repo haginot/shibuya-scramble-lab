@@ -173,15 +173,17 @@ class Film:
         self.text(d,(60,75),'SHIBUYA / HALLOWEEN',24,AMBER,True);self.sparkle(d,987,101,14)
         self.text(d,(56,142),state['captions'][0],64 if state['hook'] else 66,WHITE,True)
         self.text(d,(60,340 if state['hook'] else 252),state['captions'][1],37 if state['hook'] else 39,PURPLE,True)
-        if state['opening']<.95:
-            slide=round(1150*min(1,max(0,(state['opening']-.12)/.65))**2)
+        if state['opening']<.65:
+            u=min(1,max(0,(state['opening']-.1)/.45))
+            panels=Image.new('RGBA',im.size);pd=ImageDraw.Draw(panels)
             for j,(label,value,color) in enumerate([
                 ('交差点 / CROWDING',str(state['state']['central_count'])+'人',RED),
-                ('架空店 / SHOP VISITS',str(state.get('shopVisits',0)),MINT)]):
-                x=60-slide if j==0 else 560+slide
-                self.card(im,(x,1320,x+460,1500),outline=color);d=ImageDraw.Draw(im)
-                self.text(d,(x+24,1338),label,25,MUTED,True);self.text(d,(x+24,1377),value,57,color,True)
-            self.text(d,(60,1545),'BLUEPRINT → 3D',31,MINT,True)
+                ('催し / EVENT HUBS','0 / 5',MINT)]):
+                x=60+j*500; y=1370+round(u*75)
+                pd.rounded_rectangle((x,y,x+460,y+180),radius=24,fill='#151c35ed',outline=color,width=2)
+                self.text(pd,(x+24,y+18),label,25,MUTED,True);self.text(pd,(x+24,y+57),value,57,color,True)
+            panels.putalpha(panels.getchannel('A').point(lambda v:round(v*(1-u))))
+            im.paste(panels,(0,0),panels);d=ImageDraw.Draw(im)
         if state['timelapse']:
             self.card(im,(540,1540,1020,1675));d=ImageDraw.Draw(im)
             self.text(d,(565,1544),'×'+str(state['speed']),64,AMBER,True)
@@ -189,79 +191,66 @@ class Film:
             self.text(d,(742,1610),'DAY → NIGHT',23,PURPLE,True)
         if state['regional']:
             self.hub_labels(im,state);d=ImageDraw.Draw(im)
-            if t>=5.8:
-                self.text(d,(60,1518),'点線＝徒歩 / dotted = walking',27,AMBER,True)
-                for j,r in enumerate(state.get('transport',[])):
-                    x=60+j*500;accent=MINT if j==0 else PURPLE
-                    self.card(im,(x,1570,x+460,1700),outline=accent);d=ImageDraw.Draw(im)
-                    self.text(d,(x+22,1574),'山手線' if j==0 else '井の頭線',34,accent,True)
-                    self.text(d,(x+22,1623),r['line'],28,WHITE,True)
-                    self.text(d,(x+22,1662),f"乗車 {r['boardings']} → 到着 {r['completed']}",28,accent,True)
+            if t>=5.05:
+                self.card(im,(60,1545,1020,1670));d=ImageDraw.Draw(im)
+                for x,ja,en,color in [(85,'徒歩','WALK',AMBER),(355,'山手線','YAMANOTE',MINT),(695,'井の頭線','INOKASHIRA',PURPLE)]:
+                    self.text(d,(x,1550),ja,35,color,True);self.text(d,(x,1610),en,24,color,True)
         elif state['green']:
-            self.card(im,(60,1510,1020,1640));d=ImageDraw.Draw(im)
+            self.card(im,(60,1510,1020,1630));d=ImageDraw.Draw(im)
             self.text(d,(90,1532),'● GREEN / みんなで、渡ろう。',43,MINT,True)
-        elif 8.3<=t<11.8:
-            if state.get('pairedMelt'):self.text(d,(60,1455),'比較再生 OFF → ON / PAIRED REPLAY',31,AMBER,True)
-            self.text(d,(60,1535),'同じ時刻、同じ青。人は、歩き続ける。',35,MINT,True)
-            self.text(d,(60,1600),'Same people. More destinations.',32,PURPLE)
-        elif 17.5<=t<18.8:
-            self.card(im,(60,1460,1020,1640),outline=PURPLE);d=ImageDraw.Draw(im)
-            self.text(d,(88,1482),'トイモデル再開 → 青図へ',46,WHITE,True)
-            self.text(d,(88,1560),'RESET → BLUEPRINT → TRY AGAIN',30,PURPLE,True)
+        elif 8.6<=t<12.2:
+            if state.get('pairedMelt'):self.text(d,(60,1480),'比較再生 OFF → ON / PAIRED REPLAY',31,AMBER,True)
+            self.text(d,(60,1550),'同じ時刻、同じ青。行き先が増えた。',35,MINT,True)
+            self.text(d,(60,1615),'Same green. More places to go.',32,PURPLE)
         self.footer(d)
         return im
     def hub_labels(self,im,state):
-        # Persistent names sit beside the five source-positioned attractions.
         d=ImageDraw.Draw(im)
-        if state['seconds']>=7.5:return
-        activities=['仮装 / COSTUME','行進 / PARADE','灯り / LANTERNS','光の道 / LIGHT WALK','屋台 / FOOD STALLS']
-        offsets=[(-325,-10),(-320,0),(90,-30),(70,-10),(80,50)]
+        if state['seconds']>=7.65:return
+        activities=['仮装','行進','灯り','光の道','屋台']
+        offsets=[(-240,-30),(-250,-15),(75,-40),(75,-15),(75,20)]
         for i,h in enumerate(state['hubs']):
-            if state['seconds']<h.get('activation', [3.6,4.15,4.7,5.25,5.8][i]):continue
+            if state['seconds']<state.get('activations',[3.65,4,4.35,4.7,5.05])[i]:continue
             px,py,pz=h['screen']
             if pz>1 or pz<0:continue
-            ox,oy=offsets[i];x=max(45,min(715,px+ox));y=max(420,min(1190,py+oy));accent='#%06x'%h['color']
-            d.line((px,py,x+140,y+45),fill=accent,width=3)
-            self.card(im,(x,y,x+310,y+124),outline=accent);d=ImageDraw.Draw(im)
-            self.text(d,(x+16,y+4),h['name'],37,WHITE,True)
-            self.text(d,(x+16,y+53),h['en'],25,accent,True)
-            self.text(d,(x+16,y+88),activities[i],22,MUTED)
+            ox,oy=offsets[i];x=max(45,min(780,px+ox));y=max(425,min(1360,py+oy));accent='#%06x'%h['color']
+            d.line((px,py,x+105,y+40),fill=accent,width=3)
+            self.card(im,(x,y,x+245,y+126),outline=accent);d=ImageDraw.Draw(im)
+            self.text(d,(x+14,y+1),h['name']+' · '+activities[i],31,WHITE,True)
+            self.text(d,(x+14,y+49),h['en'],24,accent,True)
+            count=state['state']['district_people'][i]
+            self.text(d,(x+14,y+87),f'到着 {count} / ARRIVALS',22,MUTED,True)
         self.text(d,(60,350),'架空イベント / FICTIONAL EVENTS',25,WHITE,True)
     def results(self,im,t):
         a=self.metrics['no_events'];b=self.metrics['events_on'];change=round(self.metrics['density_change_pct']);gain=round((self.metrics['attendance_ratio']-1)*100)
         self.card(im,(32,100,1048,1702));d=ImageDraw.Draw(im)
-        self.text(d,(60,124),f'交差点ピーク {change}%',76,MINT,True)
-        self.text(d,(64,235),f'Crossing peak {change}% · toy-model',36,PURPLE,True)
-        self.text(d,(64,298),f"{a['peak_central_count']} → {b['peak_central_count']}人  |  {a['peak_density_per_m2']:.2f} → {b['peak_density_per_m2']:.2f} people/m²",29,WHITE,True)
-        self.text(d,(64,348),'同じ時刻・同じ青 / Same time, same green · 1084s',25,MUTED)
+        self.text(d,(60,125),f'交差点ピーク {change}%',76,MINT,True)
+        self.text(d,(64,236),f'Crossing peak {change}% · toy-model',36,PURPLE,True)
+        self.text(d,(64,305),f"{a['peak_central_count']} → {b['peak_central_count']}人  |  {a['peak_density_per_m2']:.2f} → {b['peak_density_per_m2']:.2f} people/m²",29,WHITE,True)
+        self.text(d,(64,360),'同じ時刻・同じ青 / Matched green · 1084s',28,MUTED)
         for j,prefix in enumerate(['no','promo']):
             if prefix not in self.comparison:
-                self.comparison[prefix]=self.scene.render(self.scene.directory/f'compare-{prefix}.bin').crop((40,730,1040,1220)).resize((960,470),Image.Resampling.LANCZOS)
-            y=420+j*505;im.paste(self.comparison[prefix],(60,y));d=ImageDraw.Draw(im)
-            self.card(im,(74,y+8,330,y+62),fill='#101326ed');d=ImageDraw.Draw(im)
+                self.comparison[prefix]=self.scene.render(self.scene.directory/f'compare-{prefix}.bin').crop((50,650,1030,1240)).resize((960,480),Image.Resampling.LANCZOS)
+            y=435+j*505;im.paste(self.comparison[prefix],(60,y));d=ImageDraw.Draw(im)
+            self.card(im,(74,y+8,350,y+66),fill='#101326ed');d=ImageDraw.Draw(im)
             self.text(d,(90,y+9),'催しなし / OFF' if j==0 else '催しあり / ON',30,RED if j==0 else MINT,True)
-        self.text(d,(64,1435),f'街への到着 +{gain}% / Arrivals +{gain}%',38,WHITE,True)
-        max_count=max(b['district_people'])
-        for i,h in enumerate(self.metrics['events']):
-            y=1505+i*34;accent=AMBER if h['en']==self.metrics['best_event']['district'] else PURPLE
-            self.text(d,(66,y-8),h['name']+' '+h['en'],24,accent,h['en']=='Yoyogi')
-            x=420;d.rounded_rectangle((x,y,x+b['district_people'][i]/max_count*350,y+17),radius=4,fill=accent)
-            d.rectangle((x,y+21,x+a['district_people'][i]/max_count*350,y+25),fill='#86748d')
-            self.text(d,(790,y-12),f"{a['district_people'][i]} → {b['district_people'][i]}"+(' ★' if h['en']=='Yoyogi' else ''),27,accent,True)
+        self.text(d,(64,1440),f'街への到着 +{gain}%',55,WHITE,True)
+        self.text(d,(66,1524),f"Arrivals {a['visits']} → {b['visits']} (+{gain}%)",34,PURPLE,True)
+        best=self.metrics['best_event'];lift=self.metrics['largest_lift']['people']
+        self.text(d,(66,1583),f"最多到着：代々木 {best['people']}人 (+{lift})",38,AMBER,True)
+        self.text(d,(66,1640),f"MOST ARRIVALS · {best['district']} lantern garden",27,AMBER,True)
         self.footer(d);return im
     def compare(self):
         raise RuntimeError('Comparison is integrated into the live city view')
-    def credit(self,scene_image,t=16.4):
-        im=self.shade(scene_image);self.card(im,(48,1070,1032,1695));d=ImageDraw.Draw(im)
-        best=self.metrics['best_event'];ja=next(e['name'] for e in self.metrics['events'] if e['en']==best['district']);lift=self.metrics['district_lifts'][next(i for i,e in enumerate(self.metrics['events']) if e['en']==best['district'])]
-        self.text(d,(78,1090),f"最多到着：{ja} {best['people']}人",59,MINT,True)
-        self.text(d,(78,1180),f"{best['district']} wins · {best['people']} arrivals (+{lift})",38,PURPLE,True)
-        self.text(d,(78,1260),'MADE AFTER DARK',38,WHITE,True)
-        self.text(d,(78,1332),'HAGINO 2026 · Original art + code · MIT',30,WHITE,True)
-        self.text(d,(78,1410),'PLATEAU 渋谷2023 加工 · CC BY 4.0',30,PURPLE)
-        self.text(d,(78,1470),'© OSM contributors · ODbL',30,PURPLE)
-        self.text(d,(78,1540),'three.js · MIT | Noto Sans CJK JP · OFL 1.1',25,MUTED)
-        self.text(d,(78,1610),'Full credits: NOTICE + ASSETS.md',26,MUTED)
+    def credit(self,scene_image,t=15):
+        im=self.shade(scene_image);self.card(im,(48,1170,1032,1695));d=ImageDraw.Draw(im)
+        self.text(d,(78,1190),'MADE AFTER DARK',53,WHITE,True)
+        self.text(d,(78,1278),'HAGINO 2026 · Original art + code · MIT',31,WHITE,True)
+        self.text(d,(78,1355),'PLATEAU 渋谷2023 加工 · CC BY 4.0',30,PURPLE)
+        self.text(d,(78,1415),'© OSM contributors · ODbL',30,PURPLE)
+        self.text(d,(78,1485),'three.js · MIT | Noto Sans CJK JP · OFL 1.1',25,MUTED)
+        self.text(d,(78,1550),'架空の催し / Fictional events + behaviour',30,AMBER,True)
+        self.text(d,(78,1620),'Full credits: NOTICE + ASSETS.md',26,MUTED)
         self.footer(d);return im
 
 def render_capture_frame(frame):
@@ -303,7 +292,7 @@ def record(output,stills,metrics_path,preview=False):
             if frame%24==0 or preview:print(f'{frame/FPS:.2f}/{DURATION}s · CPU rendering actual three.js geometry',flush=True)
     probe=None
     if not preview:
-        partial=output.with_name(output.stem+'.partial.mp4');subprocess.run(['ffmpeg','-hide_banner','-loglevel','error','-y','-framerate',str(FPS),'-i',str(frames/'frame-%05d.jpg'),'-frames:v',str(FPS*DURATION),'-an','-c:v','libx264','-preset','fast','-crf','18','-pix_fmt','yuv420p','-movflags','+faststart+use_metadata_tags','-metadata',f'credit={CREDIT}','-metadata','comment=Toy-model values; same procedural three.js geometry, local CPU raster capture; fictional neighborhood events, matched arrivals and rail journeys; 20s loop.',str(partial)],check=True);probe=probe_video(partial);partial.replace(output)
+        partial=output.with_name(output.stem+'.partial.mp4');subprocess.run(['ffmpeg','-hide_banner','-loglevel','error','-y','-framerate',str(FPS),'-i',str(frames/'frame-%05d.jpg'),'-frames:v',str(FPS*DURATION),'-an','-c:v','libx264','-preset','fast','-crf','18','-pix_fmt','yuv420p','-movflags','+faststart+use_metadata_tags','-metadata',f'credit={CREDIT}','-metadata','comment=Toy-model values; same procedural three.js geometry, local CPU raster capture; fictional neighborhood events, matched arrivals and rail journeys; 18s loop.',str(partial)],check=True);probe=probe_video(partial);partial.replace(output)
     result={'video':str(output),'renderer':'authored CPU rasterizer of actual three.js scene','source_sha256':signature,'preview':preview,'width':1080,'height':1920,'fps':24,'duration_s':DURATION,'wall_seconds':round(time.monotonic()-start,2),'screenshots':[str(stills/p) for p in STILLS.values()],'snapshots':snapshots,'probe':probe,'errors':[]}
     (stills/('preview.json' if preview else 'recording.json')).write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n');print(json.dumps(result,ensure_ascii=False,indent=2),flush=True)
 

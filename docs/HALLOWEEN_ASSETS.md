@@ -105,3 +105,31 @@ precision, calibration and mode totals remain in metrics.json and RESULTS.txt.
 A MODEL RESET cue returns through the packed baseline into the flat blueprint;
 the 20-second endpoint restores the opening scene, captions and counters.
 All new art/graphics/code are project MIT, HAGINO 2026. No external art or audio.
+
+
+Iteration 5 (2026-10-22): 18-second cut with a foreground witch/face in the first
+1.5s, immediate moving blueprint crowd marks, clipped-panel fix (fade/vertical
+slide), event-hub panel replacing the obsolete shop counter, real green release,
+2.4m camera passage, and a visual flattening rewind. Source buildings and the
+3km regional dataset are unchanged, including the eastern Omotesando gap.
+Some tall foreground extrusions are omitted in this authored camera; fictional
+ad facades are lowered/moved outward to expose the complete crossing. The
+original toy train and viaduct are raised above the station roof for visibility.
+
+Five original beacon meshes light the event attractions. Enlarged, multicolour
+walking guides, actual travelling individuals and four trailing copies per marker
+show the outward journeys. Tail copies are a motion trail, not extra agents.
+Each completed individual appears once as a miniature costumed celebration
+marker around the assigned attraction. Decorative marker offsets/sizes are
+schematic, deterministic, and excluded from all model metrics. Trains follow
+boarded individuals bound for the corresponding destination on the existing
+schematic rail corridors. Near characters interpolate velocity between whole
+second model samples; model measurements and coefficients are unchanged.
+
+The proof card lasts 2.5s: two identical-camera/time/signal views, peak −17%,
+arrivals +56%, and an explicit MOST ARRIVALS criterion (Yoyogi 79, +23). Regional
+labels show actual completed arrivals at their displayed model time; complete
+OFF/ON district/mode counts remain in metrics.json and RESULTS.txt. No district
+bar chart or railway accounting competes with the two principal measurements.
+The small toy-model notice and short credits card remain. All new art and code
+are self-made project MIT, HAGINO 2026; no external art, fonts or audio added.
