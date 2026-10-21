@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#101e26">
+  <title>ASAGAYA / A living miniature</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main id="world" aria-label="Interactive 3D simulation of Asagaya station"></main>
+  <div id="labels" aria-hidden="true"></div>
+  <div id="loading"><span class="loading-mark">阿</span><span>ASSEMBLING ASAGAYA<span class="loading-dots"> …</span></span></div>
+  <header class="ui masthead">
+    <div class="eyebrow"><i class="live-dot"></i> TOKYO, SUGINAMI <span>35.7047° N · 139.6358° E</span></div>
+    <h1>ASAGAYA<span>阿佐ヶ谷</span></h1>
+    <div class="subtitle">A living miniature. <em>A thousand small decisions.</em></div>
+  </header>
+  <section class="ui station-feed" aria-live="polite"><span class="line-symbol">JC</span><div><b>CHŪŌ LINE</b><span id="train-status">Approaching Asagaya</span></div><span class="feed-dot"></span></section>
+  <aside class="ui control-panel">
+    <div class="panel-heading"><span>THE STATION CORNER</span><span class="index">01 / LAB</span></div>
+    <h2>What happens here?</h2>
+    <p class="panel-intro">Change a small piece of the city.<br>Watch daily life move around it.</p>
+    <div class="field-label">STATION-FRONT ALTERNATIVE</div>
+    <div class="alternatives" role="group" aria-label="Station-front alternative">
+      <button data-alt="bike" class="active"><span>♧</span>Bike parking</button>
+      <button data-alt="cafe"><span>☕</span>Café</button>
+      <button data-alt="plaza"><span>⌑</span>Plaza</button>
+    </div>
+    <div class="metric-heading"><span id="alt-title">Bike parking</span><span>MODEL DAY TOTALS</span></div>
+    <div class="metrics">
+      <div><span>Site visits</span><b id="metric-visits">0</b></div>
+      <div><span>Passing the site</span><b id="metric-foot">—</b></div>
+      <div><span>Nearby shop visits</span><b id="metric-shops">—</b></div>
+      <div><span>Extra bike walk <small>min</small></span><b id="metric-bike">0</b></div>
+    </div>
+    <div class="field-label scenario-label"><label for="scenario">NEIGHBORHOOD SCENARIO</label></div>
+    <select id="scenario"><option value="baseline">Everyday Asagaya</option><option value="newcafe">A new café opens</option><option value="event">Station-front event</option><option value="rain">A rainy day</option></select>
+    <p class="data-note">Alternative totals are independent model runs.<br>Scenario controls the surrounding street life.</p>
+    <div class="legend"><span><i class="resident"></i>Residents</span><span><i class="visitor"></i>Visitors</span><span><i class="commuter"></i>Commuters</span></div>
+  </aside>
+  <div class="ui map-caption"><span class="compass">N ↑</span><div><b>ASAGAYA STATION</b><span>杉並区 · 街の小さな実験</span></div></div>
+  <section class="ui transport">
+    <div class="time-block"><span id="period">GOLDEN HOUR</span><strong id="clock">18:25</strong><small>SIMULATION TIME · JST</small></div>
+    <div class="timeline-wrap"><div class="timeline-top"><span>THE RHYTHM OF A DAY</span><span id="active-count">0 people outside</span></div><div id="histogram" aria-hidden="true"></div><input id="timeline" type="range" min="360" max="1439" step="0.1" aria-label="Simulation time"><div class="timeline-hours"><span>06:00</span><span>12:00</span><span>18:00</span><span>24:00</span></div></div>
+    <div class="playback"><button id="play" aria-label="Pause simulation">Ⅱ</button><select id="speed" aria-label="Simulation speed"><option value="0.5">0.5 min/s</option><option value="1.5" selected>1.5 min/s</option><option value="5">5 min/s</option><option value="15">15 min/s</option><option value="60">60 min/s</option></select><button id="orbit" class="active" aria-label="Toggle cinematic orbit" title="Toggle cinematic orbit">↻</button></div>
+  </section>
+  <div class="ui help">DRAG TO EXPLORE <span>·</span> SCROLL TO ZOOM <span>·</span> <button id="reset">RESET VIEW</button></div>
+  <footer><span>not a prediction; a toy model for testing hypotheses</span><span>© OpenStreetMap contributors</span></footer>
+  <script type="module" src="main.mjs"></script>
+</body>
+</html>

@@ -20,6 +20,28 @@ uvx --from git+https://github.com/haginot/asagaya-town-sim.git asagaya-town-sim 
 
 依存ライブラリはありません（Python 3.9以上の標準ライブラリのみ）。地図タイルとLeafletはCDNから読むため、Web UIの表示にはネット接続が必要です。
 
+## 3D版（v0.3）
+
+`asagaya-town-sim demo --serve` の既定画面は three.js の3D版です（2D版は `/2d.html`）。エンジンの出力JSONをそのまま読み、
+OSMの建物3,045棟（高さはOSMの height / building:levels、無い建物は駅からの距離で推定）を国土地理院の標高タイル（DEM5A/DEM10B）の地形に載せています。
+街路樹・街灯・屋上設備は手続き生成（シード固定）です。
+
+- 住民（青）・電車来訪者（橙）・通勤者（桃）が歩き、中央線が着くと人が降りてきます
+- シミュレーション時刻で昼→夕方→夜に変わり、人通りの多い通りが光ります。店の上の数字はモデル内の来訪数です
+- 駅前の角を 駐輪場 / カフェ / 広場 に切り替えると3Dの形と数値（通行量・平均滞在・売上のおもちゃ試算）が変わります
+- `--area koenji` で高円寺版（実験的。OSMから同じ手順で作成）
+- URLパラメータ: `?scenario=rain|event|newcafe&alt=bike|cafe|plaza&t=分&cam=intro|site&timelapse=1050,1380&compare=1&hideui=1&area=koenji`
+
+静的に動かす場合はリポジトリ直下で `python3 -m http.server` して `web3d/sol/` を開きます（`web3d/data/engine*.json` は `python3 tools/export_engine.py` で再生成）。
+
+### 売上の「おもちゃ試算」（予測ではありません）
+`toy_total = site_visits × 客単価 + (駐輪案のみ bike_users × 駐輪料金) + (nearby_shop_visits − 駐輪案の nearby_shop_visits) × 周辺客単価`。
+仮定: カフェ客単価 650円、広場・駐輪場の区画売上 0円、駐輪料金 100円/回、周辺150m店舗の客単価 800円（`model.py` の `TOY_*`）。
+来訪数・通行量・滞在はエンジンの3シード平均で、仮定の単価を掛けただけの数字です。
+
+### モデルバトル
+`web3d/sol`（既定）、`web3d/astra`、`web3d/terra` は同じ指示・同じデータで Codex CLI の別モデルに作らせた3つのレンダラーです。
+
 ## モデルの中身
 
 | 要素 | 内容 |
@@ -52,3 +74,4 @@ uv venv && uv pip install -e . pytest && .venv/bin/pytest -q
 - 地図データ: © OpenStreetMap contributors（ODbL）。`src/asagaya_town_sim/data/asagaya_osm.geojson`
 - 店名はOSM上の名称で、各店舗とは無関係です。シミュレーション上の来店数は架空の値です。
 - 着想: Generative Agents、駅の乗降客を外部エージェントとして扱うシミュレーション、複数案を並行して比べる都市計画シミュレーションの事例
+- 標高: 国土地理院 標高タイル（3D版の地形）。three.js (MIT) を同梱。

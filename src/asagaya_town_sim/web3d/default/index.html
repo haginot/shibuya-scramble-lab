@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#0b1921"><title>ASAGAYA — A living miniature</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='10' fill='%230f292e'/%3E%3Cpath d='M8 29 20 8l12 21M13 22h14' fill='none' stroke='%23ffb35e' stroke-width='3'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <main id="world" aria-label="Interactive 3D miniature of Asagaya, Tokyo"></main>
+  <div class="vignette"></div><div id="labels" aria-hidden="true"></div>
+  <header class="hud masthead">
+    <a class="brand" href="./index.html" id="brand-link" aria-label="Asagaya home"><span class="brand-icon">a<span>·</span></span><div><span class="eyebrow" id="area-coordinate">TOKYO / SUGINAMI · 35.7047° N</span><h1 id="area-title">ASAGAYA<span>阿佐ヶ谷</span></h1><p>A little city. A thousand possibilities.</p></div></a>
+    <div class="top-actions"><span class="live"><i></i> SIMULATION LIVE</span><button id="orbit" class="icon-button active" title="Toggle cinematic orbit" aria-label="Toggle cinematic orbit">↻ <span>Orbit</span></button><button id="reset" class="icon-button" title="Reset camera">⌖ <span>Recenter</span></button></div>
+  </header>
+  <div class="hud left-dock">
+  <aside class="hud experiment-panel panel">
+    <div class="panel-heading"><span class="eyebrow">01 / THE STATION CORNER</span><span class="coordinate">↗ 60 m</span></div>
+    <h2>What if this corner<br>became something else?</h2><p class="intro">One small place. Different ways to belong.</p>
+    <div class="alternatives" role="group" aria-label="Station-front alternative">
+      <button data-alt="bike" class="alt active"><span class="alt-icon"><svg viewBox="0 0 30 28" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="19" r="5"/><circle cx="24" cy="19" r="5"/><path d="m7 19 6-11 6 11H7l5-8h9l3 8M10 8h5m4-4h3l-2 7"/></g></svg></span><span><b>Bike parking</b><small>Keep the everyday essential</small></span><i></i></button>
+      <button data-alt="cafe" class="alt"><span class="alt-icon">☕</span><span><b>A corner café</b><small>A new reason to linger</small></span><i></i></button>
+      <button data-alt="plaza" class="alt"><span class="alt-icon"><svg viewBox="0 0 30 28" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21v5m-5-5h10M9 2l7 10h-3l5 8H1l5-8H3L9 2ZM20 17h9m-9 4h9m-8-4v9m7-9v9"/></g></svg></span><span><b>A pocket plaza</b><small>Room to sit, meet & slow down</small></span><i></i></button>
+    </div>
+    <div class="metric-heading"><span>MODELLED DAILY TOTALS</span><span id="alt-tag">BIKE</span></div>
+    <div class="metrics"><div><strong id="site-visits">0</strong><span>Site visits</span></div><div><strong id="foot-traffic">1,062</strong><span>Foot traffic / day</span></div><div><strong id="shop-visits">881</strong><span>Nearby shop visits</span></div><div><strong id="bike-walk">0<em> min</em></strong><span>Extra bike-user walking</span></div></div>
+    <div class="toy-economics"><span>Avg dwell <strong id="dwell-min">0</strong> min</span><p id="toy-sales"></p><small id="econ-formula"></small></div>
+    <p class="data-note">Alternative totals from the simulation output.<br>Scenario controls the activity shown on the map.</p>
+  </aside>
+  <aside class="hud scenario-panel panel"><span class="eyebrow">02 / CHANGE THE DAY</span><div class="scenario-options" role="group" aria-label="Scenario"><button data-scenario="baseline" class="active">Everyday</button><button data-scenario="rain">Rain</button><button data-scenario="event">Event</button><button data-scenario="newcafe">New café</button></div><div class="weather-line"><span id="weather-icon">◒</span><span id="weather-text">Golden hour in the neighborhood</span></div></aside>
+  </div>
+  <div class="hud arrival panel"><span class="line-icon">JC</span><div><span class="eyebrow" id="station-line">CHŪŌ LINE · ASAGAYA</span><strong id="train-status">Train approaching</strong><small id="arrival-info">10 cars · doors opening shortly</small></div><span class="signal"><i></i><i></i><i></i></span></div>
+  <div class="hud neighborhood"><span class="eyebrow">THE NEIGHBORHOOD, IN MOTION</span><div class="activity-number"><strong id="active-count">0</strong><span>people out & about</span></div><div class="legend"><span><i class="resident"></i>Residents</span><span><i class="visitor"></i>Visitors</span><span><i class="commuter"></i>Commuters</span></div><div class="heat-legend"><span>Street activity</span><i></i><span>More</span></div><p>Shop badges show modelled daily visits.<br><span id="sample-note">300 recorded paths · 900 model agents</span></p></div>
+  <footer class="hud time-panel panel"><button id="play" class="play" aria-label="Pause simulation">Ⅱ</button><div class="clock-block"><span id="clock">18:28</span><small id="day-phase">GOLDEN HOUR</small></div><div class="timeline"><div class="timeline-ticks"><span>06:00</span><span>12:00</span><span>18:00</span><span>24:00</span></div><input id="time" type="range" min="360" max="1440" step="0.05" value="1108.65" aria-label="Simulation time"><div class="timeline-glow"></div></div><button id="speed" class="speed" title="Simulation minutes per real second">1×</button></footer>
+  <div class="hud map-caption"><span class="north">↑ N</span><span class="scale"><i></i>100 m</span><span>Drag to explore · Scroll to zoom</span></div>
+  <div class="credits"><span>not a prediction; a toy model for testing hypotheses</span><span>© OpenStreetMap contributors · 標高: 国土地理院</span></div>
+  <div id="compare-bar" class="hud panel" aria-label="Compare station-front alternatives" hidden></div>
+  <div id="caption" role="status" hidden><div id="caption-ja" lang="ja"></div><div id="caption-en" lang="en"></div></div>
+  <div id="loading"><div class="loader-mark">a<span>·</span></div><span class="eyebrow">ASSEMBLING THE NEIGHBORHOOD</span><p>Every street has a story.</p></div>
+  <script type="module" src="./app.mjs"></script>
+</body>
+</html>
