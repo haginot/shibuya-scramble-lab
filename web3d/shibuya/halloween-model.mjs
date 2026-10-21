@@ -44,7 +44,7 @@ export class HalloweenModel{
   const rand=randomStream(seed),groups=[];
   this.people=Array.from({length:agents},(_,i)=>{
    const group=Math.floor(i/3);if(!groups[group])groups[group]={arrival:Math.floor(rand()*SETTINGS.arrival_window_s),accept:rand(),district:Math.floor(rand()*EVENTS.length),mode:rand()};const g=groups[group],entry=nav.entries[group%nav.entries.length],p=nav.point(entry),plaza=nav.plaza[Math.floor(rand()*nav.plaza.length)];
-   return{id:i,group,x:p[0]+(i%3-1)*.25,z:p[1],vx:0,vz:0,heading:0,entry,cell:entry,arrival:g.arrival+(i%3)*2,speed:1.05+rand()*.5,acceleration:.8+rand()*.5,plaza,offset:[(rand()-.5)*1.3,(rand()-.5)*1.3],dwell:650+Math.floor(rand()*400),accept:g.accept,district:g.district,modeChoice:g.mode,stage:'waiting',goal:0,wait:0,redirected:false,decided:false,visited:false,photo:0,phase:rand()*Math.PI*2,journey:0,mode:'walk'};
+   return{id:i,group,x:p[0]+(i%3-1)*.25,z:p[1],vx:0,vz:0,heading:0,entry,cell:entry,arrival:g.arrival+(i%3)*2,speed:1.05+rand()*.5,acceleration:.8+rand()*.5,plaza,offset:[(rand()-.5)*1.3,(rand()-.5)*1.3],dwell:650+Math.floor(rand()*400),accept:g.accept,district:g.district,modeChoice:g.mode,stage:'waiting',goal:0,wait:0,redirected:false,decided:false,visited:false,photo:0,phase:rand()*Math.PI*2,journey:0,boardedAt:-1,arrivedAt:-1,mode:'walk'};
   });
  }
  fieldFor(p){if(p.goal===1)return p.mode==='walk'?this.exitFields[p.district]:this.stationField;if(!this.plazaFields.has(p.plaza))this.plazaFields.set(p.plaza,this.nav.field(p.plaza));return this.plazaFields.get(p.plaza);}
@@ -64,11 +64,11 @@ export class HalloweenModel{
     if(p.stage==='regional'||p.stage==='rail'){
      p.journey+=dt;const e=EVENTS[p.district],path=p.stage==='rail'?[[55,75],...e.corridor.slice(1)]:e.corridor;
      const total=p.stage==='rail'?e.travel_s:pathLength(path)/p.speed;[p.x,p.z]=pointOnPath(path,p.journey/total);
-     if(p.journey>=total){p.x=e.position[0];p.z=e.position[1];p.stage='event';p.visited=true;this.visits++;this.districts[p.district]++;this.modes[p.mode]++;}continue;
+     if(p.journey>=total){p.x=e.position[0];p.z=e.position[1];p.stage='event';p.arrivedAt=this.time;p.visited=true;this.visits++;this.districts[p.district]++;this.modes[p.mode]++;}continue;
     }
     if(p.stage==='platform'){
      const headway=p.mode==='Inokashira'?240:180,offset=p.mode==='Inokashira'?30:0,phase=(this.time-offset)%headway;
-     if(phase<dt+.001){p.stage='rail';p.journey=0;this.boardings[p.mode]++;}continue;
+     if(phase<dt+.001){p.stage='rail';p.boardedAt=this.time;p.journey=0;this.boardings[p.mode]++;}continue;
     }
     if(p.stage==='plaza'){
      p.wait-=dt;

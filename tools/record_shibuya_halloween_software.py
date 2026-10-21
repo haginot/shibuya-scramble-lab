@@ -75,11 +75,11 @@ class SoftwareScene:
             ix=int((x+45)/90*16);iz=int((z+45)/90*16)
             if 0<=ix<16 and 0<=iz<16:a[iz,ix]+=1
         density=peak_count/(math.pi*24**2)
-        hue=max(0,min(1,(density-.26)/.07));rgb=tuple(round(v) for v in (55+200*hue,208-173*hue,255-167*hue))
+        hue=max(0,min(1,(density-.28)/.056));rgb=tuple(round(v) for v in (35+220*hue,210-175*hue,245-157*hue))
         yy,xx=np.mgrid[:128,:128]
         for iz,ix in np.argwhere(a>0):
             n=a[iz,ix] # Hue is measured running peak disk density; opacity is current local count.
-            alpha=np.maximum(0,1-np.sqrt((xx-(ix*8+4))**2+(yy-(iz*8+4))**2)/13)*min(.98,.22+n*.09)*255
+            alpha=np.maximum(0,1-np.sqrt((xx-(ix*8+4))**2+(yy-(iz*8+4))**2)/13)*min(.98,.28+n*.12)*255
             arr=np.empty((128,128,4),dtype=np.uint8);arr[:,:,:3]=rgb;arr[:,:,3]=alpha;heat=Image.alpha_composite(heat,Image.fromarray(arr))
         return np.array(heat)
     def render(self,path):
@@ -169,7 +169,7 @@ class Film:
         layer=Image.new('RGBA',im.size);d=ImageDraw.Draw(layer);d.rounded_rectangle(box,radius=24,fill=fill,outline=outline,width=2);im.paste(layer,(0,0),layer)
     def frame(self,state,scene_image):
         im=self.shade(scene_image);d=ImageDraw.Draw(im);t=state['seconds']
-        if state['comparison']:return self.district_results(im) if state.get('districtResults') else self.results(im,t)
+        if state['comparison']:return self.results(im,t)
         self.text(d,(60,75),'SHIBUYA / HALLOWEEN',24,AMBER,True);self.sparkle(d,987,101,14)
         self.text(d,(56,142),state['captions'][0],64 if state['hook'] else 66,WHITE,True)
         self.text(d,(60,340 if state['hook'] else 252),state['captions'][1],37 if state['hook'] else 39,PURPLE,True)
@@ -192,9 +192,10 @@ class Film:
             self.hub_labels(im,state);d=ImageDraw.Draw(im)
             if state.get('journey'):
                 self.card(im,(60,1530,1020,1680));d=ImageDraw.Draw(im)
-                if t<6.5:
-                    self.text(d,(90,1540),'山手線  /  井の頭線',42,MINT,True)
-                    self.text(d,(90,1610),'YAMANOTE / INOKASHIRA · BOARD → RIDE',26,PURPLE,True)
+                if t<6.3:
+                    line,roman,color=('山手線','YAMANOTE',MINT) if t<5.85 else ('井の頭線','INOKASHIRA',PURPLE)
+                    self.text(d,(90,1540),line+'  ·  乗車 → 出発',42,color,True)
+                    self.text(d,(90,1610),roman+' · BOARD → RIDE',28,color,True)
                 else:
                     district=state['hubs'][state.get('focusDistrict',0)]
                     self.text(d,(90,1540),district['name']+' · '+district['event'],37,AMBER,True)
@@ -202,7 +203,7 @@ class Film:
         elif state['green']:
             self.card(im,(60,1510,1020,1630));d=ImageDraw.Draw(im)
             self.text(d,(90,1532),'● GREEN / みんなで、渡ろう。',43,MINT,True)
-        elif 9.2<=t<12:
+        elif 8.95<=t<12:
             if state.get('pairedMelt'):self.text(d,(60,1480),'比較再生 OFF → ON / PAIRED REPLAY',31,AMBER,True)
             self.text(d,(60,1550),'同じ時刻、同じ青。行き先が増えた。',35,MINT,True)
             self.text(d,(60,1615),'Same green. More places to go.',32,PURPLE)
@@ -225,40 +226,29 @@ class Film:
             self.text(d,(x+14,y+52),h['en'],26,accent,True)
     def results(self,im,t):
         a=self.metrics['no_events'];b=self.metrics['events_on'];change=round(self.metrics['density_change_pct']);gain=round((self.metrics['attendance_ratio']-1)*100)
-        self.card(im,(32,100,1048,1702));d=ImageDraw.Draw(im)
-        self.text(d,(60,125),f'交差点ピーク {change}%',76,MINT,True)
-        self.text(d,(64,236),f'Crossing peak {change}% · toy-model',36,PURPLE,True)
-        self.text(d,(64,305),f"{a['peak_central_count']} → {b['peak_central_count']}人  |  {a['peak_density_per_m2']:.2f} → {b['peak_density_per_m2']:.2f} people/m²",29,WHITE,True)
-        self.text(d,(64,360),'同じ時刻・同じ青 / Matched green · 1084s',28,MUTED)
+        self.card(im,(32,100,1048,1702),fill='#151c35f5');d=ImageDraw.Draw(im)
+        self.text(d,(60,120),f'交差点ピーク {change}%',76,MINT,True)
+        self.text(d,(64,230),f'Crossing peak {change}% · arrivals +{gain}%',36,PURPLE,True)
+        self.text(d,(64,300),f"{a['peak_central_count']} → {b['peak_central_count']}人  |  {a['peak_density_per_m2']:.2f} → {b['peak_density_per_m2']:.2f} people/m²",29,WHITE,True)
+        self.text(d,(64,356),'同じ時刻・同じ青 / Matched green',28,MUTED)
         for j,prefix in enumerate(['no','promo']):
             if prefix not in self.comparison:
-                self.comparison[prefix]=self.scene.render(self.scene.directory/f'compare-{prefix}.bin').crop((50,650,1030,1240)).resize((960,480),Image.Resampling.LANCZOS)
-            y=435+j*505;im.paste(self.comparison[prefix],(60,y));d=ImageDraw.Draw(im)
-            self.card(im,(74,y+8,350,y+66),fill='#101326ed');d=ImageDraw.Draw(im)
-            self.text(d,(90,y+9),'催しなし / OFF' if j==0 else '催しあり / ON',30,RED if j==0 else MINT,True)
-        self.text(d,(64,1440),f'街への到着 +{gain}%',55,WHITE,True)
-        self.text(d,(66,1524),f"Arrivals {a['visits']} → {b['visits']} (+{gain}%)",34,PURPLE,True)
-        best=self.metrics['best_event'];lift=self.metrics['largest_lift']['people']
-        self.text(d,(66,1583),f"最多到着：代々木 {best['people']}人 (+{lift})",38,AMBER,True)
-        self.text(d,(66,1640),f"MOST ARRIVALS · {best['district']} lantern garden",27,AMBER,True)
-        self.footer(d);return im
-    def district_results(self,im):
-        a=self.metrics['no_events'];b=self.metrics['events_on'];best=self.metrics['best_event']
-        self.card(im,(32,100,1048,1702));d=ImageDraw.Draw(im)
-        self.text(d,(64,130),f"交差点ピーク {round(self.metrics['density_change_pct'])}%",76,MINT,True)
-        self.text(d,(68,245),'Crossing peak · paired toy-model',36,PURPLE,True)
-        self.text(d,(68,350),'街に、何人着いた？',59,WHITE,True)
-        self.text(d,(70,440),'Completed arrivals · OFF → ON',35,PURPLE,True)
+                self.comparison[prefix]=self.scene.render(self.scene.directory/f'compare-{prefix}.bin').crop((80,615,1000,1355)).resize((460,370),Image.Resampling.LANCZOS)
+            x=64+j*490;im.paste(self.comparison[prefix],(x,414));d=ImageDraw.Draw(im)
+            self.card(im,(x+6,422,x+284,479),fill='#101326ed');d=ImageDraw.Draw(im)
+            self.text(d,(x+18,423),'催しなし / OFF' if j==0 else '催しあり / ON',29,RED if j==0 else MINT,True)
+        self.text(d,(66,815),f"街への到着 {a['visits']} → {b['visits']}人 (+{gain}%)",46,WHITE,True)
+        self.text(d,(68,892),'Completed arrivals · OFF → ON',30,PURPLE,True)
+        best=self.metrics['best_event']
         for i,e in enumerate(self.metrics['events']):
-            y=555+i*170;color=AMBER if e['en']==best['district'] else WHITE
+            y=964+i*112;color=AMBER if e['en']==best['district'] else WHITE
             if e['en']==best['district']:
-                d.rounded_rectangle((60,y-5,1020,y+151),radius=20,fill='#4b3a4d',outline=AMBER,width=2)
-            self.text(d,(85,y),e['name'],49,color,True)
-            self.text(d,(87,y+76),e['en'],31,PURPLE)
-            self.text(d,(520,y+13),f"{a['district_people'][i]} → {b['district_people'][i]}",58,color,True)
-        self.text(d,(85,1440),f"最多 / MOST: {best['district']} {best['people']} (+{self.metrics['largest_lift']['people']})",39,AMBER,True)
-        self.text(d,(85,1530),f"合計 {a['visits']} → {b['visits']}人  (+{round((self.metrics['attendance_ratio']-1)*100)}%)",49,MINT,True)
-        self.text(d,(88,1620),'徒歩 + 山手線 + 井の頭線 / walk + both rail lines',28,MUTED)
+                d.rounded_rectangle((62,y-2,1018,y+105),radius=16,fill='#4b3a4d',outline=AMBER,width=2)
+            self.text(d,(84,y),e['name'],43,color,True)
+            self.text(d,(284,y+12),e['en'],28,PURPLE)
+            self.text(d,(640,y-3),f"{a['district_people'][i]} → {b['district_people'][i]}",48,color,True)
+        self.text(d,(84,1550),f"最多到着：代々木 {best['people']}人 (+{self.metrics['largest_lift']['people']})",41,AMBER,True)
+        self.text(d,(86,1621),'MOST ARRIVALS · Yoyogi lantern garden',28,AMBER,True)
         self.footer(d);return im
     def compare(self):
         raise RuntimeError('Comparison is integrated into the live city view')

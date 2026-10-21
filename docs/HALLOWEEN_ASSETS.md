@@ -170,3 +170,29 @@ props, with an authored walking-access spur and a slowed arrival beat. This
 illustrative placement keeps door-side passengers visible beside the large
 festival markers. It is not a claim about real station entrances or facilities;
 model participation, travel times, completed identities and counts are unchanged.
+
+Iteration 7 (2026-10-22): all new rings, crossing-centred blueprint pulse,
+open costume runway, lantern walking path, heat styling and result graphics
+are self-made procedural project MIT work. No new downloaded assets or audio.
+The camera holds the whole scramble's synchronized green release, briefly
+shows all five activated hubs, follows the same 900s Yamanote departure and
+shows actual identities boarding, alighting and walking into the lantern garden.
+The 990s Inokashira boarding uses the distinct lilac route/train cue. Train
+centres, final platform approach, enlarged props and door/attendee positions
+remain schematic; they do not claim real facilities, travel speeds or entrances.
+Per-person boarding/arrival timestamps support presentation only: coefficients,
+physical integration, measured counts and all 960 identities are unchanged.
+
+The single fixed peak-density colour ramp is now 0.280–0.336 people/m², from
+cyan to cherry, identically applied to both runs. Current local occupancy
+controls opacity; green-launch heat is dimmed equally for signal legibility.
+No event flag sets hue, no people are removed for the payoff, and the moderate
+measured reduction remains 16.6%. The matched colour-melt holds model 1084s
+and the same camera/signal, then the event trial's people continue walking.
+One 3.3s card includes peak −17%, arrivals +56%, all five district OFF→ON rows
+and Yoyogi's 72 arrivals (+19). Full-precision values are in metrics.json.
+The pedestrian-level return is after the relief, and the final calm overhead
+uses a later red phase with actual curb queues before the blueprint rewind.
+The 20s endpoint restores the opening camera, people, exposure and captions.
+The original PLATEAU source files, 3km coverage and eastern Omotesando gap
+remain unchanged; selected source boxes are omitted only for shot visibility.

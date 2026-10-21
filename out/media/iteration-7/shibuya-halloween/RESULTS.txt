@@ -1,0 +1,33 @@
+ITERATION 7 — FICTIONAL NEIGHBORHOOD EVENTS
+TOY-MODEL VALUES, NOT A PREDICTION OR OBSERVED CAUSAL EFFECT
+960 matched seeded identities; seed 1031; 1800 simulated seconds per trial.
+Peak people in fixed 24m disk: 608 -> 507 (-16.6%).
+Peak disk-average density: 0.336 -> 0.2802 people/m².
+Completed district arrivals: 152 -> 237 (+55.9%; 1.559x).
+
+DISTRICT / EVENTS OFF -> ON / ADDITIONAL ARRIVALS
+Shinsen: 29 -> 46 (+17); Moonmask costume contest (fictional)
+Harajuku: 27 -> 44 (+17); Stardust costume parade (fictional)
+Yoyogi: 53 -> 72 (+19); Ghost lantern garden (fictional)
+Omotesando: 21 -> 38 (+17); Spelllight promenade (fictional)
+Ebisu: 22 -> 37 (+15); Pumpkin food-stall village (fictional)
+
+Most completed arrivals: Yoyogi 72; largest absolute lift +19.
+Highest district ratio: Omotesando 1.810x.
+
+MODE / COMPLETED JOURNEYS OFF -> ON
+walk: 23 -> 58
+Yamanote: 101 -> 144
+Inokashira: 28 -> 35
+
+DEFINITIONS AND PRESENTATION
+Individual centres within 24m of crossing / (pi * 24² m²). Maximum of whole-second samples over full paired 1800s runs.
+Unique actual district arrivals by 1800s, including completed walking and rail journeys; excludes people still travelling.
+Common arrivals, groups, speeds and tastes. Decisions from 300s: 30% baseline versus 50% event participation (40% Ebisu), subject to per-event capacity. No shop coupon intervention.
+0.25s social-force steps with mutual avoidance, per-person speed/acceleration, group cohesion, photo pauses, late jogging, smooth heading. All plaza groups queue at six curbs and start on green. Central paths avoid PLATEAU footprints. Regional corridors are schematic, distances in metres.
+Assumed 180s Yamanote / 240s Inokashira headways; wait at station, actual boarding then 95–285s travel. Rail corridors/stations schematic; no timetable or operational prediction.
+Colour-melt and evidence images: same camera, model 1084s and green signal. Peaks are over full runs, not the current image count. Heat hue uses the same fixed 0.280–0.336 peak density ramp; current local counts set opacity.
+Actual 900s Yamanote and 990s Inokashira departures are presented with schematic platform offsets, enlarged toy trains/passengers, a shortened visual platform approach, and per-person walking entrance offsets. These never alter model metrics.
+Ending red-phase curb queues are followed by the blueprint loop; this is a film-time comparison/rewind, not a real-time policy demonstration.
+Regional PLATEAU: 47,816 source buildings within 3km. Eastern Omotesando fringe outside supplied municipal data; no invented geographic infill. Selected source boxes omitted for visibility. Event and railway locations/dimensions remain schematic.
+All events, shop ads, decorations and characters fictional/original. Original procedural art and code MIT; PLATEAU CC BY 4.0, OSM ODbL, three.js MIT, Noto OFL. No audio or external decorative art. See NOTICE and ASSETS.md.
