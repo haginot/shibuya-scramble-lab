@@ -49,7 +49,8 @@ export function makeNightScene(plateau,osm,nav,region={buildings:[]}){
  const far=new THREE.Group();scene.add(far);const tiles=new Map();
  for(const b of region.buildings){const xs=b.ring.map(p=>p[0]),zs=b.ring.map(p=>p[1]),x=(Math.min(...xs)+Math.max(...xs))/2,z=(Math.min(...zs)+Math.max(...zs))/2;if(Math.hypot(x,z)<260||EVENTS.some(e=>Math.hypot(x-e.position[0],z-e.position[1])<470||(e.line!=='walk'&&Math.hypot(x-e.position[0]+430,z-e.position[1])<200)))continue;const key=`${Math.floor(x/84)},${Math.floor(z/84)}`;if(!tiles.has(key)||tiles.get(key).b.height<b.height)tiles.set(key,{b,x,z,w:Math.max(...xs)-Math.min(...xs),d:Math.max(...zs)-Math.min(...zs)});}
  const farParts=[];for(const {b,x,z,w,d} of tiles.values()){const g=box.clone();g.scale(Math.max(5,w),b.height,Math.max(5,d));g.translate(x,b.height/2,z);farParts.push([g,[0x33354d,0x443451,0x334354][farParts.length%3]]);}
- if(farParts.length){const m=merge(farParts,new THREE.MeshStandardMaterial({vertexColors:true,emissive:0xffd49b,emissiveMap:windowTexture,emissiveIntensity:.3}),true);m.geometry.attributes.uv.array.forEach((v,i,a)=>a[i]=v*.3);far.add(m);}
+ let farMaterial=null;
+ if(farParts.length){const m=merge(farParts,new THREE.MeshStandardMaterial({vertexColors:true,emissive:0xffd49b,emissiveMap:windowTexture,emissiveIntensity:.3}),true);m.geometry.attributes.uv.array.forEach((v,i,a)=>a[i]=v*.3);far.add(m);farMaterial=m.material;}
  // Landmark composition: station, elevated railway, Hachiko meeting square.
  const station=standard(0x5c5278,0x6d408f,.25),steel=standard(0x8b88a5),warm=basic(0xffdc87);
  cube(67,8,63,34,16,90,station);cube(67,17,63,38,2,96,standard(0x9064ae));
@@ -204,6 +205,9 @@ export function makeNightScene(plateau,osm,nav,region={buildings:[]}){
   partyMeshes.forEach((m,i)=>{m.visible=story.regional;m.count=partyCounts[i];m.instanceMatrix.needsUpdate=true;});
   buildings.visible=!story.regional;moon.visible=!story.regional;
   far.visible=story.regional;stationMarker.visible=story.regional;
+  // Recede the generic background LOD mass during the wide overview so the
+  // five hand-built hub silhouettes read instead of drowning in distant boxes.
+  if(farMaterial){const fade=story.overview?.32:1;farMaterial.color.setRGB(fade,fade,fade);farMaterial.emissiveIntensity=.3*Math.max(fade,.65);}
   stationPulses.forEach(g=>{g.visible=story.regional;g.children.forEach(o=>{if(o.userData.platformCanopy)o.visible=!story.journey;});});
   hubs.forEach((g,i)=>{g.visible=story.regional&&seconds>=ACTIVATIONS[i];const pop=Math.min(1,Math.max(0,(seconds-ACTIVATIONS[i])/.28));g.scale.setScalar((story.overview?2.7:2)*(.8+.2*Math.sin(pop*Math.PI/2)));});
   paradeFloats.forEach(({o,x,z},i)=>{o.position.x=x+Math.sin(seconds*1.5+i)*13;o.position.z=z+Math.cos(seconds*1.5+i)*12;});

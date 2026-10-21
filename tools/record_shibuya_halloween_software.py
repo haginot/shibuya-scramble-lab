@@ -172,8 +172,11 @@ class Film:
         im=self.shade(scene_image);d=ImageDraw.Draw(im);t=state['seconds']
         if state['comparison']:return self.results(im,t)
         self.text(d,(60,75),'SHIBUYA / HALLOWEEN',24,AMBER,True);self.sparkle(d,987,101,14)
-        self.text(d,(56,142),state['captions'][0],64 if state['hook'] else 66,WHITE,True)
-        self.text(d,(60,340 if state['hook'] else 252),state['captions'][1],37 if state['hook'] else 39,PURPLE,True)
+        if not state.get('pairedMelt'):
+            self.text(d,(56,142),state['captions'][0],64 if state['hook'] else 66,WHITE,True)
+            self.text(d,(60,340 if state['hook'] else 252),state['captions'][1],37 if state['hook'] else 39,PURPLE,True)
+        else:
+            self.text(d,(56,142),state['captions'][0],46,WHITE,True)
         if state['opening']<.25:
             u=min(1,max(0,(state['opening']-.01)/.20))
             panels=Image.new('RGBA',im.size);pd=ImageDraw.Draw(panels)
@@ -205,11 +208,16 @@ class Film:
             self.card(im,(60,1510,1020,1630));d=ImageDraw.Draw(im)
             self.text(d,(90,1532),'● GREEN / みんなで、渡ろう。',43,MINT,True)
         elif state.get('pairedMelt'):
-            self.text(d,(60,1550),'同時刻・同じ青 / 1092s · OFF → ON',33,MINT,True)
+            counts=(state.get('off_central_count',0),state['state']['central_count'])
+            for j,(label,color) in enumerate([('催しなし / OFF',RED),('催しあり / ON',MINT)]):
+                x=36+j*506
+                self.card(im,(x,230,x+470,320),fill='#101326d8',outline=color);d=ImageDraw.Draw(im)
+                self.text(d,(x+20,240),label,31,color,True);self.text(d,(x+20,280),f'{counts[j]}人・同じ瞬間',26,WHITE,True)
+            self.text(d,(60,1550),'同時刻・同じ青 / Matched instant · same GREEN',30,MINT,True)
         elif state.get('departureBeat'):
             self.card(im,(60,1510,1020,1670));d=ImageDraw.Draw(im)
             self.text(d,(90,1525),'青のまま、余白ができる。',39,MINT,True)
-            self.text(d,(90,1598),'STILL GREEN · ACTUAL EVENT-BOUND PEOPLE',29,PURPLE,True)
+            self.text(d,(90,1598),'STILL GREEN · PEOPLE KEEP HEADING OUT',29,PURPLE,True)
         self.footer(d)
         return im
     def hub_labels(self,im,state):
@@ -274,10 +282,15 @@ def render_capture_frame(frame):
     state=json.loads((directory/f'state-{frame:05d}.json').read_text())
     raw=scene.render(directory/f'frame-{frame:05d}.bin')
     if state.get('pairedMelt'):
+        # A hard, held vertical split (not a soft diagonal wipe) so the two
+        # matched trials read instantly as a side-by-side proof, not a colour
+        # filter: same green, same camera, same instant, fewer people on the right.
+        state['off_central_count']=json.loads((directory/f'state-off-{frame:05d}.json').read_text())['state']['central_count']
         off=scene.render(directory/f'frame-off-{frame:05d}.bin')
-        yy,xx=np.mgrid[:1920,:1080];edge=state['melt']*1.22-.11+np.sin(yy*.016)*.045
-        mask=Image.fromarray((np.clip((edge-xx/1080)*11+.5,0,1)*255).astype('uint8')).filter(ImageFilter.GaussianBlur(12))
-        raw=Image.composite(raw,off,mask)
+        w,h=raw.size;half=w//2
+        split=Image.new('RGB',(w,h));split.paste(off.crop((0,0,half,h)),(0,0));split.paste(raw.crop((half,0,w,h)),(half,0))
+        seam=ImageDraw.Draw(split);seam.rectangle((half-3,0,half+3,h),fill=(255,244,222))
+        raw=split
     im=film.credit(raw,state['seconds']) if state['credits'] else film.frame(state,raw)
     if frame in STILLS:im.save(stills/STILLS[frame])
     if not preview:

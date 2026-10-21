@@ -13,7 +13,7 @@ const poses=[
  [0,...blueprint],[.04,...blueprint],[.68,...crossing],[1.5,...crossing],
  [2.9,[-60,148,-123],[0,3,6]],
  [3.45,[-17,2.4,-18],[12,1.5,10]],[3.65,[-9,2.4,-10],[18,1.5,14]],
- [4.30,[150,8000,1700],[150,0,-600]],[5.05,[150,8000,1700],[150,0,-600]],
+ [4.30,[352,5300,4600],[352,0,-660]],[5.05,[352,5300,4600],[352,0,-660]],
  [5.40,[-165,340,-225],[55,12,75]],[6.3,[-165,340,-225],[55,12,75]],
  [8.15,[-370,440,-3070],[-70,10,-2650]],
  [8.45,[-370,440,-3070],[-70,10,-2650]],
@@ -46,13 +46,18 @@ export function storyAt(seconds){
  const opening=seconds<1.5?seconds:loop?Math.max(0,(20-seconds)/1.5*.72):1.5;
  // Plan strokes leave before solid buildings rise; no translucent wire tangle.
  const extrusion=smooth((opening-.06)/.48),blueprint=1-smooth((opening-.02)/.10);
- const daylight=loop?0:opening<.08?0:opening<.26?smooth((opening-.08)/.09):1-smooth((opening-.26)/.34);
+ // Capped well below full brightness: a washed pastel noon read as hazy and
+ // competed with the hook's buildings/crowd; a brief dim-day beat is plenty.
+ const daylight=(loop?0:opening<.08?0:opening<.26?smooth((opening-.08)/.09):1-smooth((opening-.26)/.34))*.52;
  const dusk=!loop&&opening>.26&&opening<.60?Math.sin((opening-.26)/.34*Math.PI):0;
  const regionalClock=[[3.65,600],[4.30,760],[5.05,880],[5.4,895],[5.65,912],[5.9,985],[6.15,1007],[6.3,1020],[7.15,1145],[7.55,1174],[8.0,1187],[8.45,1225],[8.75,1320],[9.15,1334],[9.5,1350],[9.85,1370],[10.3,1370]];
  const clockAt=t=>{for(let i=1;i<regionalClock.length;i++){const a=regionalClock[i-1],b=regionalClock[i];if(t<=b[0])return a[1]+(b[1]-a[1])*(t-a[0])/(b[0]-a[0]);}return 1800;};
  // All relief imagery stays in the same real green window. The wipe itself
  // holds exactly 1092s in both trials; subsequent people advance within green.
- const clock=seconds>=19.92?1079:seconds>=10.3?RELIEF_TIME+Math.max(0,seconds-11.6)*1.8:seconds<1.5?1079:seconds<3.65?1080+(seconds-1.5)*14:clockAt(seconds);
+ // A slower advance keeps the six launch arms legible on screen: at the old
+ // 14x rate the whole crossing had already fused into one disc by the time
+ // the overhead hold ended, hiding the synchronized step-off it was meant to prove.
+ const clock=seconds>=19.92?1079:seconds>=10.3?RELIEF_TIME+Math.max(0,seconds-11.6)*1.8:seconds<1.5?1079:seconds<3.65?1080+(seconds-1.5)*6:clockAt(seconds);
  const simTime=Math.floor(clock),renderFraction=clock-simTime;
  const activeHub=seconds<ACTIVATIONS[0]?-1:Math.min(4,ACTIVATIONS.filter(t=>seconds>=t).length-1);
  const captions=hook?['荒れる渋谷、\n周りの街で散らせるか？','Can nearby towns ease a packed Shibuya?']:seconds<3.65?['青で、いっせいに。','GREEN. Everybody goes.']:seconds<5.15?['５つの街に、灯りを。','Five towns. Five side quests.']:seconds<6.3?['２つの路線で、街の外へ。','Two lines. More places to go.']:seconds<7.45?['この３人を、追いかけて。','One hat. One pumpkin. One cape.']:seconds<8.55?['降りたら、ランタンの庭。','Step off. Follow the lanterns.']:seconds<9.2?['井の頭線で、仮装広場へ。','Inokashira → costume stage.']:seconds<10.05?['屋台にも、寄り道を。','Next stop: fictional pumpkin stalls.']:seconds<13.8?['同じ青。灯りで、街へ。','Same green. More places to go.']:['灯りも、街も、手づくり。','Original miniature city · HAGINO'];

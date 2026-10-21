@@ -88,3 +88,140 @@ Pillow (MIT-CMU), Playwright (Apache-2.0), pytest and Hatchling (MIT).
 Optional acquisition inspection: Shapely (BSD-3-Clause), pyproj (MIT).
 FFmpeg/libx264 are external recording commands, not bundled binaries;
 their licensing depends on build configuration (LGPL/GPL).
+
+Halloween film / Iteration 1 (2026-10-21):
+All decorative meshes, window/heat/light textures, rounded dot mask, purple
+sparkles, fictional shop kiosks, coupon pictograms and bilingual film graphics
+are original procedural work by HAGINO, 2026 (project MIT license).
+The original PLATEAU footprint/height geometry and OSM attribution are retained.
+The film is an 18-second toy-model comparison, with a paired replay at film 6s;
+its fictional offers and behavioural coefficients are assumptions, not measured
+effects. Only the actual deterministic model metrics appear as results.
+Noto Sans CJK JP (system regular/bold): SIL OFL 1.1. No font binary or audio is
+redistributed. See docs/HALLOWEEN_ASSETS.md and accompanying media ASSETS.md.
+
+
+Halloween iteration 2 — regional PLATEAU extract and original art:
+web3d/data/shibuya_halloween_region.json and its packaged mirror contain 47,816
+PLATEAU Shibuya 2023 ground footprints/heights clipped to a 3 km radius.
+Same source archive, policy and CC BY 4.0 permission as the building component
+above. Member filenames and SHA-256 hashes are included in the JSON.
+Policy rechecked 2026-10-21: section 3 uses PDL 1.0 and explicitly permits
+use following CC BY 4.0. Derived bounding-box LOD and selective foreground
+omission are renderer modifications, not source geometry replacements.
+The eastern Omotesando area is outside this supplied dataset. No invented infill.
+
+Original MIT assets by HAGINO 2026: costumed low-poly people, six costume
+silhouettes, generic dog statue and meeting square, toy station/train and
+schematic regional track curves, fictional event stages/labels, fictional shop
+wall advertisements, light ribbons, bilingual film graphics and CPU instance
+rendering. There are no real company logos or real event/organizer names.
+Full provenance and regional/model limitations: docs/HALLOWEEN_ASSETS.md.
+
+Halloween film iteration 3: all additional attraction meshes (costume stage,
+parade floats, lantern garden, light arches, pumpkin food tents), facade-mounted
+fictional shop ad textures, signal-cycle wipe and comparison graphics are original
+procedural work, HAGINO 2026, MIT. No external art or audio added. Regional LOD
+uses the tallest source building in each 84m tile; source data is unchanged.
+Heat hue uses the measured running peak 24m-disk average (cyan 0.26 to cherry 0.33 people/m²);
+local counts control opacity. The comparison images share camera, time 1084s
+and green phase; the return replays the same green window with walking; peak metrics refer to the full paired 1800s runs.
+
+Halloween film iteration 4 (2026-10-22): blueprint footprint strokes/grid/scan,
+animated building extrusion, day/dusk/night lighting, speed-ramp graphics,
+sliding panels, gapped walking guides, passenger-driven station pulses, enlarged
+matched-green comparison views and five-district bars are original procedural
+work by HAGINO 2026, MIT. No downloaded assets or audio added. The 20-second
+film uses an explicitly labelled OFF→ON paired replay for the colour-melt wipe;
+both sides are actual matched model states, not a predicted time evolution.
+Transient vertical scaling is an authored blueprint transition; source PLATEAU
+footprints/heights and the original regional coverage gap remain unchanged.
+
+
+Halloween film iteration 5 (2026-10-22): foreground witch pass and face, glowing
+blueprint crowd marks, fading event-led panels, synchronized green curb pools,
+raised local train, five event beacons, multicolour journey trails, and per-person
+event celebration markers are original procedural MIT work by HAGINO 2026.
+Completed event people retain their identities; their decorative marker offsets
+and sizes are schematic. Journey tail dots are motion trails, not extra people.
+The 18-second film uses unchanged calibrated paired metrics and an explicit
+matched OFF/ON replay. The winner means most completed arrivals. Simplified
+proof card, short credits and visual rewind add no external art or audio.
+
+Halloween film iteration 6 (2026-10-22): physical station platforms/shelters,
+train windows/doors, actual-identity boarding/alighting costume markers, moving
+parade floats, ghost-lantern faces, additional fictional-shop ad facade,
+reduced-bloom crossing reveal and five-district result graphics are original
+procedural MIT work, HAGINO 2026. No external art or audio. Door-approach offsets,
+marker sizes, stations and event attractions are schematic. Selected distant
+source-building boxes near event markers are omitted for visibility; all
+PLATEAU source data and the eastern Omotesando coverage gap are unchanged.
+All plaza groups now queue at six curbs and launch together on the actual
+model green, retaining social-force movement. Recomputed toy-model peaks:
+608→507 people (−16.6%); completed district arrivals 152→237 (+55.9%).
+These are illustrative model outputs, not observed effects or predictions.
+The paired replay and matched-green evidence use actual states at 1084s;
+full-run peak values and completed arrivals have separate definitions in
+metrics.json / RESULTS.txt. A 20s loop includes the required bilingual question,
+small toy-model notice, complete five-district comparison and short credits.
+
+Iteration-6 destination platform aprons/access spurs are schematic authored
+offsets beside the event props, not actual station entrance locations. The
+regional film clock slows around real model boarding/alighting stages. This
+visual placement changes no model counts, participation or travel-time inputs.
+
+Halloween film iteration 7 (2026-10-22): the crossing-centred blueprint pulse,
+six-arm green launch rings, stronger measured-density heat, open costume
+runway, lantern walking path, continuous train-follow camera and consolidated
+results card are original procedural MIT work, HAGINO 2026. No external art,
+audio or new geographic data. Same identity/departure boarding timestamps keep
+the featured train continuous through arrival; enlarged passengers then walk
+from the schematic platform into the lantern garden. Visual train speed,
+platform approach and attendee offsets are authored presentation, excluded
+from model counts. Peak-density hue uses one fixed 0.280–0.336 people/m² range
+in both scenarios, with local occupancy controlling heat opacity. The labelled
+matched OFF→ON replay holds the same model time, camera and green signal.
+Paired results remain 608→507 peak people and 152→237 completed arrivals.
+The ending waits for the next green with actual curb queues before flattening
+into the opening blueprint. PLATEAU source geometry and the eastern Omotesando
+coverage gap are unchanged. See delivered ASSETS.md, metrics.json and RESULTS.txt.
+
+Halloween film iteration 8 (2026-10-22): simplified source-footprint blueprint,
+open foreground crossing framing, an earlier pedestrian-level camera passage,
+open toy carriage, original rail-route platform signs, golden passenger rings,
+velocity-derived departure trails and simplified result graphics are authored
+procedural MIT work, HAGINO 2026. No external art, audio or geographic assets.
+The highlighted group comprises actual model identities 864, 865 and 866,
+boarding Yamanote together at model 900s and completing their Yoyogi journeys
+at 1185s. The three rings identify people and are not extra passengers. Their
+costume sizes, open carriage, platform positions and in-car placement are
+schematic presentation, excluded from all measurements. Departure tails use
+actual walking people with event destinations; tail points are not extra people.
+The brief matched OFF/ON replay and thumbnails now use model 1092s, identical
+camera and green signal. Heat opacity is reduced equally in both scenarios to
+let physical movement remain visible. Full-run results are unchanged: peak
+608→507 people (−16.6%), completed arrivals 152→237 (+55.9%). These are toy-model
+values, not observed effects. The 47,816-source-building 3km extract and the
+eastern Omotesando coverage gap remain unchanged. See ASSETS.md and metrics.json.
+
+Halloween film iteration 9 (2026-10-22): immediate source-footprint extrusion,
+reduced emissive bloom, larger open-carriage trio markers, enlarged overview
+attractions, additional original food-stall counters and an Ebisu destination
+shot are self-made procedural MIT work, HAGINO 2026. No external art/audio or
+new geographic data. Regional models, station positions and passenger sizes
+remain schematic. All five fictional events activate before the held overview.
+The OFF/ON colour-melt holds model 1092s, the same camera, exposure and actual
+green phase. Subsequent movement stays in that green window; a red signal no
+longer creates the visual relief. Peak density remains 0.3360 to 0.2802 people/m²
+(608 to 507 people; -16.6%); completed district arrivals 152 to 237 (+55.9%).
+The two-second result card labels these as toy-model values. The event trial
+persists through the end until the solid city has flattened into the blueprint.
+Source PLATEAU data, 3km coverage and eastern Omotesando gap are unchanged.
+The Inokashira destination insert follows actual 1230s service passengers
+(IDs 519, 520, 521, 958), alighting in Shinsen at 1325s. The Yamanote trio
+keeps a compact formation on its schematic lantern-garden entry path.
+The final flat blueprint smoothly interpolates existing identity marks back to
+their opening positions. This is an authored loop rewind, not a measured
+pedestrian trajectory; the solid city keeps the actual event-trial positions.
+Close station shots use a toy cutaway: canopy roofs lift out of view while
+platforms, posts and trains remain, exposing actual boarding/alighting people.

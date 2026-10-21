@@ -1,0 +1,52 @@
+Iteration 10 · bold viral-first rethink · TOY-MODEL VALUES
+トイモデルの値 / toy-model values. Fictional events and assumed behaviour, not a forecast or causal evidence.
+
+Matched seed 1031; 960 identities; 1800s per run.
+Peak: maximum whole-second count within 24m / (pi × 24²).
+Completed arrivals count each actual identity once after walking/rail travel.
+Schematic regional paths, station access and enlarged event props; not real facilities.
+
+Measurement | No events | Events
+Peak count | 608 | 507
+Peak people/m² | 0.336 | 0.2802
+Completed district arrivals | 152 | 237
+神泉 / Shinsen | 29 | 46
+原宿 / Harajuku | 27 | 44
+代々木 / Yoyogi | 53 | 72
+表参道 / Omotesando | 21 | 38
+恵比寿 / Ebisu | 22 | 37
+Completed walk | 23 | 58
+Completed Yamanote | 101 | 144
+Completed Inokashira | 28 | 35
+
+Peak reduction 16.612%; arrival increase 55.921%.
+Yoyogi has most arrivals (72) and largest absolute increase (+19).
+Omotesando has largest proportional increase (38/21 = 1.810×).
+Model coefficients unchanged in iteration 10; only camera, pacing and compositing changed.
+
+What changed (bold rethink of hook/payoff/framing, same renderer/model):
+1. Green launch no longer collapses into one dense disc. The simulated-time advance between the
+   1.5s release and the 2.9s overhead cut was slowed 14x -> 6x, so the six curb arms are still
+   visibly distinct streams crossing the plaza when the camera cuts away, instead of one fused blob.
+2. The regional establishing shot was pulled back from an 8000m straight-down satellite view (where
+   all five hubs read as tiny dots lost in "building confetti") to a ~5300m 3/4 angle framing all
+   five hub silhouettes legibly in one shot, with the generic background LOD mass dimmed ~70%
+   (material color/emissive fade keyed to the `overview` story flag) so the hand-built hub shapes
+   (costume stage, parade floats, lantern garden, light arches, food-stall village) pop instead of
+   drowning in distant boxes.
+3. The ambiguous diagonal "colour melt" proof was replaced with a literal static vertical split
+   screen: 催しなし/OFF on the left, 催しあり/ON on the right, same matched instant (1092s), same
+   green, with a bright seam and per-half badges showing the actual live headcount (561 vs 463 at
+   that instant). This directly answers repeated critique that the melt "read like a lighting
+   preset" rather than a causal comparison.
+4. The opening day phase was capped at ~52% of its previous peak brightness (and the test threshold
+   updated to match) so the hook no longer washes out into a hazy pastel haze; night/dusk (orange +
+   purple) keep their Halloween-appropriate saturation.
+5. Minor caption wording cleanup ("STILL GREEN · PEOPLE KEEP HEADING OUT" replaces debugging-style
+   "ACTUAL EVENT-BOUND PEOPLE").
+
+Golden trio: IDs 864, 865, 866; same group, Yamanote boards 900s, Yoyogi arrives 1185s.
+Inokashira insert: actual IDs 519/520/521/958 board 1230s, arrive Shinsen 1325s.
+Results hold 2.0s; credits 1.2s; night-lit flattening hides the scenario reset.
+47,816 PLATEAU source buildings within 3km. Eastern Omotesando fringe remains outside municipal source coverage.
+All new art/code procedural MIT; full attribution in NOTICE/ASSETS.md. No audio.
