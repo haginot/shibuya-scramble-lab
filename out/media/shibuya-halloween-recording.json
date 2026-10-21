@@ -1,23 +1,28 @@
 {
-  "video": "/workspace/projects/ssl-halloween/out/media/iteration-2/shibuya-halloween.mp4",
+  "video": "out/media/iteration-3/shibuya-halloween.mp4",
   "renderer": "authored CPU rasterizer of actual three.js scene",
-  "source_sha256": "0b5b0ca8896138faaadfc8380109ee44df958ad48d66559eec104f3d10d360f2",
+  "source_sha256": "57a6f13cd0bed9997fcfa1641681d5b0c74061fb7c53d0d6350893d6547a5021",
   "preview": false,
   "width": 1080,
   "height": 1920,
   "fps": 24,
   "duration_s": 18,
-  "wall_seconds": 129.8,
+  "wall_seconds": 153.18,
   "screenshots": [
-    "out/media/iteration-2/shibuya-halloween/01-hook.png",
-    "out/media/iteration-2/shibuya-halloween/02-green-release.png",
-    "out/media/iteration-2/shibuya-halloween/03-pedestrian-view.png",
-    "out/media/iteration-2/shibuya-halloween/04-regional-reveal.png",
-    "out/media/iteration-2/shibuya-halloween/05-walk-and-rail.png",
-    "out/media/iteration-2/shibuya-halloween/06-calm-crossing.png",
-    "out/media/iteration-2/shibuya-halloween/07-comparison.png",
-    "out/media/iteration-2/shibuya-halloween/08-credits.png",
-    "out/media/iteration-2/shibuya-halloween/09-loop-return.png"
+    "out/media/iteration-3/shibuya-halloween/01-hook.png",
+    "out/media/iteration-3/shibuya-halloween/02-green-release.png",
+    "out/media/iteration-3/shibuya-halloween/03-pedestrian-view.png",
+    "out/media/iteration-3/shibuya-halloween/04-regional-reveal.png",
+    "out/media/iteration-3/shibuya-halloween/05-walk-and-rail.png",
+    "out/media/iteration-3/shibuya-halloween/06-calm-crossing.png",
+    "out/media/iteration-3/shibuya-halloween/07-comparison.png",
+    "out/media/iteration-3/shibuya-halloween/08-credits.png",
+    "out/media/iteration-3/shibuya-halloween/09-loop-return.png",
+    "out/media/iteration-3/shibuya-halloween/10-shinsen-stage.png",
+    "out/media/iteration-3/shibuya-halloween/11-harajuku-parade.png",
+    "out/media/iteration-3/shibuya-halloween/12-yoyogi-lanterns.png",
+    "out/media/iteration-3/shibuya-halloween/13-omotesando-lights.png",
+    "out/media/iteration-3/shibuya-halloween/14-ebisu-stalls.png"
   ],
   "snapshots": [
     {
@@ -25,16 +30,36 @@
       "video_seconds": 0.5
     },
     {
-      "frame": 46,
-      "video_seconds": 1.9166666666666667
+      "frame": 48,
+      "video_seconds": 2.0
     },
     {
-      "frame": 64,
-      "video_seconds": 2.6666666666666665
+      "frame": 68,
+      "video_seconds": 2.8333333333333335
     },
     {
-      "frame": 132,
-      "video_seconds": 5.5
+      "frame": 103,
+      "video_seconds": 4.291666666666667
+    },
+    {
+      "frame": 119,
+      "video_seconds": 4.958333333333333
+    },
+    {
+      "frame": 130,
+      "video_seconds": 5.416666666666667
+    },
+    {
+      "frame": 135,
+      "video_seconds": 5.625
+    },
+    {
+      "frame": 151,
+      "video_seconds": 6.291666666666667
+    },
+    {
+      "frame": 167,
+      "video_seconds": 6.958333333333333
     },
     {
       "frame": 210,
@@ -49,8 +74,8 @@
       "video_seconds": 15.0
     },
     {
-      "frame": 397,
-      "video_seconds": 16.541666666666668
+      "frame": 393,
+      "video_seconds": 16.375
     },
     {
       "frame": 431,
@@ -81,10 +106,28 @@
     }
   },
   "errors": [],
-  "sha256": "57e286f56954c84d519017aa1a9115916aa98ae53f6a380d7cac831c4270467e",
+  "sha256": "0855c22e98e2c5a72d712fd933400426bf1eabd1f290b65571e5980d97a66ff9",
+  "bytes": 23419586,
+  "frame_probe": {
+    "programs": [],
+    "stream_groups": [],
+    "streams": [
+      {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1080,
+        "height": 1920,
+        "r_frame_rate": "24/1",
+        "nb_read_frames": "432"
+      }
+    ],
+    "format": {
+      "duration": "18.000000"
+    }
+  },
   "tests": {
-    "pytest": "102 passed in 118.37s",
-    "focused_final_calibration_and_packaged_sources": "5 passed in 46.62s",
+    "pytest": "102 passed in 125.44s",
+    "focused": "4 passed in 30.19s",
     "node": [
       "web3d/sol/verify.mjs",
       "web3d/astra/check.mjs",
@@ -93,54 +136,85 @@
       "web3d/shibuya/verify-ui.mjs",
       "web3d/shibuya/verify-halloween.mjs"
     ],
-    "note": "VM-dependent Node checks use --experimental-vm-modules"
+    "final_native_and_license_checks": "3 passed in 0.19s"
   },
   "loop": {
-    "native_endpoint_pixels_identical": true,
+    "full_film_endpoint_pixels_identical": true,
     "finite_export_states": 433,
-    "note": "Unused instance slots/hidden particle buffers may retain earlier state; all rendered endpoint pixels match."
+    "return_motion": "Actual green-window replay from 1084s; same model continues walking."
   },
   "region": {
     "radius_m": 3000,
     "source_buildings": 47816,
-    "distant_lod_boxes": 8905,
-    "archive_members": 27,
-    "coverage": [
+    "distant_lod_boxes": 2650,
+    "coverage_gaps": [
       "Omotesando eastern area outside supplied Shibuya dataset; shown as an event marker with no invented buildings."
     ]
   },
   "metrics_summary": {
-    "no_events": 0.3305,
-    "events_on": 0.2758,
-    "peak_change_pct": -16.6,
-    "arrivals": [
-      154,
-      258
+    "peaks": [
+      602,
+      502
     ],
-    "arrival_ratio": 1.675,
+    "density": [
+      0.3327,
+      0.2774
+    ],
+    "peak_change_pct": -16.6,
+    "district_arrivals": [
+      156,
+      244
+    ],
     "best_event": {
+      "criterion": "most completed arrivals",
       "district": "Yoyogi",
       "event": "Ghost lantern garden",
-      "people": 78
-    }
+      "people": 79
+    },
+    "largest_lift": {
+      "criterion": "additional completed arrivals",
+      "district": "Yoyogi",
+      "people": 23
+    },
+    "district_lifts": [
+      17,
+      20,
+      23,
+      15,
+      13
+    ]
+  },
+  "matched_images": {
+    "simTime": 1084,
+    "signal": "green",
+    "central_counts": [
+      549,
+      456
+    ],
+    "same_camera": true
   },
   "stills": {
-    "01-hook.png": "096984f2e8a0efc8072790a8361740a6c74e8c080e97941a2026d4df92eb910c",
-    "02-green-release.png": "58cc9651ecabc742b249cda8c31fc75968df8472bdceeb9f955be8519126e442",
-    "03-pedestrian-view.png": "05374493a4470d5fecb1868f7eac439455beec04021dfd3a8994e8808421d426",
-    "04-regional-reveal.png": "7292c2676745731f9be27c7832356611e9581044a40b05930b53e8fdfcff77fb",
-    "05-walk-and-rail.png": "c69acb186c8efc84277dcbef42a42be5087d36c54dac988b8c7f40d875c0a99c",
-    "06-calm-crossing.png": "dcd79e80c70d415129776e87e206a7e5b037a532ad35c422d55852fc01a52073",
-    "07-comparison.png": "2475f2edf6a51a81b2a46eed9951287f347e15c35fba0ecc69cc10e58d8bea3d",
-    "08-credits.png": "46f8b662e2d81faf686116aeb0ffbd2d53edc20b09a27173567a2e5f899301a0",
-    "09-loop-return.png": "24ed5ea57db4d63b429db65850880820060663d1cdf3b88cf5b52430735a065f"
+    "01-hook.png": "d81df5c8a9495a16af1a86b0193ea8051856209308eb20b35203557f057a0a08",
+    "02-green-release.png": "cc81d716d6c6c0931cdc013069f1b304949209685b4c4b20b06759397d083bef",
+    "03-pedestrian-view.png": "636d3e1c5fabfcc6b1b124afef386796c0ef75be8eb0531866b4a64bec6c1469",
+    "04-regional-reveal.png": "159bcff2103c23d8a6bd4cdc917131212682a962fc669ee0de77d590ca12cfd8",
+    "05-walk-and-rail.png": "cf17953ce6b3ba249a59fdc0584b22b0b5e63c408a7504ee46977895d3864f17",
+    "06-calm-crossing.png": "b0844f52e6e846d0bcb73a775ec8cc6677a6777a9af9d0e8743b7b50585b9079",
+    "07-comparison.png": "eee56c512f81761e4ee06efe83f06bc7ec2cfd5c577f6938e9d916d400461364",
+    "08-credits.png": "994369439fa397443af6149ba251e923c14e499f774b781b88fe94df80c0fd16",
+    "09-loop-return.png": "293a5e14826bafcdf66844f793a52fe970dc8f702aa3e22e4733fdfe734b84b7",
+    "10-shinsen-stage.png": "cf38da0f649d9393f0230c8b8c245118a929558090b2b201cab1e5e320b7195b",
+    "11-harajuku-parade.png": "b178569035d765e9946c43a2f2fb491659ec7c9e7d30c32a11ae98ffc48a5b8e",
+    "12-yoyogi-lanterns.png": "a61a01b80828bc566dd102e719c137392a6473bf7b4227a0432607306a26dc33",
+    "13-omotesando-lights.png": "0db2bf44f8cae693438510c8a23092d91f014d640aa36676c2e1469ef920747b",
+    "14-ebisu-stalls.png": "2e181714e02ab51441dd4c3c6b9b705707123be895ca468b7de68d70b1a39223"
   },
   "protected_v1_sha256": "75a3259a1729d12404e84cd5429041c96eff8599b90bacbbadde20eeaa2b617e",
   "limitations": [
-    "Uncalibrated illustrative behaviour and service assumptions; not a forecast.",
-    "Regional walking/rail corridors and festival locations are schematic.",
-    "Municipal PLATEAU coverage is partial on the eastern Omotesando fringe.",
-    "Original CPU raster capture; actual browser/WebGL performance not measured.",
-    "X engagement has not been measured."
-  ]
+    "Illustrative assumed behaviour and train service; not a forecast.",
+    "Regional event markers/railways/walking routes are schematic.",
+    "Eastern Omotesando fringe is outside supplied PLATEAU coverage.",
+    "CPU rasterizer of actual three.js scene; browser/WebGL appearance was not captured."
+  ],
+  "heat_definition": "Hue uses actual running peak 24m-disk average, fixed cyan 0.26 to cherry 0.33 people/m²; current local counts control opacity; no event-flag colour switch."
 }

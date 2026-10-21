@@ -1,5 +1,5 @@
 {
-  "schema": 2,
+  "schema": 3,
   "notice": "トイモデルの値 / toy-model values. Fictional events and assumed behaviour, not a forecast or causal evidence.",
   "settings": {
     "seed": 1031,
@@ -18,7 +18,7 @@
   "definitions": {
     "density": "Individual centres within 24m of crossing / (pi * 24² m²). Maximum of whole-second samples over full paired 1800s runs.",
     "visits": "Unique actual district arrivals by 1800s, including completed walking and rail journeys; excludes people still travelling.",
-    "events": "Common arrivals, groups, speeds and tastes. Decisions from 300s: 30% baseline versus 50% event participation (44% Ebisu), subject to per-event capacity. No shop coupon intervention.",
+    "events": "Common arrivals, groups, speeds and tastes. Decisions from 300s: 30% baseline versus 50% event participation (40% Ebisu), subject to per-event capacity. No shop coupon intervention.",
     "movement": "0.25s social-force steps with mutual avoidance, per-person speed/acceleration, group cohesion, photo pauses, late jogging, smooth heading. Central paths avoid PLATEAU footprints. Regional corridors are schematic, distances in metres.",
     "rail": "Assumed 180s Yamanote / 240s Inokashira headways; wait at station, actual boarding then 95–285s travel. Rail corridors/stations schematic; no timetable or operational prediction."
   },
@@ -182,7 +182,7 @@
     {
       "name": "恵比寿",
       "en": "Ebisu",
-      "participation": 0.44,
+      "participation": 0.4,
       "event": "かぼちゃ屋台村",
       "eventEn": "Pumpkin food-stall village",
       "position": [
@@ -220,31 +220,31 @@
   ],
   "no_events": {
     "time_s": 1800,
-    "central_count": 107,
-    "density": 0.05913048232928056,
-    "peak_central_count": 598,
-    "visits": 154,
+    "central_count": 88,
+    "density": 0.048630677055856913,
+    "peak_central_count": 602,
+    "visits": 156,
     "district_people": [
       30,
       23,
-      55,
+      56,
       25,
-      21
+      22
     ],
     "boardings": {
-      "Yamanote": 98,
-      "Inokashira": 29
+      "Yamanote": 100,
+      "Inokashira": 28
     },
     "arrival_modes": {
-      "walk": 27,
-      "Yamanote": 98,
-      "Inokashira": 29
+      "walk": 28,
+      "Yamanote": 100,
+      "Inokashira": 28
     },
-    "active": 441,
+    "active": 444,
     "waiting": 0,
-    "gone": 519,
+    "gone": 516,
     "signal": "green",
-    "peak_density_per_m2": 0.3305,
+    "peak_density_per_m2": 0.3327,
     "history": [
       {
         "time_s": 30,
@@ -353,7 +353,7 @@
       },
       {
         "time_s": 240,
-        "central_count": 63,
+        "central_count": 49,
         "district_people": [
           0,
           0,
@@ -368,7 +368,7 @@
       },
       {
         "time_s": 270,
-        "central_count": 63,
+        "central_count": 46,
         "district_people": [
           0,
           0,
@@ -398,7 +398,7 @@
       },
       {
         "time_s": 330,
-        "central_count": 172,
+        "central_count": 146,
         "district_people": [
           0,
           0,
@@ -413,6 +413,966 @@
       },
       {
         "time_s": 360,
+        "central_count": 137,
+        "district_people": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "boardings": {
+          "Yamanote": 0,
+          "Inokashira": 0
+        }
+      },
+      {
+        "time_s": 390,
+        "central_count": 227,
+        "district_people": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "boardings": {
+          "Yamanote": 0,
+          "Inokashira": 0
+        }
+      },
+      {
+        "time_s": 420,
+        "central_count": 183,
+        "district_people": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "boardings": {
+          "Yamanote": 0,
+          "Inokashira": 0
+        }
+      },
+      {
+        "time_s": 450,
+        "central_count": 172,
+        "district_people": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "boardings": {
+          "Yamanote": 0,
+          "Inokashira": 0
+        }
+      },
+      {
+        "time_s": 480,
+        "central_count": 274,
+        "district_people": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "boardings": {
+          "Yamanote": 0,
+          "Inokashira": 0
+        }
+      },
+      {
+        "time_s": 510,
+        "central_count": 245,
+        "district_people": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "boardings": {
+          "Yamanote": 0,
+          "Inokashira": 4
+        }
+      },
+      {
+        "time_s": 540,
+        "central_count": 240,
+        "district_people": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "boardings": {
+          "Yamanote": 18,
+          "Inokashira": 4
+        }
+      },
+      {
+        "time_s": 570,
+        "central_count": 345,
+        "district_people": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "boardings": {
+          "Yamanote": 18,
+          "Inokashira": 4
+        }
+      },
+      {
+        "time_s": 600,
+        "central_count": 295,
+        "district_people": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "boardings": {
+          "Yamanote": 18,
+          "Inokashira": 4
+        }
+      },
+      {
+        "time_s": 630,
+        "central_count": 285,
+        "district_people": [
+          4,
+          0,
+          0,
+          0,
+          0
+        ],
+        "boardings": {
+          "Yamanote": 18,
+          "Inokashira": 4
+        }
+      },
+      {
+        "time_s": 660,
+        "central_count": 404,
+        "district_people": [
+          4,
+          0,
+          0,
+          0,
+          0
+        ],
+        "boardings": {
+          "Yamanote": 18,
+          "Inokashira": 4
+        }
+      },
+      {
+        "time_s": 690,
+        "central_count": 352,
+        "district_people": [
+          4,
+          11,
+          0,
+          0,
+          0
+        ],
+        "boardings": {
+          "Yamanote": 18,
+          "Inokashira": 4
+        }
+      },
+      {
+        "time_s": 720,
+        "central_count": 338,
+        "district_people": [
+          4,
+          11,
+          0,
+          0,
+          1
+        ],
+        "boardings": {
+          "Yamanote": 45,
+          "Inokashira": 4
+        }
+      },
+      {
+        "time_s": 750,
+        "central_count": 458,
+        "district_people": [
+          4,
+          11,
+          0,
+          0,
+          1
+        ],
+        "boardings": {
+          "Yamanote": 45,
+          "Inokashira": 18
+        }
+      },
+      {
+        "time_s": 780,
+        "central_count": 410,
+        "district_people": [
+          4,
+          11,
+          0,
+          0,
+          1
+        ],
+        "boardings": {
+          "Yamanote": 45,
+          "Inokashira": 18
+        }
+      },
+      {
+        "time_s": 810,
+        "central_count": 398,
+        "district_people": [
+          4,
+          11,
+          0,
+          0,
+          1
+        ],
+        "boardings": {
+          "Yamanote": 45,
+          "Inokashira": 18
+        }
+      },
+      {
+        "time_s": 840,
+        "central_count": 519,
+        "district_people": [
+          4,
+          11,
+          6,
+          0,
+          1
+        ],
+        "boardings": {
+          "Yamanote": 45,
+          "Inokashira": 18
+        }
+      },
+      {
+        "time_s": 870,
+        "central_count": 456,
+        "district_people": [
+          18,
+          13,
+          6,
+          0,
+          1
+        ],
+        "boardings": {
+          "Yamanote": 45,
+          "Inokashira": 18
+        }
+      },
+      {
+        "time_s": 900,
+        "central_count": 437,
+        "district_people": [
+          18,
+          13,
+          6,
+          0,
+          7
+        ],
+        "boardings": {
+          "Yamanote": 64,
+          "Inokashira": 18
+        }
+      },
+      {
+        "time_s": 930,
+        "central_count": 567,
+        "district_people": [
+          18,
+          13,
+          6,
+          0,
+          7
+        ],
+        "boardings": {
+          "Yamanote": 64,
+          "Inokashira": 18
+        }
+      },
+      {
+        "time_s": 960,
+        "central_count": 481,
+        "district_people": [
+          18,
+          13,
+          6,
+          0,
+          7
+        ],
+        "boardings": {
+          "Yamanote": 64,
+          "Inokashira": 18
+        }
+      },
+      {
+        "time_s": 990,
+        "central_count": 460,
+        "district_people": [
+          18,
+          13,
+          6,
+          0,
+          7
+        ],
+        "boardings": {
+          "Yamanote": 64,
+          "Inokashira": 25
+        }
+      },
+      {
+        "time_s": 1020,
+        "central_count": 600,
+        "district_people": [
+          18,
+          13,
+          25,
+          0,
+          7
+        ],
+        "boardings": {
+          "Yamanote": 64,
+          "Inokashira": 25
+        }
+      },
+      {
+        "time_s": 1050,
+        "central_count": 517,
+        "district_people": [
+          18,
+          17,
+          25,
+          0,
+          7
+        ],
+        "boardings": {
+          "Yamanote": 64,
+          "Inokashira": 25
+        }
+      },
+      {
+        "time_s": 1080,
+        "central_count": 489,
+        "district_people": [
+          18,
+          17,
+          25,
+          0,
+          17
+        ],
+        "boardings": {
+          "Yamanote": 93,
+          "Inokashira": 25
+        }
+      },
+      {
+        "time_s": 1110,
+        "central_count": 565,
+        "district_people": [
+          25,
+          17,
+          25,
+          0,
+          17
+        ],
+        "boardings": {
+          "Yamanote": 93,
+          "Inokashira": 25
+        }
+      },
+      {
+        "time_s": 1140,
+        "central_count": 466,
+        "district_people": [
+          25,
+          17,
+          25,
+          0,
+          17
+        ],
+        "boardings": {
+          "Yamanote": 93,
+          "Inokashira": 25
+        }
+      },
+      {
+        "time_s": 1170,
+        "central_count": 451,
+        "district_people": [
+          25,
+          17,
+          25,
+          0,
+          17
+        ],
+        "boardings": {
+          "Yamanote": 93,
+          "Inokashira": 25
+        }
+      },
+      {
+        "time_s": 1200,
+        "central_count": 513,
+        "district_people": [
+          25,
+          17,
+          30,
+          0,
+          17
+        ],
+        "boardings": {
+          "Yamanote": 93,
+          "Inokashira": 25
+        }
+      },
+      {
+        "time_s": 1230,
+        "central_count": 426,
+        "district_people": [
+          25,
+          22,
+          30,
+          0,
+          17
+        ],
+        "boardings": {
+          "Yamanote": 93,
+          "Inokashira": 28
+        }
+      },
+      {
+        "time_s": 1260,
+        "central_count": 404,
+        "district_people": [
+          25,
+          22,
+          30,
+          0,
+          22
+        ],
+        "boardings": {
+          "Yamanote": 99,
+          "Inokashira": 28
+        }
+      },
+      {
+        "time_s": 1290,
+        "central_count": 449,
+        "district_people": [
+          25,
+          22,
+          30,
+          1,
+          22
+        ],
+        "boardings": {
+          "Yamanote": 99,
+          "Inokashira": 28
+        }
+      },
+      {
+        "time_s": 1320,
+        "central_count": 366,
+        "district_people": [
+          25,
+          22,
+          30,
+          2,
+          22
+        ],
+        "boardings": {
+          "Yamanote": 99,
+          "Inokashira": 28
+        }
+      },
+      {
+        "time_s": 1350,
+        "central_count": 344,
+        "district_people": [
+          28,
+          22,
+          30,
+          2,
+          22
+        ],
+        "boardings": {
+          "Yamanote": 99,
+          "Inokashira": 28
+        }
+      },
+      {
+        "time_s": 1380,
+        "central_count": 383,
+        "district_people": [
+          28,
+          22,
+          49,
+          4,
+          22
+        ],
+        "boardings": {
+          "Yamanote": 99,
+          "Inokashira": 28
+        }
+      },
+      {
+        "time_s": 1410,
+        "central_count": 304,
+        "district_people": [
+          29,
+          22,
+          49,
+          5,
+          22
+        ],
+        "boardings": {
+          "Yamanote": 99,
+          "Inokashira": 28
+        }
+      },
+      {
+        "time_s": 1440,
+        "central_count": 284,
+        "district_people": [
+          29,
+          22,
+          49,
+          5,
+          22
+        ],
+        "boardings": {
+          "Yamanote": 100,
+          "Inokashira": 28
+        }
+      },
+      {
+        "time_s": 1470,
+        "central_count": 324,
+        "district_people": [
+          29,
+          22,
+          49,
+          6,
+          22
+        ],
+        "boardings": {
+          "Yamanote": 100,
+          "Inokashira": 28
+        }
+      },
+      {
+        "time_s": 1500,
+        "central_count": 250,
+        "district_people": [
+          29,
+          22,
+          49,
+          8,
+          22
+        ],
+        "boardings": {
+          "Yamanote": 100,
+          "Inokashira": 28
+        }
+      },
+      {
+        "time_s": 1530,
+        "central_count": 229,
+        "district_people": [
+          29,
+          22,
+          49,
+          10,
+          22
+        ],
+        "boardings": {
+          "Yamanote": 100,
+          "Inokashira": 28
+        }
+      },
+      {
+        "time_s": 1560,
+        "central_count": 257,
+        "district_people": [
+          29,
+          22,
+          55,
+          11,
+          22
+        ],
+        "boardings": {
+          "Yamanote": 100,
+          "Inokashira": 28
+        }
+      },
+      {
+        "time_s": 1590,
+        "central_count": 202,
+        "district_people": [
+          29,
+          23,
+          55,
+          11,
+          22
+        ],
+        "boardings": {
+          "Yamanote": 100,
+          "Inokashira": 28
+        }
+      },
+      {
+        "time_s": 1620,
+        "central_count": 192,
+        "district_people": [
+          29,
+          23,
+          55,
+          14,
+          22
+        ],
+        "boardings": {
+          "Yamanote": 100,
+          "Inokashira": 28
+        }
+      },
+      {
+        "time_s": 1650,
+        "central_count": 209,
+        "district_people": [
+          29,
+          23,
+          55,
+          15,
+          22
+        ],
+        "boardings": {
+          "Yamanote": 100,
+          "Inokashira": 28
+        }
+      },
+      {
+        "time_s": 1680,
+        "central_count": 150,
+        "district_people": [
+          29,
+          23,
+          55,
+          17,
+          22
+        ],
+        "boardings": {
+          "Yamanote": 100,
+          "Inokashira": 28
+        }
+      },
+      {
+        "time_s": 1710,
+        "central_count": 133,
+        "district_people": [
+          29,
+          23,
+          55,
+          17,
+          22
+        ],
+        "boardings": {
+          "Yamanote": 100,
+          "Inokashira": 28
+        }
+      },
+      {
+        "time_s": 1740,
+        "central_count": 144,
+        "district_people": [
+          29,
+          23,
+          56,
+          22,
+          22
+        ],
+        "boardings": {
+          "Yamanote": 100,
+          "Inokashira": 28
+        }
+      },
+      {
+        "time_s": 1770,
+        "central_count": 101,
+        "district_people": [
+          30,
+          23,
+          56,
+          24,
+          22
+        ],
+        "boardings": {
+          "Yamanote": 100,
+          "Inokashira": 28
+        }
+      },
+      {
+        "time_s": 1800,
+        "central_count": 88,
+        "district_people": [
+          30,
+          23,
+          56,
+          25,
+          22
+        ],
+        "boardings": {
+          "Yamanote": 100,
+          "Inokashira": 28
+        }
+      }
+    ]
+  },
+  "events_on": {
+    "time_s": 1800,
+    "central_count": 65,
+    "density": 0.03592038646171249,
+    "peak_central_count": 502,
+    "visits": 244,
+    "district_people": [
+      47,
+      43,
+      79,
+      40,
+      35
+    ],
+    "boardings": {
+      "Yamanote": 147,
+      "Inokashira": 35
+    },
+    "arrival_modes": {
+      "walk": 62,
+      "Yamanote": 147,
+      "Inokashira": 35
+    },
+    "active": 547,
+    "waiting": 0,
+    "gone": 413,
+    "signal": "green",
+    "peak_density_per_m2": 0.2774,
+    "history": [
+      {
+        "time_s": 30,
+        "central_count": 0,
+        "district_people": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "boardings": {
+          "Yamanote": 0,
+          "Inokashira": 0
+        }
+      },
+      {
+        "time_s": 60,
+        "central_count": 0,
+        "district_people": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "boardings": {
+          "Yamanote": 0,
+          "Inokashira": 0
+        }
+      },
+      {
+        "time_s": 90,
+        "central_count": 0,
+        "district_people": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "boardings": {
+          "Yamanote": 0,
+          "Inokashira": 0
+        }
+      },
+      {
+        "time_s": 120,
+        "central_count": 0,
+        "district_people": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "boardings": {
+          "Yamanote": 0,
+          "Inokashira": 0
+        }
+      },
+      {
+        "time_s": 150,
+        "central_count": 3,
+        "district_people": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "boardings": {
+          "Yamanote": 0,
+          "Inokashira": 0
+        }
+      },
+      {
+        "time_s": 180,
+        "central_count": 3,
+        "district_people": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "boardings": {
+          "Yamanote": 0,
+          "Inokashira": 0
+        }
+      },
+      {
+        "time_s": 210,
+        "central_count": 51,
+        "district_people": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "boardings": {
+          "Yamanote": 0,
+          "Inokashira": 0
+        }
+      },
+      {
+        "time_s": 240,
+        "central_count": 49,
+        "district_people": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "boardings": {
+          "Yamanote": 0,
+          "Inokashira": 0
+        }
+      },
+      {
+        "time_s": 270,
+        "central_count": 46,
+        "district_people": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "boardings": {
+          "Yamanote": 0,
+          "Inokashira": 0
+        }
+      },
+      {
+        "time_s": 300,
+        "central_count": 156,
+        "district_people": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "boardings": {
+          "Yamanote": 0,
+          "Inokashira": 0
+        }
+      },
+      {
+        "time_s": 330,
+        "central_count": 146,
+        "district_people": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "boardings": {
+          "Yamanote": 0,
+          "Inokashira": 0
+        }
+      },
+      {
+        "time_s": 360,
+        "central_count": 139,
+        "district_people": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "boardings": {
+          "Yamanote": 0,
+          "Inokashira": 0
+        }
+      },
+      {
+        "time_s": 390,
+        "central_count": 216,
+        "district_people": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "boardings": {
+          "Yamanote": 0,
+          "Inokashira": 0
+        }
+      },
+      {
+        "time_s": 420,
         "central_count": 171,
         "district_people": [
           0,
@@ -427,38 +1387,8 @@
         }
       },
       {
-        "time_s": 390,
-        "central_count": 230,
-        "district_people": [
-          0,
-          0,
-          0,
-          0,
-          0
-        ],
-        "boardings": {
-          "Yamanote": 0,
-          "Inokashira": 0
-        }
-      },
-      {
-        "time_s": 420,
-        "central_count": 219,
-        "district_people": [
-          0,
-          0,
-          0,
-          0,
-          0
-        ],
-        "boardings": {
-          "Yamanote": 0,
-          "Inokashira": 0
-        }
-      },
-      {
         "time_s": 450,
-        "central_count": 206,
+        "central_count": 155,
         "district_people": [
           0,
           0,
@@ -473,7 +1403,7 @@
       },
       {
         "time_s": 480,
-        "central_count": 273,
+        "central_count": 241,
         "district_people": [
           0,
           0,
@@ -488,7 +1418,7 @@
       },
       {
         "time_s": 510,
-        "central_count": 286,
+        "central_count": 216,
         "district_people": [
           0,
           0,
@@ -498,12 +1428,12 @@
         ],
         "boardings": {
           "Yamanote": 0,
-          "Inokashira": 5
+          "Inokashira": 4
         }
       },
       {
         "time_s": 540,
-        "central_count": 279,
+        "central_count": 209,
         "district_people": [
           0,
           0,
@@ -512,13 +1442,13 @@
           0
         ],
         "boardings": {
-          "Yamanote": 15,
-          "Inokashira": 5
+          "Yamanote": 26,
+          "Inokashira": 4
         }
       },
       {
         "time_s": 570,
-        "central_count": 341,
+        "central_count": 301,
         "district_people": [
           0,
           0,
@@ -527,13 +1457,13 @@
           0
         ],
         "boardings": {
-          "Yamanote": 15,
-          "Inokashira": 5
+          "Yamanote": 26,
+          "Inokashira": 4
         }
       },
       {
         "time_s": 600,
-        "central_count": 334,
+        "central_count": 259,
         "district_people": [
           0,
           0,
@@ -542,976 +1472,46 @@
           0
         ],
         "boardings": {
-          "Yamanote": 15,
-          "Inokashira": 5
+          "Yamanote": 26,
+          "Inokashira": 4
         }
       },
       {
         "time_s": 630,
-        "central_count": 328,
+        "central_count": 246,
         "district_people": [
-          5,
+          4,
           0,
           0,
           0,
           0
         ],
         "boardings": {
-          "Yamanote": 15,
-          "Inokashira": 5
+          "Yamanote": 26,
+          "Inokashira": 4
         }
       },
       {
         "time_s": 660,
-        "central_count": 405,
+        "central_count": 350,
         "district_people": [
-          5,
+          4,
           0,
           0,
           0,
           0
         ],
         "boardings": {
-          "Yamanote": 15,
-          "Inokashira": 5
+          "Yamanote": 26,
+          "Inokashira": 4
         }
       },
       {
         "time_s": 690,
-        "central_count": 408,
-        "district_people": [
-          5,
-          9,
-          0,
-          0,
-          0
-        ],
-        "boardings": {
-          "Yamanote": 15,
-          "Inokashira": 5
-        }
-      },
-      {
-        "time_s": 720,
-        "central_count": 389,
-        "district_people": [
-          5,
-          9,
-          0,
-          0,
-          0
-        ],
-        "boardings": {
-          "Yamanote": 42,
-          "Inokashira": 5
-        }
-      },
-      {
-        "time_s": 750,
-        "central_count": 456,
-        "district_people": [
-          5,
-          9,
-          0,
-          0,
-          0
-        ],
-        "boardings": {
-          "Yamanote": 42,
-          "Inokashira": 19
-        }
-      },
-      {
-        "time_s": 780,
-        "central_count": 461,
-        "district_people": [
-          5,
-          9,
-          0,
-          0,
-          0
-        ],
-        "boardings": {
-          "Yamanote": 42,
-          "Inokashira": 19
-        }
-      },
-      {
-        "time_s": 810,
-        "central_count": 453,
-        "district_people": [
-          5,
-          9,
-          0,
-          0,
-          0
-        ],
-        "boardings": {
-          "Yamanote": 42,
-          "Inokashira": 19
-        }
-      },
-      {
-        "time_s": 840,
-        "central_count": 520,
-        "district_people": [
-          5,
-          9,
-          6,
-          0,
-          0
-        ],
-        "boardings": {
-          "Yamanote": 42,
-          "Inokashira": 19
-        }
-      },
-      {
-        "time_s": 870,
-        "central_count": 514,
-        "district_people": [
-          19,
-          12,
-          6,
-          0,
-          0
-        ],
-        "boardings": {
-          "Yamanote": 42,
-          "Inokashira": 19
-        }
-      },
-      {
-        "time_s": 900,
-        "central_count": 503,
-        "district_people": [
-          19,
-          12,
-          6,
-          0,
-          5
-        ],
-        "boardings": {
-          "Yamanote": 63,
-          "Inokashira": 19
-        }
-      },
-      {
-        "time_s": 930,
-        "central_count": 560,
-        "district_people": [
-          19,
-          12,
-          6,
-          0,
-          5
-        ],
-        "boardings": {
-          "Yamanote": 63,
-          "Inokashira": 19
-        }
-      },
-      {
-        "time_s": 960,
-        "central_count": 551,
-        "district_people": [
-          19,
-          12,
-          6,
-          0,
-          5
-        ],
-        "boardings": {
-          "Yamanote": 63,
-          "Inokashira": 19
-        }
-      },
-      {
-        "time_s": 990,
-        "central_count": 537,
-        "district_people": [
-          19,
-          12,
-          6,
-          0,
-          5
-        ],
-        "boardings": {
-          "Yamanote": 63,
-          "Inokashira": 25
-        }
-      },
-      {
-        "time_s": 1020,
-        "central_count": 593,
-        "district_people": [
-          19,
-          12,
-          25,
-          0,
-          5
-        ],
-        "boardings": {
-          "Yamanote": 63,
-          "Inokashira": 25
-        }
-      },
-      {
-        "time_s": 1050,
-        "central_count": 592,
-        "district_people": [
-          19,
-          16,
-          25,
-          0,
-          5
-        ],
-        "boardings": {
-          "Yamanote": 63,
-          "Inokashira": 25
-        }
-      },
-      {
-        "time_s": 1080,
-        "central_count": 574,
-        "district_people": [
-          19,
-          16,
-          25,
-          0,
-          16
-        ],
-        "boardings": {
-          "Yamanote": 90,
-          "Inokashira": 25
-        }
-      },
-      {
-        "time_s": 1110,
-        "central_count": 560,
-        "district_people": [
-          25,
-          16,
-          25,
-          0,
-          16
-        ],
-        "boardings": {
-          "Yamanote": 90,
-          "Inokashira": 25
-        }
-      },
-      {
-        "time_s": 1140,
-        "central_count": 540,
-        "district_people": [
-          25,
-          16,
-          25,
-          0,
-          16
-        ],
-        "boardings": {
-          "Yamanote": 90,
-          "Inokashira": 25
-        }
-      },
-      {
-        "time_s": 1170,
-        "central_count": 528,
-        "district_people": [
-          25,
-          16,
-          25,
-          0,
-          16
-        ],
-        "boardings": {
-          "Yamanote": 90,
-          "Inokashira": 25
-        }
-      },
-      {
-        "time_s": 1200,
-        "central_count": 510,
-        "district_people": [
-          25,
-          16,
-          31,
-          0,
-          16
-        ],
-        "boardings": {
-          "Yamanote": 90,
-          "Inokashira": 25
-        }
-      },
-      {
-        "time_s": 1230,
-        "central_count": 492,
-        "district_people": [
-          25,
-          21,
-          31,
-          0,
-          16
-        ],
-        "boardings": {
-          "Yamanote": 90,
-          "Inokashira": 29
-        }
-      },
-      {
-        "time_s": 1260,
-        "central_count": 473,
-        "district_people": [
-          25,
-          21,
-          31,
-          0,
-          21
-        ],
-        "boardings": {
-          "Yamanote": 97,
-          "Inokashira": 29
-        }
-      },
-      {
-        "time_s": 1290,
-        "central_count": 447,
-        "district_people": [
-          25,
-          21,
-          31,
-          1,
-          21
-        ],
-        "boardings": {
-          "Yamanote": 97,
-          "Inokashira": 29
-        }
-      },
-      {
-        "time_s": 1320,
-        "central_count": 429,
-        "district_people": [
-          25,
-          21,
-          31,
-          2,
-          21
-        ],
-        "boardings": {
-          "Yamanote": 97,
-          "Inokashira": 29
-        }
-      },
-      {
-        "time_s": 1350,
-        "central_count": 407,
-        "district_people": [
-          29,
-          21,
-          31,
-          2,
-          21
-        ],
-        "boardings": {
-          "Yamanote": 97,
-          "Inokashira": 29
-        }
-      },
-      {
-        "time_s": 1380,
-        "central_count": 385,
-        "district_people": [
-          29,
-          21,
-          48,
-          4,
-          21
-        ],
-        "boardings": {
-          "Yamanote": 97,
-          "Inokashira": 29
-        }
-      },
-      {
-        "time_s": 1410,
-        "central_count": 361,
-        "district_people": [
-          29,
-          22,
-          48,
-          4,
-          21
-        ],
-        "boardings": {
-          "Yamanote": 97,
-          "Inokashira": 29
-        }
-      },
-      {
-        "time_s": 1440,
-        "central_count": 345,
-        "district_people": [
-          29,
-          22,
-          48,
-          5,
-          21
-        ],
-        "boardings": {
-          "Yamanote": 98,
-          "Inokashira": 29
-        }
-      },
-      {
-        "time_s": 1470,
-        "central_count": 326,
-        "district_people": [
-          29,
-          22,
-          48,
-          7,
-          21
-        ],
-        "boardings": {
-          "Yamanote": 98,
-          "Inokashira": 29
-        }
-      },
-      {
-        "time_s": 1500,
         "central_count": 306,
         "district_people": [
-          29,
-          22,
-          48,
-          7,
-          21
-        ],
-        "boardings": {
-          "Yamanote": 98,
-          "Inokashira": 29
-        }
-      },
-      {
-        "time_s": 1530,
-        "central_count": 281,
-        "district_people": [
-          30,
-          22,
-          48,
-          11,
-          21
-        ],
-        "boardings": {
-          "Yamanote": 98,
-          "Inokashira": 29
-        }
-      },
-      {
-        "time_s": 1560,
-        "central_count": 258,
-        "district_people": [
-          30,
-          22,
-          54,
-          11,
-          21
-        ],
-        "boardings": {
-          "Yamanote": 98,
-          "Inokashira": 29
-        }
-      },
-      {
-        "time_s": 1590,
-        "central_count": 245,
-        "district_people": [
-          30,
-          23,
-          54,
-          12,
-          21
-        ],
-        "boardings": {
-          "Yamanote": 98,
-          "Inokashira": 29
-        }
-      },
-      {
-        "time_s": 1620,
-        "central_count": 231,
-        "district_people": [
-          30,
-          23,
-          54,
-          14,
-          21
-        ],
-        "boardings": {
-          "Yamanote": 98,
-          "Inokashira": 29
-        }
-      },
-      {
-        "time_s": 1650,
-        "central_count": 208,
-        "district_people": [
-          30,
-          23,
-          54,
-          15,
-          21
-        ],
-        "boardings": {
-          "Yamanote": 98,
-          "Inokashira": 29
-        }
-      },
-      {
-        "time_s": 1680,
-        "central_count": 184,
-        "district_people": [
-          30,
-          23,
-          54,
-          16,
-          21
-        ],
-        "boardings": {
-          "Yamanote": 98,
-          "Inokashira": 29
-        }
-      },
-      {
-        "time_s": 1710,
-        "central_count": 164,
-        "district_people": [
-          30,
-          23,
-          54,
-          16,
-          21
-        ],
-        "boardings": {
-          "Yamanote": 98,
-          "Inokashira": 29
-        }
-      },
-      {
-        "time_s": 1740,
-        "central_count": 145,
-        "district_people": [
-          30,
-          23,
-          55,
-          21,
-          21
-        ],
-        "boardings": {
-          "Yamanote": 98,
-          "Inokashira": 29
-        }
-      },
-      {
-        "time_s": 1770,
-        "central_count": 127,
-        "district_people": [
-          30,
-          23,
-          55,
-          24,
-          21
-        ],
-        "boardings": {
-          "Yamanote": 98,
-          "Inokashira": 29
-        }
-      },
-      {
-        "time_s": 1800,
-        "central_count": 107,
-        "district_people": [
-          30,
-          23,
-          55,
-          25,
-          21
-        ],
-        "boardings": {
-          "Yamanote": 98,
-          "Inokashira": 29
-        }
-      }
-    ]
-  },
-  "events_on": {
-    "time_s": 1800,
-    "central_count": 73,
-    "density": 0.04034135710315403,
-    "peak_central_count": 499,
-    "visits": 258,
-    "district_people": [
-      49,
-      42,
-      78,
-      42,
-      47
-    ],
-    "boardings": {
-      "Yamanote": 158,
-      "Inokashira": 36
-    },
-    "arrival_modes": {
-      "walk": 64,
-      "Yamanote": 158,
-      "Inokashira": 36
-    },
-    "active": 556,
-    "waiting": 0,
-    "gone": 404,
-    "signal": "green",
-    "peak_density_per_m2": 0.2758,
-    "history": [
-      {
-        "time_s": 30,
-        "central_count": 0,
-        "district_people": [
-          0,
-          0,
-          0,
-          0,
-          0
-        ],
-        "boardings": {
-          "Yamanote": 0,
-          "Inokashira": 0
-        }
-      },
-      {
-        "time_s": 60,
-        "central_count": 0,
-        "district_people": [
-          0,
-          0,
-          0,
-          0,
-          0
-        ],
-        "boardings": {
-          "Yamanote": 0,
-          "Inokashira": 0
-        }
-      },
-      {
-        "time_s": 90,
-        "central_count": 0,
-        "district_people": [
-          0,
-          0,
-          0,
-          0,
-          0
-        ],
-        "boardings": {
-          "Yamanote": 0,
-          "Inokashira": 0
-        }
-      },
-      {
-        "time_s": 120,
-        "central_count": 0,
-        "district_people": [
-          0,
-          0,
-          0,
-          0,
-          0
-        ],
-        "boardings": {
-          "Yamanote": 0,
-          "Inokashira": 0
-        }
-      },
-      {
-        "time_s": 150,
-        "central_count": 3,
-        "district_people": [
-          0,
-          0,
-          0,
-          0,
-          0
-        ],
-        "boardings": {
-          "Yamanote": 0,
-          "Inokashira": 0
-        }
-      },
-      {
-        "time_s": 180,
-        "central_count": 3,
-        "district_people": [
-          0,
-          0,
-          0,
-          0,
-          0
-        ],
-        "boardings": {
-          "Yamanote": 0,
-          "Inokashira": 0
-        }
-      },
-      {
-        "time_s": 210,
-        "central_count": 51,
-        "district_people": [
-          0,
-          0,
-          0,
-          0,
-          0
-        ],
-        "boardings": {
-          "Yamanote": 0,
-          "Inokashira": 0
-        }
-      },
-      {
-        "time_s": 240,
-        "central_count": 63,
-        "district_people": [
-          0,
-          0,
-          0,
-          0,
-          0
-        ],
-        "boardings": {
-          "Yamanote": 0,
-          "Inokashira": 0
-        }
-      },
-      {
-        "time_s": 270,
-        "central_count": 63,
-        "district_people": [
-          0,
-          0,
-          0,
-          0,
-          0
-        ],
-        "boardings": {
-          "Yamanote": 0,
-          "Inokashira": 0
-        }
-      },
-      {
-        "time_s": 300,
-        "central_count": 156,
-        "district_people": [
-          0,
-          0,
-          0,
-          0,
-          0
-        ],
-        "boardings": {
-          "Yamanote": 0,
-          "Inokashira": 0
-        }
-      },
-      {
-        "time_s": 330,
-        "central_count": 172,
-        "district_people": [
-          0,
-          0,
-          0,
-          0,
-          0
-        ],
-        "boardings": {
-          "Yamanote": 0,
-          "Inokashira": 0
-        }
-      },
-      {
-        "time_s": 360,
-        "central_count": 168,
-        "district_people": [
-          0,
-          0,
-          0,
-          0,
-          0
-        ],
-        "boardings": {
-          "Yamanote": 0,
-          "Inokashira": 0
-        }
-      },
-      {
-        "time_s": 390,
-        "central_count": 218,
-        "district_people": [
-          0,
-          0,
-          0,
-          0,
-          0
-        ],
-        "boardings": {
-          "Yamanote": 0,
-          "Inokashira": 0
-        }
-      },
-      {
-        "time_s": 420,
-        "central_count": 198,
-        "district_people": [
-          0,
-          0,
-          0,
-          0,
-          0
-        ],
-        "boardings": {
-          "Yamanote": 0,
-          "Inokashira": 0
-        }
-      },
-      {
-        "time_s": 450,
-        "central_count": 182,
-        "district_people": [
-          0,
-          0,
-          0,
-          0,
-          0
-        ],
-        "boardings": {
-          "Yamanote": 0,
-          "Inokashira": 0
-        }
-      },
-      {
-        "time_s": 480,
-        "central_count": 245,
-        "district_people": [
-          0,
-          0,
-          0,
-          0,
-          0
-        ],
-        "boardings": {
-          "Yamanote": 0,
-          "Inokashira": 0
-        }
-      },
-      {
-        "time_s": 510,
-        "central_count": 255,
-        "district_people": [
-          0,
-          0,
-          0,
-          0,
-          0
-        ],
-        "boardings": {
-          "Yamanote": 0,
-          "Inokashira": 4
-        }
-      },
-      {
-        "time_s": 540,
-        "central_count": 239,
-        "district_people": [
-          0,
-          0,
-          0,
-          0,
-          0
-        ],
-        "boardings": {
-          "Yamanote": 26,
-          "Inokashira": 4
-        }
-      },
-      {
-        "time_s": 570,
-        "central_count": 295,
-        "district_people": [
-          0,
-          0,
-          0,
-          0,
-          0
-        ],
-        "boardings": {
-          "Yamanote": 26,
-          "Inokashira": 4
-        }
-      },
-      {
-        "time_s": 600,
-        "central_count": 285,
-        "district_people": [
-          0,
-          0,
-          0,
-          0,
-          0
-        ],
-        "boardings": {
-          "Yamanote": 26,
-          "Inokashira": 4
-        }
-      },
-      {
-        "time_s": 630,
-        "central_count": 279,
-        "district_people": [
           4,
-          0,
-          0,
-          0,
-          0
-        ],
-        "boardings": {
-          "Yamanote": 26,
-          "Inokashira": 4
-        }
-      },
-      {
-        "time_s": 660,
-        "central_count": 347,
-        "district_people": [
-          4,
-          0,
-          0,
-          0,
-          0
-        ],
-        "boardings": {
-          "Yamanote": 26,
-          "Inokashira": 4
-        }
-      },
-      {
-        "time_s": 690,
-        "central_count": 348,
-        "district_people": [
-          4,
-          12,
+          13,
           0,
           0,
           0
@@ -1523,566 +1523,579 @@
       },
       {
         "time_s": 720,
-        "central_count": 326,
+        "central_count": 287,
         "district_people": [
           4,
-          12,
+          13,
           0,
           0,
-          4
+          2
         ],
         "boardings": {
-          "Yamanote": 61,
+          "Yamanote": 59,
           "Inokashira": 4
         }
       },
       {
         "time_s": 750,
-        "central_count": 381,
+        "central_count": 391,
         "district_people": [
           4,
-          12,
+          13,
           0,
           0,
-          4
+          2
         ],
         "boardings": {
-          "Yamanote": 61,
+          "Yamanote": 59,
           "Inokashira": 18
         }
       },
       {
         "time_s": 780,
-        "central_count": 383,
+        "central_count": 343,
         "district_people": [
           4,
-          12,
+          13,
           0,
           0,
-          4
+          2
         ],
         "boardings": {
-          "Yamanote": 61,
+          "Yamanote": 59,
           "Inokashira": 18
         }
       },
       {
         "time_s": 810,
-        "central_count": 369,
+        "central_count": 327,
         "district_people": [
           4,
-          12,
+          13,
           0,
           0,
-          4
+          2
         ],
         "boardings": {
-          "Yamanote": 61,
+          "Yamanote": 59,
           "Inokashira": 18
         }
       },
       {
         "time_s": 840,
-        "central_count": 431,
+        "central_count": 437,
         "district_people": [
           4,
-          12,
-          10,
+          13,
+          11,
           0,
-          4
+          2
         ],
         "boardings": {
-          "Yamanote": 61,
+          "Yamanote": 59,
           "Inokashira": 18
         }
       },
       {
         "time_s": 870,
-        "central_count": 426,
+        "central_count": 385,
         "district_people": [
           18,
           16,
-          10,
+          11,
           0,
-          4
+          2
         ],
         "boardings": {
-          "Yamanote": 61,
+          "Yamanote": 59,
           "Inokashira": 18
         }
       },
       {
         "time_s": 900,
-        "central_count": 409,
+        "central_count": 369,
         "district_people": [
           18,
           16,
-          10,
+          11,
           0,
-          12
+          8
         ],
         "boardings": {
-          "Yamanote": 92,
+          "Yamanote": 89,
           "Inokashira": 18
         }
       },
       {
         "time_s": 930,
-        "central_count": 466,
+        "central_count": 481,
         "district_people": [
           18,
           16,
-          10,
+          11,
           0,
-          12
+          8
         ],
         "boardings": {
-          "Yamanote": 92,
+          "Yamanote": 90,
           "Inokashira": 18
         }
       },
       {
         "time_s": 960,
-        "central_count": 455,
+        "central_count": 408,
         "district_people": [
           18,
           16,
-          10,
+          11,
           0,
-          12
+          8
         ],
         "boardings": {
-          "Yamanote": 92,
+          "Yamanote": 90,
           "Inokashira": 18
         }
       },
       {
         "time_s": 990,
-        "central_count": 439,
+        "central_count": 385,
         "district_people": [
           18,
           16,
-          10,
+          11,
           0,
-          12
+          8
         ],
         "boardings": {
-          "Yamanote": 92,
+          "Yamanote": 90,
           "Inokashira": 33
         }
       },
       {
         "time_s": 1020,
-        "central_count": 495,
+        "central_count": 499,
         "district_people": [
           18,
           16,
-          33,
+          35,
           0,
-          12
+          8
         ],
         "boardings": {
-          "Yamanote": 92,
+          "Yamanote": 90,
           "Inokashira": 33
         }
       },
       {
         "time_s": 1050,
-        "central_count": 484,
+        "central_count": 435,
         "district_people": [
           18,
           21,
-          33,
+          35,
           0,
-          12
+          8
         ],
         "boardings": {
-          "Yamanote": 92,
+          "Yamanote": 90,
           "Inokashira": 33
         }
       },
       {
         "time_s": 1080,
-        "central_count": 467,
+        "central_count": 412,
         "district_people": [
           18,
           21,
-          33,
+          35,
           0,
-          27
+          24
         ],
         "boardings": {
-          "Yamanote": 137,
+          "Yamanote": 135,
           "Inokashira": 33
         }
       },
       {
         "time_s": 1110,
-        "central_count": 447,
+        "central_count": 457,
         "district_people": [
           33,
           21,
-          33,
+          35,
           0,
-          27
+          24
         ],
         "boardings": {
-          "Yamanote": 137,
+          "Yamanote": 135,
           "Inokashira": 33
         }
       },
       {
         "time_s": 1140,
-        "central_count": 423,
+        "central_count": 376,
         "district_people": [
           33,
           21,
-          33,
+          35,
           0,
-          27
+          24
         ],
         "boardings": {
-          "Yamanote": 137,
+          "Yamanote": 135,
           "Inokashira": 33
         }
       },
       {
         "time_s": 1170,
-        "central_count": 407,
+        "central_count": 364,
         "district_people": [
           33,
           21,
-          33,
+          35,
           0,
-          27
+          24
         ],
         "boardings": {
-          "Yamanote": 137,
+          "Yamanote": 135,
           "Inokashira": 33
         }
       },
       {
         "time_s": 1200,
-        "central_count": 390,
+        "central_count": 400,
         "district_people": [
           33,
           21,
-          44,
+          45,
           0,
-          27
+          24
         ],
         "boardings": {
-          "Yamanote": 137,
+          "Yamanote": 135,
           "Inokashira": 33
         }
       },
       {
         "time_s": 1230,
-        "central_count": 375,
+        "central_count": 339,
         "district_people": [
           33,
-          31,
-          44,
+          33,
+          45,
           0,
-          27
+          24
         ],
         "boardings": {
-          "Yamanote": 137,
-          "Inokashira": 36
+          "Yamanote": 135,
+          "Inokashira": 35
         }
       },
       {
         "time_s": 1260,
-        "central_count": 355,
+        "central_count": 321,
         "district_people": [
           33,
-          31,
-          44,
+          33,
+          45,
           0,
-          35
+          31
         ],
         "boardings": {
-          "Yamanote": 157,
-          "Inokashira": 36
+          "Yamanote": 147,
+          "Inokashira": 35
         }
       },
       {
         "time_s": 1290,
-        "central_count": 331,
+        "central_count": 345,
         "district_people": [
           33,
-          31,
-          44,
+          33,
+          45,
           1,
-          35
+          31
         ],
         "boardings": {
-          "Yamanote": 157,
-          "Inokashira": 36
+          "Yamanote": 147,
+          "Inokashira": 35
         }
       },
       {
         "time_s": 1320,
-        "central_count": 317,
+        "central_count": 284,
         "district_people": [
           33,
-          31,
-          44,
-          2,
-          35
+          33,
+          45,
+          1,
+          31
         ],
         "boardings": {
-          "Yamanote": 157,
-          "Inokashira": 36
+          "Yamanote": 147,
+          "Inokashira": 35
         }
       },
       {
         "time_s": 1350,
-        "central_count": 300,
+        "central_count": 265,
         "district_people": [
           36,
-          31,
-          44,
-          2,
-          35
+          33,
+          45,
+          3,
+          31
         ],
         "boardings": {
-          "Yamanote": 157,
-          "Inokashira": 36
+          "Yamanote": 147,
+          "Inokashira": 35
         }
       },
       {
         "time_s": 1380,
-        "central_count": 281,
+        "central_count": 291,
         "district_people": [
           37,
-          31,
+          33,
           71,
           5,
-          35
+          31
         ],
         "boardings": {
-          "Yamanote": 157,
-          "Inokashira": 36
+          "Yamanote": 147,
+          "Inokashira": 35
         }
       },
       {
         "time_s": 1410,
-        "central_count": 267,
+        "central_count": 236,
         "district_people": [
-          38,
+          37,
           33,
           71,
           7,
-          35
+          31
         ],
         "boardings": {
-          "Yamanote": 157,
-          "Inokashira": 36
+          "Yamanote": 147,
+          "Inokashira": 35
         }
       },
       {
         "time_s": 1440,
-        "central_count": 256,
+        "central_count": 222,
         "district_people": [
-          38,
+          39,
           33,
           71,
           9,
-          47
+          35
         ],
         "boardings": {
-          "Yamanote": 158,
-          "Inokashira": 36
+          "Yamanote": 147,
+          "Inokashira": 35
         }
       },
       {
         "time_s": 1470,
-        "central_count": 238,
+        "central_count": 247,
+        "district_people": [
+          39,
+          33,
+          71,
+          10,
+          35
+        ],
+        "boardings": {
+          "Yamanote": 147,
+          "Inokashira": 35
+        }
+      },
+      {
+        "time_s": 1500,
+        "central_count": 195,
         "district_people": [
           39,
           33,
           71,
           12,
-          47
+          35
         ],
         "boardings": {
-          "Yamanote": 158,
-          "Inokashira": 36
-        }
-      },
-      {
-        "time_s": 1500,
-        "central_count": 226,
-        "district_people": [
-          40,
-          33,
-          71,
-          13,
-          47
-        ],
-        "boardings": {
-          "Yamanote": 158,
-          "Inokashira": 36
+          "Yamanote": 147,
+          "Inokashira": 35
         }
       },
       {
         "time_s": 1530,
-        "central_count": 203,
+        "central_count": 177,
         "district_people": [
-          41,
-          33,
+          39,
+          34,
           71,
-          16,
-          47
+          14,
+          35
         ],
         "boardings": {
-          "Yamanote": 158,
-          "Inokashira": 36
+          "Yamanote": 147,
+          "Inokashira": 35
         }
       },
       {
         "time_s": 1560,
-        "central_count": 189,
+        "central_count": 198,
         "district_people": [
-          41,
-          35,
-          77,
-          18,
-          47
+          39,
+          36,
+          79,
+          17,
+          35
         ],
         "boardings": {
-          "Yamanote": 158,
-          "Inokashira": 36
+          "Yamanote": 147,
+          "Inokashira": 35
         }
       },
       {
         "time_s": 1590,
-        "central_count": 178,
+        "central_count": 160,
         "district_people": [
-          42,
-          37,
-          77,
-          20,
-          47
+          39,
+          39,
+          79,
+          18,
+          35
         ],
         "boardings": {
-          "Yamanote": 158,
-          "Inokashira": 36
+          "Yamanote": 147,
+          "Inokashira": 35
         }
       },
       {
         "time_s": 1620,
-        "central_count": 167,
+        "central_count": 152,
         "district_people": [
-          42,
-          39,
-          77,
-          22,
-          47
+          40,
+          41,
+          79,
+          21,
+          35
         ],
         "boardings": {
-          "Yamanote": 158,
-          "Inokashira": 36
+          "Yamanote": 147,
+          "Inokashira": 35
         }
       },
       {
         "time_s": 1650,
-        "central_count": 152,
+        "central_count": 157,
         "district_people": [
-          44,
-          40,
-          77,
+          42,
+          41,
+          79,
           23,
-          47
+          35
         ],
         "boardings": {
-          "Yamanote": 158,
-          "Inokashira": 36
+          "Yamanote": 147,
+          "Inokashira": 35
         }
       },
       {
         "time_s": 1680,
-        "central_count": 136,
+        "central_count": 122,
         "district_people": [
-          45,
-          41,
-          77,
-          27,
-          47
+          44,
+          42,
+          79,
+          26,
+          35
         ],
         "boardings": {
-          "Yamanote": 158,
-          "Inokashira": 36
+          "Yamanote": 147,
+          "Inokashira": 35
         }
       },
       {
         "time_s": 1710,
-        "central_count": 118,
+        "central_count": 104,
         "district_people": [
-          46,
-          42,
-          77,
-          30,
-          47
+          45,
+          43,
+          79,
+          29,
+          35
         ],
         "boardings": {
-          "Yamanote": 158,
-          "Inokashira": 36
+          "Yamanote": 147,
+          "Inokashira": 35
         }
       },
       {
         "time_s": 1740,
-        "central_count": 108,
+        "central_count": 107,
         "district_people": [
           46,
-          42,
-          78,
-          35,
-          47
+          43,
+          79,
+          37,
+          35
         ],
         "boardings": {
-          "Yamanote": 158,
-          "Inokashira": 36
+          "Yamanote": 147,
+          "Inokashira": 35
         }
       },
       {
         "time_s": 1770,
-        "central_count": 88,
+        "central_count": 77,
         "district_people": [
-          49,
-          42,
-          78,
+          47,
+          43,
+          79,
           39,
-          47
+          35
         ],
         "boardings": {
-          "Yamanote": 158,
-          "Inokashira": 36
+          "Yamanote": 147,
+          "Inokashira": 35
         }
       },
       {
         "time_s": 1800,
-        "central_count": 73,
+        "central_count": 65,
         "district_people": [
-          49,
-          42,
-          78,
-          42,
-          47
+          47,
+          43,
+          79,
+          40,
+          35
         ],
         "boardings": {
-          "Yamanote": 158,
-          "Inokashira": 36
+          "Yamanote": 147,
+          "Inokashira": 35
         }
       }
     ]
   },
   "best_event": {
+    "criterion": "most completed arrivals",
     "district": "Yoyogi",
     "event": "Ghost lantern garden",
-    "people": 78
+    "people": 79
   },
+  "largest_lift": {
+    "criterion": "additional completed arrivals",
+    "district": "Yoyogi",
+    "people": 23
+  },
+  "district_lifts": [
+    17,
+    20,
+    23,
+    15,
+    13
+  ],
   "density_change_pct": -16.6,
-  "attendance_ratio": 1.675
+  "attendance_ratio": 1.564
 }

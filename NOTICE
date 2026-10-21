@@ -117,3 +117,12 @@ schematic regional track curves, fictional event stages/labels, fictional shop
 wall advertisements, light ribbons, bilingual film graphics and CPU instance
 rendering. There are no real company logos or real event/organizer names.
 Full provenance and regional/model limitations: docs/HALLOWEEN_ASSETS.md.
+
+Halloween film iteration 3: all additional attraction meshes (costume stage,
+parade floats, lantern garden, light arches, pumpkin food tents), facade-mounted
+fictional shop ad textures, signal-cycle wipe and comparison graphics are original
+procedural work, HAGINO 2026, MIT. No external art or audio added. Regional LOD
+uses the tallest source building in each 84m tile; source data is unchanged.
+Heat hue uses the measured running peak 24m-disk average (cyan 0.26 to cherry 0.33 people/m²);
+local counts control opacity. The comparison images share camera, time 1084s
+and green phase; the return replays the same green window with walking; peak metrics refer to the full paired 1800s runs.

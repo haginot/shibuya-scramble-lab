@@ -68,14 +68,16 @@ class SoftwareScene:
         world=positions@matrix[:3,:3].T+matrix[:3,3];eye=world@view[:3,:3].T+view[:3,3];clip=eye@projection[:3,:3].T+projection[:3,3]
         z=-eye[:,2];safe=np.maximum(z,.001);screen=np.column_stack(((clip[:,0]/safe+1)*self.width/2,(1-clip[:,1]/safe)*self.height/2,np.where(z>1,1/safe,-1))).astype(np.float32)
         return screen,z
-    def heat_texture(self,positions):
+    def heat_texture(self,positions,peak_count):
         heat=Image.new('RGBA',(128,128));a=np.zeros((16,16),dtype=np.float32)
         for x,_,z in positions:
             ix=int((x+45)/90*16);iz=int((z+45)/90*16)
             if 0<=ix<16 and 0<=iz<16:a[iz,ix]+=1
+        density=peak_count/(math.pi*24**2)
+        hue=max(0,min(1,(density-.26)/.07));rgb=tuple(round(v) for v in (55+200*hue,208-173*hue,255-167*hue))
         yy,xx=np.mgrid[:128,:128]
         for iz,ix in np.argwhere(a>0):
-            n=a[iz,ix];rgb=(255,35,88) if n>5 else (255,95,126) if n>2 else (55,208,255)
+            n=a[iz,ix] # Hue is measured running peak disk density; opacity is current local count.
             alpha=np.maximum(0,1-np.sqrt((xx-(ix*8+4))**2+(yy-(iz*8+4))**2)/13)*min(.98,.22+n*.09)*255
             arr=np.empty((128,128,4),dtype=np.uint8);arr[:,:,:3]=rgb;arr[:,:,3]=alpha;heat=Image.alpha_composite(heat,Image.fromarray(arr))
         return np.array(heat)
@@ -92,12 +94,14 @@ class SoftwareScene:
         depth=np.full((self.height,self.width),np.inf,dtype=np.float32);textures=list(self.textures)
         state_path=path.with_name(path.name.replace('frame-','state-').replace('.bin','.json'))
         if state_path.exists():
-            state=json.loads(state_path.read_text());textures[self.info['heat_texture']]=self.heat_texture(state['heat_people'])
+            state=json.loads(state_path.read_text());textures[self.info['heat_texture']]=self.heat_texture(state['heat_people'],state['state']['peak_central_count'])
         order=sorted(range(len(self.info['objects'])),key=lambda i:self.info['objects'][i]['material']['transparent'])
         for i in order:
             obj=self.info['objects'][i];matrix,visible,count=transforms[i]
             if not visible:continue
             attrs=self.geometries[obj['geometry']];mat=obj['material'];pos=attrs['position'];col=attrs.get('color')
+            if obj['kind']=='triangles' and count<len(pos):
+                attrs={k:v[:count] for k,v in attrs.items()};pos=attrs['position'];col=attrs.get('color')
             if i in dynamic and obj['kind']!='instances':pos,col=dynamic[i]
             normal_attr=attrs.get('normal')
             if obj['kind']=='instances':
@@ -134,7 +138,7 @@ class SoftwareScene:
 
 class Film:
     def __init__(self,scene,metrics):
-        self.scene=scene;self.metrics=metrics;self.fonts={};self.comparison=None;self.credits=None
+        self.scene=scene;self.metrics=metrics;self.fonts={};self.comparison={};self.credits=None
     def font(self,size,bold=False):
         key=(size,bold)
         if key not in self.fonts:self.fonts[key]=ImageFont.truetype(BOLD if bold else FONT,size,index=0)
@@ -162,51 +166,63 @@ class Film:
         ey=340 if state['hook'] else 252
         self.text(d,(60,ey),state['captions'][1],40,PURPLE,True)
         if state['regional']:
-            # One compact label per fictional destination; measured OFF→ON arrivals.
-            positions=[(60,1110),(600,650),(82,485),(595,1010),(600,1360)]
-            for i,(hub,(x,y)) in enumerate(zip(state['hubs'],positions)):
-                if state['activation']<=i*.16:continue
-                hx,hy,hz=hub['screen'];accent='#%06x'%hub['color']
-                d.line((x+190,y+88,max(30,min(1050,hx)),max(420,min(1550,hy))),fill=accent,width=2)
-                self.card(im,(x,y,x+420,y+148),outline=accent);d=ImageDraw.Draw(im)
-                self.text(d,(x+18,y+6),hub['name']+' / '+hub['en'],30,WHITE,True)
-                self.text(d,(x+18,y+52),['架空の仮装コンテスト','架空の星くずパレード','架空のランタン庭園','架空の光さんぽ','架空のかぼちゃ屋台村'][i],21,accent)
-                a=self.metrics['no_events']['district_people'][i];b=self.metrics['events_on']['district_people'][i]
-                self.text(d,(x+18,y+89),f'{a} → {b} 人 / people',30,accent,True)
-            self.text(d,(60,1560),'徒歩 + 山手線 + 井の頭線',32,MINT,True)
-            self.text(d,(60,1610),'Walking + Yamanote + Inokashira',28,PURPLE)
-            self.text(d,(60,1660),'人数：同じ30分の到着数 / OFF → ON · arrivals in 30 min',21,MUTED)
+            # A single short destination reveal; the attractions carry the story.
+            i=state['activeHub']
+            if i>=0 and t<7.4:
+                hub=state['hubs'][i];accent='#%06x'%hub['color'];label_y=700 if i==0 else 1080 if i==4 else 1375
+                self.card(im,(60,label_y,1020,label_y+250),outline=accent);d=ImageDraw.Draw(im)
+                self.text(d,(88,label_y+15),hub['name']+' / '+hub['en'],53,WHITE,True)
+                self.text(d,(88,label_y+100),['仮装ステージ / Costume stage','星くずパレード / Stardust parade','ランタン庭園 / Lantern garden','光のさんぽ道 / Light promenade','かぼちゃ屋台村 / Pumpkin stalls'][i],34,accent,True)
+                self.text(d,(88,label_y+178),'FICTIONAL EVENT / 架空の催し',23,MUTED)
+            else:
+                self.text(d,(60,1515),'山手線 + 井の頭線 + 徒歩',38,MINT,True)
+                self.text(d,(60,1580),'Yamanote + Inokashira + walking',32,PURPLE)
         elif state['comparison']:
-            self.card(im,(48,1190,1032,1678));d=ImageDraw.Draw(im)
             a=self.metrics['no_events'];b=self.metrics['events_on']
-            self.text(d,(78,1212),'交差点ピーク密度 / Crossing peak · people/m²',28,MUTED)
-            self.text(d,(78,1263),f"{a['peak_density_per_m2']:.2f} → {b['peak_density_per_m2']:.2f}",86,MINT,True)
-            self.text(d,(78,1390),'イベントなし → あり / No events → Events',29,PURPLE,True)
-            self.text(d,(78,1457),f"街への到着 {a['visits']} → {b['visits']} / district arrivals",33,WHITE,True)
-            self.text(d,(78,1520),f"最多：代々木 {self.metrics['best_event']['people']}人 / Best: Yoyogi",33,AMBER,True)
-            self.text(d,(78,1600),'同じ960人・30分 / Same 960 people · 30 min · seed 1031',22,MUTED)
+            change=round(self.metrics['density_change_pct']);gain=round((self.metrics['attendance_ratio']-1)*100)
+            self.card(im,(48,1130,1032,1690));d=ImageDraw.Draw(im)
+            # Identical camera, model second and signal; no late empty tail.
+            for j,prefix in enumerate(['no','promo']):
+                if prefix not in self.comparison:
+                    self.comparison[prefix]=self.scene.render(self.scene.directory/f'compare-{prefix}.bin').crop((80,650,1000,1420)).resize((438,260),Image.Resampling.LANCZOS)
+                im.paste(self.comparison[prefix],(78+j*486,1225))
+            d=ImageDraw.Draw(im)
+            self.text(d,(78,1145),f'交差点ピーク {change}%',51,MINT,True)
+            self.text(d,(78,1492),f'Crossing peak {change}%  |  {a["peak_density_per_m2"]:.4f} → {b["peak_density_per_m2"]:.4f} people/m²',28,MINT,True)
+            self.text(d,(78,1543),f'街への到着 +{gain}% / District arrivals +{gain}%',36,WHITE,True)
+            self.text(d,(78,1604),f'最多到着：代々木 {self.metrics["best_event"]["people"]}人 / Most arrivals: Yoyogi',28,AMBER,True)
+            self.text(d,(78,1650),'画像：同時刻・同じ青 / Matched green · 1084s | 24m radius average',20,MUTED)
+            self.text(d,(95,1230),'なし / OFF',25,RED,True);self.text(d,(581,1230),'あり / ON',25,MINT,True)
         elif state['green']:
             self.card(im,(60,1510,1020,1640));d=ImageDraw.Draw(im)
             self.text(d,(90,1532),'● GREEN / みんなで、渡ろう。',43,MINT,True)
         elif t>=11 and not state['loop']:
-            self.text(d,(60,1540),'灯りは、交差点の外にも。',39,MINT,True)
-            self.text(d,(60,1605),'The side quest is the destination.',31,PURPLE)
+            self.text(d,(60,1540),'同じ時刻、同じ青で比べる。',39,MINT,True)
+            self.text(d,(60,1605),'Same time. Same green. More room.',31,PURPLE)
         elif state['hook']:
             self.text(d,(60,1565),'行き先を増やす。さて、分散する？',35,WHITE,True)
             self.text(d,(60,1625),'More destinations. Less packed?',32,PURPLE)
         self.footer(d)
-        return im
+        return self.reset_wipe(im,t) if state.get('reset') else im
     def compare(self):
         raise RuntimeError('Comparison is integrated into the live city view')
-    def credit(self,scene_image):
-        # Short credit card remains on the live city, preserving the loop camera.
+    def reset_wipe(self,im,t):
+        # Witch-purple signal-cycle wipe hides the honest paired-replay reset.
+        phase=(t-16.8)/.7;alpha=int(235*max(0,math.sin(math.pi*phase)))
+        layer=Image.new('RGBA',im.size,(91,43,130,max(0,alpha)));im=Image.alpha_composite(im.convert('RGBA'),layer).convert('RGB')
+        if alpha>90:
+            d=ImageDraw.Draw(im);self.text(d,(185,870),'次の青で、もう一周。',56,WHITE,True);self.text(d,(255,970),'NEXT GREEN. REPLAY?',39,PURPLE,True)
+            for j in range(12):self.sparkle(d,100+j*83,750+math.sin(j*.9)*100,12)
+        return im
+    def credit(self,scene_image,t=16.4):
         im=self.shade(scene_image);self.card(im,(48,1250,1032,1700));d=ImageDraw.Draw(im)
-        self.text(d,(78,1290),'HAGINO 2026 · Original art + code · MIT',36,WHITE,True)
-        self.text(d,(78,1370),'PLATEAU 渋谷2023 加工 · CC BY 4.0',31,PURPLE)
-        self.text(d,(78,1430),'© OSM contributors · ODbL',31,PURPLE)
-        self.text(d,(78,1510),'three.js · MIT | Noto Sans CJK JP · OFL 1.1',25,MUTED)
-        self.text(d,(78,1580),'Full credits: NOTICE + ASSETS.md',27,MUTED)
-        self.footer(d);return im
+        self.text(d,(78,1280),'MADE AFTER DARK',45,WHITE,True)
+        self.text(d,(78,1360),'HAGINO 2026 · Original art + code · MIT',32,WHITE,True)
+        self.text(d,(78,1435),'PLATEAU 渋谷2023 加工 · CC BY 4.0',31,PURPLE)
+        self.text(d,(78,1495),'© OSM contributors · ODbL',31,PURPLE)
+        self.text(d,(78,1565),'three.js · MIT | Noto Sans CJK JP · OFL 1.1',25,MUTED)
+        self.text(d,(78,1620),'Full credits: NOTICE + ASSETS.md',26,MUTED)
+        self.footer(d);return self.reset_wipe(im,t) if t>=16.8 else im
 
 def render_capture_frame(frame):
     scene,film,directory,stills,frames,preview=_CAPTURE
@@ -214,7 +230,7 @@ def render_capture_frame(frame):
     if not preview and path.exists() and frame not in STILLS:return frame
     state=json.loads((directory/f'state-{frame:05d}.json').read_text())
     raw=scene.render(directory/f'frame-{frame:05d}.bin')
-    im=film.credit(raw) if state['credits'] else film.frame(state,raw)
+    im=film.credit(raw,state['seconds']) if state['credits'] else film.frame(state,raw)
     if frame in STILLS:im.save(stills/STILLS[frame])
     if not preview:
         temporary=path.with_suffix('.tmp');im.save(temporary,format='JPEG',quality=96,subsampling=0);temporary.replace(path)

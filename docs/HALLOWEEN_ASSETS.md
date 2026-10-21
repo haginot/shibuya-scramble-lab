@@ -60,3 +60,23 @@ assumptions. Density colour derives from local counts, never the event flag.
 Regional particles represent actual travelling/arrived agent states, and trains
 follow representative boarded agents. Train meshes are enlarged in the aerial
 view. The continuous ribbon is a schematic guide, not additional people.
+
+Iteration 3 (2026-10-21): replaced generic hubs with five distinct original
+procedural attractions: witch-hat costume stage, parade floats, ghost-lantern
+garden, light-arch promenade and pumpkin food tents. The authored attraction
+markers and aerial trains are enlarged for visibility; their dimensions are
+illustrative. Distant LOD now uses one actual source building per 84m tile.
+Fictional shop-only ad screens have authored facade backing and corrected
+front-facing text. Station/elevated rails and original meeting-square dog remain.
+No new downloaded assets, real logos, real events or audio.
+
+Heat hue is based on the actual running peak average density in the fixed
+24m-radius disk (matching the comparison statistic), with
+a fixed cyan-to-cherry range of 0.26–0.33 people/m². Local counts determine
+opacity; the event flag never sets heat colour. This disk includes the crossing
+and its immediate edges: it is an area average, not a local crowd-density maximum.
+Comparison images use identical camera, green phase and model second 1084.
+The peak statistic is the maximum over both full matched 1800s trials. The
+return shot replays the same green window from 1084s, retaining the crowd and
+continuing their actual motion instead of showing the much emptier trial tail. Purple witch/signal replay bridges reset.
+District results and both event ranking criteria accompany the video in RESULTS.txt.

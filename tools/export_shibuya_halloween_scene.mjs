@@ -31,7 +31,7 @@ const camera=new THREE.PerspectiveCamera(43,1080/1920,.5,15000);
 function frame(model,seconds,promoted,fixed=false){
  const pose=cameraAt(seconds,fixed);camera.position.set(...pose.position);camera.lookAt(...pose.target);camera.updateMatrixWorld();night.update(model,seconds,promoted);night.scene.updateMatrixWorld(true);
  const data=[...camera.projectionMatrix.elements,...camera.matrixWorldInverse.elements];
- for(const o of objects){let visible=true;for(let p=o;p;p=p.parent)visible&&=p.visible;data.push(...o.matrixWorld.elements,visible?1:0,o.isInstancedMesh?o.count:o.geometry.drawRange.count===Infinity?o.geometry.attributes.position.count:o.geometry.drawRange.count);}
+ for(const o of objects){let visible=true;for(let p=o;p;p=p.parent)visible&&=p.visible;data.push(...o.matrixWorld.elements,visible?1:0,o.isInstancedMesh?o.count:o.geometry.drawRange.count===Infinity?(o.geometry.index?.count??o.geometry.attributes.position.count):o.geometry.drawRange.count);}
  for(const{o}of dynamic){if(o.isInstancedMesh){data.push(...o.instanceMatrix.array);}else{data.push(...o.geometry.attributes.position.array);if(o.geometry.attributes.color)data.push(...o.geometry.attributes.color.array);}}
  return Buffer.from(new Float32Array(data).buffer);
 }
@@ -44,5 +44,5 @@ for(const i of selected){
  const project=(x,y,z)=>{const p=new THREE.Vector3(x,y,z).project(camera);return[(p.x+1)*540,(1-p.y)*960,p.z];};
  writeFileSync(`${out}/state-${String(i).padStart(5,'0')}.json`,JSON.stringify({...story,seconds,state:model.snapshot(),hubs:EVENTS.map(s=>({...s,screen:project(s.position[0],80,s.position[1])})),heat_people:model.people.filter(p=>!['waiting','gone','event','rail','regional'].includes(p.stage)).map(p=>[p.x,1,p.z]),cauldron:project(26,12,14)}));
 }
-for(const[prefix,promoted]of[['no',false],['promo',true]]){const model=new HalloweenModel(nav,{promotion:promoted});model.advanceTo(1800);await writeFile(`${out}/compare-${prefix}.bin`,frame(model,15.5,promoted,true));}
+for(const[prefix,promoted]of[['no',false],['promo',true]]){const model=new HalloweenModel(nav,{promotion:promoted});model.advanceTo(1084);await writeFile(`${out}/compare-${prefix}.bin`,frame(model,15.5,promoted,true));await writeFile(`${out}/compare-${prefix}.json`,JSON.stringify({simTime:1084,signal:model.snapshot().signal,state:model.snapshot(),heat_people:model.people.filter(p=>!['waiting','gone','event','rail','regional'].includes(p.stage)).map(p=>[p.x,1,p.z])}));}
 console.log(`Exported ${selected.length} scene frames, ${objects.length} objects, ${offset} geometry bytes.`);

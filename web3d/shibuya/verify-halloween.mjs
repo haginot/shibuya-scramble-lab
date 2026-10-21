@@ -5,9 +5,11 @@ import {storyAt,cameraAt,witchAt,DURATION,FPS} from './halloween-story.mjs';
 const plateau=JSON.parse(await readFile(new URL('../data/shibuya_plateau.json',import.meta.url),'utf8'));
 const original=JSON.stringify(plateau),nav=navigation(plateau),a=new HalloweenModel(nav),b=new HalloweenModel(nav,{events:true});
 a.advanceTo(299);b.advanceTo(299);assert.deepEqual(a.people,b.people,'identical demand and individuals before intervention');
-let photo=false,rail=false,curve=false;
+let photo=false,rail=false,curve=false,queued=[];
 for(let t=300;t<=SETTINGS.horizon_s;t++){
  a.step();b.step();
+ if(t===1079)queued=a.people.filter(p=>p.stage==='plaza'&&p.group%5===0).map(p=>({id:p.id,x:p.x,z:p.z}));
+ if(t===1085)assert(queued.filter(p=>Math.hypot(a.people[p.id].x-p.x,a.people[p.id].z-p.z)>2).length>30,'several curbside groups physically start crossing on green');
  for(const model of[a,b]){
   const s=model.snapshot();assert.equal(s.active+s.waiting+s.gone,SETTINGS.agents);assert.equal(s.visits,model.people.filter(p=>p.visited).length);assert.equal(s.district_people.reduce((x,y)=>x+y,0),s.visits);
   if(t%60===0)for(const p of model.people){
@@ -23,11 +25,19 @@ const reduction=1-first.events_on.peak_density_per_m2/first.no_events.peak_densi
 assert(reduction>.1&&reduction<.5,'modest measured peak effect');assert(first.attendance_ratio>1.1&&first.attendance_ratio<2,'retire outsized visit ratio');
 assert(photo&&rail&&curve,'photo pauses, actual rail state and non-grid velocity occur');
 assert(first.events_on.boardings.Yamanote>0&&first.events_on.boardings.Inokashira>0);
-for(let i=0;i<EVENTS.length;i++)assert(first.events_on.district_people[i]<=EVENTS[i].capacity);
+for(let i=0;i<EVENTS.length;i++){assert(first.events_on.district_people[i]<=EVENTS[i].capacity);assert(first.events_on.district_people[i]/first.no_events.district_people[i]<=2,'each district stays within 2×');}
+assert.equal(first.density_change_pct,Number(((b.peak/a.peak-1)*100).toFixed(1)),'percentage uses unrounded individual counts');
+assert.equal(first.best_event.criterion,'most completed arrivals');
+assert.equal(first.largest_lift.people,Math.max(...first.district_lifts));
 assert.equal(first.best_event.people,Math.max(...first.events_on.district_people));
 const changed=new HalloweenModel(nav,{seed:1032,events:true});assert.notDeepEqual(changed.people,b.people,'seed changes people');
 assert.equal(JSON.stringify(plateau),original);assert.equal(EVENTS.length,5);
 assert.equal(signalAt(storyAt(1.5).simTime),'green','release must coincide with real model green');
+assert.equal(storyAt(12).simTime,1084,'return begins in matched green rather than empty tail');
+assert(storyAt(13.5).simTime>storyAt(12).simTime,'people keep walking during the return');
+assert.equal(signalAt(storyAt(15.9).simTime),'green');
+assert(cameraAt(2.2).position[1]>100,'whole crossing visible during release before descent');
+assert(storyAt(17.1).reset,'signal replay has a motivated wipe');
 assert.equal(DURATION,18);assert.equal(FPS,24);assert(storyAt(8).regional);assert(storyAt(15).comparison);assert(storyAt(16.4).credits);
 assert.equal(storyAt(18).simTime,storyAt(0).simTime);assert.deepEqual(cameraAt(18),cameraAt(0));
 for(const key of['position'])for(let i=0;i<3;i++)assert(Math.abs(witchAt(18)[key][i]-witchAt(0)[key][i])<1e-9);
