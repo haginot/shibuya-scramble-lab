@@ -1,4 +1,4 @@
-"""Record the deterministic 18-second Halloween film; local files only.
+"""Record the deterministic 20-second Halloween film; local files only.
 
 Checkpointed frames survive interrupted captures. Reuse is gated by a source
 fingerprint. The browser always steps by film time, never by elapsed wall time.
@@ -20,8 +20,8 @@ import time
 
 from record_shibuya import QuietHandler, browser_with_webgl
 
-WIDTH, HEIGHT, FPS, DURATION = 1080, 1920, 24, 18
-STILLS = {12:'01-hook.png',48:'02-green-release.png',68:'03-pedestrian-view.png',130:'04-regional-reveal.png',210:'05-walk-and-rail.png',300:'06-calm-crossing.png',360:'07-comparison.png',393:'08-credits.png',431:'09-loop-return.png',103:'10-shinsen-stage.png',119:'11-harajuku-parade.png',135:'12-yoyogi-lanterns.png',151:'13-omotesando-lights.png',167:'14-ebisu-stalls.png'}
+WIDTH, HEIGHT, FPS, DURATION = 1080, 1920, 24, 20
+STILLS = {0:'01-blueprint.png',9:'02-day-extrusion.png',20:'03-dusk.png',30:'04-night-hook.png',48:'05-green-release.png',68:'06-pedestrian-view.png',90:'07-shinsen.png',103:'08-harajuku.png',115:'09-yoyogi.png',128:'10-omotesando.png',142:'11-ebisu.png',162:'12-five-towns.png',192:'13-rail-return.png',240:'14-calm-crossing.png',288:'15-comparison.png',336:'16-district-results.png',380:'17-winner.png',402:'18-credits.png',432:'19-model-reset.png',479:'20-loop-blueprint.png'}
 CREDIT = ('MLIT Project PLATEAU / Shibuya 2023; modified footprints + heights, CC BY 4.0. '
           'https://www.geospatial.jp/ckan/dataset/plateau-13113-shibuya-ku-2023 '
           'https://creativecommons.org/licenses/by/4.0/ '
@@ -101,9 +101,9 @@ def record(site, output, stills, metrics_path, preview=False):
                     raise RuntimeError('; '.join(errors))
                 if frame in STILLS:
                     # Validate the actual ending text, not just the exported JSON.
-                    if frame == 360:
+                    if frame == 336:
                         assert page.locator('#no-visits').text_content() == str(metrics['no_events']['visits'])
-                        assert page.locator('#promo-density').inner_text() == f"{metrics['events_on']['peak_density_per_m2']:.4f}"
+                        assert page.locator('#promo-density').inner_text() == f"{metrics['events_on']['peak_density_per_m2']:.2f}"
                     page.screenshot(path=str(stills / STILLS[frame]), type='png', animations='disabled')
                     snapshots.append(dict(frame=frame, **state))
                 if not preview:
@@ -123,7 +123,7 @@ def record(site, output, stills, metrics_path, preview=False):
                         '-frames:v', str(FPS * DURATION), '-an', '-c:v', 'libx264',
                         '-preset', 'fast', '-crf', '18', '-pix_fmt', 'yuv420p',
                         '-movflags', '+faststart+use_metadata_tags', '-metadata', f'credit={CREDIT}',
-                        '-metadata', 'comment=Toy-model values; seeded paired experiment; fictional-event paired replay; matched green comparison at sim 1084s; 18s loop. No audio.',
+                        '-metadata', 'comment=Toy-model values; seeded paired experiment; fictional-event paired replay; matched green comparison at sim 1084s; 20s loop. No audio.',
                         str(partial)], check=True)
         probe = probe_video(partial)
         partial.replace(output)

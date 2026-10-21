@@ -80,3 +80,28 @@ The peak statistic is the maximum over both full matched 1800s trials. The
 return shot replays the same green window from 1084s, retaining the crowd and
 continuing their actual motion instead of showing the much emptier trial tail. Purple witch/signal replay bridges reset.
 District results and both event ranking criteria accompany the video in RESULTS.txt.
+
+Iteration 4 (2026-10-22): original procedural blueprint grid, source-footprint
+strokes and scan sweep; transient flat-to-full-height city animation; daylight,
+dusk and night light states; ×6→×100 indicator and sliding data panels. Blueprint
+shop visits are actual model shop visits (zero: shops are scenery, not the
+intervention), alongside the current central count. All source geometry files
+remain unchanged. The animation scales the rendered city vertically only during
+the blueprint transition, then restores the original heights.
+
+The regional section is shorter, with persistent source-positioned district names,
+gapped amber walking guides and distinct mint/lilac railway routes. Schematic
+station pulses require actual model rail passengers near boarding/alighting;
+enlarged train meshes still follow representative boarded people. Boarding and
+completed-arrival counters are actual state totals. Regional train/attraction
+sizes remain illustrative. No new map data or decorative assets were fetched.
+
+The return has an explicit OFF→ON paired replay: a procedurally generated soft
+wipe between rendered baseline/event states at the same camera and model time.
+This is a comparison transition, not a claim that a peak measurement falls over
+those seconds. The main result uses two large matched-green views and five
+compact OFF→ON district bars; Yoyogi is highlighted by completed arrivals. Full
+precision, calibration and mode totals remain in metrics.json and RESULTS.txt.
+A MODEL RESET cue returns through the packed baseline into the flat blueprint;
+the 20-second endpoint restores the opening scene, captions and counters.
+All new art/graphics/code are project MIT, HAGINO 2026. No external art or audio.

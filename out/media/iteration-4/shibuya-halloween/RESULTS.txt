@@ -1,0 +1,42 @@
+Iteration 4 — fictional neighborhood events / 架空イベントのトイモデル
+
+960 seeded people; seed 1031; matched 1800-second trials.
+Crossing peak: 602 → 502 people; 0.3327 → 0.2774 people/m² (-16.6%).
+District arrivals: 156 → 244 (+56.4%).
+
+District / fictional event | OFF → ON | additional arrivals | ratio
+神泉 / Shinsen — Moonmask costume contest | 30 → 47 | +17 | 1.57×
+原宿 / Harajuku — Stardust costume parade | 23 → 43 | +20 | 1.87×
+代々木 / Yoyogi — Ghost lantern garden | 56 → 79 | +23 | 1.41×
+表参道 / Omotesando — Spelllight promenade | 25 → 40 | +15 | 1.60×
+恵比寿 / Ebisu — Pumpkin food-stall village | 22 → 35 | +13 | 1.59×
+
+Most completed arrivals: Yoyogi, 79.
+Largest increase in completed arrivals: Yoyogi, +23.
+
+Completed walking: 28 → 62.
+Completed Yamanote journeys: 100 → 147.
+Completed Inokashira journeys: 28 → 35.
+
+Individual centres within 24m of crossing / (pi * 24² m²). Maximum of whole-second samples over full paired 1800s runs.
+Area = π × 24² = 1809.56 m²; the crossing and immediate edges.
+This is a disk-average peak over time, not a hotspot maximum.
+The question and chunky miniature crowd are narrative framing; no measured real-world packed-crowd density is claimed.
+Comparison panels: same camera / same green / simulated 1084s.
+Calmer return replays the green window from 1084s, with actual walking continuing.
+Peak statistics use complete paired trials, rather than only the pictured second.
+Heat hue: actual running peak 24m-disk density, fixed 0.26–0.33 people/m² cyan-to-cherry mapping.
+Current local counts control opacity; colour never uses the event flag.
+
+トイモデルの値 / toy-model values. Fictional events and assumed behaviour, not a forecast or causal evidence.
+Common arrivals, groups, speeds and tastes. Decisions from 300s: 30% baseline versus 50% event participation (40% Ebisu), subject to per-event capacity. No shop coupon intervention.
+Assumed 180s Yamanote / 240s Inokashira headways; wait at station, actual boarding then 95–285s travel. Rail corridors/stations schematic; no timetable or operational prediction.
+All events, shops and attractions are fictional. Regional routes/stations are schematic.
+PLATEAU: 47,816 licensed buildings within 3km. Eastern Omotesando fringe has a recorded data gap; no invented real-world infill.
+Original art and code by HAGINO; full credits/licenses in NOTICE and ASSETS.md.
+No audio. No social posting performed.
+
+Iteration 4 film: 20 seconds, blueprint extrusion + day/dusk/night ×6→×100 hook; physical green release and pedestrian passage; shorter regional overview; persistent five district labels; actual rail counters/pulses.
+The colour melt at 8.3–9.55s is an explicitly labelled matched OFF→ON replay. It compares two trials, not one evolving peak measurement.
+Large matched-green views and all five district OFF→ON bars use these same metrics. Most arrivals and largest additional arrivals are both Yoyogi.
+Model coefficients are unchanged from iteration 3; the work improves presentation, not the measured effect.
