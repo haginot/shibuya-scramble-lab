@@ -123,10 +123,70 @@ def serve(html, port, open_browser, data=None):
         pass
 
 
+def promo_main(argv):
+    from . import promo
+    ap = argparse.ArgumentParser(prog="asagaya-town-sim promo")
+    sub = ap.add_subparsers(dest="action", required=True)
+    for name in ("demo", "build"):
+        p = sub.add_parser(name)
+        p.add_argument("--config")
+        p.add_argument("--seeds", type=int)
+        p.add_argument("--days", type=int)
+        p.add_argument("--json", action="store_true")
+        p.add_argument("--serve", action="store_true")
+        p.add_argument("--port", type=int, default=8765)
+        p.add_argument("--no-open", action="store_true")
+        p.add_argument("-o", "--out", default="out-promo")
+    args = ap.parse_args(argv)
+    try:
+        data = promo.simulate(promo.load_config(args.config), seeds=args.seeds, days=args.days)
+    except (ValueError, KeyError) as exc:
+        ap.error(str(exc))
+    if args.json:
+        print(json.dumps(data, ensure_ascii=False, separators=(",", ":")))
+    else:
+        print(promo.DISCLAIMER)
+        print(data["store"]["name"])
+        print(f"Seeds: {data['config']['seeds']} · represented residents: {data['config']['population'] * data['config']['agent_scale']}")
+        print("Uplift = mean paired visits(combo) - visits(none), common random numbers.")
+        print("Anyway = same agent/day/slot baseline overlap / promo visits (pooled across seeds); none = 1.")
+        print("ROI = (incremental gross profit - discount cost - channel cost) / channel cost.")
+        print("95% intervals: Student t intervals over independent seed results; N/A for one seed or zero-cost ROI.")
+        print("組合せ/Combination | 来訪/Visits | 増分/Uplift [95% interval] | 増分% | 元々来訪/Anyway | 増分粗利/Profit ¥ | 割引/Discount ¥ | 費用/Channel cost ¥ | ROI [95% interval]")
+        def fmt(v):
+            return "N/A" if v is None else f"{v:.2f}"
+        for name, result in data["combinations"].items():
+            m = result["metrics"]
+            def interval(key):
+                bounds = result['intervals_95'][key]
+                return fmt(m[key]) + (f" [{fmt(bounds[0])}, {fmt(bounds[1])}]" if bounds else " [N/A]")
+            print(" | ".join([name, fmt(m['total_visits']), interval('uplift')] + [fmt(m[k]) for k in ('uplift_pct','would_have_come_anyway_share','incremental_gross_profit','discount_cost','cost')] + [interval('roi')]))
+    if args.action == "build" or args.serve:
+        directory = Path(args.out) if args.action == "build" else Path(os.environ.get("TMPDIR", "/tmp")) / f"asagaya-promo-{os.getpid()}"
+        promo.write_site(directory, data)
+        if not args.json:
+            print(f"Site: {directory / 'index.html'}")
+        if args.serve:
+            handler = functools.partial(http.server.SimpleHTTPRequestHandler, directory=str(directory))
+            with http.server.ThreadingHTTPServer(("127.0.0.1", args.port), handler) as server:
+                url = f"http://127.0.0.1:{server.server_address[1]}/promo/"
+                print(url, file=sys.stderr, flush=True)
+                if not args.no_open:
+                    webbrowser.open(url)
+                try:
+                    server.serve_forever()
+                except KeyboardInterrupt:
+                    pass
+
+
 def main(argv=None):
+    effective = list(argv if argv is not None else sys.argv[1:])
+    if effective[:1] == ["promo"]:
+        return promo_main(effective[1:])
     ap = argparse.ArgumentParser(prog="asagaya-town-sim", description="阿佐ケ谷 AI住民 町シミュレーション（仮説検証用トイモデル。予測ではありません）")
     ap.add_argument("--version", action="version", version=__version__)
     sub = ap.add_subparsers(dest="cmd")
+    sub.add_parser("promo", help="架空店舗の販促トイモデル / fictional store promotion")
     for name, hlp in (("demo", "全シナリオと3案を実行して数値を表示"), ("serve", "Web UIを起動"), ("build", "HTMLとJSONを書き出す")):
         p = sub.add_parser(name, help=hlp)
         p.add_argument("--seeds", type=int, default=5)

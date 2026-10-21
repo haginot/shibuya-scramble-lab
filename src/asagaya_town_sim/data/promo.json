@@ -1,0 +1,174 @@
+{
+  "_note": "All numeric behavioral, environmental, economic and sampling coefficients are fictional placeholders, not estimates. Map geometry only is reused. Days are zero based; weekday 0 is Monday. agent_scale is real residents per simulated agent; all counts and yen are placeholders. boost_saturation caps combined conversion boosts smoothly. PR coverage is one shared Bernoulli draw per seed. Costs are fictional yen per campaign, not scaled by population. Channels share conversion intent: strongest exposure wins (not summed), then smoothly saturates; combining channels mostly broadens reach.",
+  "store": {
+    "name": "架空カフェ「ひだまり珈琲」 / fictional Hidamari Coffee",
+    "avg_spend": 900,
+    "margin": 0.65
+  },
+  "population": 400,
+  "days": 14,
+  "seeds": 8,
+  "record_agents": 200,
+  "hours": [
+    9,
+    13,
+    18
+  ],
+  "start_weekday": 0,
+  "organic_visit": 0.0018,
+  "organic_awareness": 0.015,
+  "aware_to_want": 0.015,
+  "want_to_visit": 0.003,
+  "repeat_visit": 0.004,
+  "contacts": 6,
+  "weather": {
+    "sequence": [],
+    "probabilities": {
+      "sunny": 0.5,
+      "cloudy": 0.3,
+      "rain": 0.2
+    },
+    "multipliers": {
+      "sunny": 1.15,
+      "cloudy": 1,
+      "rain": 0.6
+    }
+  },
+  "weekday_multipliers": [
+    1,
+    1,
+    1,
+    1,
+    1.1,
+    1.4,
+    1.3
+  ],
+  "hour_multipliers": [
+    0.8,
+    1.3,
+    1
+  ],
+  "event": {
+    "day": 6,
+    "boost": 0.5
+  },
+  "competitor": {
+    "days": [
+      9,
+      10
+    ],
+    "penalty": 0.25
+  },
+  "coupon_discount": 200,
+  "coupon_redeem_rate": 0.8,
+  "channels": {
+    "sns_ad": {
+      "daily_reach": 0.14,
+      "word_of_mouth": 0.15,
+      "half_life_days": 3,
+      "fixed_cost": 60000,
+      "daily_cost": 0,
+      "aware_to_want_boost": 0.044000000000000004,
+      "want_to_visit_boost": 0.0088,
+      "proximity_radius_m": 250,
+      "active_days": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "_note": "All numeric values in this channel are fictional placeholders; fixed cost is paid even without coverage."
+    },
+    "flyer_signboard": {
+      "daily_reach": 0.28,
+      "word_of_mouth": 0.1,
+      "half_life_days": 5,
+      "fixed_cost": 40000,
+      "daily_cost": 0,
+      "aware_to_want_boost": 0.032,
+      "want_to_visit_boost": 0.0132,
+      "proximity_radius_m": 250,
+      "active_days": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "_note": "All numeric values in this channel are fictional placeholders; fixed cost is paid even without coverage."
+    },
+    "pr_media": {
+      "daily_reach": 0.1,
+      "word_of_mouth": 0.2,
+      "half_life_days": 7,
+      "fixed_cost": 100000,
+      "daily_cost": 0,
+      "aware_to_want_boost": 0.052000000000000005,
+      "want_to_visit_boost": 0.0066,
+      "proximity_radius_m": 250,
+      "active_days": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "_note": "All numeric values in this channel are fictional placeholders; fixed cost is paid even without coverage.",
+      "coverage_probability": 0.3
+    },
+    "campaign_coupon": {
+      "daily_reach": 0.09,
+      "word_of_mouth": 0.08,
+      "half_life_days": 2,
+      "fixed_cost": 30000,
+      "daily_cost": 0,
+      "aware_to_want_boost": 0.032,
+      "want_to_visit_boost": 0.0374,
+      "proximity_radius_m": 250,
+      "active_days": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "_note": "All numeric values in this channel are fictional placeholders; fixed cost is paid even without coverage."
+    }
+  },
+  "combinations": {
+    "none": [],
+    "sns_only": [
+      "sns_ad"
+    ],
+    "flyer_only": [
+      "flyer_signboard"
+    ],
+    "pr_only": [
+      "pr_media"
+    ],
+    "coupon_only": [
+      "campaign_coupon"
+    ],
+    "sns+coupon": [
+      "sns_ad",
+      "campaign_coupon"
+    ],
+    "all_four": [
+      "sns_ad",
+      "flyer_signboard",
+      "pr_media",
+      "campaign_coupon"
+    ]
+  },
+  "agent_scale": 5,
+  "boost_saturation": 0.025
+}

@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "asagaya-town-sim"
-version = "0.3.0"
+version = "0.4.0"
 description = "阿佐ケ谷 AI住民 町シミュレーション（仮説検証用トイモデル。予測ではありません）"
 readme = "README.md"
 requires-python = ">=3.9"
