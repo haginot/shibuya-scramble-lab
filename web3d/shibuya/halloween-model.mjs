@@ -1,5 +1,6 @@
 // Seeded illustrative event-routing model. Distances in metres; time in seconds.
 // Regional corridors/timetables and participation are assumptions, not forecasts.
+import {CORNERS} from './simulation.mjs';
 export const SETTINGS=Object.freeze({seed:1031,agents:960,horizon_s:1800,promo_start_s:300,event_start_s:300,arrival_window_s:900,central_radius_m:24,cell_m:2.5,extent_m:220,baseline_participation:.30,event_participation:.50,dt:.25});
 export const SHOPS=Object.freeze([
  {name:'ひだまり珈琲',en:'Hidamari Coffee',position:[-88,-84]},
@@ -38,7 +39,7 @@ export function navigation(plateau){
 export class HalloweenModel{
  constructor(nav,{promotion=false,events=promotion,seed=SETTINGS.seed,agents=SETTINGS.agents}={}){
   this.nav=nav;this.promotion=events;this.seed=seed;this.time=0;this.peak=0;this.visits=0;this.shopVisits=[0,0,0];this.history=[];this.districts=EVENTS.map(()=>0);this.reserved=EVENTS.map(()=>0);this.boardings={Yamanote:0,Inokashira:0};this.modes={walk:0,Yamanote:0,Inokashira:0};this.plazaFields=new Map();
-  this.curbTargets=[[18,12],[-18,-12],[22,15],[-22,-15]].map(p=>nav.point(nav.nearest(p,nav.fields[0])));
+  this.curbTargets=CORNERS.map(p=>nav.point(nav.nearest(p,nav.fields[0])));
   this.exitGoals=EVENTS.map(e=>nav.nearest(e.exit,nav.fields[0]));this.exitFields=this.exitGoals.map(k=>nav.field(k));this.station=nav.nearest([40,70],nav.fields[0]);this.stationField=nav.field(this.station);
   const rand=randomStream(seed),groups=[];
   this.people=Array.from({length:agents},(_,i)=>{
@@ -79,17 +80,21 @@ export class HalloweenModel{
     const here=nav.key(p.x,p.z);p.cell=here;let best=here;
     if(p.stage==='walking')for(let j=0;j<4;j++){let next=best;for(const k of nav.neighbors(best))if(f[k]>=0&&f[k]<f[next])next=k;if(next===best)break;best=next;}
     let q=nav.point(p.stage==='plaza'?p.plaza:best);
-    // A subset of the same people walk curb-to-curb each green. Groups share
-    // the signal and side, but retain their own forces, acceleration and offset.
-    if(p.stage==='plaza'&&p.group%5===0){
-     const cycle=Math.floor((this.time+49)/90),green=signalAt(this.time)!=='red',side=(Math.floor(p.group/5)+cycle)%2?1:-1;
-     q=this.curbTargets[green?(side===1?0:1):(side===1?3:2)];
+    // Every plaza group queues at a curb and begins the same green together.
+    // Six arms / stable group lanes replace the old stationary circular patch.
+    if(p.stage==='plaza'){
+     const cycle=Math.floor((this.time+49)/90),green=signalAt(this.time)!=='red';
+     const source=(p.group+cycle*3)%6,destination=(source+3)%6;
+     const curb=this.curbTargets[green?destination:source],length=Math.hypot(...curb);
+     const lane=((p.group*7)%17-8)*.75,depth=1+((p.group*11)%7)*.9;
+     q=[curb[0]+curb[0]/length*depth-curb[1]/length*lane,curb[1]+curb[1]/length*depth+curb[0]/length*lane];
+     const cell=nav.key(...q);if(cell<0||nav.solid[cell])q=curb;
     }
     let dx=q[0]+p.offset[0]-p.x,dz=q[1]+p.offset[1]-p.z,d=Math.hypot(dx,dz);
     let speed=p.speed;if(signalAt(this.time)==='flashing'&&Math.hypot(p.x,p.z)<22)speed*=1.35;
     if(p.id%23===0&&Math.floor(this.time+p.id)%115<6&&Math.hypot(p.x,p.z)>19){speed=0;p.photo=1;}else p.photo=0;
     if(signalAt(this.time)==='red'&&Math.hypot(p.x,p.z)>22&&Math.hypot(...q)<22&&p.goal===0)speed=0;
-    const desired=p.stage==='plaza'?(p.group%5===0?Math.min(speed,d):Math.min(.25,d)):speed;let ax=((d>.05?dx/d*desired:0)-p.vx)/.8,az=((d>.05?dz/d*desired:0)-p.vz)/.8;
+    const desired=p.stage==='plaza'?Math.min(speed,d):speed;let ax=((d>.05?dx/d*desired:0)-p.vx)/.8,az=((d>.05?dz/d*desired:0)-p.vz)/.8;
     const bx=Math.floor(p.x/3),bz=Math.floor(p.z/3);
     for(let ix=-1;ix<=1;ix++)for(let iz=-1;iz<=1;iz++)for(const other of buckets.get(`${bx+ix},${bz+iz}`)||[]){
      if(other===p)continue;const rx=p.x-other.x,rz=p.z-other.z,r=Math.hypot(rx,rz),safe=Math.max(.05,r);if(r<2.6){const force=1.35*Math.exp((.8-r)/.7);ax+=rx/safe*force;az+=rz/safe*force;if(other.group===p.group&&r>1.2){ax-=rx*.16;az-=rz*.16;}}
@@ -113,5 +118,5 @@ export class HalloweenModel{
 }
 export function experiment(plateau,seed=SETTINGS.seed){
  const nav=navigation(plateau),no=new HalloweenModel(nav,{seed}),events=new HalloweenModel(nav,{events:true,seed});no.advanceTo(SETTINGS.horizon_s);events.advanceTo(SETTINGS.horizon_s);const a=no.metrics(),b=events.metrics(),best=b.district_people.indexOf(Math.max(...b.district_people)),lifts=b.district_people.map((n,i)=>n-a.district_people[i]),liftBest=lifts.indexOf(Math.max(...lifts));
- return{schema:3,notice:'トイモデルの値 / toy-model values. Fictional events and assumed behaviour, not a forecast or causal evidence.',settings:{...SETTINGS,seed},definitions:{density:'Individual centres within 24m of crossing / (pi * 24² m²). Maximum of whole-second samples over full paired 1800s runs.',visits:'Unique actual district arrivals by 1800s, including completed walking and rail journeys; excludes people still travelling.',events:'Common arrivals, groups, speeds and tastes. Decisions from 300s: 30% baseline versus 50% event participation (40% Ebisu), subject to per-event capacity. No shop coupon intervention.',movement:'0.25s social-force steps with mutual avoidance, per-person speed/acceleration, group cohesion, photo pauses, late jogging, smooth heading. Central paths avoid PLATEAU footprints. Regional corridors are schematic, distances in metres.',rail:'Assumed 180s Yamanote / 240s Inokashira headways; wait at station, actual boarding then 95–285s travel. Rail corridors/stations schematic; no timetable or operational prediction.'},events:EVENTS,no_events:a,events_on:b,best_event:{criterion:'most completed arrivals',district:EVENTS[best].en,event:EVENTS[best].eventEn,people:b.district_people[best]},largest_lift:{criterion:'additional completed arrivals',district:EVENTS[liftBest].en,people:lifts[liftBest]},district_lifts:lifts,density_change_pct:Number(((b.peak_central_count/a.peak_central_count-1)*100).toFixed(1)),attendance_ratio:Number((b.visits/a.visits).toFixed(3))};
+ return{schema:3,notice:'トイモデルの値 / toy-model values. Fictional events and assumed behaviour, not a forecast or causal evidence.',settings:{...SETTINGS,seed},definitions:{density:'Individual centres within 24m of crossing / (pi * 24² m²). Maximum of whole-second samples over full paired 1800s runs.',visits:'Unique actual district arrivals by 1800s, including completed walking and rail journeys; excludes people still travelling.',events:'Common arrivals, groups, speeds and tastes. Decisions from 300s: 30% baseline versus 50% event participation (40% Ebisu), subject to per-event capacity. No shop coupon intervention.',movement:'0.25s social-force steps with mutual avoidance, per-person speed/acceleration, group cohesion, photo pauses, late jogging, smooth heading. All plaza groups queue at six curbs and start on green. Central paths avoid PLATEAU footprints. Regional corridors are schematic, distances in metres.',rail:'Assumed 180s Yamanote / 240s Inokashira headways; wait at station, actual boarding then 95–285s travel. Rail corridors/stations schematic; no timetable or operational prediction.'},events:EVENTS,no_events:a,events_on:b,best_event:{criterion:'most completed arrivals',district:EVENTS[best].en,event:EVENTS[best].eventEn,people:b.district_people[best]},largest_lift:{criterion:'additional completed arrivals',district:EVENTS[liftBest].en,people:lifts[liftBest]},district_lifts:lifts,density_change_pct:Number(((b.peak_central_count/a.peak_central_count-1)*100).toFixed(1)),attendance_ratio:Number((b.visits/a.visits).toFixed(3))};
 }

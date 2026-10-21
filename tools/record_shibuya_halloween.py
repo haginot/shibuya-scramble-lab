@@ -1,4 +1,4 @@
-"""Record the deterministic 18-second Halloween film; local files only.
+"""Record the deterministic 20-second Halloween film; local files only.
 
 Checkpointed frames survive interrupted captures. Reuse is gated by a source
 fingerprint. The browser always steps by film time, never by elapsed wall time.
@@ -20,8 +20,8 @@ import time
 
 from record_shibuya import QuietHandler, browser_with_webgl
 
-WIDTH, HEIGHT, FPS, DURATION = 1080, 1920, 24, 18
-STILLS = {0:'01-blueprint.png',8:'02-day-extrusion.png',17:'03-dusk.png',28:'04-witch-hook.png',38:'05-green-start.png',51:'06-whole-crossing.png',65:'07-pedestrian-view.png',88:'08-shinsen.png',103:'09-harajuku-yoyogi.png',118:'10-five-beacons.png',139:'11-outward-journeys.png',165:'12-party-arrivals.png',192:'13-rail-return.png',222:'14-paired-melt.png',255:'15-calm-crossing.png',299:'16-comparison.png',330:'17-result-winner.png',360:'18-credits.png',390:'19-visual-rewind.png',431:'20-loop-blueprint.png'}
+WIDTH, HEIGHT, FPS, DURATION = 1080, 1920, 24, 20
+STILLS = {0:'01-blueprint.png',8:'02-day-extrusion.png',18:'03-dusk.png',29:'04-witch-hook.png',35:'05-curb-queues.png',38:'06-green-start.png',51:'07-whole-crossing.png',62:'08-crossing-release.png',78:'09-pedestrian-view.png',107:'10-event-lift.png',126:'11-five-events.png',144:'12-boarding.png',171:'13-costume-stage.png',188:'14-lantern-arrival.png',221:'15-matched-off.png',243:'16-colour-melt.png',273:'17-calm-crossing.png',300:'18-comparison.png',332:'19-comparison-hold.png',364:'20-five-districts.png',402:'21-results-hold.png',421:'22-credits.png',452:'23-visual-rewind.png',479:'24-loop-blueprint.png'}
 CREDIT = ('MLIT Project PLATEAU / Shibuya 2023; modified footprints + heights, CC BY 4.0. '
           'https://www.geospatial.jp/ckan/dataset/plateau-13113-shibuya-ku-2023 '
           'https://creativecommons.org/licenses/by/4.0/ '

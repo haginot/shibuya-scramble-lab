@@ -133,3 +133,40 @@ OFF/ON district/mode counts remain in metrics.json and RESULTS.txt. No district
 bar chart or railway accounting competes with the two principal measurements.
 The small toy-model notice and short credits card remain. All new art and code
 are self-made project MIT, HAGINO 2026; no external art, fonts or audio added.
+
+Iteration 6 (2026-10-22): 20-second film. Six-arm curb queues and an all-group
+signal release replace the old mostly stationary disk of people. These are
+actual social-force agent positions, with the same seeded demand, acceleration,
+avoidance, group lanes and event participation coefficients. Recomputed paired
+results: peak 608→507 people (−16.6%), 152→237 completed district arrivals
+(+55.9%). Yoyogi leads by attendance (72) and absolute lift (+19). Every district
+is below 2×. Density is the full-run peak of the fixed 24m-disk average; matched
+images remain at model 1084s, when current central counts are 346 and 284.
+
+The blueprint pulse, one witch/crossing reveal, reduced bloom, longer whole-arm
+green hold, 2.4m crowd passage, short regional overview, physical platforms,
+shelters, train windows/doors and boarding/alighting costumes are authored MIT
+work. Passengers shown at doors are the same actual platform/rail identities,
+with schematic decorative approach offsets/scales; travel follows model paths.
+Completed people appear once around their assigned event. Motion tails are
+trails, not additional people. Parade floats move; ghost lanterns have faces;
+near views reveal the costume stage and lantern garden. Some distant source
+building boxes within 470m of these schematic event markers are omitted for
+view clarity, just as foreground near buildings were omitted earlier. Source
+PLATEAU geometry files are unchanged. The 3km coverage and eastern Omotesando
+coverage gap remain unchanged; no invented real-world infill.
+
+All three fictional shop advertisements remain original Canvas textures; the
+additional Amber Sweets facade is authored geometry, not a real business/logo.
+The explicitly labelled matched OFF→ON colour-melt uses measured positions and
+local occupancy, not an imposed reduction. Separate matched images and a
+phone-readable five-district OFF→ON table show the actual recomputed metrics.
+The speed indicator no longer overlaps the sliding blueprint panels. Short
+credits precede the flattening rewind; the 20s endpoint restores the opening
+camera, exposure, caption, people and blueprint. No external art or audio added.
+
+The iteration-6 schematic destination platforms sit 430m west of the event
+props, with an authored walking-access spur and a slowed arrival beat. This
+illustrative placement keeps door-side passengers visible beside the large
+festival markers. It is not a claim about real station entrances or facilities;
+model participation, travel times, completed identities and counts are unchanged.

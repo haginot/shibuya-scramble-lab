@@ -1,34 +1,38 @@
 {
-  "video": "out/media/iteration-5/shibuya-halloween.mp4",
+  "video": "out/media/iteration-6/shibuya-halloween.mp4",
   "renderer": "authored CPU rasterizer of actual three.js scene",
-  "source_sha256": "c901d8f529f1c4a3800ba99f4aca26c46e5b597aa789da1c6594f9865fe209d2",
+  "source_sha256": "38f78f6ddb438f812bf42f659eb48ab098645ff4f133b6c2289e3cf5d089a73d",
   "preview": false,
   "width": 1080,
   "height": 1920,
   "fps": 24,
-  "duration_s": 18,
-  "wall_seconds": 149.35,
+  "duration_s": 20,
+  "wall_seconds": 197.02,
   "screenshots": [
-    "out/media/iteration-5/shibuya-halloween/01-blueprint.png",
-    "out/media/iteration-5/shibuya-halloween/02-day-extrusion.png",
-    "out/media/iteration-5/shibuya-halloween/03-dusk.png",
-    "out/media/iteration-5/shibuya-halloween/04-witch-hook.png",
-    "out/media/iteration-5/shibuya-halloween/05-green-start.png",
-    "out/media/iteration-5/shibuya-halloween/06-whole-crossing.png",
-    "out/media/iteration-5/shibuya-halloween/07-pedestrian-view.png",
-    "out/media/iteration-5/shibuya-halloween/08-shinsen.png",
-    "out/media/iteration-5/shibuya-halloween/09-harajuku-yoyogi.png",
-    "out/media/iteration-5/shibuya-halloween/10-five-beacons.png",
-    "out/media/iteration-5/shibuya-halloween/11-outward-journeys.png",
-    "out/media/iteration-5/shibuya-halloween/12-party-arrivals.png",
-    "out/media/iteration-5/shibuya-halloween/13-rail-return.png",
-    "out/media/iteration-5/shibuya-halloween/14-paired-melt.png",
-    "out/media/iteration-5/shibuya-halloween/15-calm-crossing.png",
-    "out/media/iteration-5/shibuya-halloween/16-comparison.png",
-    "out/media/iteration-5/shibuya-halloween/17-result-winner.png",
-    "out/media/iteration-5/shibuya-halloween/18-credits.png",
-    "out/media/iteration-5/shibuya-halloween/19-visual-rewind.png",
-    "out/media/iteration-5/shibuya-halloween/20-loop-blueprint.png"
+    "out/media/iteration-6/shibuya-halloween/01-blueprint.png",
+    "out/media/iteration-6/shibuya-halloween/02-day-extrusion.png",
+    "out/media/iteration-6/shibuya-halloween/03-dusk.png",
+    "out/media/iteration-6/shibuya-halloween/04-witch-hook.png",
+    "out/media/iteration-6/shibuya-halloween/05-curb-queues.png",
+    "out/media/iteration-6/shibuya-halloween/06-green-start.png",
+    "out/media/iteration-6/shibuya-halloween/07-whole-crossing.png",
+    "out/media/iteration-6/shibuya-halloween/08-crossing-release.png",
+    "out/media/iteration-6/shibuya-halloween/09-pedestrian-view.png",
+    "out/media/iteration-6/shibuya-halloween/10-event-lift.png",
+    "out/media/iteration-6/shibuya-halloween/11-five-events.png",
+    "out/media/iteration-6/shibuya-halloween/12-boarding.png",
+    "out/media/iteration-6/shibuya-halloween/13-costume-stage.png",
+    "out/media/iteration-6/shibuya-halloween/14-lantern-arrival.png",
+    "out/media/iteration-6/shibuya-halloween/15-matched-off.png",
+    "out/media/iteration-6/shibuya-halloween/16-colour-melt.png",
+    "out/media/iteration-6/shibuya-halloween/17-calm-crossing.png",
+    "out/media/iteration-6/shibuya-halloween/18-comparison.png",
+    "out/media/iteration-6/shibuya-halloween/19-comparison-hold.png",
+    "out/media/iteration-6/shibuya-halloween/20-five-districts.png",
+    "out/media/iteration-6/shibuya-halloween/21-results-hold.png",
+    "out/media/iteration-6/shibuya-halloween/22-credits.png",
+    "out/media/iteration-6/shibuya-halloween/23-visual-rewind.png",
+    "out/media/iteration-6/shibuya-halloween/24-loop-blueprint.png"
   ],
   "snapshots": [
     {
@@ -40,12 +44,16 @@
       "video_seconds": 0.3333333333333333
     },
     {
-      "frame": 17,
-      "video_seconds": 0.7083333333333334
+      "frame": 18,
+      "video_seconds": 0.75
     },
     {
-      "frame": 28,
-      "video_seconds": 1.1666666666666667
+      "frame": 29,
+      "video_seconds": 1.2083333333333333
+    },
+    {
+      "frame": 35,
+      "video_seconds": 1.4583333333333333
     },
     {
       "frame": 38,
@@ -56,60 +64,72 @@
       "video_seconds": 2.125
     },
     {
-      "frame": 65,
-      "video_seconds": 2.7083333333333335
+      "frame": 62,
+      "video_seconds": 2.5833333333333335
     },
     {
-      "frame": 88,
-      "video_seconds": 3.6666666666666665
+      "frame": 78,
+      "video_seconds": 3.25
     },
     {
-      "frame": 103,
-      "video_seconds": 4.291666666666667
+      "frame": 107,
+      "video_seconds": 4.458333333333333
     },
     {
-      "frame": 118,
-      "video_seconds": 4.916666666666667
+      "frame": 126,
+      "video_seconds": 5.25
     },
     {
-      "frame": 139,
-      "video_seconds": 5.791666666666667
+      "frame": 144,
+      "video_seconds": 6.0
     },
     {
-      "frame": 165,
-      "video_seconds": 6.875
+      "frame": 171,
+      "video_seconds": 7.125
     },
     {
-      "frame": 192,
-      "video_seconds": 8.0
+      "frame": 188,
+      "video_seconds": 7.833333333333333
     },
     {
-      "frame": 222,
-      "video_seconds": 9.25
+      "frame": 221,
+      "video_seconds": 9.208333333333334
     },
     {
-      "frame": 255,
-      "video_seconds": 10.625
+      "frame": 243,
+      "video_seconds": 10.125
     },
     {
-      "frame": 299,
-      "video_seconds": 12.458333333333334
+      "frame": 273,
+      "video_seconds": 11.375
     },
     {
-      "frame": 330,
-      "video_seconds": 13.75
+      "frame": 300,
+      "video_seconds": 12.5
     },
     {
-      "frame": 360,
-      "video_seconds": 15.0
+      "frame": 332,
+      "video_seconds": 13.833333333333334
     },
     {
-      "frame": 390,
-      "video_seconds": 16.25
+      "frame": 364,
+      "video_seconds": 15.166666666666666
     },
     {
-      "frame": 431,
-      "video_seconds": 17.958333333333332
+      "frame": 402,
+      "video_seconds": 16.75
+    },
+    {
+      "frame": 421,
+      "video_seconds": 17.541666666666668
+    },
+    {
+      "frame": 452,
+      "video_seconds": 18.833333333333332
+    },
+    {
+      "frame": 479,
+      "video_seconds": 19.958333333333332
     }
   ],
   "probe": {
@@ -124,13 +144,13 @@
       }
     ],
     "format": {
-      "duration": "18.000000",
+      "duration": "20.000000",
       "tags": {
         "major_brand": "isom",
         "minor_version": "512",
         "compatible_brands": "isomiso2avc1mp41",
         "credit": "MLIT Project PLATEAU / Shibuya 2023; modified footprints + heights, CC BY 4.0. https://www.geospatial.jp/ckan/dataset/plateau-13113-shibuya-ku-2023 https://creativecommons.org/licenses/by/4.0/ © OpenStreetMap contributors, ODbL 1.0. https://www.openstreetmap.org/copyright https://opendatacommons.org/licenses/odbl/1-0/ three.js r160 MIT. HAGINO 2026 procedural art and code MIT. Noto Sans CJK JP SIL OFL 1.1. See accompanying NOTICE and ASSETS.md. Toy model, not a prediction. Seed 1031; 960 agents; 1800 simulated seconds per scenario. Walking and schematic Yamanote/Inokashira routing; underlying SUMO trajectories are unused.",
-        "comment": "Toy-model values; same procedural three.js geometry, local CPU raster capture; fictional neighborhood events, matched arrivals and rail journeys; 18s loop.",
+        "comment": "Toy-model values; same procedural three.js geometry, local CPU raster capture; fictional neighborhood events, matched arrivals and rail journeys; 20s loop.",
         "encoder": "Lavf61.7.103"
       }
     }

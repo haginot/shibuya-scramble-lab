@@ -1,0 +1,32 @@
+ITERATION 6 — FICTIONAL NEIGHBORHOOD EVENTS / TOY MODEL
+960 seeded identities; seed 1031; paired 1800 simulated seconds.
+Not a forecast, observed crowd census, causal estimate or safety analysis.
+
+Peak people within fixed 24m-radius disk: 608 -> 507 (-16.6%).
+Peak disk-average density: 0.336 -> 0.2802 people/m²; area pi*24² = 1809.56m².
+Completed district arrivals: 152 -> 237 (+55.9%, 1.559x).
+
+District / fictional event / OFF -> ON / lift:
+Shinsen / Moonmask costume contest: 29 -> 46 (+17)
+Harajuku / Stardust costume parade: 27 -> 44 (+17)
+Yoyogi / Ghost lantern garden: 53 -> 72 (+19)
+Omotesando / Spelllight promenade: 21 -> 38 (+17)
+Ebisu / Pumpkin food-stall village: 22 -> 37 (+15)
+
+Most completed arrivals: Yoyogi 72; largest absolute gain: Yoyogi +19.
+Largest percentage gain: Omotesando 21 -> 38 (1.810x); all districts below 2x.
+
+Completed modes: walk 23 -> 58; Yamanote 101 -> 144; Inokashira 28 -> 35.
+Each visit is one unique completed individual journey. Trails are not extra people.
+Matched images: same camera / green phase / model 1084s; current count 346 -> 284.
+The OFF->ON melt is an explicit replay between paired trials, not time evolution.
+
+Participation remains 30% baseline, 50% events (40% Ebisu); bounded capacities.
+All plaza groups now queue at six curbs and launch together on green.
+0.25s social force, individual speed/acceleration, mutual avoidance, curved paths,
+groups of three, photo pauses, late-signal jogging, smooth heading and walking bob.
+
+PLATEAU: 47,816 source buildings within 3km; selected distant boxes omitted
+near schematic event markers for visibility. Eastern Omotesando coverage gap
+remains; no invented geographic infill. Routes, station access, event dimensions,
+door approach offsets and marker scales are schematic. No real events or brands.

@@ -134,14 +134,14 @@ class SoftwareScene:
                 normal=normal_attr@np.linalg.inv(matrix[:3,:3]);normal/=np.maximum(np.linalg.norm(normal,axis=1,keepdims=True),.0001)
                 sun=np.array([-.46,.86,-.24]);fill=np.array([.15,.4,.9]);light=.45+np.maximum(0,normal@sun)*.72+np.maximum(0,normal@fill)*.28+np.maximum(0,normal[:,1])*.22
                 base*=light[:,None]*(1+daylight*.55)
-                base+=daylight*.13
+                base+=daylight*.05
             uv=attrs.get('uv',np.zeros((len(pos),2),dtype=np.float32));attribute=np.ascontiguousarray(np.column_stack((base,uv,distance)),dtype=np.float32)
             tid=mat['map'] if mat['map']>=0 else mat['emissiveMap'];kind=1 if mat['map']>=0 else 2 if mat['emissiveMap']>=0 else 0;texture=textures[tid] if tid>=0 else None;emission=np.array(mat['emissive'])*mat['emissiveIntensity']
             self.lib.triangles(canvas.ctypes.data,depth.ctypes.data,self.width,self.height,screen.ctypes.data,attribute.ctypes.data,len(pos),texture.ctypes.data if texture is not None else None,texture.shape[1] if texture is not None else 0,texture.shape[0] if texture is not None else 0,kind,*emission,mat['opacity'],int(mat['depthWrite']))
         im=Image.fromarray(canvas).resize((1080,1920),Image.Resampling.LANCZOS)
         # Local emissive bloom, authored from the rendered pixels; no image assets.
         bright=np.array(im);mask=np.maximum(bright.max(axis=2).astype(float)-185,0)/70
-        glow=Image.fromarray((bright*mask[:,:,None]*.35).clip(0,255).astype('uint8')).filter(ImageFilter.GaussianBlur(8))
+        glow=Image.fromarray((bright*mask[:,:,None]*.13).clip(0,255).astype('uint8')).filter(ImageFilter.GaussianBlur(8))
         from PIL import ImageChops
         return ImageChops.add(im,glow)
 
@@ -169,7 +169,7 @@ class Film:
         layer=Image.new('RGBA',im.size);d=ImageDraw.Draw(layer);d.rounded_rectangle(box,radius=24,fill=fill,outline=outline,width=2);im.paste(layer,(0,0),layer)
     def frame(self,state,scene_image):
         im=self.shade(scene_image);d=ImageDraw.Draw(im);t=state['seconds']
-        if state['comparison']:return self.results(im,t)
+        if state['comparison']:return self.district_results(im) if state.get('districtResults') else self.results(im,t)
         self.text(d,(60,75),'SHIBUYA / HALLOWEEN',24,AMBER,True);self.sparkle(d,987,101,14)
         self.text(d,(56,142),state['captions'][0],64 if state['hook'] else 66,WHITE,True)
         self.text(d,(60,340 if state['hook'] else 252),state['captions'][1],37 if state['hook'] else 39,PURPLE,True)
@@ -179,26 +179,30 @@ class Film:
             for j,(label,value,color) in enumerate([
                 ('交差点 / CROWDING',str(state['state']['central_count'])+'人',RED),
                 ('催し / EVENT HUBS','0 / 5',MINT)]):
-                x=60+j*500; y=1370+round(u*75)
-                pd.rounded_rectangle((x,y,x+460,y+180),radius=24,fill='#151c35ed',outline=color,width=2)
-                self.text(pd,(x+24,y+18),label,25,MUTED,True);self.text(pd,(x+24,y+57),value,57,color,True)
+                x=60+j*500; y=1410+round(u*75)
+                pd.rounded_rectangle((x,y,x+460,y+125),radius=24,fill='#151c35ed',outline=color,width=2)
+                self.text(pd,(x+24,y+18),label,25,MUTED,True);self.text(pd,(x+24,y+57),value,43,color,True)
             panels.putalpha(panels.getchannel('A').point(lambda v:round(v*(1-u))))
             im.paste(panels,(0,0),panels);d=ImageDraw.Draw(im)
         if state['timelapse']:
-            self.card(im,(540,1540,1020,1675));d=ImageDraw.Draw(im)
-            self.text(d,(565,1544),'×'+str(state['speed']),64,AMBER,True)
-            self.text(d,(742,1555),'昼 → 夕 → 夜',30,WHITE,True)
-            self.text(d,(742,1610),'DAY → NIGHT',23,PURPLE,True)
+            self.card(im,(60,1600,690,1688));d=ImageDraw.Draw(im)
+            self.text(d,(85,1602),'×'+str(state['speed']),48,AMBER,True)
+            self.text(d,(260,1617),'昼 → 夕 → 夜 / DAY → NIGHT',27,WHITE,True)
         if state['regional']:
             self.hub_labels(im,state);d=ImageDraw.Draw(im)
-            if t>=5.05:
-                self.card(im,(60,1545,1020,1670));d=ImageDraw.Draw(im)
-                for x,ja,en,color in [(85,'徒歩','WALK',AMBER),(355,'山手線','YAMANOTE',MINT),(695,'井の頭線','INOKASHIRA',PURPLE)]:
-                    self.text(d,(x,1550),ja,35,color,True);self.text(d,(x,1610),en,24,color,True)
+            if state.get('journey'):
+                self.card(im,(60,1530,1020,1680));d=ImageDraw.Draw(im)
+                if t<6.5:
+                    self.text(d,(90,1540),'山手線  /  井の頭線',42,MINT,True)
+                    self.text(d,(90,1610),'YAMANOTE / INOKASHIRA · BOARD → RIDE',26,PURPLE,True)
+                else:
+                    district=state['hubs'][state.get('focusDistrict',0)]
+                    self.text(d,(90,1540),district['name']+' · '+district['event'],37,AMBER,True)
+                    self.text(d,(90,1610),district['en']+' · '+district['eventEn'],28,PURPLE,True)
         elif state['green']:
             self.card(im,(60,1510,1020,1630));d=ImageDraw.Draw(im)
             self.text(d,(90,1532),'● GREEN / みんなで、渡ろう。',43,MINT,True)
-        elif 8.6<=t<12.2:
+        elif 9.2<=t<12:
             if state.get('pairedMelt'):self.text(d,(60,1480),'比較再生 OFF → ON / PAIRED REPLAY',31,AMBER,True)
             self.text(d,(60,1550),'同じ時刻、同じ青。行き先が増えた。',35,MINT,True)
             self.text(d,(60,1615),'Same green. More places to go.',32,PURPLE)
@@ -206,21 +210,19 @@ class Film:
         return im
     def hub_labels(self,im,state):
         d=ImageDraw.Draw(im)
-        if state['seconds']>=7.65:return
-        activities=['仮装','行進','灯り','光の道','屋台']
-        offsets=[(-240,-30),(-250,-15),(75,-40),(75,-15),(75,20)]
-        for i,h in enumerate(state['hubs']):
-            if state['seconds']<state.get('activations',[3.65,4,4.35,4.7,5.05])[i]:continue
-            px,py,pz=h['screen']
-            if pz>1 or pz<0:continue
-            ox,oy=offsets[i];x=max(45,min(780,px+ox));y=max(425,min(1360,py+oy));accent='#%06x'%h['color']
-            d.line((px,py,x+105,y+40),fill=accent,width=3)
-            self.card(im,(x,y,x+245,y+126),outline=accent);d=ImageDraw.Draw(im)
-            self.text(d,(x+14,y+1),h['name']+' · '+activities[i],31,WHITE,True)
-            self.text(d,(x+14,y+49),h['en'],24,accent,True)
-            count=state['state']['district_people'][i]
-            self.text(d,(x+14,y+87),f'到着 {count} / ARRIVALS',22,MUTED,True)
         self.text(d,(60,350),'架空イベント / FICTIONAL EVENTS',25,WHITE,True)
+        if not state.get('overview'):return
+        activities=['仮装','行進','灯り','光の道','屋台']
+        offsets=[(-190,-10),(-210,-10),(70,-30),(80,-10),(80,0)]
+        for i,h in enumerate(state['hubs']):
+            if state['seconds']<state['activations'][i]:continue
+            px,py,pz=h['screen']
+            if not 0<=pz<=1:continue
+            ox,oy=offsets[i];x=max(45,min(790,px+ox));y=max(425,min(1360,py+oy));accent='#%06x'%h['color']
+            d.line((px,py,x+100,y+40),fill=accent,width=3)
+            self.card(im,(x,y,x+230,y+102),outline=accent);d=ImageDraw.Draw(im)
+            self.text(d,(x+14,y+2),h['name']+' · '+activities[i],31,WHITE,True)
+            self.text(d,(x+14,y+52),h['en'],26,accent,True)
     def results(self,im,t):
         a=self.metrics['no_events'];b=self.metrics['events_on'];change=round(self.metrics['density_change_pct']);gain=round((self.metrics['attendance_ratio']-1)*100)
         self.card(im,(32,100,1048,1702));d=ImageDraw.Draw(im)
@@ -240,17 +242,33 @@ class Film:
         self.text(d,(66,1583),f"最多到着：代々木 {best['people']}人 (+{lift})",38,AMBER,True)
         self.text(d,(66,1640),f"MOST ARRIVALS · {best['district']} lantern garden",27,AMBER,True)
         self.footer(d);return im
+    def district_results(self,im):
+        a=self.metrics['no_events'];b=self.metrics['events_on'];best=self.metrics['best_event']
+        self.card(im,(32,100,1048,1702));d=ImageDraw.Draw(im)
+        self.text(d,(64,130),f"交差点ピーク {round(self.metrics['density_change_pct'])}%",76,MINT,True)
+        self.text(d,(68,245),'Crossing peak · paired toy-model',36,PURPLE,True)
+        self.text(d,(68,350),'街に、何人着いた？',59,WHITE,True)
+        self.text(d,(70,440),'Completed arrivals · OFF → ON',35,PURPLE,True)
+        for i,e in enumerate(self.metrics['events']):
+            y=555+i*170;color=AMBER if e['en']==best['district'] else WHITE
+            if e['en']==best['district']:
+                d.rounded_rectangle((60,y-5,1020,y+151),radius=20,fill='#4b3a4d',outline=AMBER,width=2)
+            self.text(d,(85,y),e['name'],49,color,True)
+            self.text(d,(87,y+76),e['en'],31,PURPLE)
+            self.text(d,(520,y+13),f"{a['district_people'][i]} → {b['district_people'][i]}",58,color,True)
+        self.text(d,(85,1440),f"最多 / MOST: {best['district']} {best['people']} (+{self.metrics['largest_lift']['people']})",39,AMBER,True)
+        self.text(d,(85,1530),f"合計 {a['visits']} → {b['visits']}人  (+{round((self.metrics['attendance_ratio']-1)*100)}%)",49,MINT,True)
+        self.text(d,(88,1620),'徒歩 + 山手線 + 井の頭線 / walk + both rail lines',28,MUTED)
+        self.footer(d);return im
     def compare(self):
         raise RuntimeError('Comparison is integrated into the live city view')
-    def credit(self,scene_image,t=15):
-        im=self.shade(scene_image);self.card(im,(48,1170,1032,1695));d=ImageDraw.Draw(im)
-        self.text(d,(78,1190),'MADE AFTER DARK',53,WHITE,True)
-        self.text(d,(78,1278),'HAGINO 2026 · Original art + code · MIT',31,WHITE,True)
-        self.text(d,(78,1355),'PLATEAU 渋谷2023 加工 · CC BY 4.0',30,PURPLE)
-        self.text(d,(78,1415),'© OSM contributors · ODbL',30,PURPLE)
-        self.text(d,(78,1485),'three.js · MIT | Noto Sans CJK JP · OFL 1.1',25,MUTED)
-        self.text(d,(78,1550),'架空の催し / Fictional events + behaviour',30,AMBER,True)
-        self.text(d,(78,1620),'Full credits: NOTICE + ASSETS.md',26,MUTED)
+    def credit(self,scene_image,t=17.5):
+        im=self.shade(scene_image);self.card(im,(48,1230,1032,1695));d=ImageDraw.Draw(im)
+        self.text(d,(78,1250),'HAGINO 2026',59,WHITE,True)
+        self.text(d,(78,1350),'Original art + code · MIT',38,PURPLE,True)
+        self.text(d,(78,1430),'PLATEAU CC BY 4.0 · OSM ODbL',32,PURPLE)
+        self.text(d,(78,1505),'three.js MIT · Noto Sans CJK JP OFL 1.1',27,MUTED)
+        self.text(d,(78,1590),'Full credits: NOTICE + ASSETS.md',31,AMBER,True)
         self.footer(d);return im
 
 def render_capture_frame(frame):
@@ -292,7 +310,7 @@ def record(output,stills,metrics_path,preview=False):
             if frame%24==0 or preview:print(f'{frame/FPS:.2f}/{DURATION}s · CPU rendering actual three.js geometry',flush=True)
     probe=None
     if not preview:
-        partial=output.with_name(output.stem+'.partial.mp4');subprocess.run(['ffmpeg','-hide_banner','-loglevel','error','-y','-framerate',str(FPS),'-i',str(frames/'frame-%05d.jpg'),'-frames:v',str(FPS*DURATION),'-an','-c:v','libx264','-preset','fast','-crf','18','-pix_fmt','yuv420p','-movflags','+faststart+use_metadata_tags','-metadata',f'credit={CREDIT}','-metadata','comment=Toy-model values; same procedural three.js geometry, local CPU raster capture; fictional neighborhood events, matched arrivals and rail journeys; 18s loop.',str(partial)],check=True);probe=probe_video(partial);partial.replace(output)
+        partial=output.with_name(output.stem+'.partial.mp4');subprocess.run(['ffmpeg','-hide_banner','-loglevel','error','-y','-framerate',str(FPS),'-i',str(frames/'frame-%05d.jpg'),'-frames:v',str(FPS*DURATION),'-an','-c:v','libx264','-preset','fast','-crf','18','-pix_fmt','yuv420p','-movflags','+faststart+use_metadata_tags','-metadata',f'credit={CREDIT}','-metadata','comment=Toy-model values; same procedural three.js geometry, local CPU raster capture; fictional neighborhood events, matched arrivals and rail journeys; 20s loop.',str(partial)],check=True);probe=probe_video(partial);partial.replace(output)
     result={'video':str(output),'renderer':'authored CPU rasterizer of actual three.js scene','source_sha256':signature,'preview':preview,'width':1080,'height':1920,'fps':24,'duration_s':DURATION,'wall_seconds':round(time.monotonic()-start,2),'screenshots':[str(stills/p) for p in STILLS.values()],'snapshots':snapshots,'probe':probe,'errors':[]}
     (stills/('preview.json' if preview else 'recording.json')).write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n');print(json.dumps(result,ensure_ascii=False,indent=2),flush=True)
 
