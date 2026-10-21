@@ -219,3 +219,25 @@ explicitly labelled toy-model values, five district pairs and Yoyogi's attendanc
 lead; the credit card now holds for 1.15s. The 20s loop closes on the exact
 opening plan/camera/crowd. No external art/audio or new data were added; original
 PLATEAU source files and the eastern Omotesando coverage gap are unchanged.
+
+Halloween film iteration 9 (2026-10-22): immediate source-footprint extrusion,
+reduced emissive bloom, larger open-carriage trio markers, enlarged overview
+attractions, additional original food-stall counters and an Ebisu destination
+shot are self-made procedural MIT work, HAGINO 2026. No external art/audio or
+new geographic data. Regional models, station positions and passenger sizes
+remain schematic. All five fictional events activate before the held overview.
+The OFF/ON colour-melt holds model 1092s, the same camera, exposure and actual
+green phase. Subsequent movement stays in that green window; a red signal no
+longer creates the visual relief. Peak density remains 0.3360 to 0.2802 people/m²
+(608 to 507 people; -16.6%); completed district arrivals 152 to 237 (+55.9%).
+The two-second result card labels these as toy-model values. The event trial
+persists through the end until the solid city has flattened into the blueprint.
+Source PLATEAU data, 3km coverage and eastern Omotesando gap are unchanged.
+The Inokashira destination insert follows actual 1230s service passengers
+(IDs 519, 520, 521, 958), alighting in Shinsen at 1325s. The Yamanote trio
+keeps a compact formation on its schematic lantern-garden entry path.
+The final flat blueprint smoothly interpolates existing identity marks back to
+their opening positions. This is an authored loop rewind, not a measured
+pedestrian trajectory; the solid city keeps the actual event-trial positions.
+Close station shots use a toy cutaway: canopy roofs lift out of view while
+platforms, posts and trains remain, exposing actual boarding/alighting people.

@@ -142,7 +142,7 @@ class SoftwareScene:
         im=Image.fromarray(canvas).resize((1080,1920),Image.Resampling.LANCZOS)
         # Local emissive bloom, authored from the rendered pixels; no image assets.
         bright=np.array(im);mask=np.maximum(bright.max(axis=2).astype(float)-185,0)/70
-        glow=Image.fromarray((bright*mask[:,:,None]*.13).clip(0,255).astype('uint8')).filter(ImageFilter.GaussianBlur(8))
+        glow=Image.fromarray((bright*mask[:,:,None]*.06).clip(0,255).astype('uint8')).filter(ImageFilter.GaussianBlur(8))
         from PIL import ImageChops
         return ImageChops.add(im,glow)
 
@@ -174,13 +174,13 @@ class Film:
         self.text(d,(60,75),'SHIBUYA / HALLOWEEN',24,AMBER,True);self.sparkle(d,987,101,14)
         self.text(d,(56,142),state['captions'][0],64 if state['hook'] else 66,WHITE,True)
         self.text(d,(60,340 if state['hook'] else 252),state['captions'][1],37 if state['hook'] else 39,PURPLE,True)
-        if state['opening']<.65:
-            u=min(1,max(0,(state['opening']-.1)/.45))
+        if state['opening']<.25:
+            u=min(1,max(0,(state['opening']-.01)/.20))
             panels=Image.new('RGBA',im.size);pd=ImageDraw.Draw(panels)
             for j,(label,value,color) in enumerate([
                 ('交差点 / CROWDING',str(state['state']['central_count'])+'人',RED),
                 ('催し / EVENT HUBS','0 / 5',MINT)]):
-                x=60+j*500; y=1410+round(u*75)
+                x=60+j*500; y=1410+round(u*110)
                 pd.rounded_rectangle((x,y,x+460,y+125),radius=24,fill='#151c35ed',outline=color,width=2)
                 self.text(pd,(x+24,y+18),label,25,MUTED,True);self.text(pd,(x+24,y+57),value,43,color,True)
             panels.putalpha(panels.getchannel('A').point(lambda v:round(v*(1-u))))
@@ -205,11 +205,11 @@ class Film:
             self.card(im,(60,1510,1020,1630));d=ImageDraw.Draw(im)
             self.text(d,(90,1532),'● GREEN / みんなで、渡ろう。',43,MINT,True)
         elif state.get('pairedMelt'):
-            self.text(d,(60,1550),'同じ青で比較 / MATCHED GREEN · OFF → ON',33,MINT,True)
+            self.text(d,(60,1550),'同時刻・同じ青 / 1092s · OFF → ON',33,MINT,True)
         elif state.get('departureBeat'):
             self.card(im,(60,1510,1020,1670));d=ImageDraw.Draw(im)
-            self.text(d,(90,1525),'光のしっぽ＝街へ向かう人',39,MINT,True)
-            self.text(d,(90,1598),'TRAILS = PEOPLE HEADING TO EVENTS',29,PURPLE,True)
+            self.text(d,(90,1525),'青のまま、余白ができる。',39,MINT,True)
+            self.text(d,(90,1598),'STILL GREEN · ACTUAL EVENT-BOUND PEOPLE',29,PURPLE,True)
         self.footer(d)
         return im
     def hub_labels(self,im,state):
@@ -217,7 +217,7 @@ class Film:
         self.text(d,(60,350),'架空イベント / FICTIONAL EVENTS',25,WHITE,True)
         if not state.get('overview'):return
         activities=['仮装','行進','灯り','光の道','屋台']
-        offsets=[(-190,-10),(-210,-10),(70,-30),(80,-10),(80,0)]
+        offsets=[(-230,75),(-280,95),(90,-55),(100,60),(90,130)]
         for i,h in enumerate(state['hubs']):
             if state['seconds']<state['activations'][i]:continue
             px,py,pz=h['screen']
@@ -245,15 +245,16 @@ class Film:
             self.text(d,(x+18,479),'催しなし / OFF' if j==0 else '催しあり / ON',29,RED if j==0 else MINT,True)
         self.text(d,(66,866),'同じ時刻・同じ青 / Matched green',28,MUTED)
         best=self.metrics['best_event']
+        # Three reading targets: measured density, arrivals, winning destination.
+        self.text(d,(84,969),f"最多到着：代々木 {best['people']}人",57,AMBER,True)
+        self.text(d,(86,1061),'MOST ARRIVALS · Yoyogi lantern garden',33,AMBER,True)
+        # All five districts stay available, in two compact lines rather than a table.
         for i,e in enumerate(self.metrics['events']):
-            y=945+i*108;color=AMBER if e['en']==best['district'] else WHITE
-            if e['en']==best['district']:
-                d.rounded_rectangle((62,y-2,1018,y+101),radius=16,fill='#4b3a4d',outline=AMBER,width=2)
-            self.text(d,(84,y),e['name'],43,color,True)
-            self.text(d,(284,y+12),e['en'],28,PURPLE)
-            self.text(d,(640,y-3),f"{a['district_people'][i]} → {b['district_people'][i]}",48,color,True)
-        self.text(d,(84,1538),f"最多到着：代々木 {best['people']}人",43,AMBER,True)
-        self.text(d,(86,1614),'MOST ARRIVALS · Yoyogi lantern garden',28,AMBER,True)
+            x=84+(i%3)*310;y=1180+(i//3)*166
+            self.text(d,(x,y),e['name']+' / '+e['en'],24,PURPLE,True)
+            self.text(d,(x,y+44),f"{a['district_people'][i]} → {b['district_people'][i]}",41,WHITE,True)
+        self.text(d,(84,1552),'同じ960人・1800秒 / Same 960 people · 1800s',29,MUTED)
+        self.text(d,(84,1610),'ピーク密度・到着数 / Peak density · completed arrivals',25,MUTED)
         self.footer(d);return im
     def compare(self):
         raise RuntimeError('Comparison is integrated into the live city view')

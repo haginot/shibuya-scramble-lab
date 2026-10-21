@@ -1,44 +1,47 @@
 {
-  "video": "out/media/iteration-8/shibuya-halloween.mp4",
+  "video": "out/media/iteration-9/shibuya-halloween.mp4",
   "renderer": "authored CPU rasterizer of actual three.js scene",
-  "source_sha256": "096c97be8be9806e8a3901f39fce263b1fa572ff0383a2ef99ab3a2f80589a6c",
+  "source_sha256": "b08edb82ea0781f8fce3c46a18e01d5051fac8c0daf19ef1b3a8276ee21133b2",
   "preview": false,
   "width": 1080,
   "height": 1920,
   "fps": 24,
   "duration_s": 20,
-  "wall_seconds": 166.46,
+  "wall_seconds": 157.81,
   "screenshots": [
-    "out/media/iteration-8/shibuya-halloween/01-blueprint.png",
-    "out/media/iteration-8/shibuya-halloween/02-day-extrusion.png",
-    "out/media/iteration-8/shibuya-halloween/03-dusk.png",
-    "out/media/iteration-8/shibuya-halloween/04-witch-hook.png",
-    "out/media/iteration-8/shibuya-halloween/05-curb-queues.png",
-    "out/media/iteration-8/shibuya-halloween/06-green-start.png",
-    "out/media/iteration-8/shibuya-halloween/07-whole-crossing.png",
-    "out/media/iteration-8/shibuya-halloween/08-crossing-release.png",
-    "out/media/iteration-8/shibuya-halloween/09-pedestrian-descent.png",
-    "out/media/iteration-8/shibuya-halloween/09-event-lift.png",
-    "out/media/iteration-8/shibuya-halloween/10-five-events.png",
-    "out/media/iteration-8/shibuya-halloween/11-yamanote-boarding.png",
-    "out/media/iteration-8/shibuya-halloween/12-inokashira-boarding.png",
-    "out/media/iteration-8/shibuya-halloween/13-departure.png",
-    "out/media/iteration-8/shibuya-halloween/14-follow-train.png",
-    "out/media/iteration-8/shibuya-halloween/15-lantern-platform.png",
-    "out/media/iteration-8/shibuya-halloween/16-alighting.png",
-    "out/media/iteration-8/shibuya-halloween/17-lantern-garden.png",
-    "out/media/iteration-8/shibuya-halloween/18-matched-off.png",
-    "out/media/iteration-8/shibuya-halloween/19-colour-melt.png",
-    "out/media/iteration-8/shibuya-halloween/20-departure-trails.png",
-    "out/media/iteration-8/shibuya-halloween/21-people-outward.png",
-    "out/media/iteration-8/shibuya-halloween/22-calm-crossing.png",
-    "out/media/iteration-8/shibuya-halloween/22-results.png",
-    "out/media/iteration-8/shibuya-halloween/23-results-hold.png",
-    "out/media/iteration-8/shibuya-halloween/24-results-end.png",
-    "out/media/iteration-8/shibuya-halloween/25-credits.png",
-    "out/media/iteration-8/shibuya-halloween/26-calm-loop-return.png",
-    "out/media/iteration-8/shibuya-halloween/27-visual-rewind.png",
-    "out/media/iteration-8/shibuya-halloween/28-loop-blueprint.png"
+    "out/media/iteration-9/shibuya-halloween/01-blueprint.png",
+    "out/media/iteration-9/shibuya-halloween/02-day-extrusion.png",
+    "out/media/iteration-9/shibuya-halloween/03-dusk.png",
+    "out/media/iteration-9/shibuya-halloween/04-witch-hook.png",
+    "out/media/iteration-9/shibuya-halloween/05-curb-queues.png",
+    "out/media/iteration-9/shibuya-halloween/06-green-stepoff.png",
+    "out/media/iteration-9/shibuya-halloween/07-six-arm-launch.png",
+    "out/media/iteration-9/shibuya-halloween/08-whole-crossing.png",
+    "out/media/iteration-9/shibuya-halloween/09-eye-level.png",
+    "out/media/iteration-9/shibuya-halloween/10-five-events.png",
+    "out/media/iteration-9/shibuya-halloween/11-all-five-hubs.png",
+    "out/media/iteration-9/shibuya-halloween/12-yamanote-boarding.png",
+    "out/media/iteration-9/shibuya-halloween/13-inokashira-boarding.png",
+    "out/media/iteration-9/shibuya-halloween/14-trio-departure.png",
+    "out/media/iteration-9/shibuya-halloween/15-trio-in-carriage.png",
+    "out/media/iteration-9/shibuya-halloween/16-lantern-platform.png",
+    "out/media/iteration-9/shibuya-halloween/17-trio-alighting.png",
+    "out/media/iteration-9/shibuya-halloween/18-lantern-garden.png",
+    "out/media/iteration-9/shibuya-halloween/19-inokashira-alighting.png",
+    "out/media/iteration-9/shibuya-halloween/19b-inokashira-step-off.png",
+    "out/media/iteration-9/shibuya-halloween/20-ebisu-stalls.png",
+    "out/media/iteration-9/shibuya-halloween/21-return-to-crossing.png",
+    "out/media/iteration-9/shibuya-halloween/22-matched-off-green.png",
+    "out/media/iteration-9/shibuya-halloween/22-matched-colour-melt.png",
+    "out/media/iteration-9/shibuya-halloween/23-matched-on-green.png",
+    "out/media/iteration-9/shibuya-halloween/24-relief-still-green.png",
+    "out/media/iteration-9/shibuya-halloween/25-calm-still-green.png",
+    "out/media/iteration-9/shibuya-halloween/26-results.png",
+    "out/media/iteration-9/shibuya-halloween/27-results-end.png",
+    "out/media/iteration-9/shibuya-halloween/28-credits.png",
+    "out/media/iteration-9/shibuya-halloween/29-green-loop-return.png",
+    "out/media/iteration-9/shibuya-halloween/30-flatten-to-blueprint.png",
+    "out/media/iteration-9/shibuya-halloween/31-loop-blueprint.png"
   ],
   "snapshots": [
     {
@@ -46,52 +49,52 @@
       "video_seconds": 0.0
     },
     {
-      "frame": 6,
-      "video_seconds": 0.25
+      "frame": 4,
+      "video_seconds": 0.16666666666666666
     },
     {
-      "frame": 15,
-      "video_seconds": 0.625
+      "frame": 10,
+      "video_seconds": 0.4166666666666667
     },
     {
-      "frame": 29,
-      "video_seconds": 1.2083333333333333
+      "frame": 23,
+      "video_seconds": 0.9583333333333334
     },
     {
       "frame": 35,
       "video_seconds": 1.4583333333333333
     },
     {
-      "frame": 38,
-      "video_seconds": 1.5833333333333333
+      "frame": 37,
+      "video_seconds": 1.5416666666666667
     },
     {
-      "frame": 51,
-      "video_seconds": 2.125
+      "frame": 44,
+      "video_seconds": 1.8333333333333333
     },
     {
-      "frame": 68,
-      "video_seconds": 2.8333333333333335
+      "frame": 65,
+      "video_seconds": 2.7083333333333335
     },
     {
-      "frame": 83,
-      "video_seconds": 3.4583333333333335
+      "frame": 84,
+      "video_seconds": 3.5
     },
     {
-      "frame": 103,
-      "video_seconds": 4.291666666666667
+      "frame": 105,
+      "video_seconds": 4.375
     },
     {
-      "frame": 119,
-      "video_seconds": 4.958333333333333
+      "frame": 121,
+      "video_seconds": 5.041666666666667
     },
     {
       "frame": 132,
       "video_seconds": 5.5
     },
     {
-      "frame": 145,
-      "video_seconds": 6.041666666666667
+      "frame": 143,
+      "video_seconds": 5.958333333333333
     },
     {
       "frame": 154,
@@ -102,60 +105,72 @@
       "video_seconds": 6.958333333333333
     },
     {
-      "frame": 179,
-      "video_seconds": 7.458333333333333
+      "frame": 181,
+      "video_seconds": 7.541666666666667
     },
     {
-      "frame": 193,
-      "video_seconds": 8.041666666666666
+      "frame": 196,
+      "video_seconds": 8.166666666666666
     },
     {
-      "frame": 209,
-      "video_seconds": 8.708333333333334
+      "frame": 201,
+      "video_seconds": 8.375
     },
     {
-      "frame": 225,
-      "video_seconds": 9.375
+      "frame": 213,
+      "video_seconds": 8.875
     },
     {
-      "frame": 237,
-      "video_seconds": 9.875
+      "frame": 217,
+      "video_seconds": 9.041666666666666
     },
     {
-      "frame": 253,
-      "video_seconds": 10.541666666666666
+      "frame": 232,
+      "video_seconds": 9.666666666666666
     },
     {
-      "frame": 280,
-      "video_seconds": 11.666666666666666
+      "frame": 244,
+      "video_seconds": 10.166666666666666
     },
     {
-      "frame": 303,
-      "video_seconds": 12.625
+      "frame": 249,
+      "video_seconds": 10.375
     },
     {
-      "frame": 322,
-      "video_seconds": 13.416666666666666
+      "frame": 260,
+      "video_seconds": 10.833333333333334
     },
     {
-      "frame": 354,
-      "video_seconds": 14.75
+      "frame": 277,
+      "video_seconds": 11.541666666666666
     },
     {
-      "frame": 385,
-      "video_seconds": 16.041666666666668
+      "frame": 296,
+      "video_seconds": 12.333333333333334
     },
     {
-      "frame": 409,
-      "video_seconds": 17.041666666666668
+      "frame": 328,
+      "video_seconds": 13.666666666666666
     },
     {
-      "frame": 433,
-      "video_seconds": 18.041666666666668
+      "frame": 338,
+      "video_seconds": 14.083333333333334
     },
     {
-      "frame": 456,
-      "video_seconds": 19.0
+      "frame": 372,
+      "video_seconds": 15.5
+    },
+    {
+      "frame": 396,
+      "video_seconds": 16.5
+    },
+    {
+      "frame": 429,
+      "video_seconds": 17.875
+    },
+    {
+      "frame": 459,
+      "video_seconds": 19.125
     },
     {
       "frame": 479,

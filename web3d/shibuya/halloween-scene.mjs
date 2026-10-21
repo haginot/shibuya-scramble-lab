@@ -68,8 +68,8 @@ export function makeNightScene(plateau,osm,nav,region={buildings:[]}){
  cube(-48,12,27,5,24,27,standard(0x45395c));
  cube(14,12,-51,31,24,6,standard(0x48405e));
  cube(52,14,-12,6,28,28,standard(0x3c3856));
- sign(-50.8,19,27,23,12,'MOONLIT','BOOKS · NIGHT READ','#7f3fab',-Math.PI/2);
- sign(14,22,-54.1,28,18,'HIDAMARI','PUMPKIN LATTE','#c27037',Math.PI);
+ sign(-50.8,19,27,23,16,'MOONLIT','BOOKS · NIGHT READ','#7f3fab',-Math.PI/2);
+ sign(14,22,-47.9,28,18,'HIDAMARI','PUMPKIN LATTE','#c27037',0);
  sign(48.8,22,-12,22,19,'AMBER','SWEETS · MOON CAKES','#7059b9',-Math.PI/2);
  sign(48.5,18,34,29,9,'SHIBUYA','STATION', '#293c6a',-Math.PI/2);
  sign(67,18,15,32,10,'SHIBUYA','STATION', '#293c6a',Math.PI);
@@ -102,7 +102,7 @@ export function makeNightScene(plateau,osm,nav,region={buildings:[]}){
   }else if(i===3){ // Promenade: a tunnel of gold/purple light arches.
    for(let j=0;j<6;j++){const z=-105+j*42;for(const x of[-43,43])cube(x,35,z,5,70,5,lit,g);const arch=mesh(new THREE.TorusGeometry(43,5,5,20,Math.PI),j%2?white:lit,0,70,z,g);}
   }else{ // Food village: orange tent roofs, counters and a pumpkin centrepiece.
-   for(let j=0;j<8;j++){const a=j*Math.PI/4,x=Math.cos(a)*99,z=Math.sin(a)*99;cube(x,18,z,40,28,32,mat,g);const roof=mesh(new THREE.ConeGeometry(33,28,4),white,x,45,z,g);roof.rotation.y=Math.PI/4;cube(x,21,z-17,30,9,2,lit,g);}
+   for(let j=0;j<8;j++){const a=j*Math.PI/4,x=Math.cos(a)*99,z=Math.sin(a)*99;cube(x,18,z,40,28,32,mat,g);const roof=mesh(new THREE.ConeGeometry(33,28,4),white,x,45,z,g);roof.rotation.y=Math.PI/4;cube(x,21,z-17,30,9,2,lit,g);for(const dx of[-13,13])cube(x+dx,30,z-15,2,25,2,white,g);for(const dx of[-8,0,8])mesh(sphere,white,x+dx,29,z-19,g).scale.setScalar(3);}
    mesh(sphere,standard(0xf69a32,0xff7a22,.8),0,32,0,g).scale.set(36,32,36);cube(0,66,0,7,15,7,ground,g);
   }
   const beacon=mesh(new THREE.CylinderGeometry(8,24,240,8),basic(e.color,.20),0,130,0,g);
@@ -121,7 +121,7 @@ export function makeNightScene(plateau,osm,nav,region={buildings:[]}){
  const stationPulses=[[55,75],...EVENTS.filter(e=>e.line!=='walk').map(e=>[e.position[0]-430,e.position[1]])].map(([x,z],i)=>{
   const g=new THREE.Group();g.position.set(x,3,z);scene.add(g);
   const accent=basic(i===1?0xe3a0ff:0x80f3cb);
-  for(const side of[-1,1]){cube(side*65,0,0,55,6,185,standard(0x61587b),g);cube(side*65,4,0,2,.3,170,accent,g);for(const zz of[-70,70])cube(side*83,25,zz,3,48,3,steel,g);cube(side*103,38,0,30,5,180,standard(0x493d62),g);}
+  for(const side of[-1,1]){cube(side*65,0,0,55,6,185,standard(0x61587b),g);cube(side*65,4,0,2,.3,170,accent,g);for(const zz of[-70,70])cube(side*83,25,zz,3,48,3,steel,g);const roof=cube(side*103,38,0,30,5,180,standard(0x493d62),g);roof.userData.platformCanopy=true;}
   for(const zz of[-75,75])cube(0,-2,zz,15,18,7,steel,g);
   if(i===0){for(const [xx,label,sub,hex] of [[125,'山手線','YAMANOTE','#307c73'],[-125,'井の頭線','INOKASHIRA','#77509a']]){const board=sign(x+xx,55,z,95,40,label,sub,hex,-Math.PI/2);scene.remove(board);board.position.set(xx,52,0);g.add(board);}}
   return g;
@@ -163,7 +163,7 @@ export function makeNightScene(plateau,osm,nav,region={buildings:[]}){
  // Authored blueprint uses the source footprints; it remains flat as the city rises.
  const city=new THREE.Group();for(const child of [...scene.children])if(!child.isLight)city.add(child);scene.add(city);
  const blueprint=new THREE.Group();scene.add(blueprint);const bp=[];
- for(const b of plateau.buildings){if(b.ring.every(p=>Math.hypot(...p)<155)&&b.ring.every(p=>Math.hypot(...p)>30))ribbon([...b.ring,b.ring[0]],.18,.7,0x294758,bp);}
+ for(const b of plateau.buildings){if(b.ring.every(p=>Math.hypot(...p)<155)&&b.ring.every(p=>Math.hypot(...p)>30))ribbon([...b.ring,b.ring[0]],.35,.7,0x51627f,bp);}
  for(let i=0;i<3;i++)ribbon([CORNERS[i],CORNERS[i+3]],1.1,.65,0xb6e1df,bp);
  const plan=merge(bp,new THREE.MeshBasicMaterial({vertexColors:true,transparent:true,opacity:1}));scene.remove(plan);blueprint.add(plan);
  const scan=mesh(new THREE.RingGeometry(28,29,64),basic(0xf58bbb,.5),0,1,0,blueprint);scan.rotation.x=-Math.PI/2;
@@ -171,25 +171,31 @@ export function makeNightScene(plateau,osm,nav,region={buildings:[]}){
  const bpPeople=new THREE.Points(new THREE.BufferGeometry(),new THREE.PointsMaterial({color:0xff94bd,size:.65,transparent:true,opacity:.8,depthWrite:false}));bpPeople.geometry.setAttribute('position',new THREE.BufferAttribute(new Float32Array(960*3),3));blueprint.add(bpPeople);
  const envMaterials=[];city.traverse(o=>{if(o.material&&!envMaterials.some(m=>m.mat===o.material))envMaterials.push({mat:o.material,emission:o.material.emissiveIntensity??0});});
  const daySky=new THREE.Color(0x85b9ce),nightSky=new THREE.Color(0x14152f),duskSky=new THREE.Color(0xc8776c);
+ let openingPeople=null;
  function update(model,seconds,promo){
   seconds%=DURATION;
   const story=storyAt(seconds);
-  const crowdInk=1-smooth((story.opening-.32)/.30);
-  city.scale.y=.012+.988*story.extrusion;city.visible=story.extrusion>.01;blueprint.visible=crowdInk>.01;plan.material.opacity=story.blueprint;scan.material.opacity=crowdInk*.4;scan.scale.setScalar(story.opening<.05?.9:1+.1*Math.sin(seconds/DURATION*Math.PI*2*36));bpFocus.material.opacity=crowdInk*.35;
+  const crowdInk=1-smooth((story.opening-.18)/.24);
+  city.scale.y=.012+.988*story.extrusion;city.visible=story.extrusion>.01;blueprint.visible=crowdInk>.01;plan.material.opacity=story.blueprint;scan.material.opacity=crowdInk*.22;scan.scale.setScalar(story.opening<.05?.9:1+.1*Math.sin(seconds/DURATION*Math.PI*2*36));bpFocus.material.opacity=crowdInk*.12;
   envMaterials.forEach(({mat,emission})=>{if('emissiveIntensity' in mat)mat.emissiveIntensity=emission*(1-story.daylight*.93);});
   scene.background=new THREE.Color(nightSky).lerp(daySky,story.daylight).lerp(duskSky,story.dusk*.6);moonlight.intensity=2.6+story.daylight*1.2;amber.intensity=1.1+story.dusk;
   const nearPeople=model.people.filter(p=>!(story.regional&&p.stage==='platform')&&!['waiting','gone','event','rail','regional'].includes(p.stage));
-  const bpPos=bpPeople.geometry.attributes.position.array;nearPeople.forEach((p,i)=>bpPos.set([p.x,1.2,p.z],i*3));bpPeople.geometry.setDrawRange(0,nearPeople.length);bpPeople.geometry.attributes.position.needsUpdate=true;bpPeople.material.opacity=crowdInk*.9;
+  if(seconds===0)openingPeople=nearPeople.map(p=>({id:p.id,x:p.x,z:p.z}));
+  // The flat plan rewinds continuously into the opening identity positions.
+  // These blueprint marks are an authored transition, not new model trajectories.
+  const inkPeople=story.loop&&openingPeople?openingPeople:nearPeople,rewind=story.loop?smooth((seconds-19.15)/.77):1;
+  const bpPos=bpPeople.geometry.attributes.position.array;inkPeople.forEach((p,i)=>{const from=model.people[p.id];bpPos.set([from.x+(p.x-from.x)*rewind,1.2,from.z+(p.z-from.z)*rewind],i*3);});bpPeople.geometry.setDrawRange(0,inkPeople.length);bpPeople.geometry.attributes.position.needsUpdate=true;bpPeople.material.opacity=crowdInk*.9;
   const counts=[0,0,0,0,0,0],matrix=new THREE.Matrix4(),quat=new THREE.Quaternion(),axis=new THREE.Vector3(0,1,0);for(const p of nearPeople){const kind=p.photo?4:p.id%6,bob=Math.sin(seconds/DURATION*Math.PI*2*32+p.phase)*Math.min(.1,Math.hypot(p.vx,p.vz)*.07);quat.setFromAxisAngle(axis,p.heading);matrix.compose(new THREE.Vector3(p.x+p.vx*story.renderFraction,bob,p.z+p.vz*story.renderFraction),quat,new THREE.Vector3(1,1,1));bodyMeshes[kind].setMatrixAt(counts[kind]++,matrix);}bodyMeshes.forEach((m,i)=>{m.count=counts[i];m.instanceMatrix.needsUpdate=true;});
   let tokenCount=0;const token=(p,x,y,z,s)=>{if(p.group!==FEATURED_GROUP)return;matrix.compose(new THREE.Vector3(x,y+.3,z),new THREE.Quaternion(),new THREE.Vector3(s,s,s));tokens.setMatrixAt(tokenCount++,matrix);};
   let departing=0;for(const p of nearPeople){if(p.goal!==1||p.stage!=='walking')continue;color.setHex(EVENTS[p.district].color);for(let k=0;k<4;k++){const age=k*.55-story.renderFraction;departurePos.set([p.x-p.vx*age,.65,p.z-p.vz*age],departing*3);departureCol.set(color.clone().multiplyScalar(1-k*.2).toArray(),departing*3);departing++;}}
   departureGeo.setDrawRange(0,departing);departureGeo.attributes.position.needsUpdate=true;departureGeo.attributes.color.needsUpdate=true;departureTrails.visible=story.departureBeat;
   const partyCounts=[0,0,0,0,0,0];
   for(const p of model.people){if(p.stage!=='event'||seconds<ACTIVATIONS[p.district])continue;const e=EVENTS[p.district],angle=p.id*2.39996,r=75+Math.sqrt((p.id*37)%83)*14,kind=p.id%6;
-   const scale=2,elapsed=Math.max(0,model.time+story.renderFraction-p.arrivedAt),walkIn=Math.min(1,elapsed/32);
+   const scale=story.overview?2.7:2,elapsed=Math.max(0,model.time+story.renderFraction-p.arrivedAt),walkIn=Math.min(1,elapsed/32);
    let target=[Math.cos(angle)*r*scale,Math.sin(angle)*r*scale];
    if(p.district===0)target=[((p.id*17)%100-65)*scale,-(25+p.id%50)*scale];
    if(p.district===1)target=[(-100+(p.id%11)*20+Math.sin(seconds*2+p.id)*7)*scale,(Math.sin(p.id*.7)*60+Math.cos(seconds*2+p.id)*7)*scale];
+   if(p.group===FEATURED_GROUP)target=[-210+(p.id%3)*25,30+(p.id%3-1)*8];
    if(p.district===4){const a=p.id%8*Math.PI/4;target=[Math.cos(a)*75*scale,Math.sin(a)*75*scale];}
    const start=p.mode==='walk'?[-280,0]:[-365,(p.id%7-3)*9],u=p.mode==='walk'?1:walkIn;
    const x=e.position[0]+start[0]*(1-u)+target[0]*u,z=e.position[1]+start[1]*(1-u)+target[1]*u;
@@ -198,8 +204,8 @@ export function makeNightScene(plateau,osm,nav,region={buildings:[]}){
   partyMeshes.forEach((m,i)=>{m.visible=story.regional;m.count=partyCounts[i];m.instanceMatrix.needsUpdate=true;});
   buildings.visible=!story.regional;moon.visible=!story.regional;
   far.visible=story.regional;stationMarker.visible=story.regional;
-  stationPulses.forEach(g=>{g.visible=story.regional;});
-  hubs.forEach((g,i)=>{g.visible=story.regional&&seconds>=ACTIVATIONS[i];const pop=Math.min(1,Math.max(0,(seconds-ACTIVATIONS[i])/.28));g.scale.setScalar(1.6+.4*Math.sin(pop*Math.PI/2));});
+  stationPulses.forEach(g=>{g.visible=story.regional;g.children.forEach(o=>{if(o.userData.platformCanopy)o.visible=!story.journey;});});
+  hubs.forEach((g,i)=>{g.visible=story.regional&&seconds>=ACTIVATIONS[i];const pop=Math.min(1,Math.max(0,(seconds-ACTIVATIONS[i])/.28));g.scale.setScalar((story.overview?2.7:2)*(.8+.2*Math.sin(pop*Math.PI/2)));});
   paradeFloats.forEach(({o,x,z},i)=>{o.position.x=x+Math.sin(seconds*1.5+i)*13;o.position.z=z+Math.cos(seconds*1.5+i)*12;});
   // These enlarged passengers are the same platform / boarding / alighting
   // individuals, shown once. Their door approach is a schematic visual offset.
@@ -212,9 +218,9 @@ export function makeNightScene(plateau,osm,nav,region={buildings:[]}){
    const base=p.stage==='platform'?[55,75]:pointOnPath(railRoute(e),Math.min(1,(p.journey+story.renderFraction)/(e.travel_s-12)));
    const side=p.mode==='Inokashira'?-1:1,u=early?Math.min(1,p.journey/12):late?Math.min(1,(p.journey-e.travel_s+12)/12):0;
    const phase=Math.min(1,(model.time+story.renderFraction-p.boardedAt)/(e.travel_s-12)),q=pointOnPath(railRoute(e),Math.min(1,phase+.002)),v=pointOnPath(railRoute(e),Math.max(0,phase-.002)),yaw=Math.atan2(q[0]-v[0],q[1]-v[1]);
-   const riding=featured&&p.stage==='rail'&&!early&&!late,localZ=(p.id%3-1)*14;
+   const riding=featured&&p.stage==='rail'&&!early&&!late,localZ=(p.id%3-1)*19;
    const xx=riding?base[0]+Math.sin(yaw)*localZ:base[0]+side*(early?65*(1-u):late?65*u:65),zz=riding?base[1]+Math.cos(yaw)*localZ:base[1]+(p.id%9-4)*14;
-   const scale=featured?10:8,yy=riding?12:7;
+   const scale=featured?16:8,yy=riding?12:7;
    quat.setFromAxisAngle(axis,riding?yaw:side>0?-Math.PI/2:Math.PI/2);matrix.compose(new THREE.Vector3(xx,yy,zz),quat,new THREE.Vector3(scale,scale,scale));const kind=p.id%6;transitMeshes[kind].setMatrixAt(transitCounts[kind]++,matrix);token(p,xx,yy,zz,scale);
   }
   transitMeshes.forEach((m,i)=>{m.visible=story.regional;m.count=transitCounts[i];m.instanceMatrix.needsUpdate=true;});
@@ -223,12 +229,12 @@ export function makeNightScene(plateau,osm,nav,region={buildings:[]}){
   const bins=new Float32Array(256);for(const p of nearPeople){const x=Math.floor((p.x+45)/90*16),z=Math.floor((p.z+45)/90*16);if(x>=0&&x<16&&z>=0&&z<16)bins[z*16+x]++;}
   const density=model.snapshot().peak_central_count/(Math.PI*24**2),h=Math.max(0,Math.min(1,(density-.28)/.056)),heatColor=[35+220*h,210-175*h,245-157*h].map(Math.round).join(',');
   heatInk.clearRect(0,0,128,128);for(let z=0;z<16;z++)for(let x=0;x<16;x++){const n=bins[z*16+x];if(!n)continue;const c=heatColor,g=heatInk.createRadialGradient(x*8+4,z*8+4,0,x*8+4,z*8+4,13);g.addColorStop(0,`rgba(${c},${Math.min(.98,.28+n*.12)})`);g.addColorStop(1,`rgba(${c},0)`);heatInk.fillStyle=g;heatInk.fillRect(x*8-10,z*8-10,28,28);}heatTexture.needsUpdate=true;
-  heat.visible=!story.regional;heat.material.opacity=story.green?.30:.52;
-  launchRings.forEach(o=>{o.visible=story.green;o.material.opacity=.65+.3*Math.sin(seconds*9);});
+  heat.visible=!story.regional;heat.material.opacity=story.hook?.15:story.green?.30:.52;
+  launchRings.forEach(o=>{o.visible=story.green&&seconds<2.15;o.material.opacity=.75;});
   greenPools.forEach(o=>{o.visible=signalAt(model.time)!=='red';o.material.opacity=story.green?.9:.45;});
   signalHeads.forEach(({red,green})=>{const phase=signalAt(model.time);red.visible=phase==='red';green.visible=phase!=='red';});
   trains.forEach(({g,path},i)=>{
-   const district=[2,4,0][i],departure=i===2?990:900,e=EVENTS[district];
+   const district=[2,4,0][i],departure=i===2?(seconds>8.55?1230:990):900,e=EVENTS[district];
    // Keep one departure's identity: a newer train must not replace it mid-shot.
    const rider=model.people.filter(p=>p.district===district&&p.mode!=='walk'&&p.boardedAt>=0&&['rail','event'].includes(p.stage)).sort((a,b)=>Math.abs(a.boardedAt-departure)-Math.abs(b.boardedAt-departure)||a.id-b.id)[0];
    const phase=rider?Math.min(1,(model.time+story.renderFraction-rider.boardedAt)/(e.travel_s-12)):0,p=pointOnPath(path,phase),q=pointOnPath(path,Math.min(1,phase+.002)),prev=pointOnPath(path,Math.max(0,phase-.002));

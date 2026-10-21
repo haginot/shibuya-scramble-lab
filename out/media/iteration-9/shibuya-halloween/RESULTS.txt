@@ -1,0 +1,36 @@
+Iteration 9 · fictional neighborhood events · TOY-MODEL VALUES
+トイモデルの値 / toy-model values. Fictional events and assumed behaviour, not a forecast or causal evidence.
+
+Matched seed 1031; 960 identities; 1800s per run.
+Peak: maximum whole-second count within 24m / (pi × 24²).
+Completed arrivals count each actual identity once after walking/rail travel.
+Schematic regional paths, station access and enlarged event props; not real facilities.
+
+Measurement | No events | Events
+Peak count | 608 | 507
+Peak people/m² | 0.336 | 0.2802
+Completed district arrivals | 152 | 237
+神泉 / Shinsen | 29 | 46
+原宿 / Harajuku | 27 | 44
+代々木 / Yoyogi | 53 | 72
+表参道 / Omotesando | 21 | 38
+恵比寿 / Ebisu | 22 | 37
+Completed walk | 23 | 58
+Completed Yamanote | 101 | 144
+Completed Inokashira | 28 | 35
+
+Peak reduction 16.612%; arrival increase 55.921%.
+Yoyogi has most arrivals (72) and largest absolute increase (+19).
+Omotesando has largest proportional increase (38/21 = 1.810×).
+No intervention/model coefficients changed in iteration 9.
+Matched evidence images hold model 1092s and the identical camera/green.
+Golden trio: IDs 864, 865, 866; same group, Yamanote boards 900s, Yoyogi arrives 1185s.
+Local departure tails follow actual outbound pedestrians; tails and rings are not people.
+The 10.3–11.6s paired replay holds model 1092s, camera, exposure and real green.
+Afterwards actual pedestrians move only within that green window.
+All relief/calm shots retain green; no red-phase emptying creates the apparent effect.
+Inokashira insert: actual IDs 519/520/521/958 board 1230s, arrive Shinsen 1325s.
+Five tangible event models activate before the 0.85s overview; Ebisu has a destination shot.
+Results hold 2.0s; credits 1.2s; night-lit flattening hides the scenario reset.
+47,816 PLATEAU source buildings within 3km. Eastern Omotesando fringe remains outside municipal source coverage.
+All new art/code procedural MIT; full attribution in NOTICE/ASSETS.md. No audio.

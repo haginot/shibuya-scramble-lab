@@ -11,3 +11,12 @@
 
 /* Iteration 8: two measured outcomes, one five-district comparison. */
 .proof-notice{position:absolute;left:32px;top:18px;font-size:28px;color:#efc48c;font-weight:700}.metric-row{position:absolute;left:32px;right:26px;top:68px;display:flex;gap:30px}.metric-row>div{width:460px}.metric-row strong{display:block;font-size:110px;line-height:1.43;color:#abf2d0}.metric-row>div+div strong{color:#d5baff}.metric-row label{display:block;font-size:31px;color:#abf2d0}.metric-row>div+div label{color:#d5baff}.metric-row span{position:static!important;display:block;font-size:35px!important;font-weight:700;color:#f9f0df!important;margin-top:20px}.matched{top:370px}.matched img{top:-282.5px}.matched-note{position:absolute;left:34px;top:766px;font-size:28px;color:#c0b2ca}#comparison:after{display:none}#district-results{top:845px}.district-row{height:108px}#best{top:1438px;font-size:43px}#best-en{top:1514px}
+
+/* Iteration 9: readable two-second proof and compact, single-focus opening. */
+#best{top:869px;font-size:57px}#best-en{top:961px;font-size:33px}
+#district-results{top:1080px;display:grid;grid-template-columns:repeat(3,310px);gap:0}
+.district-row{height:166px;display:block;padding:0 22px}
+.district-row b,.district-row small{font-size:24px;display:inline}
+.district-row strong{display:block;font-size:41px;margin-top:24px}
+.district-row.winner{background:transparent;border:0;color:#f9f0df}
+#comparison:after{display:block;content:'同じ960人・1800秒 / Same 960 people · 1800s';position:absolute;left:52px;top:1452px;font-size:29px;color:#c0b2ca}
