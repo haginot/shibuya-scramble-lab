@@ -1,5 +1,54 @@
 # Publication audit
 
+## Publication preparation update — 2026-10-21
+
+This update supersedes the release blockers and delivery status in the historical
+audit below. It covers the current `publish-prep` checkout after the v0.4 merge;
+it is not a repeat of the earlier full-history secret audit.
+
+- Restored the complete standard MIT warranty/liability paragraph with
+  `Copyright (c) 2026 HAGINO`. Map attribution is now separate in `NOTICE`.
+- Added OSM-derived GeoJSON/building/engine geometry attribution, ODbL 1.0 and
+  copyright links. GSI terrain credits identify `dem5a_png` (DEM5A, 5 m) and
+  fallback `dem_png` (DEM10B, 10 m), exactly as used by `tools/fetch_terrain.py`.
+  Source: [GSI tile list](https://maps.gsi.go.jp/development/ichiran.html).
+- Default/sol and promotion pages in both asset trees now show linked OSM and
+  GSI credits. Both 2D templates include these credits and use the canonical
+  `https://tile.openstreetmap.org/{z}/{x}/{y}.png` endpoint, per the
+  [OSM tile policy](https://operations.osmfoundation.org/policies/tiles/).
+  No tile prefetching or download cache was introduced.
+- `NOTICE` credits vendored three.js under MIT; full third-party MIT license
+  copies accompany both vendor directories. Existing screenshots in `docs/`
+  and the existing documentation landing page were preserved.
+- Both READMEs prominently explain fictional residents, simulated stores,
+  sales and promotion coefficients, including fictional Hidamari Coffee.
+  OSM place-name labels are source context, not real business behavior.
+  The English README mirrors the promotion section. Video placeholders and
+  the future Pages URL explicitly refer to after publishing.
+- `tools/build_pages.py` builds `_site` (or `--out DIR`): bilingual landing page,
+  default 3D, promotion 2×2, 2D, bundled vendor assets and precomputed model JSON
+  for both supported map areas. Builds force LLM off, use fixed seeds, and make
+  no network requests. Local assets use relative URLs under any hosting subpath.
+  The 2D viewer still needs external Leaflet and OSM tile services; 3D needs WebGL.
+- `.github/workflows/pages.yml` triggers only on `workflow_dispatch`, uploads a
+  Pages artifact and deploys it. It must be run only after the repository is public
+  and Pages is enabled with GitHub Actions. No settings were changed or workflow run.
+
+Validation: `uv run --with pytest pytest -q` passed **35 tests**, including an
+actual static build and checks that relative HTML/module/fetch references stay
+inside the export and resolve, with both area suffixes expanded. Standalone build
+also succeeded at `/tmp/asagaya-pages-check`. `node --check` passed for all **12**
+`.mjs` files. `git diff --check` passed. The default uv cache was read-only and
+network dependency resolution was unavailable; validation used a writable copy of
+existing cached dependencies (`UV_CACHE_DIR=/tmp/asagaya-uv-cache`, `UV_OFFLINE=1`).
+
+No commit, staging, push, visibility change, Pages activation or deployment was
+performed. Future publication remains a separate owner action. Review external
+service policies again when hosting; the demo video still needs uploading.
+
+## Historical audit (retained for context)
+
+
 Audit date: 2026-10-21. Repository: `haginot/asagaya-town-sim`. Owner: HAGINO. Scope: local checkout and all locally reachable Git history before this documentation commit. No remote inspection, publication, push, or deployment was performed.
 
 ## Decision

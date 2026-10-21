@@ -1,6 +1,7 @@
 # 阿佐ケ谷 AI住民 町シミュレーション（asagaya-town-sim）
 
 > **⚠ これは仮説を試すためのトイモデルです。予測ではありません。**
+> 住民・店舗（架空の「ひだまり珈琲」を含む）・売上・販促係数はすべて架空・仮置きです。OSM/GSI由来なのは地図形状・地形のみです（OSMの地名ラベルは出典情報で、実店舗の行動データではありません）。
 > 係数（来店確率、ついで寄り確率、営業時間、乗降人数の時間分布など）はすべて仮定値で、実測データで校正していません。
 > 数値は「同じモデルの中で条件を変えたら相対的にどう動くか」を見るためのもので、実際の来店数・売上・通行量の予測には使えません。
 
@@ -165,3 +166,18 @@ To build, serve and record 30 seconds with bilingual captions, run
 `bash tools/record_promo.sh`. It requires the same Playwright/browser and ffmpeg setup
 as `tools/record3d.py`. The helper sets `CAPS` JSON, serves only on localhost, and writes
 `promo.mp4` in the current directory. It is intended to be run manually.
+
+## Static Pages / 静的サイト
+
+```sh
+uv run python tools/build_pages.py --out _site
+python3 -m http.server --directory _site
+```
+
+Precomputed 3D, promotion 2×2 and 2D views; no Python server is needed on Pages.
+2D uses external Leaflet and OSM tiles. 出典・ライセンス / attribution: [NOTICE](NOTICE).
+[Pages](https://haginot.github.io/asagaya-town-sim/) (公開後 / after publishing).
+The manual workflow requires Pages enabled after the repository is public.
+
+30秒デモ動画 / 30 s demo video: 準備中 / coming after publishing.
+<!-- 30 s demo: to be uploaded as GitHub release asset or user-attachments link after going public -->

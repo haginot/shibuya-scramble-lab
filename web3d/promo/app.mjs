@@ -47,7 +47,8 @@ async function start(){
  const startTime=performance.now();
  function animate(now){
   renderer.setSize(innerWidth,innerHeight,false);
-  const day=Math.min(data.config.days-0.00001,(now-startTime)/1000/speed*data.config.days);
+  // The first animation timestamp can precede setup’s performance.now().
+  const day=Math.min(data.config.days-0.00001,Math.max(0,now-startTime)/1000/speed*data.config.days);
   const idx=Math.min(data.combinations[combos[0]].frames.length-1,Math.floor(day*data.config.hours.length));
   Object.assign(window.__promoState,{frameIndex:idx,day,metrics:Object.fromEntries(combos.map(name=>[name,data.combinations[name].frames[idx].metrics]))});
   document.getElementById('clock').textContent=`Day ${Math.floor(day)+1}/${data.config.days} · ${data.config.hours[idx%data.config.hours.length]}:00 · ${data.combinations[combos[0]].daily[Math.floor(day)].weather}`;

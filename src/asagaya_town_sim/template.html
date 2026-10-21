@@ -17,7 +17,7 @@ table{border-collapse:collapse;margin:8px 0 18px}td,th{border:1px solid #ccc;pad
 <div id="warn">⚠ 仮説検証用のトイモデルです。予測ではありません（係数はすべて仮定値・実測データではありません）</div>
 <div id="tabs"><button id="b1" class="on">地図</button><button id="b2">比較（駅前の角：3案）</button><span id="meta"></span></div>
 <div id="mapv"><div id="map"></div><div id="p">
-<b>阿佐ケ谷 町シミュレーション</b><br><small>地図 © OpenStreetMap contributors</small><br><br>
+<b>阿佐ケ谷 町シミュレーション</b><br><small>地図 <a href="https://www.openstreetmap.org/copyright">© OpenStreetMap contributors</a> · <a href="https://maps.gsi.go.jp/development/ichiran.html">出典：国土地理院（地理院タイル）</a></small><br><br>
 表示: <select id="sc"></select><br><label><input type="checkbox" id="hm" checked>通過量ヒートマップ(シード平均)</label><br><br>
 <span id="t">05:00</span> <button id="play">▶</button> 速度<select id="spd"><option>1</option><option selected>4</option><option>10</option></select>
 <input type="range" id="sl" min="300" max="1439" value="300" style="width:100%">
@@ -28,7 +28,7 @@ const D=__DATA__;
 const C={'会社員':'#1f77b4','子育て世帯':'#e377c2','学生':'#2ca02c','高齢者':'#ff7f0e','在宅ワーカー':'#9467bd','来訪者':'#d62728','通勤者':'#555'};
 const PC={cafe:'brown',food:'orange',bar:'purple',grocery:'green',shop:'#36c',park:'lime',school:'red',clinic:'pink',library:'cyan',service:'gray',station:'black',event:'gold',plaza:'teal'};
 document.getElementById('meta').textContent=`エージェント ${D.agents}人（住民${D.residents}・電車来訪者${D.visitors}・通勤者${D.commuters}） / ${D.seeds}シード平均 / 計画: ${D.llm}`;
-const m=L.map('map',{preferCanvas:true}).setView(D.center,17);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap contributors',maxZoom:19}).addTo(m);
+const m=L.map('map',{preferCanvas:true}).setView(D.center,17);L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'<a href="https://www.openstreetmap.org/copyright">© OpenStreetMap contributors</a>',maxZoom:19}).addTo(m);
 D.pois.forEach(p=>L.circleMarker([p.lat,p.lon],{radius:p.cat=='station'?9:3,color:PC[p.cat]||'gray',weight:p.cat=='station'?3:1}).bindTooltip(p.name+' ('+p.cat+')').addTo(m));
 L.circle(D.site,{radius:40,color:'#f0a030',weight:2,dashArray:'4'}).bindTooltip('評価区画（駅前の角）',{permanent:true,direction:'left'}).addTo(m);
 const all={};for(const g of ['scenarios','alternatives'])for(const k in D[g]){all[g+':'+k]=D[g][k]}

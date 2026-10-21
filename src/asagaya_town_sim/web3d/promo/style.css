@@ -3,3 +3,5 @@
 .panel{position:relative;overflow:hidden}.store-label{position:absolute;transform:translate(-50%,-100%);white-space:nowrap;padding:5px 9px;border:1px solid #ffdc75;border-radius:5px;background:#182d32ed;color:#ffe4a4;font-size:12px;font-weight:700;box-shadow:0 0 18px #ffd16b35;pointer-events:none}.store-label:after{content:"";position:absolute;left:50%;top:100%;height:10px;border-left:1px solid #ffdc75}
 
 .stats{position:absolute;left:12px;right:12px;bottom:12px;font-size:11px;line-height:1.5;border-radius:4px}
+
+footer a{color:inherit}

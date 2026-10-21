@@ -5,7 +5,7 @@
   <meta name="theme-color" content="#0b1921"><title>ASAGAYA — A living miniature</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='10' fill='%230f292e'/%3E%3Cpath d='M8 29 20 8l12 21M13 22h14' fill='none' stroke='%23ffb35e' stroke-width='3'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="./style.css">
-</head>
+<style>.credits a{color:inherit;pointer-events:auto}</style></head>
 <body>
   <main id="world" aria-label="Interactive 3D miniature of Asagaya, Tokyo"></main>
   <div class="vignette"></div><div id="labels" aria-hidden="true"></div>
@@ -33,7 +33,7 @@
   <div class="hud neighborhood"><span class="eyebrow">THE NEIGHBORHOOD, IN MOTION</span><div class="activity-number"><strong id="active-count">0</strong><span>people out & about</span></div><div class="legend"><span><i class="resident"></i>Residents</span><span><i class="visitor"></i>Visitors</span><span><i class="commuter"></i>Commuters</span></div><div class="heat-legend"><span>Street activity</span><i></i><span>More</span></div><p>Shop badges show modelled daily visits.<br><span id="sample-note">300 recorded paths · 900 model agents</span></p></div>
   <footer class="hud time-panel panel"><button id="play" class="play" aria-label="Pause simulation">Ⅱ</button><div class="clock-block"><span id="clock">18:28</span><small id="day-phase">GOLDEN HOUR</small></div><div class="timeline"><div class="timeline-ticks"><span>06:00</span><span>12:00</span><span>18:00</span><span>24:00</span></div><input id="time" type="range" min="360" max="1440" step="0.05" value="1108.65" aria-label="Simulation time"><div class="timeline-glow"></div></div><button id="speed" class="speed" title="Simulation minutes per real second">1×</button></footer>
   <div class="hud map-caption"><span class="north">↑ N</span><span class="scale"><i></i>100 m</span><span>Drag to explore · Scroll to zoom</span></div>
-  <div class="credits"><span>not a prediction; a toy model for testing hypotheses</span><span>© OpenStreetMap contributors · 標高: 国土地理院</span></div>
+  <div class="credits"><span>not a prediction; a toy model for testing hypotheses</span><span><a href="https://www.openstreetmap.org/copyright">© OpenStreetMap contributors</a> · <a href="https://maps.gsi.go.jp/development/ichiran.html">出典：国土地理院（地理院タイル）</a></span></div>
   <div id="compare-bar" class="hud panel" aria-label="Compare station-front alternatives" hidden></div>
   <div id="caption" role="status" hidden><div id="caption-ja" lang="ja"></div><div id="caption-en" lang="en"></div></div>
   <div id="loading"><div class="loader-mark">a<span>·</span></div><span class="eyebrow">ASSEMBLING THE NEIGHBORHOOD</span><p>Every street has a story.</p></div>

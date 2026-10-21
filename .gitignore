@@ -4,3 +4,5 @@ __pycache__/
 dist/
 out/
 .pytest_cache/
+
+_site/

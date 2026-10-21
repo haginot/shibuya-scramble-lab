@@ -1,14 +1,14 @@
 <!doctype html><html lang="ja"><head><meta charset="utf-8"><title>阿佐ケ谷 町シミュレーション</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"><script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>body{margin:0;font-family:sans-serif}#map{position:absolute;top:0;bottom:0;left:0;right:340px}#p{position:absolute;right:0;top:0;bottom:0;width:330px;padding:5px;overflow:auto;font-size:13px}#t{font-size:22px;font-weight:bold}</style></head><body>
-<div id="map"></div><div id="p"><b>阿佐ケ谷 町シミュレーション</b><br><small>トイモデル(ルールベース)。予測ではありません。地図 © OpenStreetMap contributors</small><br><br>
+<div id="map"></div><div id="p"><b>阿佐ケ谷 町シミュレーション</b><br><small>トイモデル(ルールベース)。予測ではありません。地図 <a href="https://www.openstreetmap.org/copyright">© OpenStreetMap contributors</a> · <a href="https://maps.gsi.go.jp/development/ichiran.html">出典：国土地理院（地理院タイル）</a></small><br><br>
 シナリオ: <select id="sc"></select><br><label><input type="checkbox" id="hm" checked>通過量ヒートマップ(30試行)</label><br><br>
 <span id="t">06:00</span> <button id="play">▶</button> 速度<select id="spd"><option>1</option><option selected>3</option><option>8</option></select><br>
 <input type="range" id="sl" min="0" max="539" value="0" style="width:100%"><div id="sum"></div><div id="who"></div></div>
 <script>
 const D=__DATA__;const C={'会社員':'#1f77b4','子育て世帯':'#e377c2','学生':'#2ca02c','高齢者':'#ff7f0e','在宅ワーカー':'#9467bd'};
 const PC={cafe:'brown',food:'orange',bar:'purple',grocery:'green',shop:'#36c',park:'lime',school:'red',clinic:'pink',library:'cyan',station:'black',event:'gold'};
-const m=L.map('map').setView(D.center,17);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap'}).addTo(m);
+const m=L.map('map').setView(D.center,17);L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'<a href="https://www.openstreetmap.org/copyright">© OpenStreetMap contributors</a> · <a href="https://maps.gsi.go.jp/development/ichiran.html">出典：国土地理院（地理院タイル）</a>'}).addTo(m);
 D.pois.forEach(p=>L.circleMarker([p.lat,p.lon],{radius:p.cat=='station'?8:3,color:PC[p.cat]||'gray'}).bindTooltip(p.name+' ('+p.cat+')').addTo(m));
 const sel=document.getElementById('sc');for(const k in D.scenarios)sel.add(new Option(D.scenarios[k].label,k));
 let lay=L.layerGroup().addTo(m),hl=L.layerGroup().addTo(m),mk={},S;
