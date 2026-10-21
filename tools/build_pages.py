@@ -8,7 +8,7 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'src'))
-from asagaya_town_sim import cli, promo
+from asagaya_town_sim import cli, promo, shibuya
 from asagaya_town_sim.publication import refresh_data_index
 
 
@@ -34,6 +34,7 @@ def build_pages(out='_site'):
     (out / 'web3d/data/promo.json').write_text(
         json.dumps(promo.simulate(promo.load_config()), ensure_ascii=False,
                    separators=(',', ':')), encoding='utf-8')
+    shibuya.write_site(out, shibuya.config())
     (out / 'index.html').write_text((ROOT / 'tools/pages_index.html').read_text(encoding='utf-8'), encoding='utf-8')
     for name in ('LICENSE', 'NOTICE'):
         (out / name).write_text((ROOT / name).read_text(encoding='utf-8'), encoding='utf-8')

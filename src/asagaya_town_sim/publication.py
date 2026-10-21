@@ -23,5 +23,8 @@ def refresh_data_index(directory):
         '<p><a href="https://www.openstreetmap.org/copyright">© OpenStreetMap contributors</a> · '
         '<a href="https://opendatacommons.org/licenses/odbl/1-0/">ODbL 1.0</a>. '
         '道路・POI・建物 / roads, POIs and buildings.</p>'
-        '<p>国土地理院の標高タイルを加工して作成（DEM5A／DEM10B）。</p>'
+        '<p>Shibuya buildings: 国土交通省 Project PLATEAU・渋谷区 2023, '
+        '<a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>. '
+        'CityGMLを足元形状＋高さに加工。OSMと別ファイルで提供。</p>'
+        '<p>阿佐ケ谷・高円寺のみ：国土地理院の標高タイルを加工して作成（DEM5A／DEM10B）。</p>'
         f'<ul>{links}</ul>', encoding='utf-8')

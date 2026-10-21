@@ -1,19 +1,22 @@
 import * as THREE from '../vendor/three.module.min.js';
-import {initWorld, ll, buildCity, buildAlternative, terrainHeight} from './city.mjs';
+import {initWorld, ll, buildCity, buildShibuyaContext, buildAlternative, terrainHeight} from './city.mjs';
 window.__ready = false;
 window.__caption = (ja='', en='') => {document.getElementById('ja').textContent=ja;document.getElementById('en').textContent=en;};
 const params=new URLSearchParams(location.search);
 const colors=[0x999999,0x48aaff,0xffe052,0xff943b,0xff4b59];
 async function json(path){const r=await fetch(path);if(!r.ok)throw new Error(`${path}: ${r.status}`);return r.json();}
 async function start(){
- const [data,buildings,terrain,engine]=await Promise.all([json('../data/promo.json'),json('../data/buildings.json'),json('../data/terrain.json'),json('../data/engine.json')]);
+ const defaultData=await json('../data/promo.json');
+ const shibuya=params.get('area')==='shibuya'||(!params.has('area')&&defaultData.config.area==='shibuya');
+ const [data,buildings,terrain,engine]=await (shibuya?Promise.all([defaultData.config.area==='shibuya'?defaultData:json('../data/promo_shibuya.json'),json('../data/buildings_shibuya.json'),json('../data/terrain_shibuya.json'),json('../data/engine_shibuya_promo.json')]):Promise.all([defaultData,json('../data/buildings.json'),json('../data/terrain.json'),json('../data/engine.json')]));
+ if(shibuya){document.title='Shibuya · Fictional promotion';document.getElementById('model-note').textContent='公的統計で較正したトイモデル・予測ではない / Toy model calibrated to public stats — not a prediction';document.getElementById('source-note').textContent='国土交通省 Project PLATEAU・渋谷区 2023 / footprints + heights · CC BY 4.0 · Promotion coefficients are placeholders.';document.getElementById('plateau-credit').hidden=false;}
  const requested=(params.get('combos')||'none,sns_only,sns+coupon,all_four').replaceAll(' ','+').split(',');
  const combos=requested.filter((n,i)=>data.combinations[n]&&requested.indexOf(n)===i).slice(0,4);
  if(!combos.length)throw new Error('No valid combinations selected');
  initWorld(buildings,terrain);
  const scene=new THREE.Scene();scene.background=new THREE.Color(0x18303b);
  scene.add(new THREE.HemisphereLight(0xe8ffff,0x52624f,2));const sun=new THREE.DirectionalLight(0xffecc5,2);sun.position.set(-200,450,180);scene.add(sun);
- buildCity(scene,buildings,engine);
+ if(shibuya)buildShibuyaContext(scene,buildings,engine);else buildCity(scene,buildings,engine);
  const store=ll(...data.store.position);
  buildAlternative(scene,'cafe',store);
  const beam=new THREE.Mesh(new THREE.CylinderGeometry(3,9,110,24),new THREE.MeshBasicMaterial({color:0xffdc85,transparent:true,opacity:.24,depthWrite:false,blending:THREE.AdditiveBlending}));beam.position.copy(store);beam.position.y+=55;scene.add(beam);

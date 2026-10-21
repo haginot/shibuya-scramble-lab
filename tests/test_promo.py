@@ -92,7 +92,7 @@ def test_all_fetches_and_module_imports_exist(tmp_path):
     promo.write_site(tmp_path, promo.simulate(seeds=1, days=1))
     app = (tmp_path/'promo/app.mjs').read_text()
     paths = re.findall(r"(?:json|fetch)\(['\"]([^'\"]+)['\"]\)", app)
-    assert len(paths) == 4
+    assert len(paths) == 8  # Both explicitly selectable maps are bundled.
     for path in paths:
         assert (tmp_path/'promo'/path).is_file(), path
     for module in (tmp_path/'promo').glob('*.mjs'):
@@ -197,7 +197,7 @@ def test_demo_serve_uses_complete_site(tmp_path, monkeypatch, capsys):
         def __exit__(self, *args):
             pass
         def serve_forever(self):
-            for path in ('promo/app.mjs','data/promo.json','data/engine.json','data/buildings.json','data/terrain.json','vendor/three.module.min.js'):
+            for path in ('promo/app.mjs','data/promo_shibuya.json','data/engine_shibuya_promo.json','data/buildings_shibuya.json','data/terrain_shibuya.json','vendor/three.module.min.js'):
                 assert (self.directory/path).is_file()
             served.append(self.directory)
     monkeypatch.setattr(cli.http.server, 'ThreadingHTTPServer', Server)

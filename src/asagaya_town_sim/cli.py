@@ -43,6 +43,10 @@ def table(title, cols, rows, data):
 
 
 def build(args):
+    if getattr(args, 'area', 'shibuya') == 'shibuya':
+        from . import shibuya
+        data = shibuya.config(agents=getattr(args,'agents',20000),seed=getattr(args,'seed',7),hour=getattr(args,'hour',15),peak=not getattr(args,'normal_demand',False))
+        return None, {}, data, 'individual social-force agents (browser)', 0, []
     planner = None
     mode = "ルールベース（決定的）"
     if not args.no_llm and llm_mod.available():
@@ -93,6 +97,9 @@ WEB3D_DEFAULT = "default"
 
 def write_site(d, html, data):
     """d/ に 3D版(既定) と 2D版を書き出す。3D: d/web3d/<variant>/ が ../data/*.json を読む。"""
+    if data.get('area') == 'shibuya':
+        from . import shibuya
+        return shibuya.write_site(d,data)
     import shutil
     d = Path(d)
     d.mkdir(parents=True, exist_ok=True)
@@ -135,6 +142,7 @@ def promo_main(argv):
     for name in ("demo", "build"):
         p = sub.add_parser(name)
         p.add_argument("--config")
+        p.add_argument("--area", choices=['shibuya','asagaya'], default='shibuya')
         p.add_argument("--seeds", type=positive_int)
         p.add_argument("--days", type=positive_int)
         p.add_argument("--json", action="store_true")
@@ -144,7 +152,7 @@ def promo_main(argv):
         p.add_argument("-o", "--out", default="out-promo")
     args = ap.parse_args(argv)
     try:
-        data = promo.simulate(promo.load_config(args.config), seeds=args.seeds, days=args.days)
+        data = promo.simulate(promo.load_config(args.config,area=args.area), seeds=args.seeds, days=args.days)
     except (ValueError, KeyError) as exc:
         ap.error(str(exc))
     if args.json:
@@ -176,7 +184,7 @@ def promo_main(argv):
         if args.serve:
             handler = functools.partial(http.server.SimpleHTTPRequestHandler, directory=str(directory))
             with http.server.ThreadingHTTPServer(("127.0.0.1", args.port), handler) as server:
-                url = f"http://127.0.0.1:{server.server_address[1]}/promo/"
+                url = f"http://127.0.0.1:{server.server_address[1]}/promo/?area={args.area}"
                 print(url, file=sys.stderr, flush=True)
                 if not args.no_open:
                     webbrowser.open(url)
@@ -207,14 +215,18 @@ def main(argv=None):
     effective = list(argv if argv is not None else sys.argv[1:])
     if effective[:1] == ["promo"]:
         return promo_main(effective[1:])
-    ap = argparse.ArgumentParser(prog="asagaya-town-sim", description="阿佐ケ谷 AI住民 町シミュレーション（仮説検証用トイモデル。予測ではありません）")
+    ap = argparse.ArgumentParser(prog="asagaya-town-sim", description="渋谷スクランブル交差点・個別エージェントのトイモデル（予測ではありません）")
     ap.add_argument("--version", action="version", version=__version__)
     sub = ap.add_subparsers(dest="cmd")
     sub.add_parser("promo", help="架空店舗の販促トイモデル / fictional store promotion")
     for name, hlp in (("demo", "全シナリオと3案を実行して数値を表示"), ("serve", "Web UIを起動"), ("build", "HTMLとJSONを書き出す")):
         p = sub.add_parser(name, help=hlp)
         p.add_argument("--seeds", type=positive_int, default=5)
-        p.add_argument("--area", choices=sorted(AREAS), default="asagaya", help="対象エリア（koenji は実験的）")
+        p.add_argument("--area", choices=['shibuya']+sorted(AREAS), default="shibuya", help="対象エリア（既定 shibuya）")
+        p.add_argument("--agents", type=nonnegative_int, default=20000, help="渋谷の個別エージェント数（上限60000）")
+        p.add_argument("--seed", type=nonnegative_int, default=7, help="渋谷の乱数seed")
+        p.add_argument("--hour", type=float, default=15, help="渋谷の需要時刻 [0,24)")
+        p.add_argument("--normal-demand", action='store_true', help="ピーク約3000人の倍率を外す")
         p.add_argument("--residents", type=nonnegative_int, default=400)
         p.add_argument("--visitors", type=nonnegative_int, default=350, help="電車で来る来訪者（外部エージェント）")
         p.add_argument("--commuters", type=nonnegative_int, default=150, help="電車で来る町内勤務者（外部エージェント）")
@@ -229,7 +241,25 @@ def main(argv=None):
     args = ap.parse_args(argv)
     if not args.cmd:
         args = ap.parse_args(["demo"] + (argv if argv is not None else sys.argv[1:]))
-    sim, res, data, mode, el, reviews = build(args)
+    try:
+        sim, res, data, mode, el, reviews = build(args)
+    except ValueError as exc:
+        ap.error(str(exc))
+    if args.area == 'shibuya':
+        from . import shibuya
+        report=dict(data, phase_demand=round(shibuya.demand(args.hour,not args.normal_demand)),note='Physical simulation and realised crossings run in the browser; CLI exports configuration, not a forecast.')
+        if args.json:
+            print(json.dumps(report,ensure_ascii=False,indent=2))
+        else:
+            print(shibuya.DISCLAIMER)
+            print(f"SHIBUYA · {args.agents:,} agents · phase demand {report['phase_demand']:,} · {data['traffic']}")
+        if args.cmd == 'build':
+            shibuya.write_site(args.out,data)
+            (Path(args.out)/'results.json').write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8')
+            print(f"書き出し: {Path(args.out)/'index.html'}")
+        if args.cmd == 'serve' or args.serve:
+            serve('',args.port,not args.no_open,data)
+        return
     if args.json:
         print(json.dumps({g: {k: v["summary"] for k, v in res[g].items()} for g in res}, ensure_ascii=False, indent=1))
     else:

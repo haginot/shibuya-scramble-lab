@@ -76,6 +76,18 @@ export class Batch {
 }
 export function standard(extra = {}) { return new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .82, metalness: .08, ...extra }); }
 export function basic(extra = {}) { return new THREE.MeshBasicMaterial({ vertexColors: true, ...extra }); }
+// Shibuya keeps its actual PLATEAU masses and OSM context; the legacy station
+// illustration below belongs only to the historical area renderer.
+export function buildShibuyaContext(scene,buildings,engine){
+  const root=new THREE.Group();scene.add(root);
+  const ground=new Batch();ground.cube(0,-.2,0,1000,.3,1000,0x263b3e);ground.mesh(standard(),root);
+  const mass=new Batch(),roads=new Batch();
+  for(let i=0;i<buildings.buildings.length;i++){const b=buildings.buildings[i],shape=new THREE.Shape();b.p.forEach(([x,y],k)=>k?shape.lineTo(x,y):shape.moveTo(x,y));const g=new THREE.ExtrudeGeometry(shape,{depth:b.h,bevelEnabled:false});g.rotateX(-Math.PI/2);mass.add(g,0,0,0,1,1,1,coolWalls[i%coolWalls.length]);g.dispose();}
+  mass.mesh(standard(),root);
+  for(const road of engine.roads||[]){const foot=['footway','path','pedestrian','steps'].includes(road.kind);for(let i=1;i<road.points.length;i++){const a=road.points[i-1],b=road.points[i];strip(roads,new THREE.Vector3(a[0],0,a[1]),new THREE.Vector3(b[0],0,b[1]),foot?3:8,foot?.02:.06,foot?0x586966:0x1d3037);}}
+  for(const rail of buildings.rails)for(let i=1;i<rail.length;i++)for(const off of [-.75,.75])strip(roads,new THREE.Vector3(rail[i-1][0]+off,0,-rail[i-1][1]),new THREE.Vector3(rail[i][0]+off,0,-rail[i][1]),.15,6,0x96aaa7);
+  roads.mesh(standard(),root);return {root};
+}
 function strip(batch, a, b, width, y, tint) {
   const dx = b.x - a.x, dz = b.z - a.z, len = Math.hypot(dx, dz);
   if (len < .01) return;

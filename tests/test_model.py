@@ -121,14 +121,14 @@ def test_llm_plan_parsing(monkeypatch, tmp_path):
 
 
 def test_cli_demo_json(capsys):
-    cli.main(["demo", "--seeds", "1", "--residents", "60", "--visitors", "40", "--commuters", "20", "--json", "--no-llm"])
+    cli.main(["demo", "--area", "asagaya", "--seeds", "1", "--residents", "60", "--visitors", "40", "--commuters", "20", "--json", "--no-llm"])
     out = json.loads(capsys.readouterr().out)
     assert set(out["alternatives"]) == {"bike", "cafe", "plaza"}
     assert set(out["scenarios"]) == {"baseline", "newcafe", "event", "rain"}
 
 
 def test_cli_build_html(tmp_path, capsys):
-    cli.main(["build", "--seeds", "1", "--residents", "40", "--visitors", "20", "--commuters", "10", "--no-llm", "-o", str(tmp_path)])
+    cli.main(["build", "--area", "asagaya", "--seeds", "1", "--residents", "40", "--visitors", "20", "--commuters", "10", "--no-llm", "-o", str(tmp_path)])
     html = (tmp_path / "2d.html").read_text(encoding="utf-8")
     assert "予測ではありません" in html and "__DATA__" not in html
     assert "予測ではありません" in capsys.readouterr().out

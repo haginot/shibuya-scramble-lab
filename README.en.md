@@ -1,52 +1,100 @@
-# Asagaya Town Simulation
+# Shibuya Scramble Lab
 
-English · [日本語](README.md)
+[日本語](README.md) · English · [Demo entry after publishing](https://haginot.github.io/asagaya-town-sim/)
 
-**[30-second video (recording instructions; publication pending)](#30-second-video)** · **[Try in your browser (planned URL after Pages publication)](https://haginot.github.io/asagaya-town-sim/)**
+**公的統計で較正したトイモデル・予測ではない / Toy model calibrated to public stats — not a prediction**
 
-A toy model comparing station-front land use and fictional café promotions on an Asagaya map, with the same residents and paired random draws. Explore [one day in town](#one-day-in-town) or [14 days of store promotion](#14-days-of-store-promotion).
+A metre-scale Shibuya crossing, Hachiko square and Yamanote/Ginza arrival waves, with 20,000 individual agents by default. Every person has a position, velocity, random stream and awareness → intent → visit funnel. A spatial grid, social forces, a Web Worker, GPU point billboards and vehicle InstancedMesh handle computation and drawing. This is an individual-agent simulation. The Shibuya runtime calls no LLM or external API.
 
-AI has three distinct roles: **development** of the 3D renderers ([generation brief](docs/battle/prompt_round1.md), [renderer](web3d/sol/)); **optional LLM schedules and fictional reviews** for eight town residents by default; and a **probabilistic promotion model** whose calculations use rules. The static public demo is generated with LLM calls disabled.
+Buildings use 1,050 PLATEAU ground footprints and heights; OSM supplies roads, railways and mapped shop objects. Vehicles replay trajectories generated with SUMO on the OSM network. LOD2 roofs/textures, terrain, real OD, controller timings, train schedules and promotion effects remain approximate or uncalibrated.
 
-> **A toy model for testing hypotheses, not a forecast.**
-> Residents, behavior, sales and promotion coefficients are fictional placeholders. OSM/GSI supply map geometry, terrain and place labels only. No real resident behavior or store performance data is used. Coefficients and opening hours are uncalibrated, so the outputs cannot predict real visits, sales or foot traffic.
+## Run
 
-## Install and run
-
-The main package requires Python 3.9+ and has no runtime dependencies. Install from a local checkout with `python3 -m pip install .`. Once the repository is public:
+Python 3.9+, no Python runtime dependencies. Bundled JSON and three.js allow offline 3D after installation. Acquisition and initial package installation need network access.
 
 ```bash
-uvx --from git+https://github.com/haginot/asagaya-town-sim.git asagaya-town-sim demo --no-llm
-uvx --from git+https://github.com/haginot/asagaya-town-sim.git asagaya-town-sim promo demo --serve --no-open --port 8765
+uv run asagaya-town-sim serve --no-llm --no-open
+# http://127.0.0.1:8765/ → web3d/shibuya/
+uv run asagaya-town-sim build --area shibuya --no-llm -o out
+uv run asagaya-town-sim demo --area shibuya --json --no-llm
+uv run asagaya-town-sim serve --area shibuya --agents 30000 --normal-demand --hour 8 --no-open
 ```
+
+`shibuya` is the new default for ordinary CLI, promotion CLI and Pages. `--agents` accepts 0–60,000; `--seed` selects individual random streams; `--hour` holds demand at a chosen hour in [0,24). Default: 15:00, upper-demand preset. CLI JSON exports configuration and requested demand; actual physical crossings run in the browser. The displayed population is not an observed simultaneous census.
+
+After the verification owner commits the work and makes that Git revision available, installed use outside the checkout works with bundled package data. This implementation performs no commit, push or deployment.
 
 ```bash
-asagaya-town-sim demo --no-llm
-asagaya-town-sim serve --no-llm
-asagaya-town-sim demo --json --seeds 1 --no-llm
-asagaya-town-sim build --no-llm -o out
+uvx --from 'git+https://github.com/haginot/asagaya-town-sim.git@shibuya' asagaya-town-sim serve --area shibuya --no-llm --no-open
+uvx --from 'git+https://github.com/haginot/asagaya-town-sim.git@shibuya' asagaya-town-sim promo demo --area shibuya --serve --no-open
 ```
 
-`serve` opens the 3D UI at `http://127.0.0.1:8765/`. Open **`http://127.0.0.1:8765/2d.html#compare`** for 2D comparisons. `build` exports 3D, 2D, metric JSON, licenses and attribution. Leaflet and 2D map tiles require internet access; the `--no-llm` simulation and bundled 3D assets work offline.
+## Read the scene
 
-## One day in town
+Choose overhead, scramble or Hachiko cameras, and upper-demand / station-scale / 08:00 presets. Admitted counts assigned departures; cleared counts people who reached the other side. If pedestrians overrun clearance, the shared traffic clock holds SUMO vehicles red. The 20,000 include background pedestrians, queues and arrival waves; they do not all cross in one phase.
 
-The default run places 400 residents, 350 arriving visitors and 150 local commuters on the street network around Asagaya station, from 05:00 to 24:00. It models assumed opening hours, destination choice, shortest-path walking, spontaneous visits and station boardings/alightings. Compare bicycle parking, a café and a plaza using paired random draws.
+White, blue, yellow and orange encode unaware, aware, intent and visited. The promotion switch changes exposure within the current run; it does not estimate a causal effect. Train waves reassign existing identities at the station exit, preserving total population. Their timing, size, exit distribution and the symbolic Hachiko sculpture are authored approximations.
 
-- Selecting an alternative and an everyday/rain/event condition selects the same result for tracks, heat and metrics. Paths show seed 0; daily totals and heat average seeds.
-- A passage is one continuous intersection of a walking route with the 40 m site circle, independent of road-node subdivision. Unique people are a separate metric. Visits count episodes, including repeat visits.
-- Nearby shops are identified by POI ID within 150 m and restricted to `cafe / food / bar / grocery / shop`. Parks, schools and other categories do not contribute to nearby sales.
-- Both planned visits and detours end by closing time. Hours and walking speeds (78 m/min, 65 in rain) are assumptions.
-- `--area koenji` selects the experimental Koenji area. A normal CLI export supports only its selected area; bundled static demos and Pages exports support both.
-- Population arguments and `--record` must be nonnegative; `--seeds` must be at least one. `--record` controls the sampling interval for tracks and is not a strict count limit.
-- Example: `?scenario=rain&alt=cafe&cam=site&compare=1&speed=0&t=1200`. Legacy `scenario=newcafe` means everyday + café.
+`?record=1&cam=top` enables manual deterministic stepping. `window.__shibuyaState` exposes agent count, FPS, simulation time, draw calls, signal and funnel. Encoded video FPS differs from interactive FPS; see [performance](docs/PERFORMANCE.md).
 
-### Site income + nearby sales change (assumed)
+## Evidence and assumptions
 
-`total = site visits × assumed spend + bike fees + (nearby shop visits − nearby shop visits for bike parking under the same condition) × assumed nearby spend`.
-Assumptions: café ¥650/visit, bike parking ¥100/use, nearby shops ¥800/visit. The total adds site income to a nearby sales difference; it is neither one store's sales nor total neighborhood sales. The UI displays the components.
+FY2024 daily averages: [JR East](https://www.jreast.co.jp/press/2025/20250912_ho03.pdf) 324,414 **boardings**; [Metro Ginza](https://www.tokyometro.jp/corporate/enterprise/passenger_rail/transportation/passengers/2024.html) 191,505 entries/exits; [Tokyu](https://www.tokyu.co.jp/railway/company/business/passengers/2024/) Toyoko 414,186 and Den-en-toshi 604,246; [Keio](https://www.keio.co.jp/company/corporate/corporate_manual/number-of-passengers.html) 286,940.
 
-Bundled static demos and Pages average three seeds. The CLI defaults to five; change it with `--seeds`. Regenerated Asagaya everyday results:
+Assuming balanced JR exits produces a scale proxy of 2,145,705 station events, still including transfer/daily-return overlap. An assumed 12% street capture gives a 257,484.6 trips/day reference. Our approximate hourly shape follows published Shibuya City timing constraints: rise around 07:00, peak 14:00–16:00, faster decline after 19:00. It is not a quantitative fit to observed hourly crossing counts. Normalising this curve gives about 789 requested departures per 150 s phase at 15:00.
+
+The separate 3,000-person peak preset multiplies that curve by 3.803. It is a requested upper-demand demonstration, not a verified current official count. Full formulas, source URLs, limitations, neighbour truncation and uncalibrated values: [CALIBRATION.md](docs/CALIBRATION.md).
+
+## Shibuya promotion comparison
+
+```bash
+uv run asagaya-town-sim promo demo --serve --no-open --port 8765
+uv run asagaya-town-sim promo build --area shibuya -o out-promo
+```
+
+Open `http://127.0.0.1:8765/promo/?area=shibuya`. Real mapped shops supply context; the promotion target is **fictional Hidamari Coffee** near the crossing. OSM contains 111 mapped shop/food objects within 150 m, including 36 restaurants and 13 cafes. This is an incomplete mapped-object inventory, with possible node/area duplicates, rather than a census of operating businesses.
+
+The existing 14-day experiment uses 400 fictional agents × scale 5 and 8 seeds, paired identities/random draws across no-promotion, ads, coupons and other combinations. Live frames use seed 0; ending metrics show means and 95% seed intervals. Its movement is schematic and separate from the physical crowd. All conversion, cost, sales and demand-time coefficients remain placeholders. More visits may not recover campaign costs. JSON overrides: `--config FILE`.
+
+## Recording, regeneration and checks
+
+```bash
+bash tools/record_shibuya.sh
+# /workspace/demos/shibuya-scramble.mp4
+# /workspace/demos/shibuya-scramble/*.png and recording.json
+uv run python tools/build_pages.py --out _site
+python3 -m http.server --directory _site
+```
+
+The video is 30 s, 1280×720, 30 fps, with an overhead simultaneous-crossing opening for the first three seconds. Bilingual captions have a dedicated band separate from numeric rows. Requires Playwright Chromium and ffmpeg; unavailable headless WebGL falls back to DISPLAY/Xvfb. Override outputs with `SHIBUYA_VIDEO` / `SHIBUYA_STILLS`. Building Pages does not publish it.
+
+```bash
+uv run python tools/fetch_shibuya.py --cache /tmp/shibuya-source
+uv run --with eclipse-sumo --with traci --with sumolib python tools/export_shibuya_traffic.py
+uv run python tools/export_shibuya.py
+# Node.js 20+
+uv pip install -e . pytest
+uv run pytest -q
+node web3d/shibuya/verify.mjs
+node --experimental-vm-modules web3d/sol/verify.mjs
+node --experimental-vm-modules web3d/astra/check.mjs
+node --experimental-vm-modules web3d/promo/verify.mjs
+uv run python tools/update_readme_tables.py --check
+```
+
+Bilingual five-minute ai& Build Day talk: [presentation.md](docs/presentation.md).
+
+## Data and licenses
+
+Code and three.js: MIT. Buildings: modified MLIT Project PLATEAU / Shibuya City 2023 CityGML v4, reduced to ground exterior footprints plus heights. The [dataset](https://www.geospatial.jp/ckan/dataset/plateau-13113-shibuya-ku-2023) specifies [PLATEAU Site Policy](https://www.mlit.go.jp/plateau/site-policy/), whose explicit CC BY 4.0 permission was checked before use. Roads, railways, shop objects and derived vehicle trajectories: © OpenStreetMap contributors / ODbL 1.0. OSM was acquired 2026-10-21; query, bbox and checksums are bundled. Full extent: 1,102 mapped shop/food objects. Source databases remain separate and exports include the full small derived datasets.
+
+SUMO 1.28.0 was actually used during generation (EPL-2.0); the viewer needs no SUMO installation and is not a live TraCI co-simulation. Railway statistics are attributed factual values, without claiming a blanket open license for their websites. Screenshots/video retain on-screen credits. Details: [NOTICE](NOTICE).
+
+## Existing Asagaya compatibility mode
+
+`uv run asagaya-town-sim serve --area asagaya --no-llm --no-open`; promotion: `promo demo --area asagaya`. Its legacy 2D comparison is `http://127.0.0.1:8765/2d.html#compare`. The unchanged Asagaya mode uses OSM/GSI terrain and fictional behaviour/economic assumptions. Koenji remains experimental.
+
+The following tables are **legacy Asagaya regression references**, not Shibuya calibration or outcomes. Legacy all-four mean ROI is -3.00%; coupon-only is 126.57%, under placeholder assumptions.
 
 <!-- town-results:start -->
 | Alternative | Passages/day | People/day | Site visits | Dwell min | Nearby shop visits | Site sales ¥ | Bike fees ¥ | Nearby change ¥ | Assumed total ¥ |
@@ -55,53 +103,6 @@ Bundled static demos and Pages average three seeds. The CLI defaults to five; ch
 | Café | 539 | 265.3 | 41.7 | 40.7 | 773.3 | 27,105 | 0 | -5,120 | 21,985 |
 | Plaza | 549 | 267.3 | 48 | 26.2 | 785.3 | 0 | 0 | 4,480 | 4,480 |
 <!-- town-results:end -->
-
-The 3D scene places OSM buildings on processed GSI DEM5A/DEM10B terrain. Missing building heights, trees, lamps and extra alighting figures include estimates or decoration. Decorative passengers are not extra simulated residents. `web3d/sol` (default), `web3d/astra` and `web3d/terra` are three renderers made from the same development brief.
-
-### Optional LLM configuration
-
-If `OPENAI_API_KEY` is set, an LLM plans eight residents' days and fictional reviews by default (`--llm-agents`). It sends fictional persona/schedule prompts to the configured provider and may incur charges. Without a key, or on API failure, it falls back to rules; `--no-llm` disables it.
-
-| Setting | Default / purpose |
-| --- | --- |
-| `OPENAI_API_KEY` | Unset; optional provider credential |
-| `OPENAI_BASE_URL` | `https://api.openai.com/v1`; HTTPS required, except explicitly selected loopback HTTP development endpoints; redirects refused |
-| `ASAGAYA_LLM_MODEL` | `gpt-4o-mini` |
-| `--llm-agents` | 8 residents |
-| `XDG_CACHE_HOME` | `~/.cache`; responses in `asagaya-town-sim/llm.json` |
-
-## 14 days of store promotion
-
-Compare no promotion, social ads, flyers/signboard, PR/media, coupons and combinations for fictional Hidamari Coffee. This experiment tests the relationship between added visits and campaign costs.
-
-```bash
-asagaya-town-sim promo demo --serve --no-open --port 8765
-asagaya-town-sim promo demo --json
-asagaya-town-sim promo build -o /tmp/promo_site
-```
-
-Open `http://127.0.0.1:8765/promo/`. The four default panels compare none, social ads, social ads + coupons and all four, with identical cameras and paired residents/random draws. Blue means aware, yellow wants to visit, orange first visit, red repeat. Positions interpolate illustrative home/store samples, not walking routes or simultaneous occupancy.
-
-**Live counters and the video show one trial, seed 0; the table and CLI average eight trials by default.** Each panel labels the trial and shows mean ROI; the ending card shows means and 95% intervals. All four gives 810 visits and **+27.0% ROI** in seed 0, versus 740.62 visits and **−3.0% ROI** averaged over eight trials. Random variation can reverse the sign. More visits may still fail to cover costs.
-
-The default animation shows 200 agents (maximum 300), out of 400 simulated agents × population scale 5 = 2,000 fictional residents. Visits, redemptions and yen use this scale; dots and funnel counts are unscaled simulated agents. The store label shows sample visit episodes in the current time slot, with the full scaled slot total separately. It does not measure current occupancy.
-
-### Metrics
-
-| Metric | Definition |
-| --- | --- |
-| Visits | Visit episodes, including repeats, multiplied by `agent_scale`. One visit per resident per time slot at most. |
-| Uplift | Mean of paired visits(combo) − visits(none). Percentage divides by each seed's baseline visits; N/A if zero. |
-| Anyway / overlap share | Promotion visits overlapping the paired baseline for the same agent, day and time slot. Summary pools episode counts across seeds. Empty visit sets give N/A. |
-| Incremental gross profit | Uplift × assumed spend ¥900 × margin 65%, before discounts. |
-| Discount cost | Scaled coupon redemptions × assumed ¥200 discount, including baseline visitors. |
-| Full-period channel cost | Fixed cost + daily costs on active days throughout the simulated period. Default fictional costs: social ads ¥60,000; flyers ¥40,000; PR ¥100,000; coupon setup ¥30,000. |
-| Total cost / net gain | Total cost = discounts + channel costs; net incremental profit = incremental gross profit − total cost. |
-| ROI (channel cost basis, %) | `(incremental gross profit − discount cost − channel cost) / channel cost × 100`. The denominator excludes discounts. 0% is break-even; zero channel cost gives N/A. |
-
-Live cumulative ROI charges **full-period channel costs** against cumulative incremental gross profit and discounts. An initial −100% is an interim value with the entire campaign cost already charged. All three amounts appear in the panels.
-
-Default 14 days, seeds 0–7. Brackets are two-sided 95% Student t intervals for the independent-seed mean. They describe random-seed variation only, not uncertainty in placeholder coefficients. One trial gives no interval. Intervals are not clipped to physically possible ranges.
 
 <!-- promo-results:start -->
 | Combination | Visits | Uplift [95% interval] | Anyway | Discount ¥ | Channel ¥ | Total cost ¥ | Net gain ¥ | ROI (channel cost basis, %) [95% interval] |
@@ -114,73 +115,3 @@ Default 14 days, seeds 0–7. Brackets are two-sided 95% Student t intervals for
 | sns+coupon | 643.12 | 428.75 [366.51, 490.99] | 33.3% | 76,375 | 90,000 | 166,375 | 84,444 | 93.83 [61.60, 126.06] |
 | all_four | 740.62 | 526.25 [443.06, 609.44] | 28.9% | 84,750 | 230,000 | 314,750 | -6,894 | -3.00 [-21.11, 15.12] |
 <!-- promo-results:end -->
-
-### Configuration details
-
-All coefficients in `src/asagaya_town_sim/data/promo.json` are fictional placeholders. `--config FILE` supports partial JSON overrides: dictionaries merge recursively; lists replace defaults. TOML requires Python 3.11+; use JSON on 3.9/3.10. `--days D` and `--seeds N` override the run length and trial count.
-`channels` defines `sns_ad`, `flyer_signboard`, `pr_media`, and `campaign_coupon`.
-`daily_reach` applies on `active_days`; flyer reach decreases linearly with home distance
-to the store out to `proximity_radius_m`. `word_of_mouth` spreads awareness through a
-fixed synthetic contact network (`contacts`), including visited residents.
-PR has a single `coverage_probability` draw per seed; its ¥100,000 campaign cost is paid
-even without coverage. SNS costs ¥60,000, flyers/signboard ¥40,000, and coupon setup
-¥30,000; coupon redemption discounts are additional. These are fictional campaign yen.
-Exposure strength decays with `half_life_days`, while achieved funnel states remain
-monotonic. `aware_to_want_boost` and `want_to_visit_boost` scale with that strength.
-The strongest channel response wins, then `boost_saturation` smoothly caps it;
-additional channels broaden exposure with diminishing returns.
-An organic visitor can pass through the early funnel within one slot.
-
-`weather.sequence` cycles when provided; otherwise `weather.probabilities` draws daily
-sunny/cloudy/rain conditions. `weather.multipliers`, `weekday_multipliers` (Monday first),
-`start_weekday`, `hours`/`hour_multipliers`, `event.day`/`boost`, and
-`competitor.days`/`penalty` multiply visit intent. These also affect organic visits.
-`population`, `days`, `seeds`, `record_agents`, and `combinations` control the run and export.
-Daily reach is converted to per-slot probability; word of mouth is added per slot.
-Channel costs stop after active days, but awareness and decaying effects persist.
-
-
-There are no calibrated responses, capacity limits, validated contact networks, measured acquisition costs or demand estimates. Paired trials support counterfactual comparison inside this toy world and do not establish real-world causality. Sensitivity to the placeholder coefficients can be substantial.
-`/promo/?combos=none,sns_only,sns%2Bcoupon,all_four&speed=30` sets the combinations and whole-period playback duration in seconds. `window.__promoState` exposes data, frames, metrics and readiness.
-
-## 30-second video
-
-The publication/recording reviewer will add the public video URL later. No publishing or re-recording was performed in this revision.
-Run `bash tools/record_promo.sh` with Playwright Chromium and ffmpeg installed. It animates the period in 25 seconds and holds the eight-trial mean/95% interval card for the final five seconds, writing a bilingual 30-second `promo.mp4` in the current directory. Captions have a dedicated band; OSM, ODbL and processed GSI elevation credits remain on screen.
-The upload description should also link [OSM attribution](https://www.openstreetmap.org/copyright), [ODbL](https://opendatacommons.org/licenses/odbl/1-0/), [GSI tiles](https://maps.gsi.go.jp/development/ichiran.html) and [derived data (after Pages publication)](https://haginot.github.io/asagaya-town-sim/web3d/data/index.html).
-
-## Static site, regeneration and development
-
-```bash
-uv run python tools/build_pages.py --out _site
-python3 -m http.server --directory _site
-```
-
-The Pages build precomputes both town areas and promotions. Deployment uses a manual workflow; building does not publish anything. Regenerate bundled data and README tables in this order:
-
-```bash
-uv run python tools/export_engine.py asagaya web3d/data/engine.json
-uv run python tools/export_engine.py koenji web3d/data/engine_koenji.json
-uv run asagaya-town-sim promo build -o /tmp/promo_site
-cp /tmp/promo_site/data/promo.json web3d/data/promo.json
-uv run python tools/update_readme_tables.py
-```
-
-Development requires Python and **Node.js 20+**:
-
-```bash
-uv venv
-uv pip install -e . pytest
-uv run pytest -q
-node --experimental-vm-modules web3d/sol/verify.mjs
-node --experimental-vm-modules web3d/astra/check.mjs
-node --experimental-vm-modules web3d/promo/verify.mjs
-python3 tools/update_readme_tables.py --check
-```
-
-The older 20-person `prototype/` has separate NetworkX, NumPy and Matplotlib dependencies.
-
-## License and attribution
-
-Code: [MIT](LICENSE). OSM-derived GeoJSON for both areas, buildings, and engine road/POI geometry: © OpenStreetMap contributors, [ODbL 1.0](https://opendatacommons.org/licenses/odbl/1-0/). Terrain is processed from GSI elevation tiles. OSM place names do not imply any relationship with those stores.
-See [NOTICE](NOTICE) for data scope, vendored three.js, CDN Leaflet and development/generation dependencies. Exported sites include that notice and a download page for derived data.

@@ -23,7 +23,7 @@ def deep_merge(base, override):
     return result
 
 
-def load_config(path=None):
+def load_config(path=None, area=None):
     config = json.loads(resources.files('asagaya_town_sim').joinpath('data/promo.json').read_text(encoding='utf-8'))
     if path:
         p = Path(path)
@@ -36,6 +36,8 @@ def load_config(path=None):
         else:
             override = json.loads(p.read_text(encoding='utf-8'))
         config = deep_merge(config, override)
+    if area is not None:
+        config['area'] = area
     if config['agent_scale'] <= 0 or config['boost_saturation'] <= 0:
         raise ValueError('agent_scale and boost_saturation must be positive')
     if config['population'] < 1 or config['days'] < 1 or config['seeds'] < 1:
@@ -148,7 +150,11 @@ def simulate(config=None, seeds=None, days=None):
     for key in ('seeds', 'days', 'population'):
         nonnegative_int(key, c[key], 1)
     nonnegative_int('record_agents', c['record_agents'])
-    town = Town()
+    if c.get('area') == 'shibuya':
+        from .shibuya import PromoTown
+        town = PromoTown()
+    else:
+        town = Town()
     runs = [_run(c,town,seed) for seed in range(c['seeds'])]
     results = {}
     for combo in c['combinations']:
@@ -179,6 +185,15 @@ def write_site(directory, data):
     with resources.as_file(source) as p:
         for name in ('promo','vendor','data'):
             shutil.copytree(p/name,directory/name,dirs_exist_ok=True)
+    if data['config'].get('area') == 'shibuya':
+        from .shibuya import promo_assets
+        promo_assets(directory/'data')
+        blob=json.dumps(data,ensure_ascii=False,separators=(',',':'))
+        (directory/'data/promo_shibuya.json').write_text(blob,encoding='utf-8')
+        (directory/'data/promo.json').write_text(blob,encoding='utf-8')
+        write_notices(directory,directory/'data')
+        (directory/'index.html').write_text('<!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="0;url=promo/?area=shibuya"><a href="promo/?area=shibuya">Shibuya promotion</a>',encoding='utf-8')
+        return directory
     town = Town()
     engine = dict(site=list(town.coord[town.site_node]), center=[town.station['lat'],town.station['lon']], pois=town.pois, scenarios={'map': {'heat': [[*town.coord[u],*town.coord[v],1] for u in town.nodes for v in town.adj[u] if u < v]}})
     (directory/'data'/'engine.json').write_text(json.dumps(engine),encoding='utf-8')
