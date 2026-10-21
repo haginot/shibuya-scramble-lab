@@ -1,6 +1,6 @@
 # Shibuya Scramble Lab
 
-[日本語](README.md) · English · [Demo entry after publishing](https://haginot.github.io/asagaya-town-sim/)
+[日本語](README.md) · English · [Demo entry after publishing](https://haginot.github.io/shibuya-scramble-lab/)
 
 **公開統計の規模・時間帯を参考にしたトイモデル・予測ではない / Toy model scaled to public ridership stats — not a prediction**
 
@@ -10,7 +10,7 @@ A metre-scale Shibuya crossing, Hachiko square and Yamanote/Ginza arrival waves,
 
 Buildings use 1,050 PLATEAU ground footprints and heights; OSM supplies roads, railways and mapped shop objects. Vehicles replay trajectories generated with SUMO on the OSM network. LOD2 roofs/textures, terrain, real OD, controller timings, train schedules and promotion effects remain approximate or uncalibrated.
 
-[Watch the video (separate 42 s MP4)](docs/media/index.html) · [Overhead crossing](docs/media/crossing.webp) · [14-day promotion results](docs/media/promo.webp) · [Try in a browser](https://haginot.github.io/asagaya-town-sim/) · [Run locally](#run)
+[Watch the video (separate 42 s MP4)](docs/media/index.html) · [Overhead crossing](docs/media/crossing.webp) · [14-day promotion results](docs/media/promo.webp) · [Try in a browser](https://haginot.github.io/shibuya-scramble-lab/) · [Run locally](#run)
 
 ![Overhead crossing](docs/media/crossing.webp)
 
@@ -21,11 +21,11 @@ Codex CLI implements the simulation, UI, recording tools and regression tests. T
 Python 3.9+, no Python runtime dependencies. Bundled JSON and three.js allow offline 3D after installation. Acquisition and initial package installation need network access.
 
 ```bash
-uv run asagaya-town-sim serve --no-llm --no-open
+uv run shibuya-scramble-lab serve --no-llm --no-open
 # http://127.0.0.1:8765/ → web3d/shibuya/
-uv run asagaya-town-sim build --area shibuya --no-llm -o out
-uv run asagaya-town-sim demo --area shibuya --json --no-llm
-uv run asagaya-town-sim serve --area shibuya --agents 30000 --normal-demand --hour 8 --no-open
+uv run shibuya-scramble-lab build --area shibuya --no-llm -o out
+uv run shibuya-scramble-lab demo --area shibuya --json --no-llm
+uv run shibuya-scramble-lab serve --area shibuya --agents 30000 --normal-demand --hour 8 --no-open
 ```
 
 `shibuya` is the new default for ordinary CLI, promotion CLI and Pages. `--agents` accepts 0–60,000; `--seed` selects individual random streams; `--hour` holds demand at a chosen hour in [0,24). Default: 15:00, upper-demand preset. CLI JSON exports configuration and requested demand; actual physical crossings run in the browser. The displayed population is not an observed simultaneous census.
@@ -33,9 +33,11 @@ uv run asagaya-town-sim serve --area shibuya --agents 30000 --normal-demand --ho
 When the `shibuya` revision is available from the repository, use the following commands. Wheels include map data; NOTICE specifies the separate data licenses.
 
 ```bash
-uvx --from 'git+https://github.com/haginot/asagaya-town-sim.git@shibuya' asagaya-town-sim serve --area shibuya --no-llm --no-open
-uvx --from 'git+https://github.com/haginot/asagaya-town-sim.git@shibuya' asagaya-town-sim promo demo --area shibuya --serve --no-open
+uvx --from 'git+https://github.com/haginot/shibuya-scramble-lab.git@shibuya' shibuya-scramble-lab serve --area shibuya --no-llm --no-open
+uvx --from 'git+https://github.com/haginot/shibuya-scramble-lab.git@shibuya' shibuya-scramble-lab promo demo --area shibuya --serve --no-open
 ```
+
+The old command name `asagaya-town-sim` remains available as a compatibility alias (the repository was renamed to `shibuya-scramble-lab`).
 
 ## Read the scene
 
@@ -56,8 +58,8 @@ The separate 3,000-person peak preset multiplies that curve by 3.803. It is an a
 ## Shibuya promotion comparison
 
 ```bash
-uv run asagaya-town-sim promo demo --serve --no-open --port 8765
-uv run asagaya-town-sim promo build --area shibuya -o out-promo
+uv run shibuya-scramble-lab promo demo --serve --no-open --port 8765
+uv run shibuya-scramble-lab promo build --area shibuya -o out-promo
 ```
 
 Open `http://127.0.0.1:8765/promo/?area=shibuya`. Real mapped shops supply context; the promotion target is **fictional Hidamari Coffee** near the crossing. OSM contains 111 mapped shop/food objects within 150 m, including 36 restaurants and 13 cafes. This is an incomplete mapped-object inventory, with possible node/area duplicates, rather than a census of operating businesses.
@@ -100,7 +102,7 @@ SUMO 1.28.0 was actually used during generation (EPL-2.0); the viewer needs no S
 
 ## Existing Asagaya compatibility mode
 
-`uv run asagaya-town-sim serve --area asagaya --no-llm --no-open`; promotion: `promo demo --area asagaya`. Its legacy 2D comparison is `http://127.0.0.1:8765/2d.html#compare`. The unchanged Asagaya mode uses OSM/GSI terrain and fictional behaviour/economic assumptions. Koenji remains experimental.
+`uv run shibuya-scramble-lab serve --area asagaya --no-llm --no-open`; promotion: `promo demo --area asagaya`. Its legacy 2D comparison is `http://127.0.0.1:8765/2d.html#compare`. The unchanged Asagaya mode uses OSM/GSI terrain and fictional behaviour/economic assumptions. Koenji remains experimental.
 
 The following tables are **legacy Asagaya regression references**, not Shibuya calibration or outcomes. Legacy all-four mean ROI is -3.00%; coupon-only is 126.57%, under placeholder assumptions.
 

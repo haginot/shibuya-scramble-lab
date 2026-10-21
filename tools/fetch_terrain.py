@@ -10,7 +10,7 @@ def tile(kind, x, y):
     k = (kind, x, y)
     if k not in cache:
         try:
-            req = urllib.request.Request(f"https://cyberjapandata.gsi.go.jp/xyz/{kind}/{Z}/{x}/{y}.png", headers={"User-Agent": "asagaya-town-sim"})
+            req = urllib.request.Request(f"https://cyberjapandata.gsi.go.jp/xyz/{kind}/{Z}/{x}/{y}.png", headers={"User-Agent": "shibuya-scramble-lab"})
             cache[k] = Image.open(io.BytesIO(urllib.request.urlopen(req, timeout=30).read())).convert("RGB")
         except Exception:
             cache[k] = None

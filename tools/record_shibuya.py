@@ -39,7 +39,7 @@ https://www.openstreetmap.org/copyright
 https://opendatacommons.org/licenses/odbl/1-0/
 車両軌跡 / Vehicle generation: Eclipse SUMO 1.28.0 · https://eclipse.dev/sumo/
 加工データ・帰属条件 / Derived data and NOTICE: repository web3d/data/
-https://github.com/haginot/asagaya-town-sim/tree/shibuya/web3d/data
+https://github.com/haginot/shibuya-scramble-lab/tree/shibuya/web3d/data
 web3d/data/NOTICE · shibuya_osm.json · shibuya_plateau.json · shibuya_traffic.json
 横断量・行動は未較正 / Crossings and behaviour uncalibrated — not a prediction'''
 

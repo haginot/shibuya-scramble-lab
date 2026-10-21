@@ -207,10 +207,10 @@ def test_bilingual_readme_tables_match_exports():
         text = (ROOT/filename).read_text()
         intro = text.split('## ',1)[0]
         assert other in intro
-        assert 'https://haginot.github.io/asagaya-town-sim/' in intro
+        assert 'https://haginot.github.io/shibuya-scramble-lab/' in intro
         assert 'seed 0' in text
         assert 'http://127.0.0.1:8765/2d.html#compare' in text
-        assert 'asagaya-town-sim promo demo --serve --no-open --port 8765' in text
+        assert 'shibuya-scramble-lab promo demo --serve --no-open --port 8765' in text
         assert '126.57' in text and '-3.00' in text
         assert 'Node.js 20' in text
 

@@ -18,8 +18,8 @@ https://opendatacommons.org/licenses/odbl/1-0/
 https://eclipse.dev/sumo/
 
 加工データとNOTICE：配布アプリの `web3d/data/`。リポジトリの同じパスにも収録しています。
-https://github.com/haginot/asagaya-town-sim/tree/shibuya/web3d/data
-https://github.com/haginot/asagaya-town-sim/blob/shibuya/NOTICE
+https://github.com/haginot/shibuya-scramble-lab/tree/shibuya/web3d/data
+https://github.com/haginot/shibuya-scramble-lab/blob/shibuya/NOTICE
 `shibuya_plateau.json` はCC BY 4.0、`shibuya_osm.json`・`shibuya_traffic.json` はODbL 1.0。
 販促用 `buildings_shibuya.json` の `buildings` はCC BY 4.0、`rails` はODbL 1.0。
 
@@ -43,8 +43,8 @@ Vehicle trajectories generated with Eclipse SUMO 1.28.0 using assumed signals an
 https://eclipse.dev/sumo/
 
 Derived databases and attribution accompany the exported application in `web3d/data/` and the repository:
-https://github.com/haginot/asagaya-town-sim/tree/shibuya/web3d/data
-https://github.com/haginot/asagaya-town-sim/blob/shibuya/NOTICE
+https://github.com/haginot/shibuya-scramble-lab/tree/shibuya/web3d/data
+https://github.com/haginot/shibuya-scramble-lab/blob/shibuya/NOTICE
 `shibuya_plateau.json`: CC BY 4.0. `shibuya_osm.json` and `shibuya_traffic.json`: ODbL 1.0.
 The mixed promo adapter `buildings_shibuya.json` retains CC BY 4.0 for `buildings` and ODbL 1.0 for `rails`.
 

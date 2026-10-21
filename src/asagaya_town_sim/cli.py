@@ -121,7 +121,7 @@ def write_site(d, html, data):
 
 
 def serve(html, port, open_browser, data=None):
-    d = write_site(Path(os.environ.get("TMPDIR", "/tmp")) / f"asagaya-town-sim-{os.getpid()}", html, data or {})
+    d = write_site(Path(os.environ.get("TMPDIR", "/tmp")) / f"shibuya-scramble-lab-{os.getpid()}", html, data or {})
     h = functools.partial(http.server.SimpleHTTPRequestHandler, directory=str(d))
     http.server.SimpleHTTPRequestHandler.log_message = lambda *a: None
     srv = http.server.ThreadingHTTPServer(("127.0.0.1", port), h)
@@ -137,7 +137,7 @@ def serve(html, port, open_browser, data=None):
 
 def promo_main(argv):
     from . import promo
-    ap = argparse.ArgumentParser(prog="asagaya-town-sim promo")
+    ap = argparse.ArgumentParser(prog="shibuya-scramble-lab promo")
     sub = ap.add_subparsers(dest="action", required=True)
     for name in ("demo", "build"):
         p = sub.add_parser(name)
@@ -215,7 +215,7 @@ def main(argv=None):
     effective = list(argv if argv is not None else sys.argv[1:])
     if effective[:1] == ["promo"]:
         return promo_main(effective[1:])
-    ap = argparse.ArgumentParser(prog="asagaya-town-sim", description="渋谷スクランブル交差点・個別エージェントのトイモデル（予測ではありません）")
+    ap = argparse.ArgumentParser(prog="shibuya-scramble-lab", description="渋谷スクランブル交差点・個別エージェントのトイモデル（予測ではありません）")
     ap.add_argument("--version", action="version", version=__version__)
     sub = ap.add_subparsers(dest="cmd")
     sub.add_parser("promo", help="架空店舗の販促トイモデル / fictional store promotion")

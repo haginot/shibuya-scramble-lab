@@ -1,6 +1,6 @@
 # 渋谷スクランブル交差点 — Shibuya Scramble Lab
 
-[English](README.en.md) · 日本語 · [デモ入口（公開後）](https://haginot.github.io/asagaya-town-sim/)
+[English](README.en.md) · 日本語 · [デモ入口（公開後）](https://haginot.github.io/shibuya-scramble-lab/)
 
 **公開統計の規模・時間帯を参考にしたトイモデル・予測ではない / Toy model scaled to public ridership stats — not a prediction**
 
@@ -10,7 +10,7 @@
 
 建物はPLATEAU渋谷区の1,050棟の足元形状＋高さ、道路・鉄道・店舗の地物はOSMです。単位はm、人物は約1.7m。車両はSUMO＋OSMで生成した軌跡。LOD2の屋根・テクスチャ、地形、列車ダイヤ、信号時間、実際のOD、販促効果は再現・実測較正していません。
 
-[動画を見る（別添MP4・42秒）](docs/media/index.html) · [真上の横断](docs/media/crossing.webp) · [14日販促比較の結果](docs/media/promo.webp) · [ブラウザで試す](https://haginot.github.io/asagaya-town-sim/) · [ローカル実行](#実行)
+[動画を見る（別添MP4・42秒）](docs/media/index.html) · [真上の横断](docs/media/crossing.webp) · [14日販促比較の結果](docs/media/promo.webp) · [ブラウザで試す](https://haginot.github.io/shibuya-scramble-lab/) · [ローカル実行](#実行)
 
 ![真上からの一斉横断](docs/media/crossing.webp)
 
@@ -21,11 +21,11 @@
 Python 3.9以上、実行時Python依存なし。同梱three.js・JSONを使い、3Dはネット接続なしで動きます。初回のパッケージ導入・データ再取得にはネット接続が必要です。
 
 ```bash
-uv run asagaya-town-sim serve --no-llm --no-open
+uv run shibuya-scramble-lab serve --no-llm --no-open
 # http://127.0.0.1:8765/ → web3d/shibuya/
-uv run asagaya-town-sim build --area shibuya --no-llm -o out
-uv run asagaya-town-sim demo --area shibuya --json --no-llm
-uv run asagaya-town-sim serve --area shibuya --agents 30000 --normal-demand --hour 8 --no-open
+uv run shibuya-scramble-lab build --area shibuya --no-llm -o out
+uv run shibuya-scramble-lab demo --area shibuya --json --no-llm
+uv run shibuya-scramble-lab serve --area shibuya --agents 30000 --normal-demand --hour 8 --no-open
 ```
 
 `--area shibuya` が通常CLI・販促CLI・Pagesの新しい既定。`--agents` は0〜60,000、`--seed` は個体の乱数、`--hour` は固定需要時刻（0以上24未満）。既定は15時・任意のデモ目標シナリオ。`demo --json` は設定と要求人数を出力し、実際の歩行・横断完了はブラウザで計算します。表示用の人数を通行実測人数と解釈しないでください。
@@ -33,9 +33,11 @@ uv run asagaya-town-sim serve --area shibuya --agents 30000 --normal-demand --ho
 取得可能な `shibuya` revisionでは、次のコマンドで実行できます。地図データはwheelに同梱され、各データの利用条件はNOTICEに記載しています。
 
 ```bash
-uvx --from 'git+https://github.com/haginot/asagaya-town-sim.git@shibuya' asagaya-town-sim serve --area shibuya --no-llm --no-open
-uvx --from 'git+https://github.com/haginot/asagaya-town-sim.git@shibuya' asagaya-town-sim promo demo --area shibuya --serve --no-open
+uvx --from 'git+https://github.com/haginot/shibuya-scramble-lab.git@shibuya' shibuya-scramble-lab serve --area shibuya --no-llm --no-open
+uvx --from 'git+https://github.com/haginot/shibuya-scramble-lab.git@shibuya' shibuya-scramble-lab promo demo --area shibuya --serve --no-open
 ```
+
+旧コマンド名 `asagaya-town-sim` も互換エイリアスとして引き続き使えます（リポジトリ名は `shibuya-scramble-lab` に変更済み）。
 
 ## 画面の読み方
 
@@ -56,8 +58,8 @@ JRを2倍した延べ駅イベント規模は2,145,705。乗換等が重なる�
 ## 渋谷の販促比較
 
 ```bash
-uv run asagaya-town-sim promo demo --serve --no-open --port 8765
-uv run asagaya-town-sim promo build --area shibuya -o out-promo
+uv run shibuya-scramble-lab promo demo --serve --no-open --port 8765
+uv run shibuya-scramble-lab promo build --area shibuya -o out-promo
 ```
 
 `http://127.0.0.1:8765/promo/?area=shibuya`。実店舗地物は地図の背景で、販促対象は交差点近くの**架空カフェ「ひだまり珈琲」**です。OSMの150m圏内111店舗地物（飲食店36・カフェ13等）を参照しますが、完全な店舗センサスではありません。空き店舗を除外し、名称未登録・node/area重複の可能性を残します。
@@ -100,7 +102,7 @@ SUMO 1.28.0は生成時のみ（EPL-2.0）、実際に使用済み。ブラウ�
 
 ## 阿佐ケ谷の互換モード（既存のまま）
 
-`uv run asagaya-town-sim serve --area asagaya --no-llm --no-open`。販促は `promo demo --area asagaya`。2D比較は `http://127.0.0.1:8765/2d.html#compare`。阿佐ケ谷はOSM＋国土地理院の地形、架空の行動・経済係数を使う従来モデルであり、今回の改善対象ではありません。高円寺は従来どおり実験的です。
+`uv run shibuya-scramble-lab serve --area asagaya --no-llm --no-open`。販促は `promo demo --area asagaya`。2D比較は `http://127.0.0.1:8765/2d.html#compare`。阿佐ケ谷はOSM＋国土地理院の地形、架空の行動・経済係数を使う従来モデルであり、今回の改善対象ではありません。高円寺は従来どおり実験的です。
 
 以下の表は**従来の阿佐ケ谷の回帰参照**です。渋谷の較正や成果ではありません。従来の全4施策ROIは平均−3.00%、クーポンのみ126.57%等の仮定結果で、予測値ではありません。
 

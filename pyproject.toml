@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "asagaya-town-sim"
+name = "shibuya-scramble-lab"
 version = "0.5.0"
 description = "渋谷スクランブル交差点・個別エージェントのトイモデル（予測ではありません）"
 readme = "README.md"
@@ -12,7 +12,8 @@ license = {text = "MIT (code); OSM data ODbL; PLATEAU data CC BY 4.0"}
 dependencies = []
 
 [project.scripts]
-asagaya-town-sim = "asagaya_town_sim.cli:main"
+shibuya-scramble-lab = "asagaya_town_sim.cli:main"
+asagaya-town-sim = "asagaya_town_sim.cli:main"  # compatibility alias
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/asagaya_town_sim"]

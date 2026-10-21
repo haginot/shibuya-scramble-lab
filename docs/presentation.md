@@ -15,8 +15,8 @@
 ## デモ操作 / Demo cues
 
 1. `bash tools/record_shibuya.sh` → `/workspace/demos/shibuya-scramble.mp4` (42 s: 30 s scene at simulation ×8 + 12 s credits; 1280×720, bilingual subtitle band).
-2. Live: `uv run asagaya-town-sim serve --area shibuya --no-llm --no-open`; overhead → Hachiko → normal demand. Read admitted and cleared separately.
-3. Promotion: `uv run asagaya-town-sim promo demo --area shibuya --serve --no-open --port 8766`; [completed 14-day means](media/promo.webp) compare hypothetical campaigns. Map labels do not identify participating businesses.
+2. Live: `uv run shibuya-scramble-lab serve --area shibuya --no-llm --no-open`; overhead → Hachiko → normal demand. Read admitted and cleared separately.
+3. Promotion: `uv run shibuya-scramble-lab promo demo --area shibuya --serve --no-open --port 8766`; [completed 14-day means](media/promo.webp) compare hypothetical campaigns. Map labels do not identify participating businesses.
 4. If asked for FPS, quote the measured environment and agent count from `docs/PERFORMANCE.md`; recording throughput is separate from interactive FPS.
 
 ## 想定問答 / Questions

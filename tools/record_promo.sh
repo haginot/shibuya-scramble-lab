@@ -11,7 +11,7 @@ cleanup() {
 }
 trap cleanup EXIT
 cd -- "$repo_dir"
-uv run asagaya-town-sim promo build -o "$site_dir"
+uv run shibuya-scramble-lab promo build -o "$site_dir"
 port=${PROMO_PORT:-8765}
 python3 -m http.server "$port" --bind 127.0.0.1 --directory "$site_dir" &
 server_pid=$!
