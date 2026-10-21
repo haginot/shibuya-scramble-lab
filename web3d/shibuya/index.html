@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SHIBUYA / Scramble Lab</title><link rel="stylesheet" href="style.css"></head>
+<body>
+<header><div class="eyebrow">ai&amp; Build Day · INDIVIDUAL AGENT SIMULATION</div><h1>SHIBUYA<span>SCRAMBLE LAB</span></h1><p>渋谷スクランブル交差点 / The city moves, one person at a time.</p></header>
+<div id="disclaimer">公開統計の規模・時間帯を参考にしたトイモデル・予測ではない<br>Toy model scaled to public ridership stats — not a prediction<br>横断量・行動は未較正 / Crossings and behaviour uncalibrated</div>
+<main id="view" aria-label="渋谷3Dエージェントシミュレーション"><div id="loading">地図とエージェントを準備中 / Preparing the city…</div><div id="labels"></div></main>
+<div id="sim-time"></div>
+<section id="metrics"><div><small>INDIVIDUAL AGENTS / 個体数</small><strong id="agents">—</strong></div><div><small>PHASE / 信号</small><strong id="phase">—</strong></div><div><small>ADMITTED / 今期の出発</small><strong id="admitted">—</strong></div><div><small>CLEARED / 横断完了</small><strong id="completed">—</strong></div><div><small>PERFORMANCE</small><strong id="fps">—</strong></div></section>
+<aside id="controls"><button id="pause">一時停止 / Pause</button><button data-camera="top">真上 / Overhead</button><button data-camera="orbit">交差点 / Scramble</button><button data-camera="hachiko">ハチ公 / Hachiko</button><label><input id="promotion" type="checkbox" checked> 架空カフェ販促 / Promo</label><label>需要 / Demand <select id="demand"><option value="peak">任意のデモ目標3,000人 / Demo target</option><option value="normal">駅統計スケール / Station scale</option><option value="morning">朝8時 / 08:00</option></select></label><a href="../promo/?area=shibuya">14日販促比較 / 14-day comparison ↗</a><a href="../default/">阿佐ケ谷 / Asagaya ↗</a></aside>
+<section id="funnel"><span>個別ファネル / Individual funnel</span><b id="unaware">—</b><b id="aware">—</b><b id="intent">—</b><b id="visits">—</b><span id="trains">—</span><span id="inventory">—</span></section>
+<aside id="caption"><div id="ja">一人ひとりが歩き、認知し、選ぶ。</div><div id="en">Each person walks, notices and chooses.</div></aside>
+<footer><a href="https://www.mlit.go.jp/plateau/">国土交通省 Project PLATEAU・渋谷区 2023</a>（足元形状＋高さに加工 / footprints + heights）· <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a><br><a href="https://www.openstreetmap.org/copyright">© OpenStreetMap contributors</a> · <a href="https://opendatacommons.org/licenses/odbl/1-0/">ODbL 1.0</a> · 車両 / Vehicles: Eclipse SUMO · <a href="../data/NOTICE">NOTICE</a> · <a href="../data/index.html">同梱データ / Data</a> · 列車・販促・信号時間は仮置き / illustrative trains, promotion &amp; timings</footer>
+<script type="module" src="app.mjs"></script></body></html>
