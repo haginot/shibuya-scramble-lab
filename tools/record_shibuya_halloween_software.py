@@ -100,7 +100,9 @@ class SoftwareScene:
         self.lib.environment(daylight,dusk,float(state.get('regional',False)))
         top=np.array([8,13,38])*(1-daylight)+np.array([113,176,207])*daylight
         bottom=np.array([69,46,81])*(1-daylight)+np.array([215,227,224])*daylight
-        top=top*(1-dusk*.6)+np.array([145,92,147])*dusk*.6;bottom=bottom*(1-dusk*.7)+np.array([244,163,112])*dusk*.7
+        # Softer dusk wash: the old .6/.7 tint washed the pink/purple crowd into
+        # the sky at the exact instant the city finishes rising, hurting the hook.
+        top=top*(1-dusk*.32)+np.array([145,92,147])*dusk*.32;bottom=bottom*(1-dusk*.38)+np.array([244,163,112])*dusk*.38
         sky_t=np.linspace(0,1,self.height)[:,None,None];canvas[:]=(top[None,None,:]*(1-sky_t)+bottom[None,None,:]*sky_t).astype('uint8')
         order=sorted(range(len(self.info['objects'])),key=lambda i:self.info['objects'][i]['material']['transparent'])
         for i in order:
@@ -237,7 +239,10 @@ class Film:
             self.text(d,(x+14,y+52),h['en'],26,accent,True)
     def results(self,im,t):
         a=self.metrics['no_events'];b=self.metrics['events_on'];change=round(self.metrics['density_change_pct']);gain=round((self.metrics['attendance_ratio']-1)*100)
-        self.card(im,(32,100,1048,1702),fill='#151c35f5');d=ImageDraw.Draw(im)
+        # One readable result beat, not a dashboard: the two headline numbers and
+        # the single winning destination. Five-district detail moved out of the
+        # main viewing path into RESULTS.txt/metrics.json, which still ship with the film.
+        self.card(im,(32,100,1048,1300),fill='#151c35f5');d=ImageDraw.Draw(im)
         self.text(d,(64,118),'トイモデルの値 / TOY-MODEL VALUES',28,AMBER,True)
         self.text(d,(64,168),f'{change}%',110,MINT,True)
         self.text(d,(555,168),f'+{gain}%',110,PURPLE,True)
@@ -253,16 +258,10 @@ class Film:
             self.text(d,(x+18,479),'催しなし / OFF' if j==0 else '催しあり / ON',29,RED if j==0 else MINT,True)
         self.text(d,(66,866),'同じ時刻・同じ青 / Matched green',28,MUTED)
         best=self.metrics['best_event']
-        # Three reading targets: measured density, arrivals, winning destination.
         self.text(d,(84,969),f"最多到着：代々木 {best['people']}人",57,AMBER,True)
         self.text(d,(86,1061),'MOST ARRIVALS · Yoyogi lantern garden',33,AMBER,True)
-        # All five districts stay available, in two compact lines rather than a table.
-        for i,e in enumerate(self.metrics['events']):
-            x=84+(i%3)*310;y=1180+(i//3)*166
-            self.text(d,(x,y),e['name']+' / '+e['en'],24,PURPLE,True)
-            self.text(d,(x,y+44),f"{a['district_people'][i]} → {b['district_people'][i]}",41,WHITE,True)
-        self.text(d,(84,1552),'同じ960人・1800秒 / Same 960 people · 1800s',29,MUTED)
-        self.text(d,(84,1610),'ピーク密度・到着数 / Peak density · completed arrivals',25,MUTED)
+        self.text(d,(84,1180),'他4地区は RESULTS.txt に / Other 4 districts: RESULTS.txt',24,MUTED)
+        self.text(d,(84,1222),'同じ960人・1800秒 / Same 960 people · 1800s toy-model run',24,MUTED)
         self.footer(d);return im
     def compare(self):
         raise RuntimeError('Comparison is integrated into the live city view')
@@ -309,6 +308,20 @@ def record(output,stills,metrics_path,preview=False):
     if metrics_path.exists():assert json.loads(metrics_path.read_text())==metrics
     metrics_path.parent.mkdir(parents=True,exist_ok=True);metrics_path.write_text(json.dumps(metrics,ensure_ascii=False,indent=2)+'\n');shutil.copyfile(metrics_path,stills/'metrics.json')
     for source,target in [(ROOT/'NOTICE','NOTICE'),(ROOT/'LICENSE','LICENSE'),(ROOT/'docs/HALLOWEEN_ASSETS.md','ASSETS.md')]:shutil.copyfile(source,stills/target)
+    # The on-screen results card points viewers here for the full five-district
+    # breakdown it doesn't have room to show; write the file it promises.
+    a=metrics['no_events'];b=metrics['events_on']
+    lines=['SHIBUYA / HALLOWEEN -- toy-model results (full breakdown)','','*Toy-model simulation / トイモデル・予測ではない',metrics['notice'],'',
+        f"Peak crowd, fixed 24m-radius disk: {a['peak_central_count']} -> {b['peak_central_count']} people ({metrics['density_change_pct']}%)",
+        f"Completed district arrivals: {a['visits']} -> {b['visits']} people (x{metrics['attendance_ratio']})",'',
+        'District | no events | with events | lift','--- | ---: | ---: | ---:']
+    for i,e in enumerate(metrics['events']):
+        lines.append(f"{e['name']} / {e['en']} ({e['eventEn']}) | {a['district_people'][i]} | {b['district_people'][i]} | +{metrics['district_lifts'][i]}")
+    lines+=['',f"Most arrivals: {metrics['best_event']['district']} ({metrics['best_event']['event']}), {metrics['best_event']['people']} people",
+        f"Largest lift: {metrics['largest_lift']['district']}, +{metrics['largest_lift']['people']}",'',
+        f"Settings: seed {metrics['settings']['seed']}, {metrics['settings']['agents']} matched identities, {metrics['settings']['horizon_s']}s per run.",
+        'Full field definitions, per-mode totals and coverage limits: metrics.json / docs/HALLOWEEN_ASSETS.md.']
+    (stills/'RESULTS.txt').write_text('\n'.join(lines)+'\n',encoding='utf-8')
     scene=SoftwareScene(directory);film=Film(scene,metrics);snapshots=[]
     selected=list(STILLS) if preview else range(FPS*DURATION)
     global _CAPTURE

@@ -80,7 +80,10 @@ export function makeNightScene(plateau,osm,nav,region={buildings:[]}){
  // Large crossing-side Halloween pieces, purple/orange pools and festival arch.
  pumpkin(-27,28,3.0);pumpkin(27,-24,2.8);pool(0,0,110,purpleGlow,.35);pool(-24,28,50,warmGlow,.65);
  const greenPools=[[-26,-17],[20,15],[-20,17],[17,-19]].map(([x,z])=>pool(x,z,25,greenGlow,.9));
- const launchRings=CORNERS.map(p=>{const [x,z]=nav.point(nav.nearest(p,nav.fields[0])),o=mesh(new THREE.RingGeometry(4.3,4.8,24),basic(0x69ffbc,.8),x,.48,z);o.rotation.x=-Math.PI/2;return o;});
+ const launchRings=CORNERS.map(p=>{const [x,z]=nav.point(nav.nearest(p,nav.fields[0])),o=mesh(new THREE.RingGeometry(4.3,4.8,24),basic(0x69ffbc,.9),x,.48,z);o.rotation.x=-Math.PI/2;return o;});
+ // One shared shockwave ring at the crossing centre so the green release
+ // reads as a single synchronized "go" instant, not just six quiet corner rings.
+ const centerPulse=mesh(new THREE.RingGeometry(6,8.4,48),basic(0x8dffce,.95),0,.5,0);centerPulse.rotation.x=-Math.PI/2;
  const arch=standard(0xa15ce4,0x8e3cd6,.5);for(const x of[-30,-12])cube(x,6,43,1,12,1,arch);cube(-21,12,43,20,1.2,1,arch);
  // Each town has a distinct original miniature attraction, visible from 3km.
  const hubs=EVENTS.map((e,i)=>{
@@ -176,7 +179,10 @@ export function makeNightScene(plateau,osm,nav,region={buildings:[]}){
  function update(model,seconds,promo){
   seconds%=DURATION;
   const story=storyAt(seconds);
-  const crowdInk=1-smooth((story.opening-.18)/.24);
+  // Ghost-dot fade now finishes exactly as the skyline finishes rising (opening
+ // .22s): the old .18-.42s window kept pink blueprint dots double-exposed over
+ // the fully-built city and the close witch pass, reading as washed clutter.
+ const crowdInk=1-smooth((story.opening-.05)/.17);
   city.scale.y=.012+.988*story.extrusion;city.visible=story.extrusion>.01;blueprint.visible=crowdInk>.01;plan.material.opacity=story.blueprint;scan.material.opacity=crowdInk*.22;scan.scale.setScalar(story.opening<.05?.9:1+.1*Math.sin(seconds/DURATION*Math.PI*2*36));bpFocus.material.opacity=crowdInk*.12;
   envMaterials.forEach(({mat,emission})=>{if('emissiveIntensity' in mat)mat.emissiveIntensity=emission*(1-story.daylight*.93);});
   scene.background=new THREE.Color(nightSky).lerp(daySky,story.daylight).lerp(duskSky,story.dusk*.6);moonlight.intensity=2.6+story.daylight*1.2;amber.intensity=1.1+story.dusk;
@@ -234,7 +240,11 @@ export function makeNightScene(plateau,osm,nav,region={buildings:[]}){
   const density=model.snapshot().peak_central_count/(Math.PI*24**2),h=Math.max(0,Math.min(1,(density-.28)/.056)),heatColor=[35+220*h,210-175*h,245-157*h].map(Math.round).join(',');
   heatInk.clearRect(0,0,128,128);for(let z=0;z<16;z++)for(let x=0;x<16;x++){const n=bins[z*16+x];if(!n)continue;const c=heatColor,g=heatInk.createRadialGradient(x*8+4,z*8+4,0,x*8+4,z*8+4,13);g.addColorStop(0,`rgba(${c},${Math.min(.98,.28+n*.12)})`);g.addColorStop(1,`rgba(${c},0)`);heatInk.fillStyle=g;heatInk.fillRect(x*8-10,z*8-10,28,28);}heatTexture.needsUpdate=true;
   heat.visible=!story.regional;heat.material.opacity=story.hook?.15:story.green?.30:.52;
-  launchRings.forEach(o=>{o.visible=story.green&&seconds<2.15;o.material.opacity=.75;});
+  // Expanding + fading shockwave: the instant everyone steps off together
+  // gets one unmistakable burst instead of six static rings that just vanish.
+  const launchOpen=story.green&&seconds<2.2,launchU=launchOpen?Math.max(0,Math.min(1,(seconds-1.5)/.7)):1;
+  launchRings.forEach(o=>{o.visible=launchOpen;o.scale.setScalar(1+5*launchU);o.material.opacity=.85*(1-launchU);});
+  centerPulse.visible=launchOpen;centerPulse.scale.setScalar(1+10*launchU);centerPulse.material.opacity=.8*(1-launchU);
   greenPools.forEach(o=>{o.visible=signalAt(model.time)!=='red';o.material.opacity=story.green?.9:.45;});
   signalHeads.forEach(({red,green})=>{const phase=signalAt(model.time);red.visible=phase==='red';green.visible=phase!=='red';});
   trains.forEach(({g,path},i)=>{

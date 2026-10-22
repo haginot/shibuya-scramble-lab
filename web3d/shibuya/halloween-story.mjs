@@ -19,7 +19,11 @@ const poses=[
  [8.45,[-370,440,-3070],[-70,10,-2650]],
  [8.75,[-1430,500,-210],[-1120,12,210]],[9.15,[-1430,500,-210],[-1120,12,210]],
  [9.5,[610,650,920],[1000,30,1420]],[9.85,[650,610,980],[1000,30,1420]],
- [10.3,...crossing],[13.8,...crossing],[18.5,...crossing],
+ [10.3,...crossing],[13.8,...crossing],
+ // A second, closing pedestrian-eye pass through the now-thinner crowd: the
+ // required return-to-eye-level beat, not a repeat of the 3.45s hook descent.
+ [17.05,...crossing],[17.4,[23,2.5,-19],[-8,1.5,7]],[18.05,[-18,2.5,15],[9,1.5,-9]],
+ [18.3,...crossing],[18.5,...crossing],
  [19.85,...blueprint],[20,...blueprint],
 ];
 export function cameraAt(seconds,fixed=false){
@@ -37,7 +41,10 @@ export function cameraAt(seconds,fixed=false){
 }
 export function witchAt(seconds){
  const t=((seconds%DURATION)+DURATION)%DURATION,a=t/DURATION*Math.PI*2;
- const pass=Math.exp(-(((t-.94)/.32)**4)),u=Math.max(0,Math.min(1,(t-.50)/.9));
+ // Close pass centred near 0.3s, not 0.94s: the hook's single focal point
+ // needs the witch large and near the now fully-risen crossing immediately,
+ // not after the crowd has already had to carry the opening alone.
+ const pass=Math.exp(-(((t-.30)/.28)**4)),u=Math.max(0,Math.min(1,(t-.05)/.6));
  return{position:mix([-15+47*Math.sin(a),38+10*Math.sin(a*2),-21+22*Math.cos(a)],[-30+52*u,23,-12],pass),yaw:.2+.5*Math.sin(a)-pass*.6,roll:.1*Math.sin(a*2)-pass*.12,scale:1.5+.2*Math.cos(a)+pass*.9};
 }
 export function storyAt(seconds){
@@ -45,7 +52,10 @@ export function storyAt(seconds){
  const loop=seconds>=18.5,hook=seconds<1.5||loop,promoted=seconds>=3.65&&seconds<19.92;
  const opening=seconds<1.5?seconds:loop?Math.max(0,(20-seconds)/1.5*.72):1.5;
  // Plan strokes leave before solid buildings rise; no translucent wire tangle.
- const extrusion=smooth((opening-.06)/.48),blueprint=1-smooth((opening-.02)/.10);
+ // Extrusion used to finish at opening=.54s: at a critic's 0.3s sample the
+ // crossing was still a half-grown blur competing with the witch for focus.
+ // Finishing by .22s gives the hook a single legible skyline well inside 1.5s.
+ const extrusion=smooth((opening-.03)/.19),blueprint=1-smooth((opening-.02)/.10);
  // Capped well below full brightness: a washed pastel noon read as hazy and
  // competed with the hook's buildings/crowd; a brief dim-day beat is plenty.
  const daylight=(loop?0:opening<.08?0:opening<.26?smooth((opening-.08)/.09):1-smooth((opening-.26)/.34))*.52;
@@ -57,7 +67,10 @@ export function storyAt(seconds){
  // A slower advance keeps the six launch arms legible on screen: at the old
  // 14x rate the whole crossing had already fused into one disc by the time
  // the overhead hold ended, hiding the synchronized step-off it was meant to prove.
- const clock=seconds>=19.92?1079:seconds>=10.3?RELIEF_TIME+Math.max(0,seconds-11.6)*1.8:seconds<1.5?1079:seconds<3.65?1080+(seconds-1.5)*6:clockAt(seconds);
+ // Uses nearly the full remaining green budget (signal flips at +22s from
+ // RELIEF_TIME) so the post-melt return shows real additional thinning
+ // (measured ~491→~463 central people) instead of ~4 wasted simulated seconds.
+ const clock=seconds>=19.92?1079:seconds>=10.3?RELIEF_TIME+Math.max(0,seconds-11.6)*2.3:seconds<1.5?1079:seconds<3.65?1080+(seconds-1.5)*6:clockAt(seconds);
  const simTime=Math.floor(clock),renderFraction=clock-simTime;
  const activeHub=seconds<ACTIVATIONS[0]?-1:Math.min(4,ACTIVATIONS.filter(t=>seconds>=t).length-1);
  const captions=hook?['荒れる渋谷、\n周りの街で散らせるか？','Can nearby towns ease a packed Shibuya?']:seconds<3.65?['青で、いっせいに。','GREEN. Everybody goes.']:seconds<5.15?['５つの街に、灯りを。','Five towns. Five side quests.']:seconds<6.3?['２つの路線で、街の外へ。','Two lines. More places to go.']:seconds<7.45?['この３人を、追いかけて。','One hat. One pumpkin. One cape.']:seconds<8.55?['降りたら、ランタンの庭。','Step off. Follow the lanterns.']:seconds<9.2?['井の頭線で、仮装広場へ。','Inokashira → costume stage.']:seconds<10.05?['屋台にも、寄り道を。','Next stop: fictional pumpkin stalls.']:seconds<13.8?['同じ青。灯りで、街へ。','Same green. More places to go.']:['灯りも、街も、手づくり。','Original miniature city · HAGINO'];

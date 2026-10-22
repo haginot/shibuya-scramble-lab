@@ -61,7 +61,7 @@ assert.equal(DURATION,20);assert.equal(FPS,24);assert(storyAt(6).regional);asser
 assert.equal(storyAt(DURATION).simTime,storyAt(0).simTime);assert.deepEqual(cameraAt(DURATION),cameraAt(0));
 for(const key of['position'])for(let i=0;i<3;i++)assert(Math.abs(witchAt(DURATION)[key][i]-witchAt(0)[key][i])<1e-9);
 assert.equal(storyAt(0).extrusion,0,'opening is flat');assert.equal(storyAt(.6).extrusion,1,'city immediately rises within hook');assert(storyAt(.2).daylight>.4&&storyAt(.2).daylight<.7&&storyAt(.43).dusk>.8,'day is visible but capped well short of a washed-out full noon; dusk is visible');assert.equal(storyAt(.65).daylight,0,'night established early in hook');assert.equal(storyAt(0).speed,6);assert.equal(storyAt(.7).speed,100);assert(cameraAt(3.55).position[1]<3,'pedestrian-eye passage');assert(storyAt(0).captions[0].replace('\n','').includes('荒れる渋谷、周りの街で散らせるか？'));
-assert(witchAt(.95).scale>2.5,'foreground witch pass within the first second');
+assert(witchAt(.3).scale>2.5,'foreground witch pass shares the 0.3s hook focal point with the crossing');
 assert(storyAt(12.13).renderFraction>0,'subsecond velocity interpolation keeps the return moving between model samples');
 assert(!storyAt(13.79).comparison&&storyAt(13.8).comparison&&storyAt(15.79).comparison&&!storyAt(15.8).comparison,'proof card is exactly two seconds');assert(storyAt(5).overview&&!storyAt(5.2).overview&&storyAt(6).journey,'brief overview gives way to station journey');
 assert(storyAt(12).departureBeat&&!storyAt(11).departureBeat,'actual outward walking continues after the short paired replay');assert(storyAt(.13).blueprint===0,'plan lines leave before the solid reveal');
