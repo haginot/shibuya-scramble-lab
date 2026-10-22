@@ -4,6 +4,12 @@
 
 **公開統計の規模・時間帯を参考にしたトイモデル・予測ではない / Toy model scaled to public ridership stats — not a prediction**
 
+> **Branch `claude-3d` — night renderer built with Claude Code.** A rewritten, cinematic three.js renderer (rain-wet reflective asphalt, HDR bloom, procedural neon signage and screens, long-exposure light trails, instanced 3D people with umbrellas and SUMO cars with head/brake lights) on the same PLATEAU/OSM data and solver. Default: 18:00, **34,710 agents** in the modelled area (Little's law on 2024 station statistics, see [CALIBRATION](docs/CALIBRATION.md)), 2,640 requested crossings per 150 s cycle. The HUD separates people on the crossing, people queued at the corners, crossings completed on foot in the last cycle, and the area population — most agents never cross. Cars wait at set-back stop lines during the all-pedestrian green (checked by `node web3d/shibuya/verify.mjs --stress`). Video: `bash tools/record_shibuya.sh` (44 s, 1280×720, 30 fps).
+>
+> ```bash
+> uvx --from 'git+https://github.com/haginot/shibuya-scramble-lab.git@claude-3d' shibuya-scramble-lab serve --area shibuya --no-llm --no-open
+> ```
+
 Change hypothetical demand and promotion settings to observe crowd clearance and visit-state changes. **Crossing volumes and behaviour remain uncalibrated.**
 
 A metre-scale Shibuya crossing, Hachiko square and Yamanote/Ginza arrival waves, with 20,000 individual agents by default. Every person has a position, velocity, random stream and awareness → intent → visit funnel. A spatial grid, social forces, a Web Worker, GPU point billboards and vehicle InstancedMesh handle computation and drawing. This is an individual-agent simulation. The Shibuya runtime calls no LLM or external API.

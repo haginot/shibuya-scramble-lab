@@ -45,7 +45,7 @@ def table(title, cols, rows, data):
 def build(args):
     if getattr(args, 'area', 'shibuya') == 'shibuya':
         from . import shibuya
-        data = shibuya.config(agents=getattr(args,'agents',20000),seed=getattr(args,'seed',7),hour=getattr(args,'hour',15),peak=not getattr(args,'normal_demand',False))
+        data = shibuya.config(agents=getattr(args,'agents','auto'),seed=getattr(args,'seed',7),hour=getattr(args,'hour',18),peak=not getattr(args,'normal_demand',False))
         return None, {}, data, 'individual social-force agents (browser)', 0, []
     planner = None
     mode = "ルールベース（決定的）"
@@ -204,6 +204,10 @@ def nonnegative_int(value):
     raise argparse.ArgumentTypeError("must be an integer >= 0")
 
 
+def agents_arg(value):
+    return 'auto' if value == 'auto' else nonnegative_int(value)
+
+
 def positive_int(value):
     result = nonnegative_int(value)
     if result < 1:
@@ -223,9 +227,9 @@ def main(argv=None):
         p = sub.add_parser(name, help=hlp)
         p.add_argument("--seeds", type=positive_int, default=5)
         p.add_argument("--area", choices=['shibuya']+sorted(AREAS), default="shibuya", help="対象エリア（既定 shibuya）")
-        p.add_argument("--agents", type=nonnegative_int, default=20000, help="渋谷の個別エージェント数（上限60000）")
+        p.add_argument("--agents", type=agents_arg, default="auto", help="渋谷の個別エージェント数（上限60000）。auto=時刻の駅統計からリトルの法則で推定")
         p.add_argument("--seed", type=nonnegative_int, default=7, help="渋谷の乱数seed")
-        p.add_argument("--hour", type=float, default=15, help="渋谷の需要時刻 [0,24)")
+        p.add_argument("--hour", type=float, default=18, help="渋谷の需要時刻 [0,24)（既定18時・夜）")
         p.add_argument("--normal-demand", action='store_true', help="ピーク約3000人の倍率を外す")
         p.add_argument("--residents", type=nonnegative_int, default=400)
         p.add_argument("--visitors", type=nonnegative_int, default=350, help="電車で来る来訪者（外部エージェント）")
@@ -252,7 +256,7 @@ def main(argv=None):
             print(json.dumps(report,ensure_ascii=False,indent=2))
         else:
             print(shibuya.DISCLAIMER)
-            print(f"SHIBUYA · {args.agents:,} agents · phase demand {report['phase_demand']:,} · {data['traffic']}")
+            print(f"SHIBUYA · {data['agents']:,} agents · phase demand {report['phase_demand']:,} · {data['traffic']}")
         if args.cmd == 'build':
             shibuya.write_site(args.out,data)
             (Path(args.out)/'results.json').write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8')

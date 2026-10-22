@@ -1,13 +1,24 @@
 <!doctype html>
-<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SHIBUYA / Scramble Lab</title><link rel="stylesheet" href="style.css"></head>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SHIBUYA SCRAMBLE — night crowd simulation</title><link rel="stylesheet" href="style.css"></head>
 <body>
-<header><div class="eyebrow">ai&amp; Build Day · INDIVIDUAL AGENT SIMULATION</div><h1>SHIBUYA<span>SCRAMBLE LAB</span></h1><p>渋谷スクランブル交差点 / The city moves, one person at a time.</p></header>
-<div id="disclaimer">公開統計の規模・時間帯を参考にしたトイモデル・予測ではない<br>Toy model scaled to public ridership stats — not a prediction<br>横断量・行動は未較正 / Crossings and behaviour uncalibrated</div>
-<main id="view" aria-label="渋谷3Dエージェントシミュレーション"><div id="loading">地図とエージェントを準備中 / Preparing the city…</div><div id="labels"></div></main>
-<div id="sim-time"></div>
-<section id="metrics"><div><small>INDIVIDUAL AGENTS / 個体数</small><strong id="agents">—</strong></div><div><small>PHASE / 信号</small><strong id="phase">—</strong></div><div><small>ADMITTED / 今期の出発</small><strong id="admitted">—</strong></div><div><small>CLEARED / 横断完了</small><strong id="completed">—</strong></div><div><small>PERFORMANCE</small><strong id="fps">—</strong></div></section>
-<aside id="controls"><button id="pause">一時停止 / Pause</button><button data-camera="top">真上 / Overhead</button><button data-camera="orbit">交差点 / Scramble</button><button data-camera="hachiko">ハチ公 / Hachiko</button><label><input id="promotion" type="checkbox" checked> 架空カフェ販促 / Promo</label><label>需要 / Demand <select id="demand"><option value="peak">任意のデモ目標3,000人 / Demo target</option><option value="normal">駅統計スケール / Station scale</option><option value="morning">朝8時 / 08:00</option></select></label><a href="../promo/?area=shibuya">14日販促比較 / 14-day comparison ↗</a><a href="../default/">阿佐ケ谷 / Asagaya ↗</a></aside>
-<section id="funnel"><span>個別ファネル / Individual funnel</span><b id="unaware">—</b><b id="aware">—</b><b id="intent">—</b><b id="visits">—</b><span id="trains">—</span><span id="inventory">—</span></section>
-<aside id="caption"><div id="ja">一人ひとりが歩き、認知し、選ぶ。</div><div id="en">Each person walks, notices and chooses.</div></aside>
-<footer><a href="https://www.mlit.go.jp/plateau/">国土交通省 Project PLATEAU・渋谷区 2023</a>（足元形状＋高さに加工 / footprints + heights）· <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a><br><a href="https://www.openstreetmap.org/copyright">© OpenStreetMap contributors</a> · <a href="https://opendatacommons.org/licenses/odbl/1-0/">ODbL 1.0</a> · 車両 / Vehicles: Eclipse SUMO · <a href="../data/NOTICE">NOTICE</a> · <a href="../data/index.html">同梱データ / Data</a> · 列車・販促・信号時間は仮置き / illustrative trains, promotion &amp; timings</footer>
+<main id="view" aria-label="渋谷スクランブル交差点 3Dエージェントシミュレーション / Shibuya scramble 3D agent simulation"><div id="loading">渋谷を組み立て中 / Building Shibuya…</div></main>
+<header id="brand"><div class="mark">SHIBUYA<b>SCRAMBLE</b></div><div class="sub">個別エージェント・シミュレーション / individual-agent simulation</div></header>
+<section id="hud">
+ <div class="row"><span id="clock">18:00</span><span id="phase" data-phase="walk">—</span><span id="speed">×1</span></div>
+ <div class="row stats"><div><b id="crossing">—</b><small>on the crossing now · 横断中</small></div><div><b id="waiting">—</b><small>queued at corners · 信号待ち</small></div><div><b id="lastcycle">—</b><small>crossed last cycle · 前回の横断</small></div></div>
+ <div class="row area"><span><b id="agents">—</b> agents modelled in the ~0.8 km area · 区域内の個体（全員が横断するわけではない）</span><span id="rescued" hidden></span></div>
+</section>
+<aside id="caption"><div id="cap-en"></div><div id="cap-ja"></div></aside>
+<nav id="controls">
+ <div class="group"><button data-camera="cinema" class="on">Cinema</button><button data-camera="top">真上 Top</button><button data-camera="street">路上 Street</button><button data-camera="hachiko">ハチ公 Hachiko</button><button data-camera="free">Free</button></div>
+ <div class="group"><button id="pause" aria-label="pause">❚❚</button><button data-speed="1" class="on">×1</button><button data-speed="4">×4</button><button data-speed="10">×10</button></div>
+ <div class="group"><label><input id="trails" type="checkbox" checked> 光跡 trails</label><label><input id="promotion" type="checkbox" checked> 架空カフェ販促 promo</label><button id="hud-toggle">HUD</button></div>
+ <details id="about"><summary>about · 出典</summary>
+  <p><b id="meta-agents">—</b> agents at <b id="meta-hour">—</b> (Little's law on 2024 station statistics × assumed 15 min outdoor dwell); requested crossings per 150 s cycle: <b id="meta-quota">—</b>. The HUD separates the modelled population (everyone walking in the area) from people on the crossing, people queued at the six corners and crossings completed on foot in the previous cycle; arrivals refused because a corner queue is full and any walker moved by the last-resort safety valve are reported separately (<code>window.__shibuyaState.deferred</code>, <code>.rescued</code>), never as crossings (Shibuya hourly profile, scaled so 14–16h reach the reported "up to 3,000 per green"). See <a href="../data/index.html">data</a> and CALIBRATION.md.</p>
+  <p>Buildings: <a href="https://www.mlit.go.jp/plateau/">国土交通省 Project PLATEAU・渋谷区 2023</a> (footprints + heights, modified) · <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>. Roads, rails, shop positions: <a href="https://www.openstreetmap.org/copyright">© OpenStreetMap contributors</a> · <a href="https://opendatacommons.org/licenses/odbl/1-0/">ODbL 1.0</a>. Vehicles: Eclipse SUMO trajectories on the OSM network. Signage words are generic categories; screens are procedural. <a href="../data/NOTICE">NOTICE</a> · <a href="../data/index.html">同梱データ / Data</a> · <a href="../promo/?area=shibuya">14日販促比較 ↗</a></p>
+  <p>Drag to orbit, right-drag/shift-drag to pan, wheel to zoom. URL: <code>?hour=8</code> <code>?agents=auto|N</code> <code>?rain=0</code> <code>?cam=top</code>.</p>
+ </details>
+</nav>
+<div id="disclaimer">公開統計の規模・時間帯を参考にしたトイモデル・予測ではない · Toy model scaled to public statistics — not a prediction · 横断量・行動は未較正 / uncalibrated behaviour</div>
+<footer>PLATEAU 渋谷区 2023 (CC BY 4.0, modified) · © OpenStreetMap contributors (ODbL) · SUMO · <a href="../data/NOTICE">NOTICE</a> · <a href="../data/index.html">Data</a> · 列車・信号時間は仮置き / illustrative trains &amp; timings</footer>
 <script type="module" src="app.mjs"></script></body></html>

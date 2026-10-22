@@ -14,7 +14,7 @@ def test_default_cli_is_shibuya(capsys):
     cli.main(['demo','--json','--no-llm'])
     data=json.loads(capsys.readouterr().out)
     assert data['area']=='shibuya'
-    assert data['agents']==20000 and data['phase_demand']==3000
+    assert data['agents']==34710 and data['phase_demand']==2640  # 18:00, Little's law population
     assert 'not a prediction' in data['disclaimer']
     assert data['traffic']=='SUMO on OSM network'
 
@@ -69,9 +69,13 @@ def test_recording_contract():
     spec=importlib.util.spec_from_file_location('record_shibuya',ROOT/'tools/record_shibuya.py')
     rec=importlib.util.module_from_spec(spec);spec.loader.exec_module(rec)
     assert rec.CAPTIONS[0][0]==0 and all(len(x)==3 for x in rec.CAPTIONS)
+    assert rec.FPS==30 and rec.SCENE_FRAMES+rec.CREDIT_FRAMES==44*30
+    director=(ROOT/'web3d/shibuya/director.mjs').read_text()
+    assert f'SCENE_SECONDS={rec.SCENE_SECONDS},CREDIT_SECONDS={rec.CREDIT_SECONDS}' in director
+    for t,ja,en in rec.CAPTIONS:
+        assert f"t0:{t:g}," in director and f"cap:['{en}','{ja}']" in director
     script=(ROOT/'tools/record_shibuya.py').read_text()
-    assert 'range(900)' in script and "'top' if seconds<3" in script
-    assert "rects['metrics']['bottom'] <= rects['caption']['top']" in script
+    assert 'window.__frame(' in script and 'window.__warmup()' in script and 'time.time()' not in script
     subprocess.run(['bash','-n',str(ROOT/'tools/record_shibuya.sh')],check=True)
 
 

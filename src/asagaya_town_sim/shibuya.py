@@ -23,11 +23,21 @@ def latlon(x, z):
     return [CENTER[0]-z/111320, CENTER[1]+x/(111320*math.cos(math.radians(CENTER[0])))]
 
 
-def config(agents=20000, seed=7, hour=15, peak=True):
-    if not isinstance(agents,int) or not 0 <= agents <= 60000:
-        raise ValueError('agents must be an integer between 0 and 60000')
-    if not 0 <= hour < 24:
+def population(hour=18):
+    """Little's law: station events per hour x assumed outdoor dwell (see CALIBRATION.md)."""
+    c = load('shibuya_calibration.json')
+    curve = c['hourly_weights']
+    value = curve[int(hour)]*(1-hour%1)+curve[(int(hour)+1)%24]*(hour%1)
+    return round(c['station_event_proxy']*value/sum(curve)*c['presence']['street_dwell_min']/60)
+
+
+def config(agents='auto', seed=7, hour=18, peak=True):
+    if not isinstance(hour,(int,float)) or not 0 <= hour < 24:
         raise ValueError('hour must be in [0,24)')
+    if agents == 'auto':
+        agents = min(60000, population(hour))
+    if not isinstance(agents,int) or isinstance(agents,bool) or not 0 <= agents <= 60000:
+        raise ValueError('agents must be an integer between 0 and 60000')
     calibration = load('shibuya_calibration.json')
     return dict(area='shibuya', available_areas=['shibuya','asagaya'], agents=agents,
                 seed=seed, hour=hour, peak=peak, center=CENTER, store=dict(name='架空カフェ「ひだまり珈琲」 / fictional Hidamari Coffee', position=STORE),
@@ -35,7 +45,7 @@ def config(agents=20000, seed=7, hour=15, peak=True):
                 traffic=load('shibuya_traffic.json')['model'])
 
 
-def demand(hour=15, peak=False):
+def demand(hour=18, peak=False):
     c = load('shibuya_calibration.json')
     curve = c['hourly_weights']
     value = curve[int(hour)]*(1-hour%1)+curve[(int(hour)+1)%24]*(hour%1)

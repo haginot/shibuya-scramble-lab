@@ -4,6 +4,12 @@
 
 **公開統計の規模・時間帯を参考にしたトイモデル・予測ではない / Toy model scaled to public ridership stats — not a prediction**
 
+> **ブランチ `claude-3d` — Claude Codeで作った夜景レンダラー。** 同じPLATEAU/OSMデータと歩行ソルバーの上に、雨に濡れた路面の反射・HDRブルーム・手続き生成のネオン看板とビジョン・長時間露光の光跡・傘を持つ3D人物・ヘッドライト/ブレーキランプ付きSUMO車両を描く映画風three.jsレンダラーを書き直しました。既定は18時、区域内 **34,710体**（2024年度駅統計にリトルの法則、[CALIBRATION](docs/CALIBRATION.md)）、150秒サイクルあたり要求横断2,640人。HUDは「横断中」「角で信号待ち」「前回サイクルの横断完了（徒歩で到達）」と区域内の人数を分けて表示します（大半の個体は横断しません）。歩行者青の間、車は後退させた停止線で待ちます（`node web3d/shibuya/verify.mjs --stress` で検証）。動画: `bash tools/record_shibuya.sh`（44秒・1280×720・30fps）。
+>
+> ```bash
+> uvx --from 'git+https://github.com/haginot/shibuya-scramble-lab.git@claude-3d' shibuya-scramble-lab serve --area shibuya --no-llm --no-open
+> ```
+
 仮の需要や販促条件を変え、混雑の解消と来訪状態の変化を観察する実験場です。**横断量・行動は未較正**です。
 
 渋谷の交差点、ハチ公前、山手線・銀座線の降車の波を、既定20,000体の個別エージェントで動かします。一人ずつ位置・速度・乱数と「認知→意向→来訪」の状態を持ちます。近傍グリッドを使うsocial-force、Web Worker、GPUビルボード・車両のthree.js InstancedMeshで計算・描画します。流体モデルや動画の点群再生ではありません。渋谷の実行時にLLM・外部APIは使いません。

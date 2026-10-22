@@ -1,77 +1,144 @@
 import * as THREE from '../vendor/three.module.min.js';
 import {StepQueue} from './timing.mjs';
-import {vehiclePoses} from './traffic.mjs';
-import {CORNERS,trainPhaseAt} from './simulation.mjs';
+import {populationAt,demandAt} from './simulation.mjs';
 import {requestIndoorScene} from './indoor.mjs';
+import {shared} from './shaders.mjs';
+import {buildCity} from './city.mjs';
+import {Crowd} from './crowd.mjs';
+import {Vehicles} from './vehicles.mjs';
+import {Post,TopDown,Rain,makeSky} from './fx.mjs';
+import {shotAt,SCENE_SECONDS,START_CLOCK} from './director.mjs';
+
 const $=id=>document.getElementById(id),params=new URLSearchParams(location.search);
-window.__ready=false;window.__caption=(ja,en)=>{$('ja').textContent=ja;$('en').textContent=en;};
+window.__ready=false;
 async function json(path){const r=await fetch(path);if(!r.ok)throw Error(`${path}: ${r.status}`);return r.json();}
 const [config,osm,plateau,traffic]=await Promise.all([json('../data/shibuya_config.json'),json('../data/shibuya_osm.json'),json('../data/shibuya_plateau.json'),json('../data/shibuya_traffic.json')]);
-if(params.has('agents')){const n=Number(params.get('agents'));if(!Number.isInteger(n)||n<0||n>60000)throw Error('agents must be 0..60000');config.agents=n;}
+if(params.has('hour')){const h=Number(params.get('hour'));if(!(h>=0&&h<24))throw Error('hour must be in [0,24)');config.hour=h;}
+if(params.has('agents')){const v=params.get('agents');const n=v==='auto'?populationAt(config.hour,config.calibration):Number(v);if(!Number.isInteger(n)||n<0||n>60000)throw Error('agents must be 0..60000 or auto');config.agents=n;}
 if(params.get('demand')==='normal')config.peak=false;
 const recording=params.get('record')==='1';if(recording)document.body.classList.add('recording');
-const scene=new THREE.Scene();scene.background=new THREE.Color(0x0b1722);scene.fog=new THREE.Fog(0x0b1722,550,1100);
-scene.add(new THREE.HemisphereLight(0xc9e4ff,0x273239,2.8));const sun=new THREE.DirectionalLight(0xffe2b0,3.2);sun.position.set(-150,300,80);scene.add(sun);
-const renderer=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:recording,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.2;$('view').append(renderer.domElement);
-const camera=new THREE.PerspectiveCamera(43,1,.5,2500),dummy=new THREE.Object3D(),color=new THREE.Color();let cameraMode=params.get('cam')||'orbit',cameraTime=0;
-const box=new THREE.BoxGeometry(1,1,1);
-function cube(x,y,z,w,h,d,hex){const m=new THREE.Mesh(box,new THREE.MeshStandardMaterial({color:hex,roughness:.9}));m.position.set(x,y,z);m.scale.set(w,h,d);scene.add(m);return m;}
-cube(0,-.8,0,1000,1.5,1000,0x263339);
-function merge(list,material){const positions=[],normals=[],colors=[];for(const [geometry,hex] of list){const g=geometry.index?geometry.toNonIndexed():geometry;const p=g.getAttribute('position'),n=g.getAttribute('normal');color.setHex(hex);for(let i=0;i<p.count;i++){positions.push(p.getX(i),p.getY(i),p.getZ(i));normals.push(n.getX(i),n.getY(i),n.getZ(i));colors.push(color.r,color.g,color.b);}if(g!==geometry)g.dispose();geometry.dispose();}const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));g.setAttribute('normal',new THREE.Float32BufferAttribute(normals,3));g.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));const mesh=new THREE.Mesh(g,material);scene.add(mesh);return mesh;}
-const buildingParts=[],heights=[];
-for(let i=0;i<plateau.buildings.length;i++){const b=plateau.buildings[i],shape=new THREE.Shape();b.ring.forEach(([x,z],k)=>k?shape.lineTo(x,-z):shape.moveTo(x,-z));const g=new THREE.ExtrudeGeometry(shape,{depth:b.height,bevelEnabled:false,steps:1});g.rotateX(-Math.PI/2);const palette=[0x577279,0x65777c,0x4a6570,0x728184,0x8b9291,0x46616b];buildingParts.push([g,palette[i%palette.length]]);heights.push(b.height);}
-const buildings=merge(buildingParts,new THREE.MeshStandardMaterial({vertexColors:true,roughness:.85,metalness:.1}));
-const outlines=new THREE.LineSegments(new THREE.EdgesGeometry(buildings.geometry,28),new THREE.LineBasicMaterial({color:0xa3b9b9,transparent:true,opacity:.16}));scene.add(outlines);
-const roadParts=[],stripeParts=[];
-function ribbon(points,width,y,hex,list=roadParts){for(let k=1;k<points.length;k++){const a=points[k-1],b=points[k],len=Math.hypot(b[0]-a[0],b[1]-a[1]);if(len<.1)continue;const g=box.clone();g.scale(width,.08,len+.3);g.rotateY(Math.atan2(b[0]-a[0],b[1]-a[1]));g.translate((a[0]+b[0])/2,y,(a[1]+b[1])/2);list.push([g,hex]);}}
-for(const r of osm.roads){if(Number(r.tags.layer||0)<0||r.tags.indoor==='yes'||r.tags.tunnel==='yes')continue;const foot=['footway','path','pedestrian','steps'].includes(r.kind);if(r.tags.footway==='crossing'&&r.tags.crossing==='traffic_signals'){
- const a=r.points[0],b=r.points.at(-1);if(Math.hypot(...a)<55&&Math.hypot(...b)<55){const dx=b[0]-a[0],dz=b[1]-a[1],len=Math.hypot(dx,dz),angle=Math.atan2(dx,dz);for(let s=1;s<len-1;s+=1.9){const g=box.clone();g.scale(5.5,.05,.72);g.rotateY(angle);g.translate(a[0]+dx*s/len,.24,a[1]+dz*s/len);stripeParts.push([g,0xe4e0cc]);}}continue;}
- const width=foot?(r.kind==='pedestrian'?7:2.8):Math.min(22,Number(r.tags.lanes||1)*3.3+1);
- ribbon(r.points,width,foot?.08:.14,foot?0x4b5556:0x18242c);if(!foot&&width>7)ribbon(r.points,.16,.2,0xbaab69,stripeParts);
-}
-// Additional diagonal is an illustrative walk route through the measured junction.
-ribbon([CORNERS[0],CORNERS[3]],7,.16,0x26333b);
-merge(roadParts,new THREE.MeshStandardMaterial({vertexColors:true,roughness:1}));merge(stripeParts,new THREE.MeshStandardMaterial({vertexColors:true,roughness:1}));
-const rails=[];for(const r of osm.railways){if(Number(r.tags.layer||0)<0)continue;for(const off of [-.75,.75])ribbon(r.points.map(([x,z])=>[x+off,z]),.13,6,0x839699,rails);}if(rails.length)merge(rails,new THREE.MeshStandardMaterial({vertexColors:true,roughness:.5}));
-// Metre-scale GPU billboards: .5 m × 1.7 m, one draw call for every individual.
-// The authored silhouette avoids thousands of tiny solid meshes on software GPUs.
-const silhouette=document.createElement('canvas');silhouette.width=128;silhouette.height=128;const ink=silhouette.getContext('2d');ink.fillStyle='#fff';ink.beginPath();ink.arc(64,15,8,0,Math.PI*2);ink.fill();ink.fillRect(56,28,16,49);ink.fillRect(46,31,10,41);ink.fillRect(72,31,10,41);ink.fillRect(56,76,7,48);ink.fillRect(65,76,7,48);const texture=new THREE.CanvasTexture(silhouette);
-const n=config.agents,agentGeometry=new THREE.BufferGeometry(),agentPositions=new Float32Array(n*3),agentColors=new Float32Array(n*3);agentGeometry.setAttribute('position',new THREE.BufferAttribute(agentPositions,3).setUsage(THREE.DynamicDrawUsage));agentGeometry.setAttribute('color',new THREE.BufferAttribute(agentColors,3).setUsage(THREE.DynamicDrawUsage));
-const bodies=new THREE.Points(agentGeometry,new THREE.PointsMaterial({map:texture,size:1.7/Math.tan(43*Math.PI/360),sizeAttenuation:true,vertexColors:true,alphaTest:.4}));bodies.frustumCulled=false;scene.add(bodies);let renderedPositions;
-const palette=[0xdde6db,0x40afff,0xffce5b,0xff7f50];let priorStates=new Uint8Array(n).fill(255);
-const cars=new THREE.InstancedMesh(new THREE.BoxGeometry(1.8,1.5,4.5),new THREE.MeshStandardMaterial({color:0x90afbb,roughness:.4}),traffic.tracks.length);cars.frustumCulled=false;cars.instanceMatrix.setUsage(THREE.DynamicDrawUsage);scene.add(cars);
-const trains=[];for(const [k,count,length,hex] of [[0,11,19.5,0x72b865],[1,6,16,0xe8ad35]]){const group=new THREE.Group();for(let i=0;i<count;i++){const g=new THREE.Group();const car=new THREE.Mesh(new THREE.BoxGeometry(3,3.4,length-.6),new THREE.MeshStandardMaterial({color:0xbfc9c6,metalness:.5,roughness:.5}));g.add(car);const stripe=new THREE.Mesh(new THREE.BoxGeometry(3.04,.55,length-.4),new THREE.MeshStandardMaterial({color:hex}));stripe.position.y=-.3;g.add(stripe);const windows=new THREE.Mesh(new THREE.BoxGeometry(3.06,.8,length-3),new THREE.MeshStandardMaterial({color:0x193f50,metalness:.5,roughness:.25}));windows.position.y=.55;g.add(windows);g.position.z=i*length;group.add(g);}group.userData={k,length,count};scene.add(group);trains.push(group);}
-// Hachiko is an authored symbolic sculpture; no statue scan or photo is used.
-cube(1,1,48,2.4,2,2.4,0x717a70);const bronze=new THREE.MeshStandardMaterial({color:0x876d42,metalness:.55,roughness:.5});const dog=new THREE.Group();for(const [x,y,z,w,h,d] of [[0,2,0,.5,1,.8],[0,2.7,-.3,.4,.5,.5],[-.2,1.5,.15,.13,1,.2],[.2,1.5,.15,.13,1,.2],[-.16,3,-.38,.1,.4,.14],[.16,3,-.38,.1,.4,.14]]){const m=new THREE.Mesh(box,bronze);m.position.set(x,y,z);m.scale.set(w,h,d);dog.add(m);}dog.position.set(1,.7,48);scene.add(dog);
-const plaza=new THREE.Mesh(new THREE.RingGeometry(5.3,5.5,64),new THREE.MeshBasicMaterial({color:0x84d9c2}));plaza.rotation.x=-Math.PI/2;plaza.position.set(1,.25,48);scene.add(plaza);
-const store=config.store.position;cube(store[0],1.6,store[1],3.5,3.2,3.5,0xd29d63);const beacon=new THREE.Mesh(new THREE.CylinderGeometry(.35,.35,18,8),new THREE.MeshBasicMaterial({color:0xffd47c,transparent:true,opacity:.65}));beacon.position.set(store[0],10,store[1]);scene.add(beacon);
-const lights=CORNERS.map(p=>{const m=new THREE.Mesh(new THREE.SphereGeometry(.7,6,4),new THREE.MeshBasicMaterial({color:0x62ffc3}));m.position.set(p[0],3.5,p[1]);scene.add(m);return m;});
-const labelData=[['↓ 駅出口 / STATION EXIT',8,56,12],['ハチ公前 / HACHIKO',1,48,6],['架空 / FICTIONAL CAFE',...store,22],['JR 山手線 / YAMANOTE',65,100,18],['東京メトロ 銀座線 / GINZA',153,95,25],['渋谷センター街 / CENTER GAI',-105,-76,8]];
-const labels=labelData.map(([text,x,z,y])=>{const el=document.createElement('div');el.className='place';el.textContent=text;$('labels').append(el);return {el,point:new THREE.Vector3(x,y,z)};});
-$('inventory').textContent=`150m圏 ${osm.nearby_150m_total}店舗地物 / mapped shops · PLATEAU ${plateau.buildings.length.toLocaleString()}棟`;
-let worker,requestId=0,pending=new Map(),state,busy=false,paused=false,simMs=0,frameCount=0,frameStart=performance.now(),fps=0,lastNow=performance.now(),stepQueue=new StepQueue();
+const n=config.agents;
+
+// ---------- Renderer, scene, camera ----------
+const renderer=new THREE.WebGLRenderer({antialias:false,preserveDrawingBuffer:recording,powerPreference:'high-performance'});
+renderer.setPixelRatio(recording?1:Math.min(devicePixelRatio,1.5));renderer.autoClear=true;$('view').append(renderer.domElement);
+const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(40,16/9,.3,5000);
+const sky=makeSky(scene);
+const city=buildCity({scene,osm,plateau,config});
+const crowd=new Crowd(scene,n),vehicles=new Vehicles(scene,traffic),rain=new Rain(scene);
+const post=new Post(renderer),topdown=new TopDown(renderer,n,traffic.tracks.length);
+city.groundMat.uniforms.uDyn.value=topdown.dyn.texture;
+// Wet-road reflection: mirrored camera renders reflective layer 1 at half res.
+for(const o of [...city.reflective,sky,vehicles.mesh])o.layers.enable(1);
+const mirror=new THREE.PerspectiveCamera();mirror.layers.set(1);
+const bias=new THREE.Matrix4().set(.5,0,0,.5,0,.5,0,.5,0,0,.5,.5,0,0,0,1);
+function renderReflection(){const p=camera.position,dir=new THREE.Vector3();camera.getWorldDirection(dir);const target=p.clone().add(dir);
+ mirror.copy(camera,false);mirror.layers.set(1);mirror.position.set(p.x,-p.y,p.z);mirror.up.copy(camera.up).setY(-camera.up.y);mirror.lookAt(target.x,-target.y,target.z);mirror.updateMatrixWorld();mirror.projectionMatrix.copy(camera.projectionMatrix);
+ city.groundMat.uniforms.uReflectMatrix.value.copy(bias).multiply(mirror.projectionMatrix).multiply(mirror.matrixWorldInverse);
+ renderer.setRenderTarget(city.reflectTarget);renderer.clear();renderer.render(scene,mirror);renderer.setRenderTarget(null);}
+
+// ---------- Look (time of day, weather) ----------
+const rainy=params.get('rain')!=='0';
+function applyLook(hour){const sunUp=Math.max(0,Math.min(1,(Math.min(hour-5.5,18.2-hour))/1.2));// winter-evening sky: dark by ~17:30
+ shared.uDaylight.value=sunUp;shared.uWet.value=rainy?.9:.35;
+ crowd.uniforms.uUmbrella.value=rainy?.42:0;rain.uniforms.uAmount.value=rainy?.75:0;
+ const fog=new THREE.Color(0x24172e).lerp(new THREE.Color(0xa9b4bf),sunUp);shared.uFogColor.value.copy(fog);shared.uFogDensity.value=rainy?.0024:.0016;}
+applyLook(config.hour);
+
+// ---------- Simulation worker ----------
+let worker,requestId=0,pending=new Map(),state,busy=false,paused=false,simMs=0;
+const stepQueue=new StepQueue();
 function request(data){return new Promise((resolve,reject)=>{const id=++requestId;pending.set(id,{resolve,reject});worker.postMessage({id,...data});});}
-async function reset(){if(worker)worker.terminate();for(const p of pending.values())p.reject(Error('Simulation reset'));pending.clear();worker=new Worker(new URL('./worker.mjs',import.meta.url),{type:'module'});worker.onmessage=({data})=>{const p=pending.get(data.id);if(!p)return;pending.delete(data.id);if(data.error)p.reject(Error(data.error));else p.resolve(data);};worker.onerror=error=>{for(const p of pending.values())p.reject(Error(error.message));pending.clear();$('loading').textContent=error.message;};state=await request({type:'init',config:{...config,promotion:$('promotion').checked},osm,plateau,traffic});stepQueue.seconds=0;lastNow=performance.now();priorStates.fill(255);$('loading').hidden=true;}
-let viewWidth=0,viewHeight=0;
-function view(){const rect=$('view').getBoundingClientRect();if(rect.width!==viewWidth||rect.height!==viewHeight){viewWidth=rect.width;viewHeight=rect.height;renderer.setSize(rect.width,rect.height,false);camera.aspect=rect.width/rect.height;camera.updateProjectionMatrix();}const focus=new THREE.Vector3(0,0,7);if(cameraMode==='top'){camera.position.set(0,225,7.01);camera.up.set(0,0,-1);}else if(cameraMode==='hachiko'){focus.set(1,0,35);camera.position.set(-42,52,89);camera.up.set(0,1,0);}else{const a=.8+.25*Math.sin(cameraTime*.025);camera.position.set(-Math.sin(a)*230,200,-Math.cos(a)*230);camera.up.set(0,1,0);}camera.lookAt(focus);return rect;}
-function render(){if(!state)return;const rect=view();if(state.positions!==renderedPositions){let changed=false;for(let i=0;i<n;i++){agentPositions[3*i]=state.positions[2*i];agentPositions[3*i+1]=.85;agentPositions[3*i+2]=state.positions[2*i+1];if(priorStates[i]!==state.states[i]){color.setHex(palette[state.states[i]]);agentColors[3*i]=color.r;agentColors[3*i+1]=color.g;agentColors[3*i+2]=color.b;priorStates[i]=state.states[i];changed=true;}}agentGeometry.attributes.position.needsUpdate=true;if(changed)agentGeometry.attributes.color.needsUpdate=true;renderedPositions=state.positions;}
- let count=0;for(const pose of vehiclePoses(traffic,state.clock)){dummy.position.set(pose.x,.9,pose.z);dummy.rotation.set(0,pose.angle,0);dummy.updateMatrix();cars.setMatrixAt(count++,dummy.matrix);}cars.count=count;cars.instanceMatrix.needsUpdate=true;
- trains.forEach((train,k)=>{const phase=trainPhaseAt(state.time,config.calibration.trains[k]);train.visible=phase.visible;if(k===0){train.position.set(63,9,phase.travel+15);train.rotation.y=.06;}else{train.position.set(160+phase.travel,16,103);train.rotation.y=-Math.PI/2;} });
- lights.forEach(m=>m.material.color.setHex(state.phase==='walk'?0x61ffd1:0xff6555));
- for(const l of labels){const p=l.point.clone().project(camera);l.el.style.left=`${(p.x+1)*rect.width/2}px`;l.el.style.top=`${(1-p.y)*rect.height/2}px`;l.el.hidden=p.z>1||p.x<-1||p.x>1||p.y<-1||p.y>1;}
- renderer.render(scene,camera);
- $('agents').textContent=n.toLocaleString();$('phase').textContent=state.clearanceHold?'横断待ち / Clearance':({walk:'歩行者 / WALK',clearance:'全赤 / CLEAR',vehicles:'車両 / VEHICLES','all-red':'全赤 / ALL RED'}[state.phase]);$('admitted').textContent=state.admitted.toLocaleString();$('completed').textContent=state.completed.toLocaleString();$('fps').textContent=recording?'固定刻み / Fixed step':`${fps.toFixed(0)} FPS · ${simMs.toFixed(1)} ms`;
- for(const [id,label,k] of [['unaware','未認知 / Unaware',0],['aware','認知 / Aware',1],['intent','意向 / Intent',2],['visits','来訪 / Visited',3]])$(id).textContent=`${label} ${state.funnel[k].toLocaleString()}`;
- $('sim-time').textContent=`シム時間 / Sim ${state.time.toFixed(1)} s · ×${recording?'8':'1'} / Simulation time ×${recording?'8':'1'}`;
- $('trains').textContent=`降車波 / arrival waves: JR ${state.trainWaves[0]} · G ${state.trainWaves[1]}`;
- window.__shibuyaState={ready:true,promotion:state.promotion,backlogSeconds:stepQueue.seconds,agents:n,fps,simulationMs:simMs,drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,phase:state.phase,clock:state.clock,time:state.time,admitted:state.admitted,completed:state.completed,active:state.active,funnel:state.funnel,trainWaves:state.trainWaves,clearanceHold:state.clearanceHold,trafficModel:traffic.model,camera:cameraMode};
+async function reset(){if(worker)worker.terminate();for(const p of pending.values())p.reject(Error('Simulation reset'));pending.clear();worker=new Worker(new URL('./worker.mjs',import.meta.url),{type:'module'});
+ worker.onmessage=({data})=>{const p=pending.get(data.id);if(!p)return;pending.delete(data.id);if(data.error)p.reject(Error(data.error));else p.resolve(data);};
+ worker.onerror=error=>{for(const p of pending.values())p.reject(Error(error.message));pending.clear();$('loading').textContent=error.message;};
+ state=await request({type:'init',config:{...config,promotion:$('promotion').checked},osm,plateau,traffic});stepQueue.seconds=0;$('loading').hidden=true;}
+
+// ---------- Cameras: cinema (director), presets, free orbit ----------
+let mode=params.get('cam')||'cinema',cinemaTime=0;
+const orbit={target:new THREE.Vector3(0,0,4),dist:120,yaw:-.7,pitch:.75};
+const PRESETS={top:{target:[0,0,2],dist:150,yaw:0,pitch:1.5},street:{target:[-6,1.6,4],dist:40,yaw:-1.1,pitch:.06},hachiko:{target:[2,1.5,30],dist:46,yaw:-.45,pitch:.18},orbit:{target:[0,0,4],dist:150,yaw:-.7,pitch:.62}};
+function setPreset(name){const p=PRESETS[name]||PRESETS.orbit;orbit.target.set(...p.target);orbit.dist=p.dist;orbit.yaw=p.yaw;orbit.pitch=p.pitch;}
+if(PRESETS[mode])setPreset(mode);
+function placeCamera(shot){if(shot){camera.position.copy(shot.pos);camera.up.copy(shot.up);camera.fov=shot.fov;camera.lookAt(shot.look);}
+ else{camera.up.set(0,1,0);const cp=Math.cos(orbit.pitch);camera.position.set(orbit.target.x+Math.sin(orbit.yaw)*cp*orbit.dist,orbit.target.y+Math.sin(orbit.pitch)*orbit.dist,orbit.target.z+Math.cos(orbit.yaw)*cp*orbit.dist);if(orbit.pitch>1.45)camera.up.set(0,0,-1);camera.fov=42;camera.lookAt(orbit.target);}
+ camera.updateProjectionMatrix();}
+{let drag=null;const el=renderer.domElement;el.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY,button:e.button};el.setPointerCapture(e.pointerId);if(mode==='cinema')setMode('free');});
+ el.addEventListener('pointermove',e=>{if(!drag)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;drag.x=e.clientX;drag.y=e.clientY;
+  if(drag.button===2||e.shiftKey){const s=orbit.dist*.0016,c=Math.cos(orbit.yaw),sn=Math.sin(orbit.yaw);orbit.target.x-=(dx*c-dy*sn)*s;orbit.target.z-=(-dx*sn-dy*c)*s;}else{orbit.yaw-=dx*.005;orbit.pitch=Math.min(1.52,Math.max(.03,orbit.pitch+dy*.004));}});
+ el.addEventListener('pointerup',()=>drag=null);el.addEventListener('contextmenu',e=>e.preventDefault());
+ el.addEventListener('wheel',e=>{e.preventDefault();if(mode==='cinema')setMode('free');orbit.dist=Math.min(900,Math.max(6,orbit.dist*Math.exp(e.deltaY*.001)));},{passive:false});}
+function setMode(m){mode=m;if(PRESETS[m])setPreset(m);if(m!=='cinema'&&m!=='free'&&PRESETS[m])mode='free';document.querySelectorAll('[data-camera]').forEach(b=>b.classList.toggle('on',b.dataset.camera===m||(m==='free'&&b.dataset.camera==='free')));}
+
+// ---------- Frame ----------
+let lastRenderTime=null,frameCount=0,frameStart=performance.now(),fps=0,trailGain=.5,captionOverride=null;
+const fmt=v=>v.toLocaleString('en-US');
+function caption(text){if(!text){$('caption').style.opacity=0;return;}$('cap-en').textContent=text[0].replace('{agents}',fmt(n));$('cap-ja').textContent=text[1].replace('{agents}',fmt(n));}
+function resize(){const w=innerWidth,h=innerHeight,pr=renderer.getPixelRatio();if(renderer.domElement.width!==Math.round(w*pr)||renderer.domElement.height!==Math.round(h*pr)){renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();}post.setSize(Math.round(w*pr),Math.round(h*pr));}
+// Rendering runs one solver step behind and interpolates between the last two
+// steps. Recording uses the solver's exact remainder; live mode its own clock.
+let renderTime=null;
+function draw(shot,dtSim){if(!state)return;resize();
+ const dt=state.dt||.1;let alpha;
+ if(recording)alpha=state.alpha||0;else{renderTime=Math.min(state.time,Math.max(state.time-dt,(renderTime??state.time-dt)+dtSim));alpha=(renderTime-(state.time-dt))/dt;}
+ alpha=Math.min(1,Math.max(0,alpha));
+ const simTime=state.time-dt+alpha*dt;
+ shared.uTime.value=simTime;
+ crowd.update(state,alpha,dtSim);
+ const clock=state.clock-dt+alpha*dt;
+ const cars=vehicles.update(state.clearanceHold?state.clock:Math.max(0,clock));
+ topdown.roles=state.roles;topdown.update(crowd,cars,dtSim);
+ placeCamera(shot);
+ shared.uTrailGain.value=shot?shot.trail:trailGain;
+ // Signals: pedestrians green only in the walk phase; vehicles red unless released.
+ const ph=state.phase,cyc=state.clock%config.calibration.signal.cycle_s,sig=config.calibration.signal;
+ city.signalMaterial.uniforms.uPed.value.set(ph==='walk'?0x2bff9a:0xff2a1a);
+ city.signalMaterial.uniforms.uCar.value.set(ph==='vehicles'?(cyc>sig.cycle_s-sig.all_red_s-3?0xffb000:0x2bffb0):0xff2a1a);
+ shared.uScreenGlow.value.setHSL((simTime*.03)%1,.7,.5);
+ post.settings.uFade.value=shot?shot.fade:1;
+ renderReflection();post.render(scene,camera);
+ // HUD
+ const h=config.hour,hh=Math.floor(h),mm=Math.floor((h%1)*60+simTime/60)%60;
+ $('clock').textContent=`${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}`;
+ $('agents').textContent=fmt(n);$('crossing').textContent=fmt(state.active);$('waiting').textContent=fmt((state.waiting??0)+(state.approaching??0));
+ $('lastcycle').textContent=state.lastCycle?.admitted?fmt(state.lastCycle.completed):'—';
+ const rescued=state.rescued??0;$('rescued').hidden=!rescued;if(rescued)$('rescued').textContent=`safety valve: ${fmt(rescued)} (not counted)`;
+ $('phase').textContent={walk:'WALK · 歩行者青',clearance:'CLEARING · 点滅',vehicles:'VEHICLES · 車両青','all-red':'ALL RED · 全赤'}[state.phase]+(state.clearanceHold?' · HOLD':'');
+ $('phase').dataset.phase=state.phase;$('speed').textContent=`×${(shot?shot.speed:speed).toFixed(1)}`;
+ if(shot){$('caption').style.opacity=shot.capAlpha;caption(captionOverride||shot.caption);}
+ window.__shibuyaState={ready:true,agents:n,hour:config.hour,fps,simulationMs:simMs,drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,phase:state.phase,clock:state.clock,time:state.time,admitted:state.admitted,completed:state.completed,active:state.active,waiting:state.waiting,quota:state.quota,funnel:state.funnel,trainWaves:state.trainWaves,clearanceHold:state.clearanceHold,rescued:state.rescued,rescuedCycle:state.rescuedCycle,deferred:state.deferred,deferredCycle:state.deferredCycle,approaching:state.approaching,lastCycle:state.lastCycle,promotion:state.promotion,backlogSeconds:stepQueue.seconds,trafficModel:traffic.model,vehicles:cars.length,camera:mode,shot:shot?.name??null,signs:city.signCount};
 }
-window.__setCamera=mode=>{cameraMode=mode;if(!recording)render();};
+
+// ---------- UI ----------
+let speed=Number(params.get('speed')||1);
+$('promotion').onchange=async e=>{state=await request({type:'promo',enabled:e.target.checked});};
+document.querySelectorAll('[data-camera]').forEach(b=>b.onclick=()=>{setMode(b.dataset.camera);if(b.dataset.camera==='cinema')cinemaTime=0;});
+document.querySelectorAll('[data-speed]').forEach(b=>b.onclick=()=>{speed=Number(b.dataset.speed);document.querySelectorAll('[data-speed]').forEach(x=>x.classList.toggle('on',x===b));});
+$('pause').onclick=()=>{paused=!paused;$('pause').textContent=paused?'▶':'❚❚';};
+$('trails').onchange=e=>{trailGain=e.target.checked?.6:0;};
+$('hud-toggle').onclick=()=>document.body.classList.toggle('clean');
+$('meta-agents').textContent=fmt(n);$('meta-hour').textContent=`${config.hour}:00`;$('meta-quota').textContent=fmt(Math.round(demandAt(config.hour,config.calibration,config.peak)));
+
+await reset();setMode(mode);
+
+// Recording: one call per video frame, deterministic, never wall-clock driven.
+window.__setCamera=m=>setMode(m);
 window.__setIndoorScene=requestIndoorScene;
-window.__advance=async seconds=>{const t=performance.now();state=await request({type:'advance',seconds});simMs=performance.now()-t;cameraTime+=seconds/5;render();return window.__shibuyaState;};
-$('pause').onclick=()=>{paused=!paused;$('pause').textContent=paused?'再開 / Play':'一時停止 / Pause';};document.querySelectorAll('[data-camera]').forEach(b=>b.onclick=()=>window.__setCamera(b.dataset.camera));$('promotion').onchange=async e=>{state=await request({type:'promo',enabled:e.target.checked});};$('demand').value=config.peak?'peak':'normal';$('demand').onchange=async e=>{busy=true;config.peak=e.target.value==='peak';config.hour=e.target.value==='morning'?8:15;await reset();busy=false;render();};
-// Drag rotates the scene; wheel changes the camera preset without changing metre units.
-let dragX=null;renderer.domElement.addEventListener('pointerdown',e=>{dragX=e.clientX;renderer.domElement.setPointerCapture(e.pointerId);});renderer.domElement.addEventListener('pointermove',e=>{if(dragX!==null){cameraTime+=(e.clientX-dragX)*.2;dragX=e.clientX;}});renderer.domElement.addEventListener('pointerup',()=>dragX=null);
-await reset();$('loading').hidden=true;render();window.__ready=true;
-async function animate(now){frameCount++;if(now-frameStart>1000){fps=frameCount*1000/(now-frameStart);frameStart=now;frameCount=0;}const delta=Math.max(0,(now-lastNow)/1000);lastNow=now;if(!paused)stepQueue.add(delta);if(!paused&&!busy&&stepQueue.seconds>=.1){busy=true;const seconds=stepQueue.take();const start=performance.now();request({type:'advance',seconds}).then(next=>{state=next;simMs=performance.now()-start;busy=false;}).catch(error=>{if(error.message==='Simulation reset')return;busy=false;$('loading').hidden=false;$('loading').textContent=error.message;});}cameraTime+=delta;render();requestAnimationFrame(animate);}
+window.__caption=(en,ja)=>{captionOverride=en?[en,ja]:null;};
+window.__advance=async seconds=>{const t=performance.now();state=await request({type:'advance',seconds});simMs=performance.now()-t;return window.__shibuyaState;};
+window.__frame=async videoTime=>{const shot=shotAt(videoTime);const dtSim=shot.speed/30;const t=performance.now();state=await request({type:'advance',seconds:dtSim});simMs=performance.now()-t;draw(shot,dtSim);return window.__shibuyaState;};
+// Advance the solver to the director's start point of the signal cycle (queue
+// built up during the vehicle phase), and advance one video frame without drawing.
+window.__warmup=async(target=START_CLOCK)=>{while(state.clock<target-1e-6)state=await request({type:'advance',seconds:Math.min(5,Math.max(.1,target-state.clock))});draw(shotAt(0),0);return window.__shibuyaState;};
+window.__skip=async videoTime=>{state=await request({type:'advance',seconds:shotAt(videoTime).speed/30});};
+window.__render=()=>{draw(mode==='cinema'?shotAt(cinemaTime%SCENE_SECONDS):null,0);return window.__shibuyaState;};
+draw(mode==='cinema'?shotAt(0):null,0);
+window.__ready=true;
+
+async function animate(now){frameCount++;if(now-frameStart>1000){fps=frameCount*1000/(now-frameStart);frameStart=now;frameCount=0;}
+ const wall=lastRenderTime===null?0:Math.min(.25,(now-lastRenderTime)/1000);lastRenderTime=now;
+ let shot=null,rate=speed;if(mode==='cinema'&&!paused){cinemaTime=(cinemaTime+wall)%SCENE_SECONDS;}if(mode==='cinema'){shot=shotAt(cinemaTime);rate=shot.speed;}
+ const dtSim=paused?0:wall*rate;if(!paused)stepQueue.add(dtSim);
+ if(!busy&&stepQueue.seconds>=.1){busy=true;const seconds=stepQueue.take(),start=performance.now();request({type:'advance',seconds}).then(next=>{state=next;simMs=performance.now()-start;busy=false;}).catch(error=>{if(error.message==='Simulation reset')return;busy=false;$('loading').hidden=false;$('loading').textContent=error.message;});}
+ draw(shot,dtSim);requestAnimationFrame(animate);}
 if(!recording)requestAnimationFrame(animate);
