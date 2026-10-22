@@ -21,7 +21,7 @@ const n=config.agents;
 
 // ---------- Renderer, scene, camera ----------
 const renderer=new THREE.WebGLRenderer({antialias:false,preserveDrawingBuffer:recording,powerPreference:'high-performance'});
-renderer.setPixelRatio(recording?1:Math.min(devicePixelRatio,1.5));renderer.autoClear=true;$('view').append(renderer.domElement);
+renderer.setPixelRatio(recording?1:Math.min(devicePixelRatio,1.5));renderer.autoClear=true;renderer.info.autoReset=false;// count every pass of a frame (reflection, trails, scene, bloom)$('view').append(renderer.domElement);
 const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(40,16/9,.3,5000);
 const sky=makeSky(scene);
 const city=buildCity({scene,osm,plateau,config});
@@ -96,7 +96,7 @@ function draw(shot,dtSim){if(!state)return;resize();
  city.signalMaterial.uniforms.uCar.value.set(ph==='vehicles'?(cyc>sig.cycle_s-sig.all_red_s-3?0xffb000:0x2bffb0):0xff2a1a);
  shared.uScreenGlow.value.setHSL((simTime*.03)%1,.7,.5);
  post.settings.uFade.value=shot?shot.fade:1;
- renderReflection();post.render(scene,camera);
+ renderer.info.reset();renderReflection();post.render(scene,camera);
  // HUD
  const h=config.hour,hh=Math.floor(h),mm=Math.floor((h%1)*60+simTime/60)%60;
  $('clock').textContent=`${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}`;

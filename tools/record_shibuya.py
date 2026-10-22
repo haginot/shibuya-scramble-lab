@@ -101,15 +101,18 @@ def record(site,output,stills,frames=None):
         with sync_playwright() as p, browser_with_webgl(p) as browser:
             page=browser.new_page(viewport={'width':1280,'height':720},device_scale_factor=1)
             page.on('pageerror',lambda error:errors.append(str(error)))
+            # Software WebGL on a busy machine can take tens of seconds per frame.
+            page.set_default_timeout(600000)
+            shot=lambda:page.screenshot(type='png',animations='disabled',timeout=600000)
             page.goto(f'http://127.0.0.1:{server.server_address[1]}/web3d/shibuya/?record=1&cam=cinema')
             page.wait_for_function('window.__ready===true',timeout=180000)
             warm=page.evaluate('window.__warmup()')
             print(f"warm-up to clock {warm['clock']:.1f}s · {warm['agents']:,} agents · queued {warm['waiting']:,}",flush=True)
-            encoder=subprocess.Popen(['ffmpeg','-hide_banner','-loglevel','error','-y','-f','image2pipe','-vcodec','png','-framerate',str(FPS),'-i','-','-an','-c:v','libx264','-preset','slow','-crf','18','-pix_fmt','yuv420p','-movflags','+faststart+use_metadata_tags','-metadata',f'credit={CREDITS}','-metadata',f'comment={CREDITS}\nDirected time-lapse (x1.4-x8, shown on screen); {SCENE_SECONDS} s scene, {CREDIT_SECONDS} s credits. Toy model, not a prediction.',str(output)],stdin=subprocess.PIPE)
+            encoder=subprocess.Popen(['ffmpeg','-hide_banner','-loglevel','error','-y','-f','image2pipe','-vcodec','png','-framerate',str(FPS),'-i','-','-an','-c:v','libx264','-preset','medium','-crf','18','-threads','2','-pix_fmt','yuv420p','-movflags','+faststart+use_metadata_tags','-metadata',f'credit={CREDITS}','-metadata',f'comment={CREDITS}\nDirected time-lapse (x1.4-x8, shown on screen); {SCENE_SECONDS} s scene, {CREDIT_SECONDS} s credits. Toy model, not a prediction.',str(output)],stdin=subprocess.PIPE)
             for frame in range(scene_frames):
                 seconds=frame/FPS;t0=time.monotonic()
                 state=page.evaluate(f'window.__frame({seconds})')
-                png=page.screenshot(type='png',animations='disabled')
+                png=shot()
                 frame_ms.append((time.monotonic()-t0)*1000)
                 encoder.stdin.write(png)
                 if frame%FPS==0:
@@ -121,7 +124,7 @@ def record(site,output,stills,frames=None):
             for k in range(CREDIT_FRAMES):
                 alpha=min(1,k/12,(CREDIT_FRAMES-1-k)/10+.0001)
                 page.evaluate(f"document.getElementById('credits').style.opacity={max(0,alpha):.3f}")
-                png=page.screenshot(type='png',animations='disabled');encoder.stdin.write(png)
+                png=shot();encoder.stdin.write(png)
                 if k==CREDIT_FRAMES//2:(stills/'credits.png').write_bytes(png)
             encoder.stdin.close()
             if encoder.wait(timeout=120): raise RuntimeError('ffmpeg failed')

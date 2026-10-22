@@ -65,6 +65,22 @@ Station-to-street capture, phase demand of 3,000 in the upper scenario, signal
 timings, routes, train headways/alight waves and all promotional coefficients
 are assumptions. See docs/CALIBRATION.md and shibuya_calibration.json.
 
+Crossing-scale facts (numbers only, no text or images reproduced):
+井上恵一朗「【東京はてな】渋谷交差点、1回で3千人横断?」朝日新聞 2016-04-22 朝刊 p.29
+(up to about 3,000 people per green; about 260,000 crossings on weekdays and
+390,000 on holidays, citing a 2014 Shibuya redevelopment association survey).
+Tokyu Corporation press release 2013-07-11, about 1.5 million pedestrians per
+week at the crossing: https://www.tokyu.co.jp/file/130711-2-1.pdf
+The 34,710-agent default population is Little's law on the station proxy with
+an assumed 15 min outdoor dwell; it is not a census. Toy model, not a prediction.
+
+Night renderer (branch claude-3d): all buildings, signage, screens, rain,
+light trails, people and cars are procedural shaders/geometry written for this
+project from the bundled PLATEAU/OSM data. No external textures, models or
+fonts are shipped; signage text uses fonts installed on the viewer's system
+(e.g. Noto Sans CJK, SIL Open Font License). Sign words are generic shop
+categories, never names, logos or trademarks.
+
 Traffic generation uses Eclipse SUMO 1.28.0, EPL-2.0 (GPL v2 or later secondary
 license option). No SUMO binary or library is bundled in the app.
 https://eclipse.dev/sumo/docs/Downloads.html

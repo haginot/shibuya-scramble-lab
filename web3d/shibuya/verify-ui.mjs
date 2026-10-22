@@ -32,7 +32,7 @@ class Worker{
 const context=createContext({document,URL,URLSearchParams,innerWidth:1280,innerHeight:720,location:{search:'?cam=top'},Worker,queueMicrotask,console,devicePixelRatio:1,performance:{now:()=>now},requestAnimationFrame:cb=>scheduled=cb,fetch:async path=>({ok:true,json:async()=>structuredClone(datasets[path])})});context.window=context;
 const vendor=new SourceTextModule(vendorSource,{context});await vendor.link(()=>{});await vendor.evaluate();
 class Renderer{
- constructor(){this.domElement=new Element();this.domElement.width=1280;this.domElement.height=720;this.info={render:{calls:1,triangles:0}};}
+ constructor(){this.domElement=new Element();this.domElement.width=1280;this.domElement.height=720;this.info={render:{calls:1,triangles:0},reset(){}};}
  setPixelRatio(){} getPixelRatio(){return 1;} setSize(){} render(){} setRenderTarget(){} clear(){}
 }
 // Rendering modules (city, crowd, vehicles, post effects) need a GPU; they are
