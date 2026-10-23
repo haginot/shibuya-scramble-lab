@@ -20,3 +20,7 @@ packages = ["src/asagaya_town_sim"]
 
 [tool.hatch.build.targets.sdist]
 exclude = ["prototype", "docs"]
+
+[dependency-groups]
+# `uv run pytest -q` installs these into .venv (tests use Pillow for the 9:16 compositor)
+dev = ["pytest>=8", "pillow>=10"]

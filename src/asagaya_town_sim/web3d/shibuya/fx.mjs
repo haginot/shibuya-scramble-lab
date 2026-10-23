@@ -1,5 +1,6 @@
 // Post-processing and world-space effects, written for this project:
-// HDR scene → soft-knee bloom pyramid → ACES tonemap + grade, vignette, grain;
+// HDR scene → soft-knee bloom pyramid → ACES tonemap + grade, vignette, grain, optional VHS/glitch
+// (settings.uVhs, default 0) and red alert vignette (settings.uAlertVig, default 0);
 // long-exposure light trails accumulated in a top-down texture; rain; sky.
 import * as THREE from '../vendor/three.module.min.js';
 import {shared,common} from './shaders.mjs';
@@ -23,11 +24,15 @@ export class Post{
   this.up=pass(/* glsl */`uniform sampler2D tSrc;uniform vec2 uTexel;uniform float uRadius;varying vec2 vUv;
    void main(){vec2 t=uTexel*uRadius;vec3 c=texture2D(tSrc,vUv).rgb*4.;c+=(texture2D(tSrc,vUv+vec2(t.x,0)).rgb+texture2D(tSrc,vUv-vec2(t.x,0)).rgb+texture2D(tSrc,vUv+vec2(0,t.y)).rgb+texture2D(tSrc,vUv-vec2(0,t.y)).rgb)*2.;
     c+=texture2D(tSrc,vUv+t).rgb+texture2D(tSrc,vUv-t).rgb+texture2D(tSrc,vUv+vec2(t.x,-t.y)).rgb+texture2D(tSrc,vUv+vec2(-t.x,t.y)).rgb;gl_FragColor=vec4(c/16.,1.);}`,{tSrc:{value:null},uTexel:{value:new THREE.Vector2()},uRadius:{value:1}},THREE.AdditiveBlending);
-  this.final=pass(/* glsl */`uniform sampler2D tScene,tBloom;uniform float uBloom,uExposure,uTime,uVignette,uGrain,uAberration,uLetterbox,uFade,uSaturation;uniform vec2 uRes;uniform vec3 uShadowTint,uHighTint;varying vec2 vUv;
+  this.final=pass(/* glsl */`uniform sampler2D tScene,tBloom;uniform float uBloom,uExposure,uTime,uVignette,uGrain,uAberration,uLetterbox,uFade,uSaturation,uVhs,uVhsSeed,uAlertVig;uniform vec2 uRes;uniform vec3 uShadowTint,uHighTint;varying vec2 vUv;
    vec3 aces(vec3 x){const float a=2.51,b=.03,c=2.43,d=.59,e=.14;return clamp((x*(a*x+b))/(x*(c*x+d)+e),0.,1.);}
    float hash(vec2 p){return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453);}
    void main(){vec2 uv=vUv,cc=uv-.5;float r2=dot(cc,cc);
-    vec2 off=cc*r2*uAberration;vec3 col=vec3(texture2D(tScene,uv+off).r,texture2D(tScene,uv).g,texture2D(tScene,uv-off).b);
+    // VHS / glitch (uVhs 0..1, default 0 = untouched): per-line jitter, wobble, torn bands, horizontal RGB split.
+    float vt=floor(uTime*30.)+uVhsSeed*17.,tear=0.;
+    if(uVhs>0.){float row=floor(uv.y*uRes.y/2.);uv.x+=(hash(vec2(row,vt))-.5)*.0035*uVhs+sin(uv.y*38.+uTime*7.)*.0012*uVhs;
+     float band=floor(uv.y*18.+hash(vec2(vt,3.))*4.);tear=step(1.-.12*uVhs,hash(vec2(band,floor(vt/3.))));uv.x+=tear*(hash(vec2(band,vt))-.5)*.07*uVhs;}
+    vec2 off=cc*r2*uAberration+vec2(.0045*uVhs*(1.+2.*tear),0.);vec3 col=vec3(texture2D(tScene,uv+off).r,texture2D(tScene,uv).g,texture2D(tScene,uv-off).b);
     col+=texture2D(tBloom,uv).rgb*uBloom;
     col*=uExposure;
     col=aces(col);
@@ -38,9 +43,15 @@ export class Post{
     col*=1.-uVignette*smoothstep(.12,.75,r2*1.6);
     col=pow(max(col,0.),vec3(1./2.2));
     col+=(hash(uv*uRes+fract(uTime*7.31)*100.)-.5)*uGrain;
+    if(uVhs>0.){float lum=dot(col,vec3(.299,.587,.114));col=mix(col,vec3(lum)*vec3(1.04,.97,1.1),.18*uVhs);
+     col*=1.-.2*uVhs*(.5+.5*sin(vUv.y*uRes.y*2.0944));// 3 px scanlines
+     float by=fract(-uTime*.11+uVhsSeed*.37),trk=smoothstep(.035,0.,abs(vUv.y-by));col+=trk*uVhs*(hash(vec2(floor(vUv.x*uRes.x/3.),vt))*.22+.04);
+     col+=(hash(vUv*uRes*.5+vt)-.5)*.07*uVhs;}
+    // Red alert vignette (uAlertVig 0..1, default 0).
+    col=mix(col,vec3(.85,.02,.06),uAlertVig*.7*smoothstep(.1,.55,r2*1.6));
     float bar=step(abs(cc.y),.5-uLetterbox);col*=bar*uFade;
-    gl_FragColor=vec4(col,1.);}`,{tScene:{value:null},tBloom:{value:null},uBloom:{value:.32},uExposure:{value:1.0},uTime:{value:0},uVignette:{value:.55},uGrain:{value:.035},uAberration:{value:.012},uLetterbox:{value:0},uFade:{value:1},uSaturation:{value:1.08},uRes:{value:new THREE.Vector2(1,1)},uShadowTint:{value:new THREE.Vector3(-.012,.004,.03)},uHighTint:{value:new THREE.Vector3(.03,0,.02)}});
-  this.width=0;this.height=0;this.settings=this.final.uniforms;
+    gl_FragColor=vec4(col,1.);}`,{tScene:{value:null},tBloom:{value:null},uBloom:{value:.32},uExposure:{value:1.0},uTime:{value:0},uVignette:{value:.55},uGrain:{value:.035},uAberration:{value:.012},uLetterbox:{value:0},uFade:{value:1},uSaturation:{value:1.08},uVhs:{value:0},uVhsSeed:{value:0},uAlertVig:{value:0},uRes:{value:new THREE.Vector2(1,1)},uShadowTint:{value:new THREE.Vector3(-.012,.004,.03)},uHighTint:{value:new THREE.Vector3(.03,0,.02)}});
+  this.width=0;this.height=0;this.settings=this.final.uniforms;Post.last=this;// escape-scene.mjs drives uVhs/uAlertVig through Post.last unless given a post
  }
  setSize(w,h){if(w===this.width&&h===this.height)return;this.width=w;this.height=h;this.hdr.setSize(w,h);let mw=w,mh=h;for(const m of this.mips){mw=Math.max(1,mw>>1);mh=Math.max(1,mh>>1);m.setSize(mw,mh);}this.final.uniforms.uRes.value.set(w,h);}
  blit(material,target){this.quad.material=material;this.renderer.setRenderTarget(target);this.renderer.render(this.scene,this.camera);}

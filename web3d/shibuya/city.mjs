@@ -40,11 +40,13 @@ export function buildCity({scene,osm,plateau,config,theme=null}){
   for(const [i0,i1,i2] of tris){const p0=ring[i0],p1=ring[i1],p2=ring[i2],ny=(p1[1]-p0[1])*(p2[0]-p0[0])-(p1[0]-p0[0])*(p2[1]-p0[1]);if(ny>0)idx.push(base+i0,base+i1,base+i2);else idx.push(base+i0,base+i2,base+i1);}
  });
  const bgeo=new THREE.BufferGeometry();bgeo.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));bgeo.setAttribute('normal',new THREE.Float32BufferAttribute(nor,3));bgeo.setAttribute('aFacade',new THREE.Float32BufferAttribute(fac,4));bgeo.setIndex(idx);
- const buildingMat=new THREE.ShaderMaterial({uniforms:{...shared},vertexShader:/* glsl */`
-  attribute vec4 aFacade;varying vec3 vWorld,vNormal;varying vec4 vFacade;
-  void main(){vec4 w=modelMatrix*vec4(position,1.);vWorld=w.xyz;vNormal=normal;vFacade=aFacade;gl_Position=projectionMatrix*viewMatrix*w;}`,
+ // uCap (m) caps every building at that height and uMap (0..1) fades the facades to flat map blocks
+ // (the Halloween escape map: readable footprints, no towers between the camera and the street).
+ const buildingMat=new THREE.ShaderMaterial({uniforms:{...shared,uCap:{value:1e5},uMap:{value:0}},vertexShader:/* glsl */`
+  uniform float uCap;attribute vec4 aFacade;varying vec3 vWorld,vNormal;varying vec4 vFacade;
+  void main(){vec3 p=position;p.y=min(p.y,uCap);vec4 w=modelMatrix*vec4(p,1.);vWorld=w.xyz;vNormal=normal;vFacade=aFacade;vFacade.y=min(vFacade.y,uCap);gl_Position=projectionMatrix*viewMatrix*w;}`,
   fragmentShader:/* glsl */`${common}
-  varying vec3 vWorld,vNormal;varying vec4 vFacade;
+  uniform float uMap;varying vec3 vWorld,vNormal;varying vec4 vFacade;
   vec3 windowTint(float r){return r<.55?vec3(1.,.78,.5):r<.8?vec3(.85,.92,1.):r<.92?vec3(1.,.95,.85):vec3(.55,.8,1.);}
   void main(){
    float seed=vFacade.z,H=vFacade.y;vec3 N=normalize(vNormal);vec3 V=normalize(cameraPosition-vWorld);
@@ -96,6 +98,8 @@ export function buildCity({scene,osm,plateau,config,theme=null}){
     // Fascia line above storefronts.
     col+=street*smoothstep(4.25,4.05,y)*smoothstep(3.85,4.05,y)*2.5;
    }
+   // Map mode: dark purple blocks with lighter roofs (footprints read like a game map).
+   if(uMap>0.){vec3 blk=vFacade.w>.5?vec3(.20,.13,.30)+.04*hash11(seed*29.):vec3(.07,.045,.11);col=mix(col,blk,uMap);}
    col=applyFog(col,vWorld,cameraPosition);
    gl_FragColor=vec4(col,1.);
   }`});
@@ -164,7 +168,7 @@ export function buildCity({scene,osm,plateau,config,theme=null}){
  const makeSigns=(list,vertical)=>{if(!list.length)return null;const geo=vertical?new THREE.BoxGeometry(.28,1,1):new THREE.BoxGeometry(1,.95,.18);const mesh=new THREE.InstancedMesh(geo,signMaterial(vertical?texV:texH,vertical),list.length);const attr=new Float32Array(list.length*4),dummy=new THREE.Object3D(),c=new THREE.Color();
   list.forEach((s,i)=>{dummy.position.set(s.x,s.y,s.z);dummy.rotation.set(0,s.angle+(vertical?Math.PI/2:0),0);if(vertical)dummy.rotation.set(0,s.angle,0);dummy.scale.set(1,vertical?s.height:1,vertical?1.05:1);if(!vertical)dummy.scale.set(s.width,1,1);dummy.updateMatrix();mesh.setMatrixAt(i,dummy.matrix);c.setHex(s.color);attr.set([s.w,c.r,c.g,Math.min(.999,c.b)+Math.floor(s.flicker*999)],i*4);});
   geo.setAttribute('aSign',new THREE.InstancedBufferAttribute(attr,4));mesh.frustumCulled=false;group.add(mesh);reflective.push(mesh);return mesh;};
- makeSigns(signsV,true);makeSigns(signsH,false);
+ const signMeshes=[makeSigns(signsV,true),makeSigns(signsH,false)].filter(Boolean);
 
  // ---------- Giant screens on facades facing the scramble ----------
  const screenCandidates=edges.filter(e=>{const m=meta[e.building],mx=(e.a[0]+e.b[0])/2,mz=(e.a[1]+e.b[1])/2,d=Math.hypot(mx,mz);return d>22&&d<140&&m.h>18&&e.len>9&&(-mx*e.nx-mz*e.nz)/d>.55;}).map(e=>{const mx=(e.a[0]+e.b[0])/2,mz=(e.a[1]+e.b[1])/2;return {e,score:Math.min(e.len,30)*Math.min(meta[e.building].h,60)/Math.hypot(mx,mz)};}).sort((a,b)=>b.score-a.score);
@@ -199,7 +203,7 @@ export function buildCity({scene,osm,plateau,config,theme=null}){
    gl_FragColor=vec4(applyFog(c,vWorld,cameraPosition),1.);}`,extensions:{derivatives:true}});
  const screenMeshes=screens.map(s=>{const mat=screenMat(s.kind);mat.uniforms.uAspect.value=s.w/s.h;const mesh=new THREE.Mesh(new THREE.PlaneGeometry(s.w,s.h),mat);mesh.position.set(s.x,s.y,s.z);mesh.rotation.y=s.angle;group.add(mesh);reflective.push(mesh);
   // Frame around the screen.
-  const frame=new THREE.Mesh(new THREE.BoxGeometry(s.w+.8,s.h+.8,.3),new THREE.MeshBasicMaterial({color:0x050507}));frame.position.set(s.x-Math.sin(s.angle)*.2,s.y,s.z-Math.cos(s.angle)*.2);frame.rotation.y=s.angle;group.add(frame);return mesh;});
+  const frame=new THREE.Mesh(new THREE.BoxGeometry(s.w+.8,s.h+.8,.3),new THREE.MeshBasicMaterial({color:0x050507}));frame.position.set(s.x-Math.sin(s.angle)*.2,s.y,s.z-Math.cos(s.angle)*.2);frame.rotation.y=s.angle;group.add(frame);mesh.userData.frame=frame;return mesh;});
 
  // Mask building interiors out of the light field and finish blur layers.
  G.globalCompositeOperation='source-over';G.fillStyle='#000';for(const m of meta){G.beginPath();m.ring.forEach((p,k)=>{const [x,y]=toL(...p);k?G.lineTo(x,y):G.moveTo(x,y);});G.closePath();G.fill();}
@@ -275,5 +279,5 @@ export function buildCity({scene,osm,plateau,config,theme=null}){
  for(const [x,y,z,w,h,d] of [[0,.5,0,1.6,1,1.6],[0,1.35,0,.42,.6,.95],[0,1.85,-.38,.32,.42,.36],[-.12,2.08,-.4,.08,.18,.1],[.12,2.08,-.4,.08,.18,.1],[0,1.75,-.62,.18,.16,.2]]){const mesh=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),bronze);mesh.position.set(x,y,z);dog.add(mesh);}
  dog.position.set(1,0,48);dog.rotation.y=.5;group.add(dog);
 
- return {group,reflective,buildings,ground,groundMat,reflectTarget,screens:screenMeshes,signalMaterial:sigMat,lightCanvas,meta,shops:shops.length,signCount:signsV.length+signsH.length,lampCount:lamps.length};
+ return {group,reflective,buildings,signs:signMeshes,ground,groundMat,reflectTarget,screens:screenMeshes,signalMaterial:sigMat,lightCanvas,meta,shops:shops.length,signCount:signsV.length+signsH.length,lampCount:lamps.length};
 }

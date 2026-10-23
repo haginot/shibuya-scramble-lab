@@ -17,6 +17,7 @@
 import {Simulation,CORNERS,MOTION,phaseAt} from './simulation.mjs';
 
 export const HMOTION=Object.freeze({...MOTION,HOLD:8,ATTEND:9});
+export const EXTRA_MOTION=16;// codes ≥ 16 are handled by extraAgent() (escape.mjs); dispersal uses 10–12 with its own step
 const {WAIT,CROSS,LEAVE,BACKGROUND,TRAIN,APPROACH,HOLD,ATTEND}=HMOTION;
 
 export const HALLOWEEN=Object.freeze({
@@ -239,6 +240,7 @@ export class HalloweenSimulation extends Simulation{
   const obstacles=H.obstacles,OG=H.OG,obsHead=H.obsHead,obsNext=H.obsNext,R=this.g.R,checkPoi=this.stepCount%10;
   for(let i=0;i<n;i++){
    const x=X[i],z=Z[i];let m=this.motion[i],speed=this.speed[i],dx=this.gx[i]-x,dz=this.gz[i]-z,d=Math.sqrt(dx*dx+dz*dz);
+   if(m>=EXTRA_MOTION){this.extraAgent(i,x,z,dt,phase,walkLeft);continue;}// subclass-owned walkers (escape.mjs)
    if(m===BACKGROUND){this.leg[i]+=dt;
     // A segment end is "reached" a little early when it is a dead end or already crowded,
     // so walkers flow past junctions instead of converging on one point.
@@ -294,6 +296,9 @@ export class HalloweenSimulation extends Simulation{
   }
   if(this.stepCount%10===0)this.sampleDensity();
  }
+ // Hook for subclass-owned motion codes (≥ EXTRA_MOTION): called once per step instead of the
+ // built-in behaviours, with the same occupancy grid and neighbour hash. No-op here.
+ extraAgent(i,x,z,dt,phase,walkLeft){}
  // One walker's motion for this step: look-ahead around full square metres, social force
  // (same parameters as the normal mode), fixed bodies (officers, staff), walls, the
  // carriageway rule and the hard occupancy limit. Shared by the dispersal scenario.

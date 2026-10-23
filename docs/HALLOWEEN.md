@@ -133,3 +133,61 @@ Reading it honestly: the managed run trades a fast-clearing Hachiko and south si
 * `verify-halloween.mjs` also recounts the per-exit people and densest cell every 5 s and checks that zones never double count.
 * `tools/record_shibuya.py --mode halloween`: every frame, each number on screen (HUD, hook, split-screen tiles, exit board, results card and its sweep ranges, question card) is compared with the solver value of that frame (`check_overlay`), and the recording fails on any relocation or density above 5 p/m².
 * `tests/test_halloween.py` runs both and checks that the browser and recorder format numbers identically.
+
+## Escape-route sources (v4) / 脱出ルートの出典
+
+On-screen text in `web3d/shibuya/escape-copy.mjs` cites these by outlet name; ids and quotes are in the research log (research-practical.md, 2026-10-23). Walk times are computed from OpenStreetMap (OSRM foot profile, 80 m/min), not quoted. Toei Bus detours were dropped as unverifiable. Railway gate plans for 2026 were not announced as of 2026-10-23; past-year examples are shown with their year.
+画面の文言は `escape-copy.mjs` が出典名のみ表示。徒歩時間はOSMからの概算。2026年の改札対策は10/23時点で未発表のため、過去の例は年を明記。
+
+- https://www.shibukei.com/headline/18753/
+- https://www.keishicho.metro.tokyo.lg.jp/about_mpd/shokai/ichiran/kankatsu/shibuya/about_ps/kisei.html
+- https://www.keishicho.metro.tokyo.lg.jp/about_mpd/shokai/ichiran/kankatsu/shibuya/about_ps/kisei.files/oshirase.pdf
+- https://www.city.shibuya.tokyo.jp/contents/koho-news/1621/20261015_bousai.html
+- https://www.businessinsider.jp/article/2610-shibuya-halloween-trash-measures-2026/
+- https://www.fashionsnap.com/article/2023-10-31/shibuya-halloween
+- https://jafmate.jp/car/traffic_topics_20251028_1198272.html
+- https://trafficnews.jp/post/89192
+- https://trafficnews.jp/post/92628
+- https://trafficnews.jp/post/122357
+- https://trafficnews.jp/post/133833
+- https://www.watch.impress.co.jp/docs/news/1203913.html
+- https://www.watch.impress.co.jp/docs/news/1227145.html
+- https://toyokeizai.net/articles/-/854907
+- https://matcha-jp.com/jp/1166
+- https://www.tokyometro.jp/news/2020/205981.html
+- https://www.tokyo-tc.or.jp/news/driver/000442/
+- https://shibukichi.net/2025/03/27/shibuya_nishiguchi_taxi/
+- https://taxieye.net/post-455/
+- https://ja.wikipedia.org/wiki/渋谷駅
+- https://routing.openstreetmap.de/
+
+## v4 video: 「🧙ハロウィンの渋谷を脱出せよ！🎃」 / "Escape Shibuya on Halloween!"
+
+45 s (42 s scene + 3 s end card), framed as an escape game. Shots (web3d/shibuya/director-halloween.mjs):
+hook 0–1 s 「渋谷から脱出できるか？」 over the red DANGER swarm → big title card 1–3 s (all letters in by ~1.75 s,
+held, then flies into a persistent header) → MISSION card 3–7 s (≈18,000 = the cited 2026 ward expectation for the
+Center Gai streets, not a sim count; the 3D city sinks into a flat game map: buildings capped at 7 m, roads, the JR
+station band and street names) → five 6 s levels (Center Gai, Miyashita Park, Hikarie/Meiji-dori, Shibuya Stream,
+Dogenzaka/Mark City) → overview of the five example routes 37–39.5 s → 「あなたならどこから帰る？」 39.5–42 s → end card
+with every source outlet and date, and one line on why the sim crowd (48,000, whole model area) differs from 18,000.
+
+- Each level: PLAYER START pin, branches A/B/C (station gate, taxi stand or walk to another station), the example
+  route lit (no source ranks routes, so it is never called "best"), the sim's walkers on every branch, SIM timer,
+  DANGER meter (densest 3 m cell within 6 m of the player, p/m²), ✔/✖ per branch that ends inside the sim area.
+  Walks to other stations and the off-sim taxi stretch only reach the sim edge: they say "at sim edge / シミュ範囲の端"
+  and never get a ✔.
+- Result/VS beat (3.4–6 s of each level): the example route's ESCAPED/CAUGHT (fixed rule in escape.mjs) lands, the
+  playback clock fast-forwards until every route's first walker has arrived, and the card compares them (time bar,
+  seconds at ≥3 p/m², and "B took r× as long as A" for in-sim routes; r recomputed by the recorder). In the full
+  48,000-person run every branch ends ESCAPED, so no CAUGHT screen appears; the contrast is the time and density
+  (e.g. Center Gai: A via the Den-en-toshi/Hanzomon Dogenzaka gate vs B across the Scramble to the JR Hachiko gate).
+- Hikarie level: the start is on the Meiji-dori sidewalk in front of Hikarie (the model has no walkable deck over
+  Meiji-dori, so a start on the station side forced a 389 m detour to a gate 79 m away). verify-escape.mjs fails if a
+  gate/taxi route is longer than 2.5 × the straight line.
+- Every place, gate, stand, walk time and 2026 measure carries a `*n` mark resolved in the footnote bar of the same
+  frame (escape-copy.mjs fact ids → sources-halloween.mjs outlets). The recorder (check_overlay) fails the capture if a
+  shown number differs from the escape run, a stamp or VS value differs from the run/rule, a fact id is missing from
+  the footnote, unknown or dropped (MEAS-14), the title card is incomplete while held, or a map label leaves the 9:16
+  column. The 9:16 footnote leaves out sources only used by the 16:9 status line.
+- One capture, four screenshots per frame (ja, en, and the same two with `body.vcut` for the 9:16 cuts);
+  tools/compose_vertical.py draws the title, level bar, HUD, callout and footnote bands from frames.jsonl.
