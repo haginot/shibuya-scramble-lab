@@ -69,7 +69,18 @@ Ward measures shown on the question card (as reported): street drinking banned 1
 
 `DISPERSAL.exits` maps the model's station geometry (−z ≈ north, +x ≈ east) onto six exits and routes, each a disc over walkable 1 m cells (first match wins, so nobody is counted twice): **Hachiko exit** (ハチ公口, in front of the Hachiko gate), **Miyamasuzaka** (宮益坂口, in front of the east half of the north face), **Shin-minami / south** (新南口・南側, the south gate and the walk south along the tracks), **Hikarie / east** (ヒカリエ・東側, the east gate and the east side), **Mark City / Inokashira** (マークシティ・井の頭線, the west side towards Dogenzaka) and **Scramble side** (スクランブル側, the junction and its corners). This is an illustrative mapping, not surveyed exit geometry. Every second the solver counts the people in each zone, the densest 3 m cell they stand in, and the time from which no cell in the zone exceeded 2 p/m² ("cleared"); a 5 s series is kept for the charts. The split screen shows the live count per zone as chips (coloured by the densest cell), the exit board shows the cleared time and peak per zone for both strategies, and the question card names the slowest zone of each run — all from the solver snapshot of the frame (`check_overlay`), recounted independently in `verify-halloween.mjs`.
 
-EXITS_TABLE
+Result for the shipped seed (25 simulated minutes, the exit board in the video; "cleared" = no 3 m cell in the zone above 2 p/m² from then on):
+
+| Exit zone | No control: cleared at (peak) | Managed: cleared at (peak) |
+|---|---:|---:|
+| Hachiko exit · ハチ公口 | not cleared (4.8 p/m²) | 03:12 (3.9) |
+| Miyamasuzaka · 宮益坂口 | 10:59 (4.8) | 11:30 (4.9) |
+| Shin-minami / south · 新南口・南側 | not cleared (4.6) | 00:10 (2.2) |
+| Hikarie / east · ヒカリエ・東側 | 02:23 (3.2) | 01:34 (2.4) |
+| Mark City / Inokashira · マークシティ・井の頭線 | never dense (1.7) | never dense (1.9) |
+| Scramble side · スクランブル側 | 02:07 (4.3) | 13:14 (4.2) |
+
+Reading it honestly: the managed run trades a fast-clearing Hachiko and south side for a scramble side that stays dense longer (people are held behind the police line and released per green), while without control the Hachiko plaza and the south side never clear within 25 minutes. Which exit is "best" depends on these illustrative rules; that is the question the video leaves to the viewer.
 
 ## Honesty checks
 

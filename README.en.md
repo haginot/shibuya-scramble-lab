@@ -74,7 +74,11 @@ The existing 14-day experiment uses 400 fictional agents × scale 5 and 8 seeds,
 
 ## Halloween night mode
 
-`/web3d/shibuya/?mode=halloween` — 48,000 individual agents in costume, police crowd control (holding pens, staged release, one-way circulation, the "DJ police"), peripheral events, and a station-closing dispersal comparison (no control vs one-way routes + staged release). Every number on screen is counted from the simulated people of the same frame. Video: `bash tools/record_halloween.sh` (44 s, 1280×720). Assumptions, results and checks: [docs/HALLOWEEN.md](docs/HALLOWEEN.md). Toy model, not a prediction.
+`/web3d/shibuya/?mode=halloween` (`&lang=ja|en`) — 48,000 individual agents in costume (sim assumption), police crowd control (holding pens, staged release, one-way circulation, the "DJ police"), peripheral events, a station-closing dispersal comparison (no control vs one-way routes + staged release) and **per-exit congestion** (Hachiko, Miyamasuzaka, Shin-minami / south, Hikarie / east, Mark City / Inokashira, scramble side). The video is framed as "Shibuya on Halloween: heads-up", a getting-home guide for people who work in Shibuya, non-Halloween visitors and foreign tourists, and ends with "Which exit would you take?".
+
+The opening **≈18,000 is a 2026 estimate**, not a simulation output: Shibuya City expects about the same as 2024 (≈18,000 on the street at the ~22:00 peak; Shibuya Keizai Shimbun 2026-09-30, https://news.yahoo.co.jp/articles/83c0f05f26d8d3c86cf0869f7cf991d18d56e48b; 2024 ≈18,000 and 2023 ≈15,000: Tokyo Shimbun 2024-11-01, https://www.tokyo-np.co.jp/article/364102; 2019 ≈40,000: Shibuya Keizai Shimbun 2025-10-02, https://www.shibukei.com/headline/19456/). The simulated populations (48,000 in the area, 16,000 at station closing) are a **sim assumption**. Every other number on screen is counted from the simulated people of the same frame and checked frame by frame while recording.
+
+Videos: `bash tools/record_halloween.sh` (45 s, 1280×720; Japanese and English from one render pass, plus 9:16 cuts). Assumptions, sources, results and checks: [docs/HALLOWEEN.md](docs/HALLOWEEN.md). Toy model, not a prediction.
 
 ## Recording, regeneration and checks
 

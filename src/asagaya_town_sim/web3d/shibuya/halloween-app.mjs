@@ -70,8 +70,8 @@ const CSS=`
 .lang-ja #cap-ja{font:700 25px/1.3 "Noto Sans CJK JP",sans-serif;letter-spacing:.12em;color:#fff;margin-top:0}
 .lang-ja #hud small,.lang-ja #hud .area{letter-spacing:.02em}
 #hw-hook .k{display:inline-block;font:900 34px/1.2 Inter,"Noto Sans CJK JP",sans-serif;color:#fff;background:#ff8a1f;padding:6px 22px;border-radius:10px;letter-spacing:.04em;text-shadow:none;margin-bottom:10px;box-shadow:0 0 40px #ff5a0088}
-#hw-hook .e{font:800 15px Inter,"Noto Sans CJK JP",sans-serif;color:#ffd9a8;letter-spacing:.14em;margin-top:4px}
-#hw-hook .f{position:fixed;left:40px;right:40px;bottom:40px;font:500 11px/1.5 Inter,"Noto Sans CJK JP",sans-serif;color:#e8dcff;text-align:center;text-shadow:0 1px 6px #000}
+#hw-hook .e{font:800 21px Inter,"Noto Sans CJK JP",sans-serif;color:#ffd9a8;letter-spacing:.14em;margin-top:4px}
+#hw-hook .f{position:fixed;left:60px;right:60px;bottom:58px;font:600 12.5px/1.5 Inter,"Noto Sans CJK JP",sans-serif;color:#e8dcff;text-align:center;text-shadow:0 1px 6px #000}
 #hw-split .chip{position:absolute;transform:translate(-50%,-50%);padding:3px 8px 4px;border-radius:7px;background:#0b0612d9;border:2px solid #4fe3c1;font:700 11px/1.15 Inter,"Noto Sans CJK JP",sans-serif;color:#fff;white-space:nowrap;text-align:center}
 #hw-split .chip b{display:block;font:900 17px/1 Inter,sans-serif;margin-top:1px}
 #hw-board,#hw-question{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:1080px;padding:20px 28px 16px;border-radius:16px;background:#09050fee;border:1px solid #ff8a1f66;box-shadow:0 0 60px #9d4bff44;display:none;opacity:0;z-index:30;font-family:Inter,"Noto Sans CJK JP",sans-serif;color:#fff;font-variant-numeric:tabular-nums}
@@ -101,7 +101,7 @@ export async function install(api){
  hud.querySelector('.area').before(row);const honest=document.createElement('div');honest.className='honest';honest.id='hw-honest';hud.append(honest);
  const sm=hud.querySelectorAll('.stats small');sm[0].innerHTML=L('on the crossing now','横断中');sm[1].innerHTML=L('queued at corners','角で信号待ち');sm[2].innerHTML=L('crossed last cycle','前回の横断');
  hud.querySelector('.area span').innerHTML=`<b id="agents">—</b> ${L('people modelled in the ~0.8 km area (sim assumption)','人をモデル化・約0.8km四方（シミュレーション上の仮定）')}`;
- const hook=document.createElement('div');hook.id='hw-hook';hook.innerHTML=`<div class="k">${L('SHIBUYA ON HALLOWEEN: HEADS-UP','10/31 渋谷駅、どう帰る？')}</div><div class="n" id="hw-hook-n"></div><div class="e">${L('2026 ESTIMATE*','2026年 推計*')}</div><div class="l">${L('people on the street at the peak','ピーク時の路上の人出')}</div><div class="s" id="hw-hook-s"></div><div class="f">${L(FOOTNOTE.en,FOOTNOTE.ja)}</div>`;document.body.append(hook);
+ const hook=document.createElement('div');hook.id='hw-hook';hook.innerHTML=`<div class="k">${L('SHIBUYA ON HALLOWEEN: HEADS-UP','10/31 渋谷駅、どう帰る？')}</div><div class="n" id="hw-hook-n"></div><div class="e">${L('2026 ESTIMATE*','2026年 推計*')}</div><div class="l">${L('people on the street at the peak','ピーク時の路上の人出')}</div><div class="s" id="hw-hook-s"></div><div class="f">${L(FOOTNOTE.shortEn,FOOTNOTE.shortJa)}</div>`;document.body.append(hook);
  const split=document.createElement('div');split.id='hw-split';
  split.innerHTML=`<div class="div"></div><div class="title"><b>${L('00:30 STATION CLOSES: EVERYONE HEADS HOME','00:30 駅閉鎖：一斉に帰る')}</b><i id="hw-split-sub"></i></div>
   <div class="half l"><div class="tag">${L('NO CONTROL','規制なし')}<small>${L('all gates open, shortest path','全改札開放・最短経路')}</small></div><div class="big" id="hw-remA">—</div><div class="lbl">${L('still in the area','現場に残る人')}</div><div class="st" id="hw-stA"></div></div>
@@ -183,7 +183,7 @@ export async function install(api){
   // Per-exit chips: people in each exit zone now (solver counts), coloured by its densest 3 m cell.
   const chipsShown={};const showChips=shot.name==='dispersal';
   for(const [side,cam,st,x0] of [['A',camL,a,0],['B',camR,b,W/2]]){chipsShown[side]=[];(st.exits||[]).forEach((e,k)=>{const c=chips[side][k],d=EXITS[k].disc,p=new THREE.Vector3(d[0],0,d[1]).project(cam);
-    const px=Math.min(W/2-70,Math.max(70,(p.x+1)/2*W/2))+x0,py=Math.min(H-190,Math.max(250,(1-p.y)/2*H));c.style.display=showChips?'':'none';c.style.left=`${px}px`;c.style.top=`${py}px`;c.style.borderColor=densColor(e.peak);
+    const px=Math.min(W/2-70,Math.max(70,(p.x+1)/2*W/2))+x0,py=Math.min(H-190,Math.max(310,(1-p.y)/2*H));c.style.display=showChips?'':'none';c.style.left=`${px}px`;c.style.top=`${py}px`;c.style.borderColor=densColor(e.peak);
     const t=fmt(e.people);if(c.lastChild.textContent!==t)c.lastChild.textContent=t;chipsShown[side].push({key:e.key,people:t,src:e.people});});}
   Object.assign(overlay,{frameShot:shot.name,split:{clock,A,B,heldB:fmt(b.held),chips:showChips?chipsShown:null,source:{time:a.time,timeB:b.time,heldB:b.held}}});
   delete overlay.results;delete overlay.board;delete overlay.question;

@@ -21,6 +21,8 @@ export const FACTS=Object.freeze([
 ]);
 // Short on-screen footnote (end card and hook).
 export const FOOTNOTE={
+ shortEn:'*Shibuya City expects about the same as 2024 (≈18,000 at ~22:00): Shibuya Keizai Shimbun 2026-09-30 · 2024 count: Tokyo Shimbun 2024-11-01. Not a sim output.',
+ shortJa:'*渋谷区の見込み：2024年並み（22時頃 約1万8千人）シブヤ経済新聞 2026-09-30 ・ 2024年の計測：東京新聞 2024-11-01 ・ シミュレーションの出力ではない',
  en:'Est. ≈18,000 = Shibuya City expectation for 2026, as reported by Shibuya Keizai Shimbun (2026-09-30). Past ward counts: 2019 ≈40,000 (Shibukei 2025-10-02) · 2023 ≈15,000 at 22:00, 2024 ≈18,000 at 22:00 (Tokyo Shimbun 2024-11-01) · 2025 ≈4,200 at 21:00, rain (Shibukei 2026-09-30). Simulated populations are sim assumptions.',
  ja:'推計 約1万8千人＝渋谷区の2026年の見込み（シブヤ経済新聞 2026-09-30）。区の過去の計測：2019年 約4万人（シブ経 2025-10-02）・2023年 22時 約1.5万人、2024年 22時 約1.8万人（東京新聞 2024-11-01）・2025年 21時 約4,200人・雨（シブ経 2026-09-30）。シミュレーションの人数はシミュレーション上の仮定。',
 };
