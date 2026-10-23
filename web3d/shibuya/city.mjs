@@ -15,7 +15,8 @@ function inside(x,z,ring){let hit=false;for(let i=0,j=ring.length-1;i<ring.lengt
 const WORDS={restaurant:['食堂','ラーメン','焼肉','寿司','中華','定食','そば'],cafe:['珈琲','喫茶','CAFE'],bar:['BAR','酒場'],pub:['居酒屋','酒場','立呑'],fast_food:['牛丼','軽食','餃子'],clothes:['古着','FASHION','洋服'],chemist:['薬','くすり'],books:['書店'],convenience:['24時間'],shoes:['靴'],optician:['眼鏡'],music:['音楽','CD'],video_games:['ゲーム'],games:['ゲーム'],mobile_phone:['携帯'],cosmetics:['化粧品'],jewelry:['宝飾'],sports:['SPORTS'],karaoke:['カラオケ'],default:['営業中','雑貨','カラオケ','OPEN','渋谷']};
 const NEON=[0xff2d75,0x29e6ff,0xffb627,0x9d4bff,0x3dff8b,0xff5a1f,0xffffff,0xff3df5,0x4d7cff];
 
-export function buildCity({scene,osm,plateau,config}){
+// theme (optional): {words, share, neon} adds themed sign words; omitted in the normal mode.
+export function buildCity({scene,osm,plateau,config,theme=null}){
  const rnd=mulberry(1234);
  const group=new THREE.Group();scene.add(group);
  const reflective=[];// objects also drawn in the wet-road reflection pass
@@ -119,7 +120,7 @@ export function buildCity({scene,osm,plateau,config}){
  // ---------- Neon signs from OSM shop positions ----------
  const edgeHash=new Map();edges.forEach((e,i)=>{for(let t=0;t<=1;t+=Math.min(1,6/e.len)){const x=e.a[0]+(e.b[0]-e.a[0])*t,z=e.a[1]+(e.b[1]-e.a[1])*t,k=`${Math.floor(x/10)},${Math.floor(z/10)}`;if(!edgeHash.has(k))edgeHash.set(k,new Set());edgeHash.get(k).add(i);}});
  const nearestEdge=(x,z)=>{let best=null,bd=14;const cx=Math.floor(x/10),cz=Math.floor(z/10);for(let dz=-1;dz<=1;dz++)for(let dx=-1;dx<=1;dx++){const set=edgeHash.get(`${cx+dx},${cz+dz}`);if(!set)continue;for(const i of set){const e=edges[i],ux=(e.b[0]-e.a[0])/e.len,uz=(e.b[1]-e.a[1])/e.len,t=Math.max(.6,Math.min(e.len-.6,(x-e.a[0])*ux+(z-e.a[1])*uz)),px=e.a[0]+ux*t,pz=e.a[1]+uz*t,d=Math.hypot(px-x,pz-z);if(d<bd&&e.len>3){bd=d;best={e,px,pz,ux,uz};}}}return best;};
- const words=[...new Set(Object.values(WORDS).flat())];
+ const words=[...new Set([...Object.values(WORDS).flat(),...(theme?.words??[])])];
  const atlasV=document.createElement('canvas');atlasV.width=words.length*96;atlasV.height=512;const AV=atlasV.getContext('2d');
  const atlasH=document.createElement('canvas');atlasH.width=512;atlasH.height=words.length*96;const AH=atlasH.getContext('2d');
  AV.fillStyle=AH.fillStyle='#fff';AV.textAlign=AH.textAlign='center';AV.textBaseline=AH.textBaseline='middle';
@@ -131,7 +132,9 @@ export function buildCity({scene,osm,plateau,config}){
  const texV=new THREE.CanvasTexture(atlasV),texH=new THREE.CanvasTexture(atlasH);for(const t of [texV,texH]){t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=4;t.generateMipmaps=true;t.minFilter=THREE.LinearMipmapLinearFilter;}
  const signsV=[],signsH=[];
  for(const s of shops){const hit=nearestEdge(...s.position);if(!hit)continue;const m=meta[hit.e.building];if(m.h<7)continue;
-  const list=WORDS[s.kind]||WORDS.default,word=list[Math.floor(rnd()*list.length)],w=words.indexOf(word),color=NEON[Math.floor(rnd()*NEON.length)];
+  const list=WORDS[s.kind]||WORDS.default;let word=list[Math.floor(rnd()*list.length)],color=NEON[Math.floor(rnd()*NEON.length)];
+  if(theme&&rnd()<theme.share){word=theme.words[Math.floor(rnd()*theme.words.length)];color=theme.neon[Math.floor(rnd()*theme.neon.length)];}
+  const w=words.indexOf(word);
   const vertical=rnd()<.6&&m.h>10;
   if(vertical){const height=Math.min(m.h-3,3+rnd()*6),y0=3.6+rnd()*Math.max(0,Math.min(10,m.h-4-height));signsV.push({x:hit.px+hit.e.nx*.85,z:hit.pz+hit.e.nz*.85,y:y0+height/2,height,angle:Math.atan2(hit.e.nx,hit.e.nz),w,color,flicker:rnd()});}
   else signsH.push({x:hit.px+hit.e.nx*.12,z:hit.pz+hit.e.nz*.12,y:4.7+rnd()*.4,width:Math.min(hit.e.len*.8,2.4+rnd()*3),angle:Math.atan2(hit.e.nx,hit.e.nz),w,color,flicker:rnd()});
@@ -163,13 +166,22 @@ export function buildCity({scene,osm,plateau,config}){
   const [px,py]=toL((e.a[0]+e.b[0])/2+e.nx*14,(e.a[1]+e.b[1])/2+e.nz*14),g=G.createRadialGradient(px,py,0,px,py,26*lsc);g.addColorStop(0,'rgba(170,160,255,.4)');g.addColorStop(1,'rgba(0,0,0,0)');G.fillStyle=g;G.fillRect(px-26*lsc,py-26*lsc,52*lsc,52*lsc);}
  // Screen content: kinetic type, colour fields and a live view of the trails.
  const typeCanvas=document.createElement('canvas');typeCanvas.width=1024;typeCanvas.height=256;const T=typeCanvas.getContext('2d');
- T.fillStyle='#fff';T.textBaseline='middle';T.font=`900 150px ${FONT}`;T.fillText('SHIBUYA',20,128);T.font=`900 170px ${FONT}`;T.fillText('渋谷',700,132);
+ T.fillStyle='#fff';T.textBaseline='middle';const [line1,line2]=theme?.screenText??['SHIBUYA','渋谷'];T.font=`900 ${line1.length>7?118:150}px ${FONT}`;T.fillText(line1,20,128);T.font=`900 ${line2.length>2?120:170}px ${FONT}`;T.fillText(line2,line1.length>7?650:700,132);
  const typeTex=new THREE.CanvasTexture(typeCanvas);typeTex.colorSpace=THREE.SRGBColorSpace;typeTex.wrapS=THREE.RepeatWrapping;
- const screenMat=kind=>new THREE.ShaderMaterial({uniforms:{...shared,uType:{value:typeTex},uKind:{value:kind},uAspect:{value:1}},vertexShader:/* glsl */`varying vec2 vUv;varying vec3 vWorld;void main(){vUv=uv;vec4 w=modelMatrix*vec4(position,1.);vWorld=w.xyz;gl_Position=projectionMatrix*viewMatrix*w;}`,
-  fragmentShader:/* glsl */`${common}uniform sampler2D uType;uniform float uKind,uAspect;varying vec2 vUv;varying vec3 vWorld;
-  vec3 pal(float t){return .5+.5*cos(6.2832*(t+vec3(0.,.33,.67)));}
+ const screenMat=kind=>new THREE.ShaderMaterial({uniforms:{...shared,uType:{value:typeTex},uKind:{value:kind},uAspect:{value:1},uTheme:{value:theme?1:0}},vertexShader:/* glsl */`varying vec2 vUv;varying vec3 vWorld;void main(){vUv=uv;vec4 w=modelMatrix*vec4(position,1.);vWorld=w.xyz;gl_Position=projectionMatrix*viewMatrix*w;}`,
+  fragmentShader:/* glsl */`${common}uniform sampler2D uType;uniform float uKind,uAspect,uTheme;varying vec2 vUv;varying vec3 vWorld;
+  vec3 pal(float t){return uTheme>.5?mix(vec3(1.,.38,.04),vec3(.5,.12,1.),.5+.5*sin(6.2832*t)):.5+.5*cos(6.2832*(t+vec3(0.,.33,.67)));}
+  // Halloween art (theme): full moon, flying bats and a grinning jack-o'-lantern.
+  vec3 halloween(vec2 uv,float t){vec2 p=(uv-.5)*vec2(uAspect,1.);vec3 c=mix(vec3(.12,.02,.2),vec3(.01,.0,.03),uv.y);
+   vec2 m=p-vec2(uAspect*.22,.18);float moon=smoothstep(.27,.26,length(m));c=mix(c,vec3(1.,.86,.5)*(1.-.25*fbm(m*9.)),moon);c+=vec3(.5,.3,.1)*exp(-length(m)*5.)*.4;
+   for(int k=0;k<5;k++){float fk=float(k);vec2 b=p-vec2(fract(t*.05*(1.+fk*.3)+fk*.37)*uAspect*1.4-uAspect*.7,.25-fk*.07+.04*sin(t*2.+fk));float flap=abs(sin(t*9.+fk*2.));
+    float wing=step(abs(b.y+abs(b.x)*(.7*flap-.2)),.018)*step(abs(b.x),.09)+step(length(b),.02);c=mix(c,vec3(0.),clamp(wing,0.,1.));}
+   vec2 q=p-vec2(-uAspect*.2,-.12);float body=smoothstep(.3,.29,length(q*vec2(.85,1.1)));vec3 pump=vec3(1.,.4,.03)*(.65+.35*cos(atan(q.x,q.y)*0.+q.x*22.));
+   float eye=smoothstep(.06,.05,length(vec2(abs(q.x)-.1,q.y-.06)*vec2(1.,1.4)));float grin=step(abs(q.y+.09+.05*cos(q.x*14.)),.025)*step(abs(q.x),.17);
+   c=mix(c,pump,body);c=mix(c,vec3(3.,1.6,.3)*(.8+.2*sin(t*8.)),body*clamp(eye+grin,0.,1.));return c;}
   void main(){vec2 uv=vUv;float t=uTime;vec3 c;
-   if(uKind<.5){float s=fract(uv.x*uAspect*.35-t*.12);float a=texture2D(uType,vec2(s,uv.y*1.15-.07)).a;c=mix(vec3(.02,.0,.08)+pal(uv.y*.3+t*.05)*.25,mix(vec3(1.,.25,.6),vec3(.2,.9,1.),uv.y),a)*1.;}
+   if(uTheme>.5&&(uKind>.5&&uKind<1.5||uKind>2.5))c=halloween(uv,t+uKind*3.);
+   else if(uKind<.5){float s=fract(uv.x*uAspect*.35-t*.12);float a=texture2D(uType,vec2(s,uv.y*1.15-.07)).a;c=mix(vec3(.02,.0,.08)+pal(uv.y*.3+t*.05)*.25,mix(vec3(1.,.25,.6),vec3(.2,.9,1.),uv.y),a)*1.;}
    else if(uKind<1.5){vec2 p=uv*vec2(uAspect,1.)*2.;float n=fbm(p+vec2(t*.15,-t*.1)+fbm(p*1.7-t*.2)*1.5);c=pal(n*1.2+t*.04)*smoothstep(.2,.8,n)*1.1;}
    else if(uKind<2.5){vec3 tr=texture2D(uTrail,vec2(uv.x,1.-uv.y)*.6+.2).rgb;c=tr*1.6+vec3(.01,.02,.05);c+=vec3(.0,.6,.9)*step(.985,fract(uv.y*30.))*.1;float a=texture2D(uType,vec2(fract(uv.x*.6+t*.03),clamp((uv.y-.04)*6.,0.,1.))).a*step(uv.y,.2);c+=vec3(1.)*a*.8;}
    else{float bars=floor(uv.x*24.);float hgt=.5+.45*sin(t*2.1+bars*.7)*sin(t*.7+bars*.23);c=pal(bars/24.+t*.1)*step(uv.y,hgt)*1.1+vec3(.02);c*=step(.12,fract(uv.x*24.));}

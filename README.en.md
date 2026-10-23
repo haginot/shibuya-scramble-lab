@@ -72,6 +72,10 @@ Open `http://127.0.0.1:8765/promo/?area=shibuya`. Real mapped shops supply conte
 
 The existing 14-day experiment uses 400 fictional agents × scale 5 and 8 seeds, paired identities/random draws across no-promotion, ads, coupons and other combinations. Live frames use seed 0; ending metrics show means and 95% seed intervals. Its movement is schematic and separate from the physical crowd. All conversion, cost, sales and demand-time coefficients remain placeholders. More visits may not recover campaign costs. JSON overrides: `--config FILE`.
 
+## Halloween night mode
+
+`/web3d/shibuya/?mode=halloween` — 48,000 individual agents in costume, police crowd control (holding pens, staged release, one-way circulation, the "DJ police"), peripheral events, and a station-closing dispersal comparison (no control vs one-way routes + staged release). Every number on screen is counted from the simulated people of the same frame. Video: `bash tools/record_halloween.sh` (44 s, 1280×720). Assumptions, results and checks: [docs/HALLOWEEN.md](docs/HALLOWEEN.md). Toy model, not a prediction.
+
 ## Recording, regeneration and checks
 
 ```bash

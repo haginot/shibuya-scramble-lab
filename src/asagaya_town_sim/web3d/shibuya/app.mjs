@@ -13,6 +13,9 @@ const $=id=>document.getElementById(id),params=new URLSearchParams(location.sear
 window.__ready=false;
 async function json(path){const r=await fetch(path);if(!r.ok)throw Error(`${path}: ${r.status}`);return r.json();}
 const [config,osm,plateau,traffic]=await Promise.all([json('../data/shibuya_config.json'),json('../data/shibuya_osm.json'),json('../data/shibuya_plateau.json'),json('../data/shibuya_traffic.json')]);
+// Halloween night mode (?mode=halloween): loaded on demand, the normal mode never imports it.
+const hw=params.get('mode')==='halloween'?await import('./halloween-app.mjs'):null;
+if(hw)hw.configure(config,params);
 if(params.has('hour')){const h=Number(params.get('hour'));if(!(h>=0&&h<24))throw Error('hour must be in [0,24)');config.hour=h;}
 if(params.has('agents')){const v=params.get('agents');const n=v==='auto'?populationAt(config.hour,config.calibration):Number(v);if(!Number.isInteger(n)||n<0||n>60000)throw Error('agents must be 0..60000 or auto');config.agents=n;}
 if(params.get('demand')==='normal')config.peak=false;
@@ -21,11 +24,12 @@ const n=config.agents;
 
 // ---------- Renderer, scene, camera ----------
 const renderer=new THREE.WebGLRenderer({antialias:false,preserveDrawingBuffer:recording,powerPreference:'high-performance'});
-renderer.setPixelRatio(recording?1:Math.min(devicePixelRatio,1.5));renderer.autoClear=true;renderer.info.autoReset=false;// count every pass of a frame (reflection, trails, scene, bloom)$('view').append(renderer.domElement);
+renderer.setPixelRatio(recording?1:Math.min(devicePixelRatio,1.5));renderer.autoClear=true;renderer.info.autoReset=false;// count every pass of a frame (reflection, trails, scene, bloom)
+$('view').append(renderer.domElement);
 const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(40,16/9,.3,5000);
 const sky=makeSky(scene);
-const city=buildCity({scene,osm,plateau,config});
-const crowd=new Crowd(scene,n),vehicles=new Vehicles(scene,traffic),rain=new Rain(scene);
+const city=buildCity({scene,osm,plateau,config,theme:hw?.THEME??null});
+const crowd=hw?new hw.CostumeCrowd(scene,n):new Crowd(scene,n),vehicles=new Vehicles(scene,traffic),rain=new Rain(scene);
 const post=new Post(renderer),topdown=new TopDown(renderer,n,traffic.tracks.length);
 city.groundMat.uniforms.uDyn.value=topdown.dyn.texture;
 // Wet-road reflection: mirrored camera renders reflective layer 1 at half res.
@@ -38,12 +42,12 @@ function renderReflection(){const p=camera.position,dir=new THREE.Vector3();came
  renderer.setRenderTarget(city.reflectTarget);renderer.clear();renderer.render(scene,mirror);renderer.setRenderTarget(null);}
 
 // ---------- Look (time of day, weather) ----------
-const rainy=params.get('rain')!=='0';
+const rainy=hw?params.get('rain')==='1':params.get('rain')!=='0';
 function applyLook(hour){const sunUp=Math.max(0,Math.min(1,(Math.min(hour-5.5,18.2-hour))/1.2));// winter-evening sky: dark by ~17:30
  shared.uDaylight.value=sunUp;shared.uWet.value=rainy?.9:.35;
  crowd.uniforms.uUmbrella.value=rainy?.42:0;rain.uniforms.uAmount.value=rainy?.75:0;
  const fog=new THREE.Color(0x24172e).lerp(new THREE.Color(0xa9b4bf),sunUp);shared.uFogColor.value.copy(fog);shared.uFogDensity.value=rainy?.0024:.0016;}
-applyLook(config.hour);
+applyLook(config.hour);hw?.look({shared,post});
 
 // ---------- Simulation worker ----------
 let worker,requestId=0,pending=new Map(),state,busy=false,paused=false,simMs=0;
@@ -78,7 +82,8 @@ function resize(){const w=innerWidth,h=innerHeight,pr=renderer.getPixelRatio();i
 // Rendering runs one solver step behind and interpolates between the last two
 // steps. Recording uses the solver's exact remainder; live mode its own clock.
 let renderTime=null;
-function draw(shot,dtSim){if(!state)return;resize();
+let drawImpl=null;// replaced by the Halloween mode
+function draw(shot,dtSim){if(drawImpl)return drawImpl(shot,dtSim);if(!state)return;resize();
  const dt=state.dt||.1;let alpha;
  if(recording)alpha=state.alpha||0;else{renderTime=Math.min(state.time,Math.max(state.time-dt,(renderTime??state.time-dt)+dtSim));alpha=(renderTime-(state.time-dt))/dt;}
  alpha=Math.min(1,Math.max(0,alpha));
@@ -132,12 +137,14 @@ window.__frame=async videoTime=>{const shot=shotAt(videoTime);const dtSim=shot.s
 window.__warmup=async(target=START_CLOCK)=>{while(state.clock<target-1e-6)state=await request({type:'advance',seconds:Math.min(5,Math.max(.1,target-state.clock))});draw(shotAt(0),0);return window.__shibuyaState;};
 window.__skip=async videoTime=>{state=await request({type:'advance',seconds:shotAt(videoTime).speed/30});};
 window.__render=()=>{draw(mode==='cinema'?shotAt(cinemaTime%SCENE_SECONDS):null,0);return window.__shibuyaState;};
-draw(mode==='cinema'?shotAt(0):null,0);
+if(hw)await hw.install({THREE,scene,camera,renderer,post,city,crowd,vehicles,topdown,config,osm,plateau,traffic,n,params,recording,$,fmt,request,renderReflection,resize,placeCamera,caption,
+ get state(){return state;},set state(v){state=v;},get mode(){return mode;},setDraw(fn){drawImpl=fn;},setSim(ms){simMs=ms;},get fps(){return fps;},stepQueue});
+draw(mode==='cinema'?(hw?.shotAt??shotAt)(0):null,0);
 window.__ready=true;
 
 async function animate(now){frameCount++;if(now-frameStart>1000){fps=frameCount*1000/(now-frameStart);frameStart=now;frameCount=0;}
  const wall=lastRenderTime===null?0:Math.min(.25,(now-lastRenderTime)/1000);lastRenderTime=now;
- let shot=null,rate=speed;if(mode==='cinema'&&!paused){cinemaTime=(cinemaTime+wall)%SCENE_SECONDS;}if(mode==='cinema'){shot=shotAt(cinemaTime);rate=shot.speed;}
+ let shot=null,rate=speed;const shots=hw?.liveShotAt??shotAt,loop=hw?.liveSeconds??SCENE_SECONDS;if(mode==='cinema'&&!paused){cinemaTime=(cinemaTime+wall)%loop;}if(mode==='cinema'){shot=shots(cinemaTime);rate=shot.speed;}
  const dtSim=paused?0:wall*rate;if(!paused)stepQueue.add(dtSim);
  if(!busy&&stepQueue.seconds>=.1){busy=true;const seconds=stepQueue.take(),start=performance.now();request({type:'advance',seconds}).then(next=>{state=next;simMs=performance.now()-start;busy=false;}).catch(error=>{if(error.message==='Simulation reset')return;busy=false;$('loading').hidden=false;$('loading').textContent=error.message;});}
  draw(shot,dtSim);requestAnimationFrame(animate);}

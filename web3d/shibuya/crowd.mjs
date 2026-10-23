@@ -8,7 +8,7 @@ function add(geo,part,list){const g=geo.toNonIndexed();const p=g.getAttribute('p
  // Drop downward faces (never seen) to save triangles.
  for(let i=0;i<p.length;i+=9){if(n[i+1]+n[i+4]+n[i+7]<-2.4)continue;for(let k=0;k<9;k++){list.p.push(p[i+k]);list.n.push(n[i+k]);}for(let k=0;k<3;k++)list.part.push(part);}}
 const limb=(rt,rb,h,x,y,z,sz=1)=>new THREE.CylinderGeometry(rt,rb,h,6,1).scale(1,1,sz).translate(x,y,z);
-function personGeometry(){const l={p:[],n:[],part:[]};
+export function personGeometry(){const l={p:[],n:[],part:[]};
  add(limb(.075,.055,.86,-.09,.43,0,1.1),1,l);add(limb(.075,.055,.86,.09,.43,0,1.1),2,l);// legs (hip at .86)
  add(limb(.2,.16,.62,0,1.14,0,.58),0,l);// torso, shoulders wider than waist
  add(limb(.045,.038,.6,-.23,1.12,0),3,l);add(limb(.045,.038,.6,.23,1.12,0),4,l);// arms (shoulder at 1.42)

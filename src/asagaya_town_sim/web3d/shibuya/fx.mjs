@@ -23,7 +23,7 @@ export class Post{
   this.up=pass(/* glsl */`uniform sampler2D tSrc;uniform vec2 uTexel;uniform float uRadius;varying vec2 vUv;
    void main(){vec2 t=uTexel*uRadius;vec3 c=texture2D(tSrc,vUv).rgb*4.;c+=(texture2D(tSrc,vUv+vec2(t.x,0)).rgb+texture2D(tSrc,vUv-vec2(t.x,0)).rgb+texture2D(tSrc,vUv+vec2(0,t.y)).rgb+texture2D(tSrc,vUv-vec2(0,t.y)).rgb)*2.;
     c+=texture2D(tSrc,vUv+t).rgb+texture2D(tSrc,vUv-t).rgb+texture2D(tSrc,vUv+vec2(t.x,-t.y)).rgb+texture2D(tSrc,vUv+vec2(-t.x,t.y)).rgb;gl_FragColor=vec4(c/16.,1.);}`,{tSrc:{value:null},uTexel:{value:new THREE.Vector2()},uRadius:{value:1}},THREE.AdditiveBlending);
-  this.final=pass(/* glsl */`uniform sampler2D tScene,tBloom;uniform float uBloom,uExposure,uTime,uVignette,uGrain,uAberration,uLetterbox,uFade,uSaturation;uniform vec2 uRes;varying vec2 vUv;
+  this.final=pass(/* glsl */`uniform sampler2D tScene,tBloom;uniform float uBloom,uExposure,uTime,uVignette,uGrain,uAberration,uLetterbox,uFade,uSaturation;uniform vec2 uRes;uniform vec3 uShadowTint,uHighTint;varying vec2 vUv;
    vec3 aces(vec3 x){const float a=2.51,b=.03,c=2.43,d=.59,e=.14;return clamp((x*(a*x+b))/(x*(c*x+d)+e),0.,1.);}
    float hash(vec2 p){return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453);}
    void main(){vec2 uv=vUv,cc=uv-.5;float r2=dot(cc,cc);
@@ -33,18 +33,21 @@ export class Post{
     col=aces(col);
     // Grade: cool shadows, warm/magenta highlights, gentle saturation.
     float l=dot(col,vec3(.2126,.7152,.0722));
-    col+=vec3(-.012,.004,.03)*(1.-smoothstep(0.,.35,l))+vec3(.03,.0,.02)*smoothstep(.45,1.,l);
+    col+=uShadowTint*(1.-smoothstep(0.,.35,l))+uHighTint*smoothstep(.45,1.,l);
     col=mix(vec3(l),col,uSaturation);
     col*=1.-uVignette*smoothstep(.12,.75,r2*1.6);
     col=pow(max(col,0.),vec3(1./2.2));
     col+=(hash(uv*uRes+fract(uTime*7.31)*100.)-.5)*uGrain;
     float bar=step(abs(cc.y),.5-uLetterbox);col*=bar*uFade;
-    gl_FragColor=vec4(col,1.);}`,{tScene:{value:null},tBloom:{value:null},uBloom:{value:.32},uExposure:{value:1.0},uTime:{value:0},uVignette:{value:.55},uGrain:{value:.035},uAberration:{value:.012},uLetterbox:{value:0},uFade:{value:1},uSaturation:{value:1.08},uRes:{value:new THREE.Vector2(1,1)}});
+    gl_FragColor=vec4(col,1.);}`,{tScene:{value:null},tBloom:{value:null},uBloom:{value:.32},uExposure:{value:1.0},uTime:{value:0},uVignette:{value:.55},uGrain:{value:.035},uAberration:{value:.012},uLetterbox:{value:0},uFade:{value:1},uSaturation:{value:1.08},uRes:{value:new THREE.Vector2(1,1)},uShadowTint:{value:new THREE.Vector3(-.012,.004,.03)},uHighTint:{value:new THREE.Vector3(.03,0,.02)}});
   this.width=0;this.height=0;this.settings=this.final.uniforms;
  }
  setSize(w,h){if(w===this.width&&h===this.height)return;this.width=w;this.height=h;this.hdr.setSize(w,h);let mw=w,mh=h;for(const m of this.mips){mw=Math.max(1,mw>>1);mh=Math.max(1,mh>>1);m.setSize(mw,mh);}this.final.uniforms.uRes.value.set(w,h);}
  blit(material,target){this.quad.material=material;this.renderer.setRenderTarget(target);this.renderer.render(this.scene,this.camera);}
- render(scene,camera){const r=this.renderer;r.setRenderTarget(this.hdr);r.clear();r.render(scene,camera);
+ // views (optional): [{camera, x, width, before()}] rendered side by side into the HDR target.
+ render(scene,camera,views=null){const r=this.renderer;r.setRenderTarget(this.hdr);r.clear();
+  if(views){const h=this.hdr;for(const v of views){v.before?.();h.viewport.set(v.x,0,v.width,h.height);h.scissor.set(v.x,0,v.width,h.height);h.scissorTest=true;r.setRenderTarget(h);r.render(scene,v.camera);}h.viewport.set(0,0,h.width,h.height);h.scissor.set(0,0,h.width,h.height);h.scissorTest=false;r.setRenderTarget(h);}
+  else r.render(scene,camera);
   let src=this.hdr;this.mips.forEach((m,i)=>{this.down.uniforms.tSrc.value=src.texture;this.down.uniforms.uTexel.value.set(1/src.width,1/src.height);this.down.uniforms.uFirst.value=i===0?1:0;this.blit(this.down,m);src=m;});
   for(let i=this.mips.length-2;i>=0;i--){const s=this.mips[i+1];this.up.uniforms.tSrc.value=s.texture;this.up.uniforms.uTexel.value.set(1/s.width,1/s.height);this.up.uniforms.uRadius.value=1;r.autoClear=false;this.blit(this.up,this.mips[i]);r.autoClear=true;}
   this.final.uniforms.tScene.value=this.hdr.texture;this.final.uniforms.tBloom.value=this.mips[0].texture;this.final.uniforms.uTime.value=shared.uTime.value;this.blit(this.final,null);}

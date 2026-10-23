@@ -98,7 +98,7 @@ function buildGeometry(osm,plateau,traffic){
 
 export class Simulation{
  constructor(config,osm,plateau,traffic={tracks:[]}){
-  this.config=config;this.c=config.calibration;this.n=config.agents;this.seed=config.seed>>>0;this.time=0;this.clock=0;this.accumulator=0;this.dt=this.c.social_force?.step_s??.1;
+  this.config=config;this.osm=osm;this.c=config.calibration;this.n=config.agents;this.seed=config.seed>>>0;this.time=0;this.clock=0;this.accumulator=0;this.dt=this.c.social_force?.step_s??.1;
   this.promo=config.promotion??true;this.admitted=0;this.completed=0;this.totalCompleted=0;this.trainWaves=[0,0];this.lastTrain=[-1,-1];this.cycle=-1;this.active=0;this.recruitDebt=0;this.rescued=0;this.rescuedCycle=0;this.deferred=0;this.deferredCycle=0;this.last={admitted:0,completed:0,rescued:0,deferred:0};this.queueLoad=new Int32Array(6);this.rng=(this.seed^0x9e3779b9)>>>0||1;
   let g=geometryCache.get(plateau)?.get(osm)?.get(traffic);
   if(!g){g=buildGeometry(osm,plateau,traffic);if(!geometryCache.has(plateau))geometryCache.set(plateau,new WeakMap());const m=geometryCache.get(plateau);if(!m.has(osm))m.set(osm,new WeakMap());m.get(osm).set(traffic,g);}
