@@ -238,9 +238,13 @@ def lang_path(path,lang):
     return path if lang=='ja' else path.with_name(path.stem+'-en'+path.suffix)
 
 
-def record_halloween(site,output,stills,frames=None,stills_at=None):
+def record_halloween(site,output,stills,frames=None,stills_at=None,start_frame=0):
     """Writes `output` (Japanese) and `<output>-en` (English) plus stills/frames.jsonl
-    (per-frame solver values for the vertical cuts, tools/compose_vertical.py)."""
+    (per-frame solver values for the vertical cuts, tools/compose_vertical.py).
+    start_frame>0 resumes a crashed capture: the solvers are advanced deterministically
+    (window.__skip, no rendering) up to that frame, the videos then hold frames from
+    start_frame on (join them to the first part with ffmpeg concat) and frames.jsonl is
+    appended to."""
     from playwright.sync_api import sync_playwright
     output.parent.mkdir(parents=True,exist_ok=True);stills.mkdir(parents=True,exist_ok=True)
     handler=functools.partial(QuietHandler,directory=str(site))
@@ -285,8 +289,9 @@ def record_halloween(site,output,stills,frames=None,stills_at=None):
             for lang,path in outputs.items():
                 encoders[lang]=subprocess.Popen(['ffmpeg','-hide_banner','-loglevel','error','-y','-f','image2pipe','-vcodec','png','-framerate',str(FPS),'-i','-','-an','-c:v','libx264','-preset','medium','-crf','17','-threads','2','-pix_fmt','yuv420p','-movflags','+faststart+use_metadata_tags','-metadata',f'credit={H_CREDITS}','-metadata',f'comment={H_CREDITS}\nHalloween night mode ({lang}): directed time-lapse (x1-x125, shown on screen); every count is counted from the simulated people; the 2026 crowd figure is a cited estimate. Toy model, not a prediction.',str(path)],stdin=subprocess.PIPE)
             scene_frames=frames or scene_seconds*FPS
-            framelog=(stills/'frames.jsonl').open('w',encoding='utf-8')
-            for frame in range(scene_frames):
+            for frame in range(start_frame): page.evaluate(f'window.__skip({frame/FPS})')
+            framelog=(stills/'frames.jsonl').open('a' if start_frame else 'w',encoding='utf-8')
+            for frame in range(start_frame,scene_frames):
                 seconds=frame/FPS;t0=time.monotonic()
                 state=page.evaluate(f'window.__frame({seconds})')
                 pngs=shots();frame_ms.append((time.monotonic()-t0)*1000)
@@ -332,7 +337,7 @@ def record_halloween(site,output,stills,frames=None,stills_at=None):
         server.shutdown();server.server_close();thread.join(timeout=5)
         for enc in encoders.values():
             enc.stdin.close();enc.terminate();enc.wait(timeout=10)
-    duration=(scene_frames+credit_frames)/FPS
+    duration=(scene_frames-start_frame+credit_frames)/FPS
     probes={}
     for lang,path in outputs.items():
         probe=json.loads(subprocess.check_output(['ffprobe','-v','error','-show_entries','format=duration:stream=width,height,r_frame_rate','-of','json',str(path)]))
@@ -356,7 +361,8 @@ if __name__=='__main__':
     ap.add_argument('--stills',type=Path,default=Path('out/media/shibuya-scramble'))
     ap.add_argument('--frames',type=int,help='only the first N scene frames (quick preview)')
     ap.add_argument('--mode',choices=['normal','halloween'],default='normal',help='halloween: costumes, police crowd control and the station-closing comparison')
+    ap.add_argument('--start-frame',type=int,default=0,help='halloween: resume a crashed capture from this scene frame')
     ap.add_argument('--stills-at',type=lambda v:[float(x) for x in v.split(',')],help='halloween: only write preview stills at these video seconds')
     args=ap.parse_args()
-    if args.mode=='halloween': record_halloween(args.site.resolve(),args.output.resolve(),args.stills.resolve(),args.frames,args.stills_at)
+    if args.mode=='halloween': record_halloween(args.site.resolve(),args.output.resolve(),args.stills.resolve(),args.frames,args.stills_at,args.start_frame)
     else: record(args.site.resolve(),args.output.resolve(),args.stills.resolve(),args.frames)
