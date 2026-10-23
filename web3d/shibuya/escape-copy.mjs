@@ -12,14 +12,17 @@
 //              + notReal footer. Never styled or named like a real alert service or broadcaster.
 //   RULES      head + items[4] {no,title,tip}: rules that are real safety tips. Facts in tips carry factIds.
 //   GAME       start / startSub (GAME START), rec (VHS label), countdown (game clock, NOT sim),
-//              simClock (sim clock), survivorsHead + survivors (sim counts: escaped / still in Shibuya),
-//              alert (red vignette label when sim density spikes).
+//              simClock (sim clock), survivorsHead + survivors + survivorsNote (sim counts: escaped / still in
+//              Shibuya), alert + alertRoute/alertPlayer (red alert label when sim density spikes, and where).
 //   TAGLINES   2 original B-movie taglines (array of T).
 //   GAME_OVER  end-of-game parody title before QUESTION. Not a route result: the sub-line reports the
 //              sim tally ({escaped}/{total} routes escaped). checkCopy() allows "GAME OVER" only here.
 //   STAMPS.escaped is the per-route result stamp (ESCAPED!). STAMPS.caught exists only for a sim
 //              CAUGHT outcome; the current sim produces none, so it must never be shown.
 //   END_CARD.parody  parody disclaimer on the end card.
+// checkCopy() parody guards: cue + fictional issuer present, no real agency in BROADCAST, 3-4 RULES,
+//   1-2 TAGLINES, GAME OVER only in GAME_OVER, CAUGHT only in STAMPS.caught, and any number in a
+//   parody line (other than the 10/31 date) must be sim-labelled or carry a fact id.
 import {SOURCES,FACT_SOURCES,DROPPED_FACTS,CROWD_2026} from './sources-halloween.mjs';
 
 const T=(ja,en,factIds=[],extra={})=>Object.freeze({ja,en,factIds:Object.freeze(factIds),...extra});
@@ -62,9 +65,9 @@ export const RULES=Object.freeze({
   Object.freeze({no:2,title:T('ルール② 警察・警備員の指示に従え','RULE 2: Follow police & staff'),
    tip:T('31日は民間警備員 約125人（区の対策）','Oct 31: ~125 private guards (ward plan)',['MEAS-08'])}),
   Object.freeze({no:3,title:T('ルール③ 自分のルートの改札を使え','RULE 3: Use the gate on your route'),
-   tip:T('出入口は混雑で変わる可能性あり','Entrances may change with crowding',['MEAS-12'])}),
-  Object.freeze({no:4,title:T('ルール④ 歩いて規制の外へ','RULE 4: Walk out of the closure zone'),
-   tip:T('🚕 タクシーは赤枠の外で（規制図）\n🚶 神泉駅まで徒歩約10分など（OSM概算）','🚕 Taxis outside the red zone (police map)\n🚶 e.g. Shinsen ~10 min walk (OSM est.)',['TAXI-07','ALT-01'])}),
+   tip:T('出入口は混雑で変わる可能性あり\n当日は駅の案内を確認','Entrances may change with crowding.\nCheck station notices on the day.',['MEAS-12'])}),
+  Object.freeze({no:4,title:T('ルール④ 隣の駅まで歩け','RULE 4: Walk to another station'),
+   tip:T('🚶 神泉駅まで徒歩約10分など（OSM概算）\n🚕 タクシーは規制エリアの外で（規制図）','🚶 e.g. Shinsen ~10 min walk (OSM est.)\n🚕 Taxi: outside closure zone (police map)',['ALT-01','TAXI-07'])}),
  ]),
 });
 export const GAME=Object.freeze({
@@ -72,10 +75,16 @@ export const GAME=Object.freeze({
  startSub:T('ゲーム開始：渋谷から脱出せよ','Your goal: get out of Shibuya'),
  rec:T('▶ PLAY　10.31 SAT','▶ PLAY  OCT 31 SAT'),
  countdown:T('のこり {mmss}','TIME LEFT {mmss}'),
+ clockTag:T('ゲーム時間','GAME CLOCK'),
  simClock:T('SIM +{mmss}','SIM +{mmss}',[],{sim:true}),
- survivorsHead:T('脱出カウンター（シミュ）','SURVIVOR COUNT (SIMULATION)',[],{sim:true}),
+ survivorsHead:T('脱出カウンター（シミュ）','ESCAPE COUNTER (SIM)',[],{sim:true}),
  survivors:T('脱出 {escaped}人 ／ まだ渋谷 {left}人','out {escaped} · still in Shibuya {left}',[],{sim:true}),
  alert:T('⚠ 密集アラート（シミュレーション）','⚠ CROWD ALERT (SIMULATION)',[],{sim:true}),
+ alertRoute:T('ルート{key}の上','on route {key}',[],{sim:true}),
+ alertPlayer:T('プレイヤーの周囲6m','around the player (6 m)',[],{sim:true}),
+ // what "out" counts in the survivor counter: walkers that reached their gate/stand, or the sim edge
+ // on routes that leave the simulated area (walk to another station, off-sim taxi stretch).
+ survivorsNote:T('脱出＝改札・乗り場・シミュ範囲の端に到達','out = at a gate, stand or the sim edge',[],{sim:true}),
 });
 export const TAGLINES=Object.freeze([
  T('その夜、立ち止まった者から…\n渋滞になる。','That night, whoever stops first…\nbecomes the traffic jam.'),
@@ -172,7 +181,7 @@ export const SCENARIOS=Object.freeze([
   ]),
   example:'A',
   route:T('ルート例：公園側の\nB1出口から地下へ','Example route: go underground\nat exit B1 by the park',['EXIT-09']),
-  taxi:T('🚕 宮益坂下〜駅前 16時ごろ〜通行止め\nのりば例：SAKURAテラス前（赤枠の外）','🚕 No cars Miyamasuzaka-shita–station\nfrom ~16:00. Stand e.g. SAKURA Terrace',['MEAS-03','MEAS-04','TAXI-01','TAXI-07']),
+  taxi:T('🚕 宮益坂下〜駅前 16時ごろ〜通行止め\nのりば例：SAKURAテラス前（規制エリア外）','🚕 No cars Miyamasuzaka-shita–station\nfrom ~16:00. Stand e.g. SAKURA Terrace',['MEAS-03','MEAS-04','TAXI-01','TAXI-07']),
   alt:T('🚶 原宿駅（JR山手線）まで徒歩約16分\n（OSM地図から概算）','🚶 Harajuku (JR Yamanote): ~16 min walk\n(approx., computed from OpenStreetMap)',['ALT-04']),
   status:T('2026年：出入口は混雑で変わる可能性\n各社の具体策は未発表（10/23時点）','2026: entrances may change with crowds\nNo station gate plan published (Oct 23)',['MEAS-12'],{notAnnounced:true}),
  }),
@@ -202,7 +211,7 @@ export const SCENARIOS=Object.freeze([
   ]),
   example:'A',
   route:T('ルート例：ストリームと\nサクラステージの間の新南改札へ','Example route: JR New South gate,\nbetween Stream and Sakura Stage',['EXIT-05']),
-  taxi:T('🚕 SAKURAテラス前のりば（桜丘町）\n規制図では赤枠の外','🚕 SAKURA Terrace taxi stand (Sakuragaoka):\noutside the red zone on the police map',['TAXI-01','TAXI-07']),
+  taxi:T('🚕 SAKURAテラス前のりば（桜丘町）\n規制図では規制エリアの外','🚕 SAKURA Terrace taxi stand (Sakuragaoka):\noutside the closure zone (police map)',['TAXI-01','TAXI-07']),
   alt:T('🚶 恵比寿駅まで徒歩約20分\n（OSM地図から概算）','🚶 Ebisu (JR/Hibiya): ~20 min walk\n(approx., computed from OpenStreetMap)',['ALT-05']),
   status:T('東急の2026年の対策：未発表\nC1〜C3の通路は6〜23時のみ','Tokyu 2026 plan: not announced\nC1–C3 passage is open 6:00–23:00 only',['EXIT-10'],{notAnnounced:true}),
  }),
@@ -216,7 +225,7 @@ export const SCENARIOS=Object.freeze([
   ]),
   example:'A',
   route:T('ルート例：道玄坂から\n井の頭線 西口（WEST 1F）へ','Example route: from Dogenzaka into\nthe Keio West gate (WEST 1F)',['EXIT-11']),
-  taxi:T('🚕 道玄坂は赤枠内：検問の場合あり\nSAKURAテラス前は赤枠の外（規制図）','🚕 Dogenzaka is in the red zone: checks\npossible. SAKURA Terrace stand is outside',['MEAS-02','TAXI-07','TAXI-01']),
+  taxi:T('🚕 道玄坂は規制エリア内：検問の場合あり\nSAKURAテラス前は規制エリアの外（規制図）','🚕 Dogenzaka is in the closure zone: checks\npossible. SAKURA Terrace stand is outside',['MEAS-02','TAXI-07','TAXI-01']),
   alt:T('🚶 池尻大橋駅（田園都市線）まで約23分\n（OSM地図から概算）','🚶 Ikejiri-Ohashi (Den-en-toshi): ~23 min\n(approx., computed from OpenStreetMap)',['ALT-07']),
   status:T('京王の2026年の告知：未発表\n例：2022年 不安を招く仮装での乗車遠慮を依頼','Keio 2026 notice: not announced\ne.g. 2022: please avoid upsetting costumes',['MEAS-18'],{notAnnounced:true}),
  }),
@@ -320,6 +329,9 @@ export function checkCopy(){
  }
  // parody guards: GAME OVER only as the end-of-game title; parody cue present; fictional issuer only.
  for(const [p,o] of strings)if(/GAME\s*OVER|ゲームオーバー/i.test(o.ja+o.en)&&!p.startsWith('.GAME_OVER'))errs.push(`${p} GAME OVER outside GAME_OVER`);
+ for(const [p,o] of strings)if(/CAUGHT|捕まった/i.test(o.ja+o.en)&&p!=='.STAMPS.caught')errs.push(`${p} CAUGHT outside STAMPS.caught`);
+ for(const [p,o] of strings)if(/^\.(RULES|BROADCAST|TAGLINES|GAME_OVER)/.test(p)&&!p.endsWith('.title')&&/\d/.test((o.ja+' '+o.en).replace(/10\/31|10月31日|Oct 31|31日/g,''))&&!o.sim&&!(o.factIds||[]).length)errs.push(`${p} parody line states a number without a fact id`);
+ if(TAGLINES.length<1||TAGLINES.length>2)errs.push('TAGLINES must have 1-2 lines');
  if(!/パロディ/.test(BROADCAST.parody.ja)||!/PARODY/.test(BROADCAST.parody.en))errs.push('BROADCAST parody cue missing');
  if(!/架空/.test(BROADCAST.issuer.ja)||!/fictional/i.test(BROADCAST.issuer.en))errs.push('BROADCAST issuer must be marked fictional');
  const REAL=/警視庁|警察署|政府|内閣|消防|気象庁|NHK|J-?ALERT|Jアラート|渋谷区役所|police dep|government|cabinet|emergency alert/i;

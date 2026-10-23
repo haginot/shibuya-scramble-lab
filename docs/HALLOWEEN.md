@@ -163,14 +163,34 @@ On-screen text in `web3d/shibuya/escape-copy.mjs` cites these by outlet name; id
 
 ## v4 video: 「🧙ハロウィンの渋谷を脱出せよ！🎃」 / "Escape Shibuya on Halloween!"
 
-45 s (42 s scene + 3 s end card), framed as an escape game. Shots (web3d/shibuya/director-halloween.mjs):
-hook 0–1 s 「渋谷から脱出できるか？」 over the red DANGER swarm → big title card 1–3 s (all letters in by ~1.75 s,
-held, then flies into a persistent header) → MISSION card 3–7 s (≈18,000 = the cited 2026 ward expectation for the
-Center Gai streets, not a sim count; the 3D city sinks into a flat game map: buildings capped at 7 m, roads, the JR
-station band and street names) → five 6 s levels (Center Gai, Miyashita Park, Hikarie/Meiji-dori, Shibuya Stream,
-Dogenzaka/Mark City) → overview of the five example routes 37–39.5 s → 「あなたならどこから帰る？」 39.5–42 s → end card
-with every source outlet and date, and one line on why the sim crowd (48,000, whole model area) differs from 18,000.
+45 s (42 s scene + 3 s end card), framed as an escape game and staged as a generic parody of zombie and death-game
+films (no real film titles, lines, characters or logos; no real agency as issuer; partygoers are never the threat,
+only the red simulated density field is). Shots (web3d/shibuya/director-halloween.mjs):
+cold open 0–1.5 s: a parody "urgent notice" card from the fictional game HQ (「※これはパロディです」/"PARODY — not a
+real alert" and 「本物の警報・お知らせではありません」 on screen the whole time; hazard tape, VHS look) → glitch into the
+big title card 1.5–3.5 s (glitch only until 1.72 s, then held clean and fully legible until 3.2 s, then flies into a
+persistent header) → RULES 3.5–6.3 s (four rules that are real safety tips: keep moving, follow police & staff, use
+the gate on your route, walk to another station; ≈18,000 = the cited 2026 ward expectation, not a sim count; the
+3D city sinks into a flat game map) → GAME START 6.3–7 s → five 6 s levels (Center Gai, Miyashita Park,
+Hikarie/Meiji-dori, Shibuya Stream, Dogenzaka/Mark City) → overview of the five example routes 37–39 s → GAME OVER
+39–40 s (end-of-game parody title when the game clock runs out, with the simulated tally "5/5 routes escaped";
+never a route result) → 「あなたならどこから帰る？」 40–42 s → end card with every source outlet and date, the parody
+note, and one line on why the sim crowd (48,000, whole model area) differs from 18,000.
 
+- Parody HUD: a countdown (「のこり」/"TIME LEFT" with a small 「ゲーム時間」/"GAME CLOCK" tag: a game clock, not
+  simulation, 00:32 → 00:00 from GAME START to GAME OVER); an escape counter (「脱出カウンター（シミュ）」/"ESCAPE
+  COUNTER (SIM)": walkers of the level that reached their gate/stand or the sim edge vs those still walking or
+  waiting); a red alert vignette + 「⚠ 密集アラート（シミュレーション）」 label exactly where the legend says red: the
+  simulated density at the player, or (once the ribbons are drawn) on any route of the level, is ≥ 3 p/m² (the DANGER
+  meter's red step). The label says where (「ルートBの上」/"on route B", or around the player). Pulse = 0.45 + 0.55 ·
+  smoothstep(3, 4 p/m²), 0 below 3. The police map's 赤枠 is called 「規制エリア」/"closure zone (police map)" so
+  red only means sim density. GAME OVER is gold (the game clock ran out; the tally below says 5/5 escaped), not red.
+  VHS/glitch only on transitions (cold open, title glitch-in, GAME START, level cuts ≤ 0.25, GAME OVER).
+- Map labels: one layout serves the JA/EN 16:9 captures and the 9:16 cut, so each label box is measured in both
+  languages at the 9:16 scale (×1.25) and kept inside the 9:16 column; the recorder checks the full box, not the anchor.
+  The recorder checks all of these per frame (check_overlay: parody cue on the cold open, title unglitched while held,
+  countdown formula, survivor counter = branch counters and conserved walkers, alert = density threshold, GAME OVER
+  only in the end-of-game shot, CAUGHT only where the sim rule produced it).
 - Each level: PLAYER START pin, branches A/B/C (station gate, taxi stand or walk to another station), the example
   route lit (no source ranks routes, so it is never called "best"), the sim's walkers on every branch, SIM timer,
   DANGER meter (densest 3 m cell within 6 m of the player, p/m²), ✔/✖ per branch that ends inside the sim area.

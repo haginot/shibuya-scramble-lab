@@ -17,6 +17,7 @@ import http.server
 import json
 import math
 import os
+import re
 from pathlib import Path
 import shutil
 import subprocess
@@ -161,8 +162,28 @@ H_CREDIT_SECONDS = 3
 H_LANGS = ('ja','en')
 H_VLANGS = ('ja-v','en-v')
 # Shot table (director-halloween.mjs SHOTS): start second, shot name, compose section.
-H_SECTIONS = [(0,'hook','hook'),(1,'title','title'),(3,'mission','mission'),(7,'lv1','level'),(13,'lv2','level'),(19,'lv3','level'),
-              (25,'lv4','level'),(31,'lv5','level'),(37,'overview','overview'),(39.5,'question','question')]
+H_SECTIONS = [(0,'broadcast','broadcast'),(1.5,'title','title'),(3.5,'rules','rules'),(7,'lv1','level'),(13,'lv2','level'),(19,'lv3','level'),
+              (25,'lv4','level'),(31,'lv5','level'),(37,'overview','overview'),(39,'gameover','gameover'),(40,'question','question')]
+# Parody beats (director-halloween.mjs TITLE_BEAT / GAME_CLOCK; escape-overlay.mjs ALERT; escape-copy.mjs BROADCAST).
+H_TITLE_CLEAN = (1.72,3.2)        # title card held fully legible and unglitched (≥ 1 s)
+H_HEADER_FROM = 3.5
+H_GAME_CLOCK = (7,39)             # parody countdown 00:32 → 00:00 (game clock, not simulation)
+H_ALERT = (3,4,.45)               # alert: off below 3 p/m² (the legend's red / DANGER red step); pulse = on+(1-on)·smoothstep(3,4,v)
+H_PARODY_CUE = {'ja':'※これはパロディです','en':'PARODY — not a real alert'}
+H_NOT_REAL = {'ja':'本物の警報・お知らせではありません','en':'This is not a real alert or notice'}
+def countdown_at(t): a,b=H_GAME_CLOCK; return b-a if t<a else max(0,b-t)
+def alert_pulse(v):
+    a,b,on=H_ALERT
+    if not v>=a: return 0.0
+    k=min(1,max(0,(v-a)/(b-a))); return on+(1-on)*k*k*(3-2*k)
+GAME_OVER_RE = re.compile(r'GAME\s*OVER|ゲームオーバー',re.I)
+CAUGHT_RE = re.compile(r'CAUGHT|捕まった',re.I)
+def _strings(o,path=()):
+    if isinstance(o,str): yield path,o
+    elif isinstance(o,dict):
+        for k,v in o.items(): yield from _strings(v,path+(k,))
+    elif isinstance(o,list):
+        for i,v in enumerate(o): yield from _strings(v,path+(i,))
 H_CAPTIONS = [(t,name,name) for t,name,_ in H_SECTIONS]  # (v4 has no caption line; kept for recording.json)
 H_CREDITS = CREDITS.replace('Crossing scale: Asahi Shimbun 2016-04-22 (up to 3,000 per green) · see NOTICE and web3d/data/',
     'Escape routes: places, gates, stands and walk times from the sources listed on the end card (research 2026-10-23; docs/HALLOWEEN.md); positions on the map approximate\n'
@@ -172,10 +193,10 @@ H_CREDITS = CREDITS.replace('Crossing scale: Asahi Shimbun 2016-04-22 (up to 3,0
 H_CREDIT_CARD = r"""(text)=>{const E=window.__hwEnd,L=(k,f=v=>v)=>`<span class="l-en">${f(E.en[k])}</span><span class="l-ja">${f(E.ja[k])}</span>`,esc=v=>String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;'),
  emo=v=>esc(v).replace(/(\p{Extended_Pictographic}️?)/gu,'<span class="emo">$1</span>'),nl=v=>esc(v).replace(/\n/g,' '),list=k=>`<ul>${E[k].sources.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`;
 const card=document.createElement('div');card.id='credits';
-card.innerHTML=`<div class="t">${L('title',emo)}</div><div class="q">${L('question',emo)}</div><div class="sh">${L('sourcesHead')}</div><div class="src"><span class="l-en">${list('en')}</span><span class="l-ja">${list('ja')}</span></div><div class="n">${L('sim',nl)}</div><div class="n2">${L('walk',nl)} ・ ${L('check')}</div><pre></pre><div class="c">${L('data')} · built with Claude Code · github.com/haginot/shibuya-scramble-lab</div>`;
+card.innerHTML=`<div class="t">${L('title',emo)}</div><div class="q">${L('question',emo)}</div><div class="sh">${L('sourcesHead')}</div><div class="src"><span class="l-en">${list('en')}</span><span class="l-ja">${list('ja')}</span></div><div class="n">${L('sim',nl)}</div><div class="n2">${L('walk',nl)} ・ ${L('check')}</div><div class="pa">${L('parody')}</div><pre></pre><div class="c">${L('data')} · built with Claude Code · github.com/haginot/shibuya-scramble-lab</div>`;
 card.querySelector('pre').textContent=text;
 Object.assign(card.style,{position:'fixed',inset:'0',zIndex:100,background:'radial-gradient(ellipse at 50% 35%,#2a1030 0%,#05040a 72%)',color:'#e9ebf3',display:'flex',flexDirection:'column',justifyContent:'center',alignItems:'center',font:'11px/1.5 Inter,"Noto Sans CJK JP","Noto Color Emoji",sans-serif',opacity:0});
-const st=document.createElement('style');st.textContent='#credits .emo{font-family:"Noto Color Emoji"}#credits .t{font:700 40px/1.2 "Noto Sans CJK JP","Noto Color Emoji",sans-serif;color:#FFF3E2;text-shadow:0 0 18px #FF8A1F99}.lang-en #credits .t{font:400 34px/1.2 Bungee,"Noto Color Emoji",sans-serif}#credits .q{font:700 32px/1.3 "Noto Sans CJK JP","Noto Color Emoji",sans-serif;color:#ffcf6a;margin:6px 0 12px}.lang-en #credits .q{font:900 30px Inter,"Noto Color Emoji",sans-serif}#credits .sh{font:800 14px Inter,"Noto Sans CJK JP",sans-serif;letter-spacing:.2em;color:#FF8A1F;text-transform:uppercase}#credits ul{columns:3;column-gap:28px;list-style:none;padding:0;margin:6px 0 10px;font:600 13.5px/1.6 Inter,"Noto Sans CJK JP",sans-serif;color:#E8DCFF;width:1080px}#credits .n{font:700 13.5px/1.5 Inter,"Noto Sans CJK JP",sans-serif;color:#d9c2ff;max-width:1100px;text-align:center}#credits .n2{font:600 13px/1.5 Inter,"Noto Sans CJK JP",sans-serif;color:#ffe2b8;margin:4px 0 8px}#credits pre{font:inherit;font-size:10px;white-space:pre-line;text-align:center;color:#9a9db0;margin:0;max-width:1200px}#credits .c{margin-top:8px;font-size:11px;letter-spacing:.14em;color:#ffcf6a}';
+const st=document.createElement('style');st.textContent='#credits .emo{font-family:"Noto Color Emoji"}#credits .t{font:700 40px/1.2 "Noto Sans CJK JP","Noto Color Emoji",sans-serif;color:#FFF3E2;text-shadow:0 0 18px #FF8A1F99}.lang-en #credits .t{font:400 34px/1.2 Bungee,"Noto Color Emoji",sans-serif}#credits .q{font:700 32px/1.3 "Noto Sans CJK JP","Noto Color Emoji",sans-serif;color:#ffcf6a;margin:6px 0 12px}.lang-en #credits .q{font:900 30px Inter,"Noto Color Emoji",sans-serif}#credits .sh{font:800 14px Inter,"Noto Sans CJK JP",sans-serif;letter-spacing:.2em;color:#FF8A1F;text-transform:uppercase}#credits ul{columns:3;column-gap:28px;list-style:none;padding:0;margin:6px 0 10px;font:600 13.5px/1.6 Inter,"Noto Sans CJK JP",sans-serif;color:#E8DCFF;width:1080px}#credits .n{font:700 13.5px/1.5 Inter,"Noto Sans CJK JP",sans-serif;color:#d9c2ff;max-width:1100px;text-align:center}#credits .n2{font:600 13px/1.5 Inter,"Noto Sans CJK JP",sans-serif;color:#ffe2b8;margin:4px 0 8px}#credits .pa{font:800 13px Inter,"Noto Sans CJK JP",sans-serif;color:#0B0612;background:#FFD23F;padding:2px 10px;border-radius:5px;margin:0 0 8px}#credits pre{font:inherit;font-size:10px;white-space:pre-line;text-align:center;color:#9a9db0;margin:0;max-width:1200px}#credits .c{margin-top:8px;font-size:11px;letter-spacing:.14em;color:#ffcf6a}';
 document.head.append(st);document.body.append(card);}"""
 
 
@@ -258,10 +279,52 @@ def check_overlay(ov,sweep=None):
     # ---- v4 escape overlay ----
     t=ov.get('t')
     if t is not None and ov.get('title') is not None:
-        if 3.0<=t<H_SCENE_SECONDS: assert ov['title']['header'],('title header missing',t)
-        if 1.0<=t<2.9: assert ov['title']['card'],('title card missing',t)
+        if H_HEADER_FROM<=t<H_SCENE_SECONDS: assert ov['title']['header'],('title header missing',t)
+        if 1.5<=t<3.4: assert ov['title']['card'],('title card missing',t)
         tc=ov.get('titleChars')
-        if tc and 1.8<=t<2.75: assert all(tc[l]==tc['total'][l] for l in ('ja','en')),('title card not complete while held',t,tc)
+        if H_TITLE_CLEAN[0]<=t<H_TITLE_CLEAN[1]:
+            # held: complete, opaque, not flying and never glitched (the title stays fully legible)
+            assert tc and all(tc[l]==tc['total'][l] for l in ('ja','en')),('title card not complete while held',t,tc)
+            assert not ov['title'].get('glitch') and not ov['title'].get('fly') and ov['title'].get('alpha',1)==1,('title glitched/moving while held',t,ov['title'])
+    # ---- parody layer ----
+    if ov.get('section')=='broadcast':
+        b=ov.get('broadcast');assert b,('cold open without the broadcast card',t)
+        assert b['cue']==H_PARODY_CUE and b['notReal']==H_NOT_REAL,('parody cue / not-real line missing',b)
+        assert b['alpha']>0 and (t>=1.4 or b['alpha']==1),('parody card not fully on screen',t,b['alpha'])
+        for lang in ('ja','en'):
+            tb=(ov.get('text') or {}).get(lang,{}).get('broadcast') or {}
+            assert tb.get('parody')==H_PARODY_CUE[lang] and tb.get('notReal')==H_NOT_REAL[lang],('9:16 broadcast strings missing the parody cue',lang)
+    if ov.get('countdown'):
+        c=ov['countdown'];assert c['shown']==mmss(countdown_at(c['src']['t'])) and (c['src']['from'],c['src']['to'])==H_GAME_CLOCK,c
+    if ov.get('survivors'):
+        sv=ov['survivors'];src=sv['src']
+        assert sv['shown']['escaped']==fmt(src['arrived']) and sv['shown']['left']==fmt(src['walking']+src['pending']),sv
+        if src.get('perBranch'): assert src['arrived']+src['walking']+src['pending']==src['perBranch']*src['branches'],('survivor counter does not conserve walkers',sv)
+        e=ov.get('escape')
+        if e: assert src['arrived']==sum(b['src']['arrived'] for b in e['branches']) and src['walking']==sum(b['src']['walking'] for b in e['branches']),('survivor counter ≠ branch counters',sv)
+    if ov.get('alert'):
+        a=ov['alert'];src=a['src']
+        assert a['on']==(alert_pulse(src['value'])>=H_ALERT[2])==(src['value']>=H_ALERT[0]),('alert label does not follow the sim density (red = 3+ p/m²)',a)
+        if a['on'] and a.get('where')=='route': assert a.get('key'),('route alert without its route key',a)
+        assert a['shown']==(p2(src['value']) if a['on'] else ''),a
+        assert src['value']==max(src['player'],src['route']),a
+        e=ov.get('escape')
+        if e: assert jsround(src['player']*1000)==jsround(e['danger']['src']*1000),('alert player value ≠ HUD DANGER',a,e['danger'])
+    # GAME OVER is only the end-of-game parody title (gameover shot, sim tally); never a route result.
+    # CAUGHT may only appear as a stamp the sim rule produced.
+    go=ov.get('gameOver')
+    if go:
+        assert ov.get('section')=='gameover' and go['section']=='gameover',('GAME OVER outside the end-of-game title',ov.get('section'))
+        assert go['shown']['escaped']==sum(o=='escaped' for o in go['src']['outcomes']) and go['shown']['total']==len(go['src']['outcomes']),go
+    for lang,T in (ov.get('text') or {}).items():
+        for path,v in _strings(T):
+            if GAME_OVER_RE.search(v): assert path[:1]==('gameover',) and ov.get('section')=='gameover',('GAME OVER shown outside the end-of-game title',lang,path,v)
+            if CAUGHT_RE.search(v):
+                st=(ov.get('escape') or {}).get('stamp') or {}
+                stamp_ok=path[:3]==('level','stamp','main') and st.get('shown')=='caught' and rule_outcome(st['src'])=='caught'
+                rows=(ov.get('overview') or {}).get('rows') or []
+                row_ok=path[:1]==('overview',) and len(path)>2 and path[1]<len(rows) and rows[path[1]]['src']['outcome']=='caught'
+                assert stamp_ok or row_ok,('CAUGHT shown without a sim CAUGHT outcome',lang,path,v)
     if ov.get('mission'):
         m=ov['mission'];assert m['n']==fmt(ESTIMATE_2026) and m['src']==ESTIMATE_2026,m   # cited estimate, not a sim count
     if ov.get('escape'):
@@ -303,6 +366,8 @@ def check_overlay(ov,sweep=None):
     for lab in ov.get('labels') or []:
         x0,x1,y0,y1=LABEL_SAFE
         assert x0<=lab['x']<=x1 and y0<=lab['y']<=y1,('label outside the 9:16 column',lab)
+        b=lab.get('box');assert b,('label without its box',lab)   # full label box at the 9:16 scale, widest of ja/en
+        assert x0<=b['x0'] and b['x1']<=x1 and y0<=b['y0'] and b['y1']<=y1,('label box clipped by the 9:16 column',lab)
 
 
 SWEEP_PATH = Path(__file__).resolve().parents[1]/'web3d/data/shibuya_dispersal_sweep.json'
@@ -386,6 +451,17 @@ def record_halloween(site,output,stills,frames=None,stills_at=None,start_frame=0
             (stills/'escape-summary.json').write_text(json.dumps(esc['summary'],ensure_ascii=False,indent=1),encoding='utf-8')
             (stills/'endcard.json').write_text(json.dumps(page.evaluate('window.__hwEnd'),ensure_ascii=False,indent=1),encoding='utf-8')
             if stills_at:
+                # Preview: where does the simulated density trigger the RED ALERT? Add the strongest frame of the
+                # two strongest levels (if any reaches the label threshold) to the stills.
+                tl=page.evaluate('window.__hwDebug.alertTimeline()')
+                (stills/'alert-timeline.json').write_text(json.dumps(tl),encoding='utf-8')
+                best={}
+                for r in tl:   # only frames that a 0.1 s still time lands on exactly
+                    if abs(r['t']*FPS-round(round(r['t'],1)*FPS))>1e-3: continue
+                    if r['level'] not in best or r['value']>best[r['level']]['value']: best[r['level']]=r
+                for k,r in best.items(): print(f"  alert {k}: max {r['value']:.2f} p/m² (pulse {alert_pulse(r['value']):.2f}) at {r['t']:.2f}s",flush=True)
+                on=sorted((r for r in best.values() if alert_pulse(r['value'])>=H_ALERT[2]),key=lambda r:-r['value'])[:2]
+                stills_at=sorted(set(stills_at)|{round(r['t'],1) for r in on})
                 done=0;log=(stills/'preview-frames.jsonl').open('w',encoding='utf-8')
                 for t in sorted(stills_at):
                     if t>=scene_seconds:

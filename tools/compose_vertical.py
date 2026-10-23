@@ -39,6 +39,8 @@ SYMBOL = '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'  # ✔ ✖ (not 
 BUNGEE = '/usr/share/fonts/truetype/sand-box/google/Bungee/Bungee-Regular.ttf'
 EMOJI_FONT = '/usr/share/fonts/truetype/noto/NotoColorEmoji.ttf'
 ORANGE, PURPLE, LILAC, SAFE, DANGER, WHITE, INK = (255, 138, 31), (157, 75, 255), (217, 194, 255), (79, 227, 193), (255, 42, 58), (255, 255, 255), (11, 6, 18)
+YELLOW, PINK = (255, 210, 63), (255, 154, 162)
+MONO = '/usr/share/fonts/truetype/dejavu/DejaVuSansMono-Bold.ttf'
 DANGER_COLORS = [(79, 227, 193), (255, 210, 63), (255, 122, 26), (255, 42, 58), (176, 0, 42)]
 _fonts = {}
 
@@ -46,7 +48,7 @@ _fonts = {}
 def font(size, kind='bold'):
     key = (int(size), kind)
     if key not in _fonts:
-        path = {'bold': BOLD, 'reg': REG, 'game': BUNGEE, 'sym': SYMBOL}[kind]
+        path = {'bold': BOLD, 'reg': REG, 'game': BUNGEE, 'sym': SYMBOL, 'mono': MONO}[kind]
         _fonts[key] = ImageFont.truetype(path, int(size), index=0) if path.endswith('.ttc') else ImageFont.truetype(path, int(size))
     return _fonts[key]
 
@@ -157,7 +159,6 @@ def section(shot):
     return 'level' if re.fullmatch(r'lv\d', shot or '') else shot
 
 
-HOOK_SPLIT = {'ja': ('渋谷から', '脱出できるか？'), 'en': ('Can you escape', 'Shibuya?')}
 TITLE_SPLIT = {'ja': ('🧙ハロウィンの', '渋谷を脱出せよ！🎃'), 'en': ('🧙 ESCAPE SHIBUYA', 'ON HALLOWEEN! 🎃')}
 _title_cache = {}
 
@@ -258,8 +259,9 @@ def result_card(img, st, lang, col, y):
         a = 255 if r.get('on') else 90
         d.ellipse([X0, ry, X0+30, ry+30], fill=(col if r['example'] else (216, 210, 232))+(a,))
         centered(img, ry+1, r['key'], font(19, 'game'), INK, x0=X0, x1=X0+30)
-        draw(img, X0+40, ry-1, clip(r['label'], font(22), 300), font(22), (242, 236, 255))
-        bx0, bx1 = X0+350, X0+600
+        fl = fit(r['label'], 22, 450, lines=1, min_size=15)
+        draw(img, X0+40, ry-1+(22-fl.size)*.5, clip(r['label'], fl, 450), fl, (242, 236, 255))
+        bx0, bx1 = X0+500, X0+640
         d.rounded_rectangle([bx0, ry+8, bx1, ry+24], radius=8, fill=(52, 42, 66, 255))
         if r.get('on') and r.get('bar'):
             w_ = max(16, (bx1-bx0)*r['bar'])
@@ -298,6 +300,104 @@ def teaser(img, T, t):
     block(img, y+230, T.get('routes', ''), 54, ORANGE, lines=1, min_size=30)
 
 
+def broadcast_band(img, B, lang):
+    """Cold open (0-1.5 s): the parody "urgent notice" of the fictional game HQ. The parody cue is the first
+    and a large line, the "not a real alert" line closes the bottom band; hazard tape, no official styling."""
+    if not B: return
+    d = ImageDraw.Draw(img)
+    for y in (0, H-26):
+        for x in range(-40, W+40, 44): d.polygon([(x, y), (x+22, y), (x+48, y+26), (x+26, y+26)], fill=YELLOW+(255,))
+    d.rectangle([0, 26, W, MID_Y-6], fill=(18, 4, 12, 255))
+    cue = B.get('parody', ''); f = font(52 if lang == 'ja' else 44)
+    cw = width(cue, f); panel(img, [W/2-cw/2-30, 64, W/2+cw/2+30, 64+f.size*1.75], fill=YELLOW+(255,), outline=INK+(255,), radius=12, width_=4)
+    centered(img, 64+f.size*.12, cue, f, INK, x0=0, x1=W)
+    block(img, 186, B.get('issuer', ''), 30, PINK, lines=1, x0=40, maxw=1000)
+    g = B.get('glitch', 0) or 0; dx = int(10*g)
+    if g: block(img, 246, B.get('head', ''), 64 if lang == 'ja' else 54, (42, 229, 255), lines=2, kind='bold' if lang == 'ja' else 'game', x0=40-dx, maxw=1000, min_size=36)
+    y = block(img, 246, B.get('head', ''), 64 if lang == 'ja' else 54, WHITE, lines=2, kind='bold' if lang == 'ja' else 'game', x0=40+dx, maxw=1000, min_size=36, stroke=3, stroke_fill=(106, 0, 16))
+    block(img, y+14, B.get('when', ''), 36, YELLOW, lines=1, x0=40, maxw=1000)
+    # bottom band: the order and the "not a real alert" line, centred in the band (one parody pill only, at the top)
+    d.rectangle([0, MID_Y+MID_H+4, W, H-26], fill=(18, 4, 12, 255))
+    top, bot = MID_Y+MID_H+4, H-26
+    scratch = Image.new('RGBA', (W, H)); fo = 60 if lang == 'ja' else 52
+    h1 = block(scratch, 0, B.get('order', ''), fo, (255, 243, 226), lines=3, x0=40, maxw=1000, min_size=30)
+    h2 = 46*1.6
+    y = top+((bot-top)-(h1+50+h2))/2
+    y = block(img, y, B.get('order', ''), fo, (255, 243, 226), lines=3, x0=40, maxw=1000, min_size=30)
+    nr = B.get('notReal', ''); fn = fit(nr, 46, 960, lines=1, min_size=26); nw = width(nr, fn)
+    d.line([(W/2-nw/2, y+40), (W/2+nw/2, y+40)], fill=YELLOW, width=3)
+    block(img, y+56, nr, 46, YELLOW, lines=1, x0=40, maxw=1000, min_size=26)
+
+
+def rules_band(img, R, lang, y0):
+    """3.5-6.3 s under the map: RULES OF THE GAME (real safety tips; tips carry their footnote marks)."""
+    if not R: return
+    centered(img, y0-2, R.get('head', ''), font(40, 'game' if lang == 'en' else 'bold'), (255, 74, 85))
+    y = y0+58; d = ImageDraw.Draw(img)
+    for it in R.get('items', []):
+        a = it.get('alpha', 1)
+        if a <= 0: y += 64; continue
+        d.rectangle([X0, y+4, X0+6, y+58], fill=YELLOW)
+        draw(img, X0+20, y-2, it['title'], fit(it['title'], 32, X1-X0-20, lines=1, min_size=24), WHITE)
+        tip = it['tip'].replace('\n', ' ')
+        draw(img, X0+20, y+36, tip, fit(tip, 24, X1-X0-20, 'bold', 1, 17), (242, 234, 255))
+        y += 64
+    tl = R.get('tagline', '').replace('\n', ' ')
+    if tl: block(img, y+2, tl, 24, PINK, lines=1, min_size=16)
+
+
+def game_start(img, G, lang, y0):
+    k = G.get('k', 1); sc = 1.25-.25*min(1, k/.15)
+    f = font(int(84*sc), 'game')
+    if k < .12: centered(img, y0+40, G.get('start', ''), f, (42, 229, 255), x0=-12, x1=W-12)
+    centered(img, y0+40, G.get('start', ''), f, (255, 243, 226), x0=0, x1=W, stroke=6, stroke_fill=(106, 0, 16))
+    block(img, y0+240, G.get('sub', ''), 40, YELLOW, lines=1)
+
+
+def game_over(img, G, lang, y0):
+    """39-40 s: end-of-game parody title (the game clock ran out) + the sim tally of the example routes."""
+    if not G: return
+    u = G.get('u', 1); f = font(84, 'game')
+    if u < .25: centered(img, y0+10, G.get('title', ''), f, (42, 229, 255), x0=-14, x1=W-14)
+    centered(img, y0+10, G.get('title', ''), f, YELLOW, x0=0, x1=W, stroke=6, stroke_fill=(42, 22, 0))  # gold: end of the game clock, not a failure
+    tally = G.get('tally', ''); ft = font(38)
+    tx0 = (W-width(tally, ft))/2
+    draw(img, tx0, y0+134, tally[:1], font(34, 'sym'), SAFE); draw(img, tx0+width(tally[:2], ft), y0+124, tally[2:], ft, SAFE)
+    block(img, y0+190, G.get('line', ''), 40, (255, 207, 106), lines=1)
+    block(img, y0+252, G.get('tagline', '').replace('\n', ' '), 28, PINK, lines=1, min_size=18)
+
+
+def mid_overlay(img, r, lang):
+    """Drawn over the 9:16 middle (the captured map): VHS OSD (cold open/title), the parody countdown and the
+    survivor counter (simulation) on a strip at the top, the CROWD ALERT (simulation) banner at the bottom."""
+    sec = section(r.get('shot')); T = (r.get('text') or {}).get(lang) or {}
+    if T.get('osd'):
+        draw(img, 36, MID_Y+24, T['osd'], font(34, 'mono'), WHITE, shadow=(3, 3, (0, 0, 0)))
+    G = T.get('game') or {}
+    Lv = T.get('level') or {}
+    sv = Lv.get('survivors') if sec == 'level' else None
+    if G.get('countdown') or sv:
+        strip = Image.new('RGBA', (W, 84), (11, 6, 18, 215)); img.alpha_composite(strip, (0, MID_Y))
+        d = ImageDraw.Draw(img); d.line([(0, MID_Y+84), (W, MID_Y+84)], fill=DANGER, width=3)
+        if G.get('countdown'):
+            fc = font(44, 'game' if lang == 'en' else 'bold'); draw(img, X0-20, MID_Y+14, G['countdown'], fc, (255, 74, 85))
+            tag = G.get('clockTag', '')
+            if tag:   # tiny GAME tag: the countdown is a game clock, not simulation
+                ft = font(17); tx = X0-20+width(G['countdown'], fc)+12; tw = width(tag, ft)
+                d.rounded_rectangle([tx, MID_Y+30, tx+tw+12, MID_Y+56], radius=5, outline=(207, 200, 222), width=2); draw(img, tx+6, MID_Y+30, tag, ft, (207, 200, 222))
+        if sv:
+            head = sv.get('head', ''); fh = font(17); hw = width(head, fh)
+            panel(img, [1040-hw-16, MID_Y+6, 1040, MID_Y+32], fill=LILAC+(255,), radius=5); draw(img, 1032-hw, MID_Y+6, head, fh, INK)
+            line = sv.get('line', ''); fl = fit(line, 30, 560, lines=1, min_size=18)
+            draw(img, 1040-width(line, fl), MID_Y+38, line, fl, WHITE)
+    al = Lv.get('alert') if sec == 'level' else None
+    if al:
+        a = int(170+85*min(1, al.get('beat', 1)))
+        y = MID_Y+MID_H-70; ban = Image.new('RGBA', (W-80, 60), (255, 42, 58, a)); img.alpha_composite(ban, (40, y))
+        txt = f"{al['text']} {al['value']} · {al['where']}" if lang == 'en' else f"{al['text']} {al['value']}・{al['where']}"
+        block(img, y+8, txt, 32, WHITE, lines=1, min_size=18, x0=50, maxw=W-100)
+
+
 def band(r, lang, base, end=None, credit_alpha=1.0):
     """All bands for one frame record (frames.jsonl) → RGBA 1080x1920 without the middle video."""
     img = base.copy(); sec = section(r.get('shot'))
@@ -306,46 +406,29 @@ def band(r, lang, base, end=None, credit_alpha=1.0):
     t = r['t']; u = r.get('u') or 0
     d = ImageDraw.Draw(img)
     d.rectangle([0, MID_Y-4, W, MID_Y-1], fill=ORANGE); d.rectangle([0, MID_Y+MID_H, W, MID_Y+MID_H+3], fill=PURPLE)
-    # ---- title: hook (0-1 s), card over the video (1-3 s) flying into the title band, then the band ----
-    if sec == 'hook':
-        a = min(1, u/.2)
-        f = font(30, 'game'); kick = T.get('kicker', '')
-        kw = width(kick, f); panel(img, [W/2-kw/2-24, 150, W/2+kw/2+24, 206], fill=ORANGE+(int(255*a),), radius=12)
-        centered(img, 156, kick, f, INK, x0=0, x1=W)
-        line = T.get('hook', '')
-        parts = HOOK_SPLIT[lang] if ''.join(HOOK_SPLIT[lang]).replace(' ', '').lower() == line.replace(' ', '').lower() else wrap(line, font(96), 1000)[:2]
-        y = 214
-        for part in parts:
-            block(img, y, part.upper() if lang == 'en' else part, 96 if lang == 'ja' else 78, WHITE, kind='game' if lang == 'en' else 'bold', lines=1, spacing=1.0,
-                  stroke=7, stroke_fill=(42, 10, 58), shadow=(0, 7, (176, 0, 42)), x0=30, maxw=1020, min_size=60)
-            y += 106 if lang == 'ja' else 94
-        block(img, 446 if lang == 'ja' else 428, T.get('hookSub', ''), 34, LILAC, lines=1)
+    # ---- cold-open parody card (0-1.5 s), title card (1.5-3.5 s) flying into the title band, then the band ----
+    if sec == 'broadcast':
+        broadcast_band(img, T.get('broadcast') or {}, lang)
     elif sec == 'title':
         fly = r.get('fly') or 0
         card = title_block(lang, 96 if lang == 'ja' else 80, 44)
         bandt = title_block(lang, 84 if lang == 'ja' else 72, 42)
         s = 1+(bandt.width/card.width-1)*fly
         cy = 318+(265-318)*fly   # big card in the band above the video, settling into the title band
-        paste_center(img, card, W/2, cy, s, min(1, (t-1)/.12))
+        paste_center(img, card, W/2, cy, s, 1 if fly < 1 else 0)
     else:
         paste_center(img, title_block(lang, 84 if lang == 'ja' else 72, 42), W/2, 265)
     # ---- level bar ----
     bar = T.get('bar') or ''
-    if bar and sec not in ('hook', 'title'):
+    if bar and sec not in ('broadcast', 'title'):
         col = hexrgb(T['level']['color']) if sec == 'level' else ORANGE
         block(img, 438, bar, 40, col, lines=1, kind='bold', min_size=26)
     y0 = MID_Y+MID_H+18
-    if sec in ('hook', 'title'):
+    if sec == 'title':
         teaser(img, T.get('teaser') or {}, t)
-    if sec == 'mission':
-        M = T.get('mission') or {}
-        block(img, y0, M.get('objective', '').replace('\n', ' '), 36, WHITE, lines=1, min_size=24)
-        block(img, y0+56, M.get('number', ''), 66, ORANGE, lines=1, min_size=40)
-        y = block(img, y0+146, M.get('note', '').replace('\n', ' '), 26, (232, 220, 255), lines=2, kind='reg')
-        y = block(img, y+8, M.get('legend', '').replace('\n', ' '), 26, (232, 220, 255), lines=1, min_size=20)
-        meter(img, X0, y+8, X1-X0, 30, 5)
-        for i, lab in enumerate(M.get('levels', [])):
-            seg = (X1-X0-24)/5; centered(img, y+46, lab, font(22), (207, 200, 222), x0=X0+i*(seg+6), x1=X0+i*(seg+6)+seg)
+    if sec == 'rules':
+        if T.get('gameStart'): game_start(img, T['gameStart'], lang, y0)
+        else: rules_band(img, T.get('rules') or {}, lang, y0)
     elif sec == 'level':
         Lv = T.get('level') or {}
         col = hexrgb(Lv.get('color', '#FF8A1F'))
@@ -368,6 +451,8 @@ def band(r, lang, base, end=None, credit_alpha=1.0):
             oc = r2['outcome']; fo = font(26); draw(img, X1-width(oc, fo), y+2, oc[1:], fo, SAFE if '✔' in oc else DANGER); draw(img, X1-width(oc, fo)-6, y+2, oc[0], font(26, 'sym'), SAFE if '✔' in oc else DANGER)
             draw(img, X0+36, y+36, '→ '+r2['dest'], fit('→ '+r2['dest'], 22, X1-X0-40, 'reg', 1, 16), (207, 200, 222))
             y += 68
+    elif sec == 'gameover':
+        game_over(img, T.get('gameover') or {}, lang, y0)
     elif sec == 'question':
         Q = T.get('question') or {}
         y = block(img, y0, Q.get('line', ''), 66 if lang == 'ja' else 56, (255, 207, 106), lines=1, kind='bold' if lang == 'ja' else 'game', min_size=36)
@@ -386,23 +471,33 @@ def band(r, lang, base, end=None, credit_alpha=1.0):
     return img
 
 
-def credits_card(img, E, alpha=1.0):
-    d = ImageDraw.Draw(img)
-    paste_center(img, title_block('ja' if re.search(r'[぀-ヿ]', E['title']) else 'en', 76 if re.search(r'[぀-ヿ]', E['title']) else 64, 40), W/2, 380)
-    y = block(img, 560, E['question'], 56, (255, 207, 106), lines=1)
-    centered(img, y+30, E['sourcesHead'], font(30), ORANGE)
-    src = E['sources']; half = math.ceil(len(src)/2); f = font(23, 'reg'); y1 = y+84
-    for i, s in enumerate(src):
-        col, row = divmod(i, half)
-        draw(img, X0+col*445, y1+row*36, s, fit(s, 23, 430, 'reg', 1, 16), (232, 220, 255))
-    y = y1+half*36+30
-    y = block(img, y, E['sim'].replace('\n', ' '), 26, LILAC, lines=3)
-    y = block(img, y+10, E['walk'].replace('\n', ' '), 24, (255, 226, 184), lines=2, kind='reg')
-    y = block(img, y+6, E['check'], 26, (255, 226, 184), lines=1)
-    block(img, y+16, E['data']+' · built with Claude Code', 22, (154, 157, 176), lines=1, kind='reg')
+def credits_card(img, E, alpha=1.0, dy=None):
+    if dy is None:   # dry run on a scratch image → centre the whole card vertically (no empty bottom third)
+        end = _credits_body(Image.new('RGBA', (W, H)), E, 0)
+        dy = max(0, int((H-(end-240))/2-240))
+    _credits_body(img, E, dy)
     if alpha < 1:
         black = Image.new('RGBA', img.size, (0, 0, 0, int(255*(1-alpha)))); img.alpha_composite(black)
     return img
+
+
+def _credits_body(img, E, dy):
+    """Draws the end card shifted down by dy; returns the bottom y of the content."""
+    jp = bool(re.search(r'[぀-ヿ]', E['title']))
+    paste_center(img, title_block('ja' if jp else 'en', 80 if jp else 68, 42), W/2, 380+dy)
+    y = block(img, 560+dy, E['question'], 60, (255, 207, 106), lines=1)
+    centered(img, y+30, E['sourcesHead'], font(30), ORANGE)
+    src = E['sources']; half = math.ceil(len(src)/2); y1 = y+84
+    for i, s in enumerate(src):
+        col, row = divmod(i, half)
+        draw(img, X0+col*445, y1+row*40, s, fit(s, 25, 430, 'reg', 1, 16), (232, 220, 255))
+    y = y1+half*40+30
+    y = block(img, y, E['sim'].replace('\n', ' '), 26, LILAC, lines=3)
+    y = block(img, y+10, E['walk'].replace('\n', ' '), 24, (255, 226, 184), lines=2, kind='reg')
+    y = block(img, y+6, E['check'], 26, (255, 226, 184), lines=1)
+    if E.get('parody'):
+        fp = font(26); pw = width(E['parody'], fp); panel(img, [W/2-pw/2-16, y+8, W/2+pw/2+16, y+50], fill=YELLOW+(255,), radius=8); centered(img, y+10, E['parody'], fp, INK, x0=0, x1=W); y += 56
+    return block(img, y+16, E['data']+' · built with Claude Code', 22, (154, 157, 176), lines=1, kind='reg')
 
 
 def frame_image(r, lang, base, raw_rgb=None, end=None, credit_alpha=1.0):
@@ -410,6 +505,7 @@ def frame_image(r, lang, base, raw_rgb=None, end=None, credit_alpha=1.0):
     if section(r.get('shot')) != 'credits' and raw_rgb is not None:
         mid = raw_rgb.crop(CROP).resize((W, MID_H), Image.LANCZOS)
         img.paste(mid, (0, MID_Y))
+    if section(r.get('shot')) != 'credits': mid_overlay(img, r, lang)
 
     return img.convert('RGB')
 

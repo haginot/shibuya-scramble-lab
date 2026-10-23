@@ -13,9 +13,9 @@ import {CostumeCrowd} from './costume.mjs';
 import {HalloweenScene,THEME} from './halloween-scene.mjs';
 import {shared} from './shaders.mjs';
 import {ESCAPE,escapeFrameFrom,frameLog} from './escape.mjs';
-import {createEscapeScene,MapBase,STATION} from './escape-scene.mjs';
+import {createEscapeScene,MapBase,STATION,heartbeat} from './escape-scene.mjs';
 import {EscapeOverlay,endCard,fmt,p2,mmss} from './escape-overlay.mjs';
-import {shotAt,setCameras,START_CLOCK,SCENE_SECONDS,CREDIT_SECONDS,LIVE_SECONDS,LEVELS,BEAT} from './director-halloween.mjs';
+import {shotAt,setCameras,START_CLOCK,SCENE_SECONDS,CREDIT_SECONDS,LIVE_SECONDS,LEVELS,BEAT,vhsAt,LEVEL_START,LEVEL_SECONDS} from './director-halloween.mjs';
 export {CostumeCrowd,THEME,shotAt,fmt,p2,mmss};
 export const liveSeconds=LIVE_SECONDS,liveShotAt=t=>shotAt(t%LIVE_SECONDS);
 
@@ -45,8 +45,8 @@ const easeIO=t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
 export function levelSimTime(level,u){
  if(u<=BEAT.ff[0])return Math.max(0,u-BEAT.walk)*level.speed;
  const a=(BEAT.ff[0]-BEAT.walk)*level.speed,end=Math.max(a,level.vsEnd??a);return a+(end-a)*easeIO(clamp((u-BEAT.ff[0])/(BEAT.ff[1]-BEAT.ff[0])));}
-// Map mode 0..1 over video time: the 3D city (hook/title) sinks into a flat game map during the mission.
-export const mapAmount=(sec,t)=>sec==='hook'||sec==='title'?0:sec==='mission'?clamp((t-3.3)/1.5):1;
+// Map mode 0..1 over video time: the 3D city (broadcast/title) sinks into a flat game map during the rules.
+export const mapAmount=(sec,t)=>sec==='broadcast'||sec==='title'?0:sec==='rules'?clamp((t-3.8)/1.5):1;
 
 const CSS=`
 .lang-en .l-ja,.lang-ja .l-en{display:none!important}
@@ -84,7 +84,7 @@ export async function install(api){
   // Street names per level: picked once from the fitted camera (deterministic; the camera only drifts 4 %).
   for(const lv of E.levels){const c=cams[lv.key],cam=new THREE.PerspectiveCamera(c.fov,1280/720,.5,5000);cam.position.copy(c.pos);cam.lookAt(c.look);cam.updateMatrixWorld();
    const avoid=[[lv.start.x,lv.start.z],[STATION.x,STATION.z]];for(const B of lv.branches){B.path.forEach((p,k)=>{if(k%3===0)avoid.push(p);});avoid.push([B.target.x,B.target.z]);if(B.offsim)avoid.push(B.offsim[0]);}
-   streetPicks[lv.key]=base.pick(cam,{rect:{x0:300,x1:980,y0:100,y1:575},avoid});}cams.mission={...cams.overview};cams.question={...cams.overview,pos:cams.overview.pos.clone().lerp(cams.overview.look,.04),drift:.015};
+   streetPicks[lv.key]=base.pick(cam,{rect:{x0:300,x1:980,y0:100,y1:575},avoid});}cams.rules={...cams.overview};cams.question={...cams.overview,pos:cams.overview.pos.clone().lerp(cams.overview.look,.04),drift:.015};
   setCameras(cams);
   heat0=E.keyframes[0].levels.map(l=>l.heat);
   heatEnd=E.levels.map(lv=>escapeFrameFrom(E.keyframes,lv.key,levelSimTime(lv,5),E.keyframe).heat);
@@ -112,22 +112,25 @@ export async function install(api){
   const off=up.multiplyScalar(dy*mpp).add(right.multiplyScalar(-dx*mpp));return {pos:cam.position.clone().add(off),look:look.clone().add(off),fov};}
 
  // ---- drawing ----
+ // RED ALERT source (simulated density): the player's cell, and once every route ribbon is drawn the densest
+ // route of the level (so a packed rival route, e.g. across the Scramble, also triggers it, labelled "on route X").
+ const alertSource=(lv,u)=>u>=BEAT.draw[1]?{source:'max',branch:'all'}:{source:'player'};
  const dangerBar=(lv,u)=>{let s=0;for(let k=0;k<6;k++)s+=escapeFrameFrom(E.keyframes,lv.key,levelSimTime(lv,Math.max(0,u-k/30)),E.keyframe).danger.value;return s/6;};
  function drawEscape(shot){if(!E||!shot){if(em)em.visible=false;return null;}
   em.visible=true;const sec=shot.section,t=shot.t;let state=null;
   em.setWalkers(null);em.setPlayer(0,0,false);em.heat.pulse=0;em.heat.flash=0;
-  if(sec==='hook'||sec==='title'||sec==='mission'){em.showLevel(null);em.hidePins();em.setHeat(heat0);
-   em.setHeatAlpha(sec==='hook'?1:sec==='title'?.85:.7);em.heat.pulse=sec==='hook'?1:.4;em.heat.flash=sec==='hook'&&shot.local>=.2&&shot.local<.2+2/30?1:0;
-   if(sec==='mission')E.levels.forEach((lv,k)=>{const d=t-(3.6+.2*k);if(d>=0)em.dropPin(lv.key,d);});}
+  if(sec==='broadcast'||sec==='title'||sec==='rules'){em.showLevel(null);em.hidePins();em.setHeat(heat0);
+   em.setHeatAlpha(sec==='broadcast'?1:sec==='title'?.85:.7);em.heat.pulse=sec==='broadcast'?1:.4;em.heat.flash=sec==='broadcast'&&shot.local>=.2&&shot.local<.2+2/30?1:0;
+   if(sec==='rules')E.levels.forEach((lv,k)=>{const d=t-(4.1+.2*k);if(d>=0)em.dropPin(lv.key,d);});}
   else if(sec==='level'){const lv=E.levels.find(l=>l.key===shot.level),u=shot.local;em.hidePins();em.showLevel(lv.key);em.heat.pulse=.25;
    if(u>=BEAT.pin)em.dropPin(lv.key,u-BEAT.pin);em.drawOn(lv.key,clamp((u-BEAT.draw[0])/(BEAT.draw[1]-BEAT.draw[0])));
    em.highlight(lv.key,lv.branches.find(b=>b.recommended).key,clamp((u-BEAT.lit[0])/(BEAT.lit[1]-BEAT.lit[0])));
    state=escapeFrameFrom(E.keyframes,lv.key,levelSimTime(lv,u),E.keyframe);
-   em.applyState(state,{heat:true,walkers:u>=BEAT.walk,player:u>=BEAT.walk,outcomes:false});em.setHeatAlpha(.9);
+   em.applyState(state,{heat:true,walkers:u>=BEAT.walk,player:u>=BEAT.walk,outcomes:false,danger:alertSource(lv,u)});em.setHeatAlpha(.9);
    // ✔/✖ only where the route ends inside the sim (gate / in-sim taxi stand); walks to other stations and the
    // off-sim taxi stretch only reach the sim edge.
    for(const b of state.branches){const B=lv.branches.find(x=>x.key===b.key);em.setOutcome(lv.key,b.key,B.kind==='walk-alt'||B.offsim?null:b.outcome);}}
-  else{em.hidePins();em.showAll({recommendedOnly:true,opacity:sec==='question'?.55:1});em.setHeat(heatEnd);em.setHeatAlpha(sec==='question'?.4:.7);
+  else{const end=sec==='question'||sec==='gameover';em.hidePins();em.showAll({recommendedOnly:true,opacity:end?.55:1});em.setHeat(heatEnd);em.setHeatAlpha(end?.4:.7);
    for(const S of E.summary.levels){const ex=S.branches.find(b=>b.recommended);em.setOutcome(S.key,ex.key,ex.outcome);}}
   return state;}
  // Map mode: buildings sink to flat blocks, signs/screens hidden, basemap (roads, JR station) fades in.
@@ -151,7 +154,10 @@ export async function install(api){
   api.placeCamera(shot);shared.uTrailGain.value=shot?shot.trail:.3;sigColor(state);
   shared.uScreenGlow.value.setHSL(.07+.7*(.5+.5*Math.sin(simTime*.25)),.85,.5);
   const esc=drawEscape(shot);setMapMode(shot?mapAmount(shot.section,shot.t):0);
-  const dim=shot?.section==='question'?.62:1;post.settings.uFade.value=(shot?shot.fade:1)*dim;city.groundMat.uniforms.uReflectOn.value=1;
+  const dim=shot?.section==='question'?.62:shot?.section==='gameover'?.62:1;post.settings.uFade.value=(shot?shot.fade:1)*dim;city.groundMat.uniforms.uReflectOn.value=1;
+  // Parody post FX (latched per frame): VHS/glitch on transitions only (director vhsAt), red alert vignette
+  // on the levels, driven by the SIMULATED density (em.danger, set by applyState) × heartbeat.
+  if(em&&shot){const v=vhsAt(shot.t);if(v>0)em.setVhs(v,{seed:Math.floor(shot.t*4)});if(shot.section==='level')em.setAlertVignette(Math.min(1,em.dangerPulse*(.6+.4*heartbeat(shot.t))));}
   if(em)em.update(shot?shot.t:simTime,camera);
   renderer.info.reset();api.renderReflection();post.render(scene,camera);
   // Overlay (DOM): every number from this frame's escape playback state.
@@ -159,14 +165,14 @@ export async function install(api){
   if(ui&&shot){const W=renderer.domElement.clientWidth||innerWidth,H=renderer.domElement.clientHeight||innerHeight;
    const proj=em.project(camera,W,H,shot.section==='level'?shot.level:null);
    const lv=shot.level?E.levels.find(l=>l.key===shot.level):null;
-   Object.assign(overlay,ui.update({t:shot.t,shot,state:esc,proj,streets:streetLabels(shot,W,H),rule:ESCAPE.rule,dangerBar:lv?dangerBar(lv,shot.local):null,simTimeOf:lv?u=>levelSimTime(lv,u):null}));
+   Object.assign(overlay,ui.update({t:shot.t,shot,state:esc,proj,streets:streetLabels(shot,W,H),rule:ESCAPE.rule,alert:em.danger,dangerBar:lv?dangerBar(lv,shot.local):null,simTimeOf:lv?u=>levelSimTime(lv,u):null}));
    if(esc){overlay.frameLog=frameLog(esc);overlay.levelSpeed=lv.speed;overlay.simLimit=lv.branches.find(b=>b.recommended).simLimit;}}
   overlay.frameShot=shot?.name??null;
   const s=api.state;
   window.__shibuyaState={ready:true,mode:'halloween',agents:n,hour:config.hour,fps:api.fps,drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,phase:s.phase,clock:s.clock,time:s.time,
    active:s.active,waiting:s.waiting,approaching:s.approaching,held:s.held,heldPeak:s.heldPeak,attending:s.attending,density:s.density,admitted:s.admitted,completed:s.completed,lastCycle:s.lastCycle,released:s.released,cutoffs:s.cutoffs,
    teleports:s.teleports,rescued:s.rescued,laneViolations:s.laneViolations,deferred:s.deferred,clearanceHold:s.clearanceHold,vehicles:cars.length,camera:api.mode,shot:shot?.name??null,section:shot?.section??null,pumpkins:hs.pumpkinCount,officers:layout.officers.length,djLine:hs.line,
-   escape:esc?{level:esc.level,simTime:esc.simTime,danger:esc.danger,player:{branch:esc.player.branch,arrived:esc.player.arrived,arriveAt:esc.player.arriveAt,denseSeconds:esc.player.denseSeconds,outcome:esc.player.outcome}}:null};}
+   escape:esc?{level:esc.level,simTime:esc.simTime,danger:esc.danger,alert:em?(({value,source,pulse})=>({value,source,pulse}))(em.danger):null,player:{branch:esc.player.branch,arrived:esc.player.arrived,arriveAt:esc.player.arriveAt,denseSeconds:esc.player.denseSeconds,outcome:esc.player.outcome}}:null};}
  api.setDraw(drawHW);
  if(!api.recording)precompute().catch(e=>{waitEl.textContent=String(e);});
 
@@ -179,5 +185,10 @@ export async function install(api){
  window.__frame=async videoTime=>{const shot=shotAt(videoTime),t=performance.now(),dt=await advance(shot);api.setSim(performance.now()-t);drawHW(shot,dt);return window.__shibuyaState;};
  window.__skip=async videoTime=>{await advance(shotAt(videoTime));};
  window.__render=()=>{drawHW(api.mode==='cinema'?liveShotAt(0):null,0);return window.__shibuyaState;};
- window.__hwDebug={scene,post,hs,crowd,city,shared,renderer,drawHW,shotAt,get em(){return em;},get ui(){return ui;},get escape(){return E;},fitCamera};
+ // Preview helper: the alert value (same 'max' source as applyState: player cell vs lit example route) on every
+ // level frame, so preview stills can be taken where the simulated density triggers the RED ALERT.
+ const alertTimeline=()=>E.levels.flatMap((lv,i)=>{const out=[],t0=LEVEL_START+i*LEVEL_SECONDS;
+  for(let f=0;f<LEVEL_SECONDS*30;f++){const u=f/30,st=escapeFrameFrom(E.keyframes,lv.key,levelSimTime(lv,u),E.keyframe),pv=st.danger.value,D=alertSource(lv,u),R=D.source==='player'?{value:0,key:null}:em.routeDanger(st,D.branch??lv.branches.find(b=>b.recommended).key);
+   out.push({t:Math.round((t0+u)*1000)/1000,level:lv.key,u,player:pv,route:R.value,routeKey:R.key??null,value:Math.max(pv,R.value)});}return out;});
+ window.__hwDebug={scene,post,hs,crowd,city,shared,renderer,drawHW,shotAt,get em(){return em;},get ui(){return ui;},get escape(){return E;},fitCamera,alertTimeline};
 }

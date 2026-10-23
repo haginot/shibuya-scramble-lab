@@ -28,8 +28,11 @@
 //
 // Parody staging hooks (zombie / death-game look; all sim-driven or purely stylistic, no words in WebGL):
 //   RED ALERT — the danger heat throbs on a heartbeat and red shock rings run out from the hotspot, plus a
-//   red ground marker, when the SIMULATED density spikes. pulse = smoothstep(alert.from 2, alert.to 3.5, p/m²).
-//   em.applyState(state, {danger:true|{source,branch}})   (default on) calls setDanger(state, …) for you
+//   red ground marker, when the SIMULATED density reaches the legend's red (≥ 3 p/m²):
+//   pulse = 0 below alert.from 3, else alert.on + (1 − alert.on)·smoothstep(3, 4, p/m²).
+//   em.applyState(state, {danger:true|false|{source,branch}})   (default true = setDanger(state,{source:'max'}), i.e.
+//        player OR lit route, whichever is denser; {source:'max',branch:'all'} = player OR any route of the level;
+//        pass danger:false to keep the alert off in a shot)
 //   em.setDanger(state|p_m2|null, {source:'player'|'route'|'max', branch?, x?, z?}) → danger record
 //        'player' (default) = state.danger.value, the same number as the HUD DANGER meter (densest cell ≤ 6 m);
 //        'route' = densest cell within 4.5 m of the lit route ribbon (hotspot = that cell); 'max' = larger of both
@@ -39,6 +42,7 @@
 //   em.danger → {value, player, route, source, pulse, x, z, beat, label:'simulation'}   (for the DOM HUD)
 //   POST FX (fx.mjs Post; uses Post.last unless em.attachPost(post) / opts.post):
 //   em.setVhs(0..1, {seed})        VHS/glitch: 3 px scanlines, line jitter, torn bands, RGB split, tracking band
+//        (≈.8 reads as a hard glitch hit behind the DOM title; keep ≤ .25 over map shots — torn bands shift icons vs DOM labels)
 //   em.setAlertVignette(0..1|'auto')   red edge vignette; 'auto' = dangerPulse × heartbeat
 //   setDanger/setAlert/setVhs/setAlertVignette are LATCHED PER FRAME: call them every frame they should be on,
 //   before em.update(); anything not called falls back to 0, so other shots are unaffected (all defaults 0).
@@ -53,11 +57,13 @@ export const ESCAPE_STYLE=Object.freeze({
  iconPx:70, badgePx:26,                                                         // screen px at 720 p
  edgeLength:70,                                                                  // m of dashed ribbon shown toward a far station
  escaped:'#3DFF8B', caught:'#FF2A3A',
- // Parody RED ALERT: pulse = smoothstep(from, to, sim p/m²); heartbeat bpm; shock-ring radius (m);
+ // Parody RED ALERT: pulse = alertPulseOf(sim p/m²): 0 below from (3 = legend red), else on…1; heartbeat bpm; shock-ring radius (m);
  // route corridor half-width (m) for the 'route' danger source.
- alert:{from:2, to:3.5, bpm:84, radius:34, corridor:4.5, color:'#FF2A3A'},
+ alert:{from:3, to:4, on:.45, bpm:84, radius:34, corridor:4.5, color:'#FF2A3A'},
 });
 // Deterministic heartbeat (double thump) at video time t, 0..1.
+// Alert pulse from the simulated density (p/m²): 0 below the legend's red (alert.from), then on…1.
+export function alertPulseOf(v,A=ESCAPE_STYLE.alert){if(!(v>=A.from))return 0;const k=Math.max(0,Math.min(1,(v-A.from)/(A.to-A.from)));return A.on+(1-A.on)*k*k*(3-2*k);}
 export function heartbeat(t,bpm=ESCAPE_STYLE.alert.bpm){const ph=((t*bpm/60)%1+1)%1,g=(x,c,w)=>Math.exp(-Math.pow((x-c)/w,2));
  return Math.min(1,g(ph,.06,.05)+g(ph,1.06,.05)+.65*g(ph,.3,.055));}
 const smoothstep=(a,b,v)=>{const t=clamp((v-a)/(b-a));return t*t*(3-2*t);};
@@ -318,31 +324,32 @@ export class EscapeMap{
   if(heat&&state.heat)this.heat.set(state.heat);if(walkers)this.setWalkers(state);
   if(player){const p=state.player;this.setPlayer(p.x,p.z,p.walking);}
   if(outcomes)for(const b of state.branches)this.setOutcome(state.level,b.key,b.outcome);
-  if(danger)this.setDanger(state,danger===true?{source:'max'}/*TMPDBG*/:danger);}
+  if(danger)this.setDanger(state,danger===true?{source:'max'}:danger);}
  // ---- parody RED ALERT (sim density) ----
  // Densest heat cell (p/m²) within `corridor` m of a branch's route ribbon (cached per heat window).
  routeDanger(state,branchKey=null){const H=state?.heat;if(!H)return {value:0,x:0,z:0};const r=this.rec(state.level),key=branchKey??r.lit??r.branches.find(b=>b.B.recommended)?.B.key;
+  if(key==='all'){let best={value:0,x:0,z:0,key:null};for(const o of r.branches){const R=this.routeDanger(state,o.B.key);if(R.value>best.value)best={...R,key:o.B.key};}return best;}
   const br=r.branches.find(b=>b.B.key===key);if(!br)return {value:0,x:0,z:0};const ck=`${r.lv.key}|${key}|${H.x}|${H.z}|${H.w}|${H.h}|${H.cell}`;
   let cells=this._routeCells.get(ck);if(!cells){cells=[];const c=ESCAPE_STYLE.alert.corridor+H.cell*.71;
    for(let b=0;b<H.h;b++)for(let a=0;a<H.w;a++){const x=H.x+(a+.5)*H.cell,z=H.z+(b+.5)*H.cell;if(distToPath(br.pts,x,z)<=c)cells.push(b*H.w+a);}this._routeCells.set(ck,cells);}
   let best=0,at=-1;for(const k of cells){const v=H.data[k];if(v>best){best=v;at=k;}}
-  return at<0?{value:0,x:0,z:0}:{value:best/50,x:H.x+(at%H.w+.5)*H.cell,z:H.z+(Math.floor(at/H.w)+.5)*H.cell};}
+  return at<0?{value:0,x:0,z:0,key}:{value:best/50,x:H.x+(at%H.w+.5)*H.cell,z:H.z+(Math.floor(at/H.w)+.5)*H.cell,key};}
  // state = escape playback state (uses state.danger.value at the player and/or the lit route), or a
  // number (p/m²) with {x,z}. source: 'player' (default; matches the HUD DANGER meter) | 'route' | 'max'.
  // Latched per frame: if not called before the next update(), the alert falls back to 0.
  setDanger(state,{source='player',x,z,branch=null}={}){const A=ESCAPE_STYLE.alert,D=this._danger;
-  if(state==null){Object.assign(D,{player:0,route:0,value:0,pulse:0,set:true});return D;}
-  let pv=0,px=x??0,pz=z??0,rv=0,rx=px,rz=pz;
+  if(state==null){Object.assign(D,{player:0,route:0,routeKey:null,value:0,pulse:0,set:true});return D;}
+  let pv=0,px=x??0,pz=z??0,rv=0,rx=px,rz=pz,rk=null;
   if(typeof state==='number')pv=rv=state;
   else{pv=state.danger?.value??0;if(state.player){px=x??state.player.x;pz=z??state.player.z;}
-   if(source!=='player'&&state.heat){const R=this.routeDanger(state,branch);rv=R.value;rx=R.x;rz=R.z;}}
+   if(source!=='player'&&state.heat){const R=this.routeDanger(state,branch);rv=R.value;rx=R.x;rz=R.z;rk=R.key??null;}}
   const useRoute=source==='route'||source==='max'&&rv>pv,value=useRoute?rv:pv;
-  Object.assign(D,{player:pv,route:rv,value,source,x:useRoute?rx:px,z:useRoute?rz:pz,pulse:smoothstep(A.from,A.to,value),set:true});return D;}
+  Object.assign(D,{player:pv,route:rv,routeKey:rk,value,source,x:useRoute?rx:px,z:useRoute?rz:pz,pulse:alertPulseOf(value),set:true});return D;}
  // Manual override (e.g. the cold open): pulse 0..1 at a hotspot (sim metres).
  setAlert(pulse,{x=0,z=0}={}){Object.assign(this._danger,{pulse:clamp(pulse),x,z,set:true});}
  get dangerPulse(){return this._danger.pulse;}          // 0..1, sim-driven (for the DOM HUD: vignette, counter shake)
  get dangerBeat(){return heartbeat(this.t);}            // 0..1 heartbeat at the current video time (sync DOM flashes)
- get danger(){const D=this._danger;return {value:D.value,player:D.player,route:D.route,source:D.source,pulse:D.pulse,x:D.x,z:D.z,beat:heartbeat(this.t),label:'simulation'};}
+ get danger(){const D=this._danger;return {value:D.value,player:D.player,route:D.route,routeKey:D.routeKey??null,source:D.source,pulse:D.pulse,x:D.x,z:D.z,beat:heartbeat(this.t),label:'simulation'};}
  // ---- post effects (fx.mjs Post): VHS / glitch and red alert vignette; both per-frame latched, default 0 ----
  attachPost(post){this.post=post;return this;}
  setVhs(amount,{seed=0}={}){this._fx.vhs=clamp(amount);this._fx.seed=seed;this._fx.set=true;}
@@ -367,7 +374,6 @@ export class EscapeMap{
      if(br.badge.visible){const b=pxWorld(br.iconAt[0],br.iconAt[1],S.badgePx);br.badge.scale.set(b,b,1);br.badge.position.set(br.iconAt[0],.5+h*.62,br.iconAt[1]);br.badge.center.set(-.6,0);}}}}
   if(this.player.visible){const u=this.player.userData,ph=(t*1.4)%1;u.ring.scale.setScalar(sc);u.pulse.scale.setScalar(sc*(1+ph*1.8));u.pulse.material.opacity=1-ph;u.beam.scale.set(sc,1+.2*sc,sc);}
   // RED ALERT (latched per frame) → heat layer + ground marker; post FX (latched per frame).
-  /*TMPDBG*/if(t>2&&t<4){this.setVhs(.8);}if(t>25&&t<31){this.setVhs(.35);this.setAlertVignette('auto');}
   const D=this._danger;if(!D.set)D.pulse=0;D.set=false;const beat=heartbeat(t),al=this.group.visible?D.pulse:0;
   this.heat.alert(al,beat,D.x,D.z,S.alert.radius*Math.max(1,sc*.6));
   const M=this.alertMark;M.visible=al>.01;if(M.visible){const u=M.userData,ph=(t*S.alert.bpm/60)%1;M.position.set(D.x,0,D.z);

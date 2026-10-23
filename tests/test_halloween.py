@@ -32,7 +32,8 @@ def test_halloween_and_dispersal_solvers():
 
 
 def test_halloween_recording_contract():
-    # v4 "Escape Shibuya": hook, big title card, mission, five 6 s levels (route → result/VS beat), overview, question (+ end card).
+    # v4 "Escape Shibuya" (genre parody): cold-open parody broadcast, big title card, rules + GAME START, five 6 s levels
+    # (route → result/VS beat), overview, GAME OVER (end-of-game title), question (+ end card).
     rec = recorder()
     director = (ROOT/'web3d/shibuya/director-halloween.mjs').read_text()
     assert f'SCENE_SECONDS={rec.H_SCENE_SECONDS},CREDIT_SECONDS={rec.H_CREDIT_SECONDS}' in director
@@ -41,8 +42,8 @@ def test_halloween_recording_contract():
                          cwd=ROOT, check=True, capture_output=True, text=True, timeout=60).stdout
     import json
     shots = json.loads(out)
-    assert [s[0] for s in shots] == ['hook', 'title', 'mission', 'lv1', 'lv2', 'lv3', 'lv4', 'lv5', 'overview', 'question']
-    assert shots[0][1] == 0 and shots[1][1] <= 1.0 and shots[-1][2] == rec.H_SCENE_SECONDS
+    assert [s[0] for s in shots] == ['broadcast', 'title', 'rules', 'lv1', 'lv2', 'lv3', 'lv4', 'lv5', 'overview', 'gameover', 'question']
+    assert shots[0][1] == 0 and shots[1][1] <= 1.5 and shots[-1][2] == rec.H_SCENE_SECONDS
     for a, b in zip(shots, shots[1:]): assert a[2] == b[1], (a, b)  # no gaps
     levels = [s for s in shots if s[0].startswith('lv')]
     assert [s[3] for s in levels] == ['centergai', 'miyashita', 'hikarie', 'stream', 'dogenzaka']
@@ -70,7 +71,7 @@ def escape_overlay(rec, **change):
                                      {'key': 'C', 'example': False, 'edge': True, 'on': False, 'shown': {'time': '', 'dense': '', 'badge': ''}, 'src': {'arriveAt': 307, 'denseSeconds': 0, 'outcome': 'escaped', 'simTime': 230}}],
                             'cmp': {'kind': 'slower', 'a': 'A', 'b': 'B', 'ratio': '3.2', 'src': {'a': 70.4, 'b': 222.1}}}},
           'claims': ['EXIT-09', 'EXIT-04'], 'footnote': ['EXIT-09', 'EXIT-04', 'ALT-01'],
-          'labels': [{'id': 'centergai:start', 'x': 600, 'y': 140}]}
+          'labels': [{'id': 'centergai:start', 'x': 600, 'y': 140, 'box': {'x0': 480, 'x1': 720, 'y0': 110, 'y1': 140}}]}
     for path, value in change.items():
         target = ov
         keys = path.split('__')
@@ -85,7 +86,11 @@ def test_escape_overlay_numbers_must_match_the_solver():
     rec.check_overlay({'t': 5, 'title': {'card': False, 'header': True}, 'mission': {'n': '18,000', 'src': 18000}})
     bad = [{'escape__timer__shown': 'SIM +01:15'}, {'escape__danger__shown': '2.5'}, {'escape__danger__level': 3},
            {'escape__stamp__shown': 'caught'}, {'claims': ['EXIT-09', 'MEAS-06']}, {'footnote': ['EXIT-09', 'EXIT-04', 'MEAS-14']},
-           {'labels': [{'id': 'x', 'x': 1150, 'y': 300}]}, {'title': {'card': False, 'header': False}}]
+           {'labels': [{'id': 'x', 'x': 1150, 'y': 300, 'box': {'x0': 1100, 'x1': 1200, 'y0': 280, 'y1': 300}}]},
+           # anchor inside the 9:16 column but the label box runs off its right edge (e.g. 'Hikarie (Meiji-dori side')
+           {'labels': [{'id': 'x', 'x': 1020, 'y': 300, 'box': {'x0': 905, 'x1': 1135, 'y0': 270, 'y1': 300}}]},
+           {'labels': [{'id': 'x', 'x': 600, 'y': 300}]},  # no box
+           {'title': {'card': False, 'header': False}}]
     for change in bad:
         with pytest.raises(AssertionError):
             rec.check_overlay(escape_overlay(rec, **change))
@@ -267,9 +272,9 @@ def test_vertical_level_band_draws_the_logged_strings():
     # the HUD band (before the result beat) and the hook band with its legend/teaser
     hud = level_record(text); [hud['text'][l]['level'].pop('stamp') for l in ('ja', 'en')]
     assert cv.frame_image(hud, 'ja', cv.background(), frame).size == (cv.W, cv.H)
-    hook = {'t': .5, 'shot': 'hook', 'section': 'hook', 'u': .5, 'text': {'ja': {'kicker': 'MISSION 10.31', 'hook': '渋谷から脱出できるか？', 'hookSub': 'x',
-            'teaser': {'legend': '赤＝人が密集（3人/m²以上）', 'simTag': 'シミュレーション', 'routes': '5つの場所 × 15ルートで検証'}}}}
-    assert cv.frame_image(hook, 'ja', cv.background(), frame).size == (cv.W, cv.H)
+    title = {'t': 2, 'shot': 'title', 'section': 'title', 'u': .5, 'fly': 0, 'text': {'ja': {'osd': '▶ PLAY　10.31 SAT',
+             'teaser': {'legend': '赤＝人が密集（3人/m²以上）', 'simTag': 'シミュレーション', 'routes': '5つの場所 × 15ルートで検証'}}}}
+    assert cv.frame_image(title, 'ja', cv.background(), frame).size == (cv.W, cv.H)
     # kinsoku: a closing mark never starts a line
     assert all(not l.startswith('？') for l in cv.wrap('渋谷から脱出できるか？', cv.font(92), 1000))
     # colour emoji (title band) really are colour pixels, not tofu
@@ -317,3 +322,125 @@ def test_sweep_ranges_match_the_browser():
     out = subprocess.run(['node', '-e', script], cwd=ROOT, check=True, capture_output=True, text=True, timeout=60).stdout
     assert json.loads(out) == recorder().sweep_ranges(sweep_file())
 
+
+
+def parody_frames(lang):
+    return {
+        'broadcast': {'parody': {'ja': '※これはパロディです', 'en': 'PARODY — not a real alert'}[lang], 'issuer': 'GAME HQ (fictional)', 'head': 'URGENT NOTICE',
+                      'when': 'Oct 31', 'order': 'All players: escape\nto a gate', 'notReal': {'ja': '本物の警報・お知らせではありません', 'en': 'This is not a real alert or notice'}[lang], 'alpha': 1, 'glitch': .5},
+        'rules': {'head': 'RULES', 'number': '≈18,000*1', 'note': 'x', 'tagline': 'tag\nline',
+                  'items': [{'title': 'RULE 1: Don\'t stop', 'tip': 'Move with the flow', 'alpha': 1}, {'title': 'RULE 2', 'tip': 'x*2', 'alpha': 0}]},
+        'gameStart': {'start': 'GAME START', 'sub': 'go', 'k': .05, 'alpha': 1},
+        'gameover': {'title': 'GAME OVER', 'tally': '✔ 5/5 routes escaped (sim)', 'line': '…but the real night is Oct 31', 'tagline': 'Costumes: optional.\nThe way home: your call.', 'u': .1},
+        'game': {'countdown': 'TIME LEFT 00:21'},
+    }
+
+
+def test_vertical_parody_bands():
+    # 9:16: the cold open carries the parody cue (one pill, top band) and the not-real line (bottom band); rules, GAME START, GAME OVER,
+    # countdown strip, survivor counter and CROWD ALERT banner are drawn from the logged strings.
+    cv = compose_module()
+    from PIL import Image
+    frame = Image.new('RGB', (1280, 720), (40, 0, 0))
+    for lang in ('ja', 'en'):
+        P = parody_frames(lang)
+        bc = {'t': .5, 'shot': 'broadcast', 'section': 'broadcast', 'u': .5, 'text': {lang: {'broadcast': P['broadcast'], 'osd': '▶ PLAY'}}}
+        img = cv.frame_image(bc, lang, cv.background(), frame)
+        # the yellow parody-cue pill sits at the top of the frame (above the map)
+        assert img.getpixel((cv.W//2-200, 80)) == cv.YELLOW
+        ru = {'t': 5, 'shot': 'rules', 'section': 'rules', 'u': 1.5, 'text': {lang: {'rules': P['rules'], 'bar': '≈18,000*1', 'foot': 'Sources: *1 x'}}}
+        assert cv.frame_image(ru, lang, cv.background(), frame).size == (cv.W, cv.H)
+        gs = {'t': 6.4, 'shot': 'rules', 'section': 'rules', 'u': 2.9, 'text': {lang: {'rules': P['rules'], 'gameStart': P['gameStart'], 'game': P['game']}}}
+        assert cv.frame_image(gs, lang, cv.background(), frame).size == (cv.W, cv.H)
+        go = {'t': 39.2, 'shot': 'gameover', 'section': 'gameover', 'u': .2, 'text': {lang: {'gameover': P['gameover']}}}
+        assert cv.frame_image(go, lang, cv.background(), frame).size == (cv.W, cv.H)
+        lv = {'t': 10, 'shot': 'lv1', 'section': 'level', 'u': 3, 'text': {lang: {'game': P['game'], 'bar': 'LEVEL 1/5', 'level': {'color': '#FF8A1F', 'n': 1,
+              'survivors': {'head': 'ESCAPE COUNTER (SIM)', 'line': 'out 24 · still in Shibuya 48', 'note': 'x', 'frac': .33},
+              'alert': {'text': '⚠ CROWD ALERT (SIMULATION)', 'value': '3.2 p/m²', 'where': 'on route B', 'beat': 1}}}}}
+        img = cv.frame_image(lv, lang, cv.background(), frame)
+        assert img.getpixel((60, cv.MID_Y+cv.MID_H-40))[0] > 200  # red alert banner over the bottom of the map
+
+
+def parody_overlay(rec, t=10.8, **extra):
+    ov = escape_overlay(rec); ov['t'] = t
+    ov.update(extra)
+    return ov
+
+
+def test_parody_overlay_checks():
+    rec = recorder()
+    T = {l: {'broadcast': {'parody': rec.H_PARODY_CUE[l], 'notReal': rec.H_NOT_REAL[l]}} for l in ('ja', 'en')}
+    good_bc = {'t': .5, 'section': 'broadcast', 'title': {'card': False, 'header': False}, 'text': T,
+               'broadcast': {'cue': dict(rec.H_PARODY_CUE), 'notReal': dict(rec.H_NOT_REAL), 'alpha': 1, 'glitch': 0}}
+    rec.check_overlay(good_bc)
+    for bad in ({'cue': {'ja': '緊急', 'en': 'ALERT'}}, {'alpha': .5}, {'notReal': {'ja': '', 'en': ''}}):
+        ov = json_copy(good_bc); ov['broadcast'].update(bad)
+        with pytest.raises(AssertionError): rec.check_overlay(ov)
+    with pytest.raises(AssertionError): rec.check_overlay({**good_bc, 'broadcast': None})
+    ov = json_copy(good_bc); ov['text']['en']['broadcast']['parody'] = ''
+    with pytest.raises(AssertionError): rec.check_overlay(ov)
+    # title held: complete, not flying, not glitched
+    held = {'t': 2.5, 'title': {'card': True, 'header': False, 'fly': 0, 'glitch': 0, 'alpha': 1}, 'titleChars': {'ja': 17, 'en': 30, 'total': {'ja': 17, 'en': 30}}}
+    rec.check_overlay(held)
+    for bad in ({'glitch': .3}, {'fly': .2}, {'alpha': .8}):
+        ov = json_copy(held); ov['title'].update(bad)
+        with pytest.raises(AssertionError): rec.check_overlay(ov)
+    # countdown = the game clock formula; survivor counter = the sim walkers of the branches on screen
+    rec.check_overlay(parody_overlay(rec, countdown={'shown': '00:28', 'src': {'t': 10.8, 'from': 7, 'to': 39}}))
+    with pytest.raises(AssertionError): rec.check_overlay(parody_overlay(rec, countdown={'shown': '00:30', 'src': {'t': 10.8, 'from': 7, 'to': 39}}))
+    sv = {'shown': {'escaped': '21', 'left': '51'}, 'src': {'arrived': 21, 'walking': 27, 'pending': 24, 'perBranch': 24, 'branches': 3}}
+    rec.check_overlay(parody_overlay(rec, survivors=sv))
+    for path, v in (('escaped', '24'), ('left', '50')):
+        bad = json_copy(sv); bad['shown'][path] = v
+        with pytest.raises(AssertionError): rec.check_overlay(parody_overlay(rec, survivors=bad))
+    bad = json_copy(sv); bad['src']['pending'] = 20; bad['shown']['left'] = '47'
+    with pytest.raises(AssertionError): rec.check_overlay(parody_overlay(rec, survivors=bad))  # walkers not conserved
+    bad = json_copy(sv); bad['src'].update(arrived=22, pending=23); bad['shown'].update(escaped='22', left='50')
+    with pytest.raises(AssertionError): rec.check_overlay(parody_overlay(rec, survivors=bad))  # ≠ branch counters
+    # red alert label = the legend's red: on iff the simulated density is ≥ 3 p/m² (2.9 is HIGH/orange: no alert)
+    on = {'on': True, 'shown': '3.2', 'where': 'route', 'key': 'B', 'src': {'value': 3.24, 'pulse': .6, 'player': 2.44, 'route': 3.24}}
+    rec.check_overlay(parody_overlay(rec, alert=on))
+    off = {'on': False, 'shown': '', 'where': 'route', 'key': None, 'src': {'value': 2.94, 'pulse': 0, 'player': 2.44, 'route': 2.94}}
+    rec.check_overlay(parody_overlay(rec, alert=off))
+    assert rec.alert_pulse(2.99) == 0 and rec.alert_pulse(3.0) == rec.H_ALERT[2] and rec.alert_pulse(5) == 1
+    for bad in ({**off, 'on': True, 'shown': '2.9'}, {**on, 'on': False, 'shown': ''}, {**on, 'shown': '3.0'}, {**on, 'src': {**on['src'], 'player': 2.0}}, {**on, 'key': None}):
+        with pytest.raises(AssertionError): rec.check_overlay(parody_overlay(rec, alert=bad))
+    # GAME OVER: only as the end-of-game title (gameover shot) with the sim tally; never as a route result
+    go = {'t': 39.3, 'section': 'gameover', 'gameOver': {'shown': {'escaped': 5, 'total': 5}, 'src': {'outcomes': ['escaped']*5}, 'section': 'gameover'},
+          'text': {'en': {'gameover': {'title': 'GAME OVER'}}}}
+    rec.check_overlay(go)
+    with pytest.raises(AssertionError): rec.check_overlay({**go, 'gameOver': {**go['gameOver'], 'shown': {'escaped': 4, 'total': 5}}})
+    with pytest.raises(AssertionError): rec.check_overlay({**go, 'section': 'overview'})
+    lvl = escape_overlay(rec); lvl['text'] = {'en': {'level': {'stamp': {'main': 'GAME OVER'}}}}
+    with pytest.raises(AssertionError): rec.check_overlay(lvl)
+    lvl['text'] = {'en': {'level': {'stamp': {'main': 'CAUGHT IN THE CROWD'}}}}  # the sim said ESCAPED
+    with pytest.raises(AssertionError): rec.check_overlay(lvl)
+    ov = {'t': 38, 'section': 'overview', 'overview': {'rows': [{'shown': {'time': '01:09', 'outcome': 'escaped'}, 'src': {'arriveAt': 69.2, 'outcome': 'escaped'}}]},
+          'text': {'ja': {'overview': [{'outcome': '✖ 捕まった'}]}}}
+    with pytest.raises(AssertionError): rec.check_overlay(ov)
+
+
+def json_copy(o):
+    import json
+    return json.loads(json.dumps(o))
+
+
+def test_parody_constants_match_the_browser():
+    rec = recorder()
+    import json
+    script = ("Promise.all([import('./web3d/shibuya/director-halloween.mjs'),import('./web3d/shibuya/escape-overlay.mjs'),import('./web3d/shibuya/escape-copy.mjs'),import('./web3d/shibuya/escape-scene.mjs')]).then(([d,o,c,s])=>console.log(JSON.stringify("
+              "{clock:d.GAME_CLOCK,title:d.TITLE_BEAT,cd:[d.countdownAt(0),d.countdownAt(10.8),d.countdownAt(40)],alert:o.ALERT,style:s.ESCAPE_STYLE.alert,pulse:[2.9,3,3.4,4.2].map(o.alertPulse),scenePulse:[2.9,3,3.4,4.2].map(v=>s.alertPulseOf(v)),"
+              "cue:c.BROADCAST.parody,nr:c.BROADCAST.notReal,vhs:[0,1,1.6,2.5,3,5,7.1,13.1,20,39.1].map(d.vhsAt),lv:d.LEVEL_START})))")
+    out = subprocess.run(['node', '-e', script], cwd=ROOT, check=True, capture_output=True, text=True, timeout=60).stdout
+    got = json.loads(out)
+    assert (got['clock']['from'], got['clock']['to']) == rec.H_GAME_CLOCK and got['clock']['from'] == got['lv']
+    assert got['cd'] == [rec.countdown_at(0), rec.countdown_at(10.8), rec.countdown_at(40)]
+    assert (got['alert']['from'], got['alert']['to'], got['alert']['on']) == rec.H_ALERT == (got['style']['from'], got['style']['to'], got['style']['on'])
+    assert rec.H_ALERT[0] == rec.DANGER_STEPS[2] == 3  # alert = the DANGER meter's red step and the legend's 'RED = 3+'
+    for v, p in zip((2.9, 3.0, 3.4, 4.2), got['pulse']): assert abs(p-rec.alert_pulse(v)) < 1e-12
+    for v, p in zip((2.9, 3.0, 3.4, 4.2), got['scenePulse']): assert abs(p-rec.alert_pulse(v)) < 1e-12
+    assert got['cue'] == {**rec.H_PARODY_CUE, 'factIds': []} and got['nr'] == {**rec.H_NOT_REAL, 'factIds': []}
+    # title held clean ≥ 1 s; VHS only on transitions (0 while the title is held and mid-level), ≤ .3 over level cuts
+    assert rec.H_TITLE_CLEAN == (got['title']['clean'], got['title']['fly']) and rec.H_TITLE_CLEAN[1]-rec.H_TITLE_CLEAN[0] >= 1
+    v = dict(zip([0, 1, 1.6, 2.5, 3, 5, 7.1, 13.1, 20, 39.1], got['vhs']))
+    assert v[2.5] == v[3] == v[5] == v[20] == 0 and v[0] > .5 and 0 < v[13.1] <= .3 and v[39.1] > .3
