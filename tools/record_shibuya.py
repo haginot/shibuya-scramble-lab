@@ -152,26 +152,32 @@ def record(site,output,stills,frames=None):
 
 
 # ---------------------------------------------------------------- Halloween mode
-# web3d/shibuya/director-halloween.mjs: 41 s directed scene + 3 s credits (44 s).
-H_SCENE_SECONDS = 41
+# web3d/shibuya/director-halloween.mjs: 42 s directed scene + 3 s end card (45 s).
+# One pass renders every frame once and screenshots it twice (Japanese and English
+# overlays; the 3D frame is identical), so both videos show the same simulated people.
+H_SCENE_SECONDS = 42
 H_CREDIT_SECONDS = 3
+H_LANGS = ('ja','en')
 H_CAPTIONS = [
-    (0,'仮装の群衆、交差点はひとつ','{agents} people in costume · one crossing'),
-    (2.5,'渋谷ハロウィン・{agents}人をモデル化','Shibuya, Halloween night · {agents} people modelled'),
-    (7,'警察の規制で待機・段階的に解放','held in pens, released by the police'),
-    (12,'DJポリスが群衆を誘導','the "DJ police" keep the crowd moving'),
-    (17,'歩行者青・前列から順に','all-way green: row by row'),
-    (24,'駅閉鎖：規制なし vs 一方通行＋段階的解放','station closes: no control vs one-way routes + staged release'),
-    (38,'駅閉鎖から25分の結果','25 minutes after the station closes'),
+    (0,'10/31 渋谷駅、どう帰る？','Shibuya on Halloween: heads-up'),
+    (2.5,'10/31夜、渋谷で働く・観光する人へ · 仮定 {agents}人','Working or sightseeing in Shibuya on Oct 31? · sim: {agents} people'),
+    (6.5,'警察の規制で待機→段階的に解放','expect to be held, then released in waves'),
+    (10.5,'DJポリスの指示に従って','follow the "DJ police" instructions'),
+    (14,'歩行者青・前列から順に','all-way green: row by row'),
+    (19,'00:30 駅閉鎖：規制なし vs 一方通行＋段階的解放','00:30 station closes: no control vs one-way + staged release'),
+    (31,'出口別・混雑が解消した時刻','which exit clears first?'),
+    (36,'駅閉鎖から25分後','25 minutes after the station closes'),
+    (39.5,'あなたならどこから帰る？','Which exit would you take?'),
 ]
 H_CREDITS = CREDITS.replace('Crossing scale: Asahi Shimbun 2016-04-22 (up to 3,000 per green) · see NOTICE and web3d/data/',
-    'Halloween crowd, police measures, station closing and costumes are illustrative assumptions (web3d/shibuya/halloween.mjs, dispersal.mjs)')
+    'Halloween crowd, police measures, station closing, exit zones and costumes are illustrative sim assumptions (web3d/shibuya/halloween.mjs, dispersal.mjs)\n'
+    'Crowd estimate 2026 ≈18,000 at peak: Shibuya City expectation via Shibuya Keizai Shimbun 2026-09-30 · past counts: Shibukei 2025-10-02, Tokyo Shimbun 2024-11-01 (web3d/shibuya/sources-halloween.mjs)')
 
-H_CREDIT_CARD = r"""(text)=>{const s=window.__shibuyaState;const card=document.createElement('div');card.id='credits';
-card.innerHTML=`<div class="t">SHIBUYA <b>HALLOWEEN</b></div><div class="n">${s.agents.toLocaleString('en-US')} individual agents · station-closing runs of ${(s.dispersal.A.remaining+s.dispersal.A.left).toLocaleString('en-US')} people · toy model, not a prediction</div><pre></pre><div class="c">built with Claude Code · github.com/haginot/shibuya-scramble-lab</div>`;
+H_CREDIT_CARD = r"""(text)=>{const s=window.__shibuyaState,L=(en,ja)=>`<span class="l-en">${en}</span><span class="l-ja">${ja}</span>`,N=(s.dispersal.A.remaining+s.dispersal.A.left).toLocaleString('en-US'),A=s.agents.toLocaleString('en-US');const card=document.createElement('div');card.id='credits';
+card.innerHTML=`<div class="t">SHIBUYA <b>HALLOWEEN</b></div><div class="q">${L('Which exit would you take?','あなたならどこから帰る？')}</div><div class="n">${L(`sim assumptions: ${A} people in the area · ${N} at station closing · toy model, not a prediction`,`シミュレーション上の仮定：区域内${A}人・駅閉鎖時${N}人 ・ トイモデル（予測ではない）`)}</div><div class="fn">${L(window.__hwFootnote.en,window.__hwFootnote.ja)}</div><pre></pre><div class="c">built with Claude Code · github.com/haginot/shibuya-scramble-lab</div>`;
 card.querySelector('pre').textContent=text;
-Object.assign(card.style,{position:'fixed',inset:'0',zIndex:100,background:'radial-gradient(ellipse at 50% 40%,#2a1030 0%,#05040a 70%)',color:'#e9ebf3',display:'flex',flexDirection:'column',justifyContent:'center',alignItems:'center',font:'12.5px/1.7 Inter,"Noto Sans CJK JP",system-ui,sans-serif',opacity:0});
-const st=document.createElement('style');st.textContent='#credits .t{font-weight:800;font-size:34px;letter-spacing:.32em}#credits .t b{font-weight:300;color:#ff8a1f}#credits .n{margin:8px 0 20px;font-size:12px;letter-spacing:.12em;color:#d9c2ff;text-transform:uppercase}#credits pre{font:inherit;white-space:pre-line;text-align:center;color:#c9ccd9;margin:0;max-width:1120px}#credits .c{margin-top:20px;font-size:11px;letter-spacing:.2em;color:#ffcf6a}';
+Object.assign(card.style,{position:'fixed',inset:'0',zIndex:100,background:'radial-gradient(ellipse at 50% 40%,#2a1030 0%,#05040a 70%)',color:'#e9ebf3',display:'flex',flexDirection:'column',justifyContent:'center',alignItems:'center',font:'11px/1.6 Inter,"Noto Sans CJK JP",system-ui,sans-serif',opacity:0});
+const st=document.createElement('style');st.textContent='#credits .t{font-weight:800;font-size:30px;letter-spacing:.32em}#credits .t b{font-weight:300;color:#ff8a1f}#credits .q{font:900 34px/1.3 Inter,"Noto Sans CJK JP",sans-serif;color:#ffcf6a;margin:6px 0 4px}#credits .n{margin:4px 0 10px;font-size:12px;letter-spacing:.08em;color:#d9c2ff}#credits .fn{max-width:1100px;text-align:center;font-size:12px;line-height:1.55;color:#ffe2b8;margin-bottom:12px}#credits pre{font:inherit;white-space:pre-line;text-align:center;color:#b9bccb;margin:0;max-width:1180px}#credits .c{margin-top:12px;font-size:11px;letter-spacing:.2em;color:#ffcf6a}';
 document.head.append(st);document.body.append(card);}"""
 
 
@@ -180,6 +186,10 @@ def jsround(v): return math.floor(v+.5)
 def fmt(v): return f'{jsround(v):,}'
 def p2(v): return f'{jsround(v*10)/10:.1f}'
 def mmss(s): return None if s is None else f'{int(s//60):02d}:{int(s%60):02d}'
+EXIT_CLEAR = 2  # dispersal.mjs DISPERSAL.exitClear
+def exit_clear_text(e):
+    if e['clearAt']==0 and e['peakRun']<=EXIT_CLEAR: return 'never dense · 密集なし'
+    return 'not cleared · 未解消' if e['clearAt'] is None else mmss(e['clearAt'])
 
 
 def check_overlay(ov):
@@ -189,15 +199,26 @@ def check_overlay(ov):
         for k in ('agents','crossing','queued','held'): assert sh[k]==fmt(src[k]),(k,sh,src)
         for k in ('peak','median'): assert sh[k]==p2(src[k]),(k,sh,src)
     if ov.get('hook'):
-        h=ov['hook'];assert h['n']==fmt(h['source']['n'])
-        assert h['line']==f"peak {p2(h['source']['peak'])} p/m² · held by police {fmt(h['source']['held'])} · crossing {fmt(h['source']['crossing'])}",h
+        h=ov['hook'];src=h['source']
+        assert h['n']==fmt(src['n']) and src['n']==ESTIMATE_2026,h   # headline = the cited estimate, not a sim count
+        assert h['line']=={'agents':fmt(src['agents']),'peak':p2(src['peak']),'held':fmt(src['held'])},h
     if ov.get('split'):
         sp=ov['split']
         for side in ('A','B'):
             v=sp[side];src=v['src']
             assert v['remaining']==fmt(src['remaining']) and v['inside']==fmt(src['inside']) and v['densNow']==p2(src['densNow']),v
             assert v['peak']==p2(src['peak']) and v['crush']==fmt(src['crush']) and v['cars']==mmss(src['cars']),v
+            for chip in (sp.get('chips') or {}).get(side,[]): assert chip['people']==fmt(chip['src']),chip
         assert sp['clock']=='+'+mmss(sp['source']['time']) and sp['heldB']==fmt(sp['source']['heldB'])
+    if ov.get('board'):
+        for row in ov['board']['rows']:
+            for side in ('A','B'):
+                assert row[side]['clear']==exit_clear_text(row['src'][side]) and row[side]['peak']==p2(row['src'][side]['peakRun']),row
+    if ov.get('question'):
+        q=ov['question']
+        for side in ('A','B'):
+            ex=q['source'][side];slow=max(ex,key=lambda e:float('inf') if e['clearAt'] is None else e['clearAt'])
+            assert q['slowest'][side]==slow['key'] and q['clear'][side]==exit_clear_text(slow),q
     if ov.get('results'):
         r=ov['results'];A,B=r['source']['A'],r['source']['B']
         assert r['rows'][0][2:]==[fmt(A['remaining']),fmt(B['remaining'])]
@@ -210,13 +231,23 @@ def check_overlay(ov):
             assert r['rows'][1][col]==(mmss(src['denseClearedAt']) if cleared else 'not cleared · 未解消'),(r['rows'][1],src)
 
 
+ESTIMATE_2026 = 18000  # sources-halloween.mjs CROWD_2026.estimate (Shibuya City expectation, Shibukei 2026-09-30)
+
+
+def lang_path(path,lang):
+    return path if lang=='ja' else path.with_name(path.stem+'-en'+path.suffix)
+
+
 def record_halloween(site,output,stills,frames=None,stills_at=None):
+    """Writes `output` (Japanese) and `<output>-en` (English) plus stills/frames.jsonl
+    (per-frame solver values for the vertical cuts, tools/compose_vertical.py)."""
     from playwright.sync_api import sync_playwright
     output.parent.mkdir(parents=True,exist_ok=True);stills.mkdir(parents=True,exist_ok=True)
     handler=functools.partial(QuietHandler,directory=str(site))
     server=http.server.ThreadingHTTPServer(('127.0.0.1',0),handler)
     thread=threading.Thread(target=server.serve_forever,daemon=True);thread.start()
-    errors=[];snapshots=[];overlays=[];start=time.monotonic();frame_ms=[];encoder=None
+    errors=[];snapshots=[];overlays=[];start=time.monotonic();frame_ms=[];encoders={}
+    outputs={lang:lang_path(output,lang) for lang in H_LANGS}
     try:
         with sync_playwright() as p, browser_with_webgl(p) as browser:
             page=browser.new_page(viewport={'width':1280,'height':720},device_scale_factor=1)
@@ -224,6 +255,10 @@ def record_halloween(site,output,stills,frames=None,stills_at=None):
             page.on('console',lambda m:print('console:',m.text,flush=True) if m.type in ('error','warning') else None)
             page.set_default_timeout(900000)
             shot=lambda:page.screenshot(type='png',animations='disabled',timeout=900000)
+            def shots():
+                out={}
+                for lang in H_LANGS: page.evaluate(f"window.__setLang('{lang}')");out[lang]=shot()
+                return out
             page.goto(f'http://127.0.0.1:{server.server_address[1]}/web3d/shibuya/?mode=halloween&record=1&cam=cinema')
             for _ in range(1200):
                 if errors: raise RuntimeError('; '.join(errors))
@@ -233,6 +268,7 @@ def record_halloween(site,output,stills,frames=None,stills_at=None):
             plan=page.evaluate('window.__videoPlan')
             scene_seconds,credit_seconds=plan['scene'],plan['credits']
             assert (scene_seconds,credit_seconds)==(H_SCENE_SECONDS,H_CREDIT_SECONDS),plan
+            assert plan['estimate']==ESTIMATE_2026,plan
             warm=page.evaluate('window.__warmup()')
             print(f"warm-up to clock {warm['clock']:.1f}s · {warm['agents']:,} agents · held {warm['held']:,} · queued {warm['waiting']:,} · peak {warm['density']['peak']:.2f} p/m²",flush=True)
             if stills_at:
@@ -241,60 +277,76 @@ def record_halloween(site,output,stills,frames=None,stills_at=None):
                     target=round(t*FPS)
                     while done<target: page.evaluate(f'window.__skip({done/FPS})');done+=1
                     state=page.evaluate(f'window.__frame({done/FPS})');done+=1
-                    (stills/f'preview-{t:05.1f}s.png').write_bytes(shot())
+                    for lang,png in shots().items(): (stills/f'preview-{t:05.1f}s-{lang}.png').write_bytes(png)
                     check_overlay(page.evaluate('window.__hwOverlay'))
                     print(f"still {t}s · {state['shot']} · {state['phase']}",flush=True)
                     if errors: raise RuntimeError('; '.join(errors))
                 return
-            encoder=subprocess.Popen(['ffmpeg','-hide_banner','-loglevel','error','-y','-f','image2pipe','-vcodec','png','-framerate',str(FPS),'-i','-','-an','-c:v','libx264','-preset','medium','-crf','17','-threads','2','-pix_fmt','yuv420p','-movflags','+faststart+use_metadata_tags','-metadata',f'credit={H_CREDITS}','-metadata',f'comment={H_CREDITS}\nHalloween night mode: directed time-lapse (x1-x107, shown on screen); every number is counted from the simulated people. Toy model, not a prediction.',str(output)],stdin=subprocess.PIPE)
+            for lang,path in outputs.items():
+                encoders[lang]=subprocess.Popen(['ffmpeg','-hide_banner','-loglevel','error','-y','-f','image2pipe','-vcodec','png','-framerate',str(FPS),'-i','-','-an','-c:v','libx264','-preset','medium','-crf','17','-threads','2','-pix_fmt','yuv420p','-movflags','+faststart+use_metadata_tags','-metadata',f'credit={H_CREDITS}','-metadata',f'comment={H_CREDITS}\nHalloween night mode ({lang}): directed time-lapse (x1-x125, shown on screen); every count is counted from the simulated people; the 2026 crowd figure is a cited estimate. Toy model, not a prediction.',str(path)],stdin=subprocess.PIPE)
             scene_frames=frames or scene_seconds*FPS
+            framelog=(stills/'frames.jsonl').open('w',encoding='utf-8')
             for frame in range(scene_frames):
                 seconds=frame/FPS;t0=time.monotonic()
                 state=page.evaluate(f'window.__frame({seconds})')
-                png=shot();frame_ms.append((time.monotonic()-t0)*1000);encoder.stdin.write(png)
+                pngs=shots();frame_ms.append((time.monotonic()-t0)*1000)
+                for lang,png in pngs.items(): encoders[lang].stdin.write(png)
                 ov=page.evaluate('window.__hwOverlay');check_overlay(ov)
                 d=state.get('dispersal') or {}
                 assert state['teleports']==0 and state['rescued']==0,'no relocation in the Halloween crowd'
                 assert state['density']['peak']<=5+1e-9,state['density']
                 for k in ('A','B'):
                     if d.get(k): assert d[k]['lost']==0 and d[k]['teleports']==0 and d[k]['peakCell']<=5+1e-9,d[k]
+                # Per-frame values for the vertical cuts (all from this frame's solver snapshot).
+                rec={'t':seconds,'shot':state['shot'],'held':state['held'],'peak':state['density']['peak'],'agents':state['agents']}
+                if d and state['shot'] in ('dispersal','exits','results','question'):
+                    rec['clock']=d['A']['time'];rec['exits']={k:[[e['key'],e['people'],e['peak'],e['peakRun'],e['clearAt']] for e in d[k]['exits']] for k in ('A','B')}
+                    rec['remaining']={k:d[k]['remaining'] for k in ('A','B')}
+                framelog.write(json.dumps(rec)+'\n')
                 if frame%(FPS//2)==0:
                     snap={k:state.get(k) for k in ('agents','phase','clock','time','active','waiting','approaching','held','attending','admitted','completed','released','cutoffs','teleports','rescued','laneViolations','deferred','lastCycle','vehicles','clearanceHold','shot','density','drawCalls','triangles','djLine')}
                     snap['video_seconds']=seconds
-                    if d: snap['dispersal']={k:{q:v for q,v in d[k].items() if q!='series'} for k in ('A','B')}
+                    if d: snap['dispersal']={k:{q:v for q,v in d[k].items() if q not in ('series','exitSeries')} for k in ('A','B')}
                     snapshots.append(snap);overlays.append(dict(video_seconds=seconds,**ov))
-                    if frame%(3*FPS//2)==0: (stills/f'{seconds:05.1f}s.png').write_bytes(png)
+                    if frame%(3*FPS//2)==0:
+                        for lang,png in pngs.items(): (stills/f'{seconds:05.1f}s-{lang}.png').write_bytes(png)
                     extra=f" · A left {d['A']['remaining']:,} B {d['B']['remaining']:,}" if d else ''
                     print(f"{seconds:4.1f}/{scene_seconds}s · {state['shot']} · {state['phase']} · crossing {state['active']:,} · held {state['held']:,} · peak {state['density']['peak']:.2f}{extra} · {frame_ms[-1]:.0f} ms/frame",flush=True)
                 if errors: raise RuntimeError('; '.join(errors))
+            framelog.close()
             final=page.evaluate('window.__shibuyaState')
             page.evaluate(H_CREDIT_CARD,H_CREDITS)
             credit_frames=credit_seconds*FPS
             for k in range(credit_frames):
                 alpha=min(1,k/10,(credit_frames-1-k)/8+.0001)
                 page.evaluate(f"document.getElementById('credits').style.opacity={max(0,alpha):.3f}")
-                png=shot();encoder.stdin.write(png)
-                if k==credit_frames//2:(stills/'credits.png').write_bytes(png)
-            encoder.stdin.close()
-            if encoder.wait(timeout=300): raise RuntimeError('ffmpeg failed')
-            encoder=None
+                for lang,png in shots().items():
+                    encoders[lang].stdin.write(png)
+                    if k==credit_frames//2:(stills/f'credits-{lang}.png').write_bytes(png)
+            for lang,enc in list(encoders.items()):
+                enc.stdin.close()
+                if enc.wait(timeout=300): raise RuntimeError(f'ffmpeg failed ({lang})')
+                del encoders[lang]
             assert not errors,errors
     finally:
         server.shutdown();server.server_close();thread.join(timeout=5)
-        if encoder:
-            encoder.stdin.close();encoder.terminate();encoder.wait(timeout=10)
-    probe=json.loads(subprocess.check_output(['ffprobe','-v','error','-show_entries','format=duration:stream=width,height,r_frame_rate','-of','json',str(output)]))
+        for enc in encoders.values():
+            enc.stdin.close();enc.terminate();enc.wait(timeout=10)
     duration=(scene_frames+credit_frames)/FPS
-    assert abs(float(probe['format']['duration'])-duration)<.05,probe
-    assert probe['streams'][0]['width']==1280 and probe['streams'][0]['height']==720,probe
+    probes={}
+    for lang,path in outputs.items():
+        probe=json.loads(subprocess.check_output(['ffprobe','-v','error','-show_entries','format=duration:stream=width,height,r_frame_rate','-of','json',str(path)]))
+        assert abs(float(probe['format']['duration'])-duration)<.05,probe
+        assert probe['streams'][0]['width']==1280 and probe['streams'][0]['height']==720,probe
+        probes[lang]=probe
     frame_ms.sort()
     disp=final.get('dispersal') or {}
-    result=dict(video=str(output),mode='halloween',duration_s=duration,scene_s=scene_frames/FPS,credits_s=credit_seconds,width=1280,height=720,fps=FPS,
+    result=dict(videos={k:str(v) for k,v in outputs.items()},mode='halloween',duration_s=duration,scene_s=scene_frames/FPS,credits_s=credit_seconds,width=1280,height=720,fps=FPS,
                 wall_seconds=round(time.monotonic()-start,1),render_ms_per_frame=dict(median=round(frame_ms[len(frame_ms)//2]),p95=round(frame_ms[int(len(frame_ms)*.95)])),
-                captions=H_CAPTIONS,snapshots=snapshots,overlays=overlays,dispersal_final=disp,probe=probe,errors=errors,
-                note='Offline deterministic capture (software WebGL); every on-screen number was checked against the solver snapshot of the same frame (check_overlay).')
+                captions=H_CAPTIONS,snapshots=snapshots,overlays=overlays,dispersal_final=disp,probe=probes,errors=errors,estimate_2026=ESTIMATE_2026,
+                note='Offline deterministic capture (software WebGL); every on-screen number was checked against the solver snapshot of the same frame (check_overlay); Japanese and English videos are two screenshots of the same rendered frame.')
     (stills/'recording.json').write_text(json.dumps(result,ensure_ascii=False,indent=2),encoding='utf-8')
-    print(output,result['wall_seconds'],'s',flush=True)
+    print(*outputs.values(),result['wall_seconds'],'s',flush=True)
 
 
 if __name__=='__main__':

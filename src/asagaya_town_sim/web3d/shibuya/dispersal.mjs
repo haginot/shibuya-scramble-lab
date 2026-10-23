@@ -32,7 +32,7 @@ export const DISPERSAL=Object.freeze({
  // Station gate lines on the building faces: box [x0,z0,x1,z1], the side the building is on, people per second at full capacity.
  gates:[
   {name:'Hachiko',ja:'ハチ公口',box:[8,70,32,92],side:[0,1],capacity:9},
-  {name:'Central',ja:'中央口',box:[32,70,62,92],side:[0,1],capacity:8},
+  {name:'Miyamasuzaka',ja:'宮益坂口',box:[32,70,62,92],side:[0,1],capacity:8},// (east half of the north face; called "Central" before)
   {name:'South',ja:'南口',box:[5,85,60,112],side:[0,-1],capacity:6},
   {name:'East',ja:'東口',box:[95,40,135,90],side:[-1,0],capacity:4},
  ],
@@ -52,6 +52,18 @@ export const DISPERSAL=Object.freeze({
   pull:.6,           // outbound keep-left pull on lane-split sidewalks
  },
  tmax:1800,
+ // Exit / route zones for the "which exit?" counters: discs (x, z, radius m) over walkable
+ // cells, first match wins (no cell counted twice). An illustrative mapping of the model's
+ // geometry (−z ≈ north, +x ≈ east) onto Shibuya Station's exits and the routes away from them.
+ exits:[
+  {key:'hachiko',name:'Hachiko exit',ja:'ハチ公口',disc:[20,72,13]},
+  {key:'miyamasuzaka',name:'Miyamasuzaka',ja:'宮益坂口',disc:[48,72,12]},
+  {key:'shinminami',name:'Shin-minami / south',ja:'新南口・南側',disc:[24,106,18]},
+  {key:'hikarie',name:'Hikarie / east',ja:'ヒカリエ・東側',disc:[106,52,32]},
+  {key:'markcity',name:'Mark City / Inokashira',ja:'マークシティ・井の頭線',disc:[-52,56,26]},
+  {key:'scramble',name:'Scramble side',ja:'スクランブル側',disc:[0,0,32]},
+ ],
+ exitClear:2,        // an exit zone counts as clear once no 3 m cell in it exceeds this (p/m²) for good
 });
 
 // Bucket Dijkstra on the 1 m grid; `cost` (optional) multiplies the step length per cell.
@@ -93,7 +105,10 @@ function build(sim){
  const plazaCells=[];for(let r=0;r<RN;r++){if(!g.side[r]||!study[r])continue;const x=X(r),z=Z(r);if(Math.hypot(x-S.center[0],z-S.center[1])<=S.radius-4&&z>12&&x>-6&&!solidAt(x,z))plazaCells.push(r);}
  // Ring of 1 m cells in front of each gate (≤ 6 m) where the gate's density is measured.
  const front=gates.map(gt=>{const set=new Set();for(const r of gt.cells){const x=X(r),z=Z(r);for(let dz=-6;dz<=6;dz++)for(let dx=-6;dx<=6;dx++){if(dx*dx+dz*dz>36)continue;const j=g.rkey(x+dx,z+dz);if(j>=0&&g.side[j])set.add(j);}}return [...set];});
- return {gates,gateways,cumulative,assigned,study,studyArea,plazaCells,front,pass};
+ // Exit zones: 1-based zone index per 1 m cell, walkable area per zone.
+ const zone=new Uint8Array(RN),zoneArea=new Array(D.exits.length).fill(0);
+ for(let r=0;r<RN;r++){if(!pass[r])continue;const x=X(r),z=Z(r),k=D.exits.findIndex(({disc:[cx,cz,cr]})=>Math.hypot(x-cx,z-cz)<=cr);if(k>=0){zone[r]=k+1;zoneArea[k]++;}}
+ return {gates,gateways,cumulative,assigned,study,studyArea,plazaCells,front,pass,zone,zoneArea};
 }
 
 export class DispersalSimulation extends HalloweenSimulation{
@@ -106,7 +121,7 @@ export class DispersalSimulation extends HalloweenSimulation{
   const n=this.n,W=this.g.rsize,R=this.g.R;
   this.gw=new Uint8Array(n);this.gate=new Uint8Array(n);this.stage=new Uint8Array(n);
   this.holdRun=0;this.holdMax=0;this.holdTotal=0;this.spillTime=0;this.held2=0;this.left=0;this.emerged=0;this.lost=0;this.rerouted=0;this.ddx=new Float32Array(n);this.ddz=new Float32Array(n);this.leg.fill(0);this.timer.fill(0);this.turnbacks=0;this.lostFlag=new Uint8Array(n);this.gateDebt=new Float64Array(s.gates.length);this.gateOpen=new Uint8Array(s.gates.length);this.gateQueue=s.gates.map(()=>[]);
-  this.series=[];this.summary=null;this.crushSeconds=0;this.denseUntil=null;this.stationEmptyAt=null;this.peakCell=0;this.peakStudy=0;this.peakP95=0;this.lastBelow=null;
+  this.series=[];this.summary=null;this.crushSeconds=0;this.denseUntil=null;this.stationEmptyAt=null;this.peakCell=0;this.peakStudy=0;this.peakP95=0;this.lastBelow=null;this.exitClear=DISPERSAL.exits.map(()=>null);this.exitPeak=DISPERSAL.exits.map(()=>0);
   this.still[HOLD]=1;
   // Destinations and gates. Unmanaged: the gate depends on where the person was on the
   // platforms (proportional to gate capacity). Managed: the gate on their destination's side.
@@ -199,6 +214,10 @@ export class DispersalSimulation extends HalloweenSimulation{
    const r=this.g.rkey(x,z);if(r>=0&&s.study[r]){inStudy++;if(this.roadBlocked(x,z))onRoad++;}}
   let peak=0,at=-1;for(let k=0;k<cnt.length;k++){if(!cnt[k]||H.darea[k]<4)continue;const v=cnt[k]/H.darea[k];if(v>peak){peak=v;at=k;}}
   // Person-weighted density in the study area, and crush exposure (people in cells ≥ 4 p/m², per second).
+  const ex=DISPERSAL.exits,zc=new Array(ex.length).fill(0),zp=new Array(ex.length).fill(0);
+  for(let i=0;i<n;i++){if(cell[i]<0)continue;const r=this.g.rkey(this.x[i],this.z[i]),q=r>=0?s.zone[r]:0;if(!q)continue;zc[q-1]++;const v=cnt[cell[i]]/Math.max(4,H.darea[cell[i]]);if(v>zp[q-1])zp[q-1]=v;}
+  const exits=ex.map((e,k)=>{if(zp[k]>DISPERSAL.exitClear)this.exitClear[k]=null;else if(this.exitClear[k]===null)this.exitClear[k]=this.time;this.exitPeak[k]=Math.max(this.exitPeak[k],zp[k]);
+   return {key:e.key,people:zc[k],area:s.zoneArea[k],density:zc[k]/s.zoneArea[k],peak:zp[k],peakRun:this.exitPeak[k],clearAt:this.exitClear[k]};});
   const list=[];let crush=0,densePeak=0;for(let i=0;i<n;i++){if(cell[i]<0)continue;const r=this.g.rkey(this.x[i],this.z[i]);if(r<0||!s.study[r])continue;const v=cnt[cell[i]]/Math.max(4,H.darea[cell[i]]);list.push(v);if(v>=4)crush++;if(v>densePeak)densePeak=v;}
   const dtm=this.time-(this.lastMeasure??this.time);this.lastMeasure=this.time;this.crushSeconds+=crush*dtm;
   if(densePeak>DISPERSAL.dense)this.denseUntil=null;else if(this.denseUntil===null)this.denseUntil=this.time;
@@ -207,13 +226,13 @@ export class DispersalSimulation extends HalloweenSimulation{
   const mean=inStudy/s.studyArea,remaining=inside+held+walking;
   this.peakCell=Math.max(this.peakCell,peak);this.peakStudy=Math.max(this.peakStudy,mean);this.peakP95=Math.max(this.peakP95,p95);
   if(mean>=DISPERSAL.threshold)this.lastBelow=null;else if(this.lastBelow===null)this.lastBelow=this.time;
-  const row={t:this.time,inside,held,walking,remaining,left:this.left,inStudy,onRoad,studyDensity:mean,peakCell:peak,p95,densePeak,crush};this.now=row;
+  const row={t:this.time,inside,held,walking,remaining,left:this.left,inStudy,onRoad,studyDensity:mean,peakCell:peak,p95,densePeak,crush,exits};this.now=row;
   if(this.series.length===0||this.time>=this.series.at(-1).t+5-1e-6)this.series.push(row);
   if(!this.summary&&remaining===0)this.summary=this.summarize();
   this.density={peak,p95,median:list.length?list[Math.floor(list.length/2)]:0,mean,peakRun:this.peakCell,cells:0,time:this.time,at:at<0?null:[(at%DN+.5)*DC-R,(Math.floor(at/DN)+.5)*DC-R],sample:list.length};}
  // Below the threshold from `clearedAt` on (null while the study area is still above it).
  summarize(){return {strategy:this.strategy,agents:this.n,inside:this.insideN,plaza:this.plazaN,peakCell:this.peakCell,peakStudy:this.peakStudy,peakP95:this.peakP95,
-  clearedAt:this.lastBelow,threshold:DISPERSAL.threshold,denseClearedAt:this.denseUntil,dense:DISPERSAL.dense,crushPersonMinutes:this.crushSeconds/60,stationEmptyAt:this.stationEmptyAt,remaining:this.now.remaining,left:this.left,emerged:this.emerged,lost:this.lost,rerouted:this.rerouted,turnbacks:this.turnbacks,holdMax:this.holdMax,holdTotal:this.holdTotal,spillTime:this.spillTime,blockedMoves:this.blockedMoves,time:this.time,allLeftAt:this.now.remaining===0?this.time:null};}
+  clearedAt:this.lastBelow,threshold:DISPERSAL.threshold,denseClearedAt:this.denseUntil,dense:DISPERSAL.dense,crushPersonMinutes:this.crushSeconds/60,stationEmptyAt:this.stationEmptyAt,remaining:this.now.remaining,left:this.left,emerged:this.emerged,lost:this.lost,rerouted:this.rerouted,turnbacks:this.turnbacks,holdMax:this.holdMax,holdTotal:this.holdTotal,spillTime:this.spillTime,blockedMoves:this.blockedMoves,exits:this.now.exits,time:this.time,allLeftAt:this.now.remaining===0?this.time:null};}
  // Density raster for the heat map: 3 m cells over x∈[-90,150), z∈[-75,135), value = p/m² × 50 (≤ 255).
  heat(){const H=this.h,DC=H.DC,DN=H.DN,R=this.g.R,x0=Math.floor((-90+R)/DC),z0=Math.floor((-75+R)/DC),w=80,h=70,out=new Uint8Array(w*h);
   for(let b=0;b<h;b++)for(let a=0;a<w;a++){const k=(z0+b)*DN+x0+a,area=H.darea[k];if(area<2)continue;out[b*w+a]=Math.min(255,Math.round(this.dcount[k]/Math.max(4,area)*50));}
@@ -226,7 +245,7 @@ export class DispersalSimulation extends HalloweenSimulation{
   return {positions,previous,motion,states:this.state.slice(),roles:this.motion.slice(),alpha:this.accumulator/this.dt,dt:this.dt,time:this.time,clock:this.clock,phase:phaseAt(this.clock,sg),
    mode:'dispersal',strategy:this.strategy,agents:n,inside,held,walking,left:gone,remaining:inside+held+walking,emerged:this.emerged,lost:this.lost,rerouted:this.rerouted,turnbacks:this.turnbacks,teleports:this.teleports,holdMax:this.holdMax,holdTotal:this.holdTotal,spillTime:this.spillTime,policeLine:this.held2,
    gateOpen:Array.from(this.gateOpen),now:{...this.now},peakCell:this.peakCell,peakStudy:this.peakStudy,peakP95:this.peakP95,clearedAt:this.lastBelow,threshold:DISPERSAL.threshold,denseClearedAt:this.denseUntil,dense:DISPERSAL.dense,crushPersonMinutes:this.crushSeconds/60,stationEmptyAt:this.stationEmptyAt,
-   series:this.series.map(r=>[r.t,r.remaining,r.densePeak,r.inStudy,r.crush]),summary:this.summary,heat:this.heat(),active:0,waiting:0,rescued:this.rescued,
+   series:this.series.map(r=>[r.t,r.remaining,r.densePeak,r.inStudy,r.crush]),exits:this.now.exits.map(e=>({...e})),exitSeries:this.series.map(r=>[r.t,...r.exits.map(e=>e.people)]),summary:this.summary,heat:this.heat(),active:0,waiting:0,rescued:this.rescued,
    clearanceHold:this.conflictCount()>0&&this.clock%sg.cycle_s>=sg.walk_s+sg.clearance_s-this.dt-1e-4};}
- get scenario(){const s=this.d;return {gates:s.gates.map(({cells,...q})=>({...q,cells:cells.length})),gateways:s.gateways.map(({map,...q})=>q),studyArea:s.studyArea,assigned:s.assigned};}
+ get scenario(){const s=this.d;return {gates:s.gates.map(({cells,...q})=>({...q,cells:cells.length})),gateways:s.gateways.map(({map,...q})=>q),studyArea:s.studyArea,assigned:s.assigned,exits:DISPERSAL.exits.map((e,k)=>({...e,area:s.zoneArea[k]}))};}
 }

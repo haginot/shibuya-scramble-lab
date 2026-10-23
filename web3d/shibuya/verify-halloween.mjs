@@ -22,7 +22,7 @@ function cells(sim,visible){const H=sim.h,DC=H.DC,DN=H.DN,R=sim.g.R,cnt=new Map(
 
 async function dispersalRun(strategy){
  const sim=new DispersalSimulation({...config,hour:23.5,strategy},osm,plateau,traffic),n=sim.n,s=sim.d,W=sim.g.rsize,R=sim.g.R;
- const gateCells=new Set(s.gates.flatMap(q=>q.cells)),stats={maxStep:0,emergedOffGate:0,leftOffGateway:0,maxOcc:0,conservation:0};
+ const gateCells=new Set(s.gates.flatMap(q=>q.cells)),stats={maxStep:0,emergedOffGate:0,leftOffGateway:0,maxOcc:0,conservation:0,exitChecks:0};
  const mPrev=new Uint8Array(n),preX=new Float32Array(n),preZ=new Float32Array(n);
  for(let k=0;k<DISPERSAL_SECONDS*10;k++){mPrev.set(sim.motion);preX.set(sim.x);preZ.set(sim.z);sim.step(.1);
   for(let i=0;i<n;i++){const m=sim.motion[i],was=mPrev[i];
@@ -31,14 +31,19 @@ async function dispersalRun(strategy){
    if(m===DMOTION.INSIDE||m===DMOTION.GONE){if(sim.x[i]!==HIDDEN||sim.z[i]!==HIDDEN)stats.conservation++;continue;}
    const d=Math.hypot(sim.x[i]-sim.px[i],sim.z[i]-sim.pz[i]);if(d>stats.maxStep)stats.maxStep=d;}
   if(k%50===0){const occ=new Map();for(let i=0;i<n;i++){const m=sim.motion[i];if(m===DMOTION.INSIDE||m===DMOTION.GONE)continue;const q=sim.g.key(sim.x[i],sim.z[i]);occ.set(q,(occ.get(q)||0)+1);}for(const v of occ.values())stats.maxOcc=Math.max(stats.maxOcc,v);
-   const snap=sim.snapshot();if(snap.inside+snap.held+snap.walking+snap.left!==n)stats.conservation++;}}
+   const snap=sim.snapshot();if(snap.inside+snap.held+snap.walking+snap.left!==n)stats.conservation++;}
+  // Per-exit counters (measured on this step): recount people and the densest 3 m cell per zone.
+  if(sim.stepCount%50===0){const {cnt,H}=cells(sim,i=>sim.motion[i]!==DMOTION.INSIDE&&sim.motion[i]!==DMOTION.GONE),people=DISPERSAL.exits.map(()=>0),peak=DISPERSAL.exits.map(()=>0);
+   for(let i=0;i<n;i++){const m=sim.motion[i];if(m===DMOTION.INSIDE||m===DMOTION.GONE)continue;const r=sim.g.rkey(sim.x[i],sim.z[i]),q=r>=0?s.zone[r]:0;if(!q)continue;
+    const a=Math.floor((sim.x[i]+R)/H.DC),b=Math.floor((sim.z[i]+R)/H.DC),k=b*H.DN+a;if(a<0||b<0||a>=H.DN||b>=H.DN)continue;people[q-1]++;peak[q-1]=Math.max(peak[q-1],cnt.get(k)/Math.max(4,H.darea[k]));}
+   const shown=sim.snapshot().exits;shown.forEach((e,k)=>{assert.equal(e.people,people[k],`exit ${e.key}: people = recount`);assert(Math.abs(e.peak-peak[k])<1e-9,`exit ${e.key}: peak = recount`);assert(Math.abs(e.density-people[k]/s.zoneArea[k])<1e-12);});stats.exitChecks++;}}
  const snap=sim.snapshot();
  // Independent recount of the reported numbers at the end.
  let inside=0,held=0,walking=0,gone=0;for(let i=0;i<n;i++){const m=sim.motion[i];if(m===DMOTION.INSIDE)inside++;else if(m===DMOTION.HOLD)held++;else if(m===DMOTION.GONE)gone++;else walking++;}
  const {cnt,H}=cells(sim,i=>sim.motion[i]!==DMOTION.INSIDE&&sim.motion[i]!==DMOTION.GONE);let densePeak=0;
  for(let i=0;i<n;i++){const m=sim.motion[i];if(m===DMOTION.INSIDE||m===DMOTION.GONE)continue;const r=sim.g.rkey(sim.x[i],sim.z[i]);if(r<0||!s.study[r])continue;const a=Math.floor((sim.x[i]+R)/H.DC),b=Math.floor((sim.z[i]+R)/H.DC),k=b*H.DN+a;densePeak=Math.max(densePeak,cnt.get(k)/Math.max(4,H.darea[k]));}
  const series=snap.series;let crushFromSeries=0;
- return {strategy,stats,snap:{remaining:snap.remaining,inside:snap.inside,held:snap.held,walking:snap.walking,left:snap.left,lost:snap.lost,teleports:snap.teleports,peakCell:snap.peakCell,densePeakNow:snap.now.densePeak,crush:snap.crushPersonMinutes,holdTotal:snap.holdTotal,denseClearedAt:snap.denseClearedAt,stationEmptyAt:snap.stationEmptyAt,time:snap.time,heatMax:Math.max(...snap.heat.data)/50,series:series.length},
+ return {strategy,stats,snap:{remaining:snap.remaining,inside:snap.inside,held:snap.held,walking:snap.walking,left:snap.left,lost:snap.lost,teleports:snap.teleports,peakCell:snap.peakCell,densePeakNow:snap.now.densePeak,crush:snap.crushPersonMinutes,holdTotal:snap.holdTotal,denseClearedAt:snap.denseClearedAt,stationEmptyAt:snap.stationEmptyAt,time:snap.time,heatMax:Math.max(...snap.heat.data)/50,series:series.length,exits:snap.exits,exitSeries:snap.exitSeries},
   recount:{remaining:inside+held+walking,inside,held,walking,gone,densePeak},scenario:sim.scenario};
 }
 const DISPERSAL_SECONDS=1500;
@@ -77,11 +82,14 @@ else{
   assert(snap.peakCell<=5+1e-9,`${r.strategy}: peak ${snap.peakCell}`);
   assert.equal(snap.remaining,recount.remaining);assert.equal(snap.inside,recount.inside);assert.equal(snap.held,recount.held);assert.equal(snap.left,recount.gone);
   assert(Math.abs(snap.densePeakNow-recount.densePeak)<1e-9,'reported "densest now" is the recount');
-  assert(snap.heatMax<=5.1,'heat map within the density scale');}
+  assert(snap.heatMax<=5.1,'heat map within the density scale');
+  assert(stats.exitChecks>=DISPERSAL_SECONDS/5-1,'per-exit counters recounted every 5 s');
+  for(const row of snap.exitSeries)assert(row.slice(1).reduce((a,b)=>a+b,0)<=n,'exit zones never double count');}
  // The comparison the video shows (same seed): measured, not assumed.
  assert(B.snap.remaining<=.01*(DISPERSAL.inside+DISPERSAL.plaza),'managed: (almost) everyone has left within 25 min');assert(B.snap.stationEmptyAt!=null,'managed: the station empties within 25 min');assert(A.snap.remaining>1000,'no control: thousands still in the area after 25 min');
  assert(B.snap.crush<A.snap.crush/2,'managed: far less time at ≥ 4 p/m²');assert.equal(B.snap.holdTotal,0,'managed: cars never held by people on the road');assert(A.snap.holdTotal>60,'no control: the crowd spills into the junction');
  assert(B.snap.denseClearedAt!=null&&B.snap.denseClearedAt<DISPERSAL_SECONDS,'managed: the dense crowd clears');
  console.log(`PASS dispersal (${DISPERSAL.inside+DISPERSAL.plaza} people, 25 min): remaining ${fmt(A.snap.remaining)} vs ${fmt(B.snap.remaining)} · peak ${p2(A.snap.peakCell)} vs ${p2(B.snap.peakCell)} p/m² · person-min ≥4 p/m² ${fmt(A.snap.crush)} vs ${fmt(B.snap.crush)} · cars held ${mmss(A.snap.holdTotal)} vs ${mmss(B.snap.holdTotal)} · dense cleared ${mmss(A.snap.denseClearedAt)??'never'} vs ${mmss(B.snap.denseClearedAt)} · station empty ${mmss(A.snap.stationEmptyAt)} vs ${mmss(B.snap.stationEmptyAt)}`);
+ console.log(`PASS exits: ${B.snap.exits.map(e=>`${e.key} peak ${p2(A.snap.exits.find(q=>q.key===e.key).peakRun)}/${p2(e.peakRun)} clear ${mmss(A.snap.exits.find(q=>q.key===e.key).clearAt)??'—'}/${mmss(e.clearAt)??'—'}`).join(' · ')}`);
  console.log(JSON.stringify({A:A.snap,B:B.snap}));
 }
