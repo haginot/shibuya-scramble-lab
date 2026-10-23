@@ -82,7 +82,15 @@ Knobs (`DISPERSAL.knobs`, overridable per run via `config.dispersal`): `capScale
 
 ## Performance / 性能
 
-`node web3d/shibuya/bench-halloween.mjs` measures solver step latency (one 0.1 s step, Node, single core, as each browser worker runs it) — see the table in the summary below. Rendering numbers come from the recorder's per-frame log (`recording.json`: draw calls, triangles, ms per frame). The video was captured offline on software WebGL (SwiftShader), so its frame times say nothing about interactive frame rate on a GPU; they are reported only as capture cost.
+`node web3d/shibuya/bench-halloween.mjs` measures solver step latency (one 0.1 s step, Node 20, one core each, as the browser workers run them; this 8-core container, 2026-10-23, while another job was running):
+
+| solver | agents | step p50 / p95 / p99 / max (ms) | snapshot (ms) | per-frame transfer | realtime factor (p50) |
+|---|---:|---|---:|---:|---:|
+| Halloween crowd | 48,000 | 36.2 / 54.1 / 66.1 / 89.7 | 10.8 | 1.1 MB | 2.8× |
+| dispersal, no control | 16,000 | 11.1 / 30.2 / 37.0 / 65.0 | 16.3 | 0.37 MB | 9.0× |
+| dispersal, managed | 16,000 | 9.0 / 19.8 / 28.5 / 30.7 | 8.6 | 0.37 MB | 11.2× |
+
+Process RSS with all three solvers built: 151 MB. Rendering numbers come from the recorder's per-frame log (`recording.json`: draw calls, triangles, ms per frame). The video was captured offline on software WebGL (SwiftShader), so its frame times say nothing about interactive frame rate on a GPU; they are reported only as capture cost.
 
 ## Who the video is for / 動画の対象
 

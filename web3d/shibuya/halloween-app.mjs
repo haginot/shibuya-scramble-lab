@@ -142,7 +142,7 @@ export async function install(api){
   if(api.recording)alpha=state.alpha||0;else{renderTime=Math.min(state.time,Math.max(state.time-dt,(renderTime??state.time-dt)+dtSim));alpha=(renderTime-(state.time-dt))/dt;}
   alpha=Math.min(1,Math.max(0,alpha));const simTime=state.time-dt+alpha*dt;shared.uTime.value=simTime;
   crowd.visible=true;crowdA.visible=crowdB.visible=false;heatA.visible=heatB.visible=false;
-  crowd.update(state,alpha,dtSim);hs.update(simTime);hs.gates(state.gates,dtSim);
+  crowd.update(state,alpha,dtSim);hs.update(simTime);$('brand').style.opacity='';hs.gates(state.gates,dtSim);
   const clock=state.clock-dt+alpha*dt,cars=vehicles.update(state.clearanceHold?state.clock:Math.max(0,clock));
   topdown.roles=state.roles;topdown.update(crowd,cars,dtSim);
   api.placeCamera(shot);shared.uTrailGain.value=shot?shot.trail:.5;sigColor(state);
@@ -179,7 +179,7 @@ export async function install(api){
   const view=(x,cam,mine,other,hm,ho,st)=>({x,width:W/2,camera:cam,before(){mine.visible=true;other.visible=false;hm.visible=true;ho.visible=false;vehicles.update(st.clock);sigColor(st);}});
   renderer.info.reset();post.render(scene,camL,[view(0,camL,crowdA,crowdB,heatA,heatB,a),view(W/2,camR,crowdB,crowdA,heatB,heatA,b)]);
   // Overlay: live counts from both runs.
-  $('hud').style.display='none';hook.style.opacity=0;$('caption').style.opacity=0;split.style.display='block';
+  $('hud').style.display='none';hook.style.opacity=0;$('caption').style.opacity=0;split.style.display='block';$('brand').style.opacity=0;// (the centred title needs the top row)
   const A=stats(a),B=stats(b),clock=`+${mmss(a.time)}`,clk=`${clock}<small>${L('since closing','閉鎖から')}</small>`;if($('hw-clock').innerHTML!==clk)$('hw-clock').innerHTML=clk;
   const sub=L(`same ${fmt(a.agents)} people in both runs (sim assumption): ${fmt(DISPERSAL.inside)} inside the station + ${fmt(DISPERSAL.plaza)} on the plaza`,`両方とも同じ${fmt(a.agents)}人（シミュレーション上の仮定）：駅構内${fmt(DISPERSAL.inside)}人＋駅前広場${fmt(DISPERSAL.plaza)}人`);
   if($('hw-split-sub').innerHTML!==sub)$('hw-split-sub').innerHTML=sub;
