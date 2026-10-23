@@ -122,7 +122,7 @@ function build(sim){
   for(const [x,z] of spaced(front,3.6,9)){const [gx,gz]=grad(g.curb,x,z);officers.push({x,z,angle:Math.atan2(gx,gz),kind:0,corner:k});}});
  // Gate officers and half-width barriers where each pen meets the corner queue.
  pens.forEach((list,k)=>{const line=list.filter(r=>nv[r]<H.gate+1);for(const [x,z] of spaced(line,4.5,4)){const [gx,gz]=grad(g.walk[k],x,z);officers.push({x,z,angle:Math.atan2(gx,gz),kind:1,corner:k});
-   const ax=-gz,az=gx;for(const s of [-1,1]){const bx=x+ax*s*1.6,bz=z+az*s*1.6;if(ok(bx,bz))barriers.push({x:bx,z:bz,angle:Math.atan2(ax,az),len:2,kind:1});}}});
+   const ax=-gz,az=gx;for(const s of [-1,1]){const bx=x+ax*s*1.6,bz=z+az*s*1.6;if(ok(bx,bz))barriers.push({x:bx,z:bz,angle:Math.atan2(ax,az),len:2,kind:1,corner:k,side:s});}}});
  // Curb fences: sidewalk edges along the carriageway near the junction, except corner frontages.
  {const edge=[];for(let r=0;r<RN;r++){if(!g.side[r]||g.curb[r]>1.01)continue;const x=X(r),z=Z(r),d=Math.hypot(x,z);if(d>95||d<12)continue;let nearZone=false;for(let dz=-3;dz<=3&&!nearZone;dz++)for(let dx=-3;dx<=3;dx++){const j=r+dz*W+dx;if(j>=0&&j<RN&&zoneOf[j]>=0){nearZone=true;break;}}if(nearZone)continue;edge.push(r);}
   for(const [x,z] of spaced(edge,2.05,2000)){let nx=0,nz=0;for(const [dx,dz] of [[1,0],[-1,0],[0,1],[0,-1]]){const j=near(x+dx,z+dz);if(j>=0&&g.open[j]&&!g.side[j]){nx+=dx;nz+=dz;}}const l=Math.hypot(nx,nz);if(!l)continue;nx/=l;nz/=l;barriers.push({x:x+nx*.4,z:z+nz*.4,angle:Math.atan2(-nz,nx),len:2,kind:0});}}

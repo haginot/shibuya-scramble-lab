@@ -18,10 +18,11 @@ export const shared={
  uSunDir:{value:new THREE.Vector3(-.4,.8,.3).normalize()},
  uWet:{value:.85},
  uScreenGlow:{value:new THREE.Color(0x4060ff)},
+ uFacade:{value:0},// 0 = classic facades; 1 = dimmer, varied windows with blinds and floor bands (Halloween look)
 };
 
 export const common=/* glsl */`
-uniform float uTime,uDaylight,uFogDensity,uTrailGain,uWet;
+uniform float uTime,uDaylight,uFogDensity,uTrailGain,uWet,uFacade;
 uniform sampler2D uLightmap,uTrail;
 uniform vec4 uLightRect,uTrailRect;
 uniform vec3 uFogColor,uSkyTop,uSkyHorizon,uSunDir,uScreenGlow;

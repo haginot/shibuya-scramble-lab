@@ -45,7 +45,44 @@ Result after 25 simulated minutes (`verify-halloween.mjs`, also checked frame by
 | Person-minutes at ≥ 4 p/m² | 38,772 | 13,770 |
 | Cars held by people on the road | 11:24 | 00:00 |
 
-Metering is not free: people wait inside the station much longer (the station concourse itself is not modelled spatially). The uncontrolled residue is mostly people who left on the far side of the station and walk back around it against the flow; in this model such counter-flow pockets dissolve slowly because nobody exceeds 5 p/m². Gate positions, capacities, gateways and behaviour rules are illustrative.
+**Metering is not free: the managed station empties at 22:12 instead of 07:46** — the waiting moves from the streets into the station (whose concourse is not modelled spatially). The video shows this tradeoff as the first row of its results card, and the split screen gives *in the station*, *on the streets* and *gone home* equal size. The uncontrolled residue is mostly people who left on the far side of the station and walk back around it against the flow; in this model such counter-flow pockets dissolve slowly because nobody exceeds 5 p/m². Gate positions, capacities, gateways and behaviour rules are illustrative.
+
+## How robust is the comparison? Sensitivity sweep / 感度分析
+
+The table above is **one bundled scenario** (one seed, one set of assumptions); the two strategies differ in gate assignment, gate capacity, release timing, lane preference and crossing cut-off all at once, and the no-control run includes a spill-over rule. It illustrates mechanisms; it cannot establish how much police control improves real Shibuya dispersal. `node web3d/shibuya/sweep-dispersal.mjs` (24 solver runs, ≈7 min on 7 cores) reruns both strategies for 25 simulated minutes with each assumption varied one at a time and writes `web3d/data/shibuya_dispersal_sweep.json`; the video's results card shows the min–max of this table under each number, and the recorder checks those ranges against the file. The sweep asserts conservation only, never which strategy wins.
+
+| scenario | not home after 25 min (none / managed) | station empty (none / managed) | street crowd > 2 p/m² cleared (none / managed) | person-min ≥ 4 p/m² (none / managed) | peak p/m² |
+|---|---|---|---|---|---|
+| shipped scenario (seed 7) | 2,102 / 1 | 07:46 / 22:12 | 25:00+ / 13:20 | 38,772 / 13,770 | 5.0 / 4.9 |
+| seed 11 | 2,014 / 3 | 08:07 / 22:11 | 25:00+ / 13:11 | 37,308 / 14,573 | 5.0 / 4.9 |
+| seed 23 | 2,555 / 0 | 08:01 / 22:10 | 25:00+ / 13:14 | 45,147 / 14,766 | 5.0 / 4.9 |
+| seed 101 | 1,933 / 0 | 08:19 / 23:04 | 25:00+ / 13:10 | 37,141 / 14,156 | 5.0 / 4.9 |
+| demand ×0.6 (9,600 people) | 971 / 0 | 04:39 / 13:24 | 25:00+ / 10:09 | 15,244 / 5,745 | 5.0 / 4.9 |
+| demand ×1.25 (20,000; plaza full at 7,000, the extra wait inside) | 2,845 / **1,428** | 11:22 / **25:00+** | 25:00+ / 15:43 | 43,431 / 18,173 | 5.0 / 4.9 |
+| gate capacity ×0.7 | 2,148 / **900** | 11:06 / **25:00+** | 25:00+ / 13:11 | 38,127 / 11,731 | 5.0 / 4.8 |
+| gate capacity ×1.3 | 2,102 / 0 | 05:59 / 17:05 | 25:00+ / 13:16 | 37,238 / 15,487 | 5.0 / 4.9 |
+| destinations uniform | 2,516 / 0 | 06:57 / 15:51 | 25:00+ / 15:38 | 41,772 / 20,225 | 5.0 / 4.9 |
+| destinations ∝ street width² | 1,543 / **982** | 08:59 / **25:00+** | 25:00+ / 13:21 | 33,615 / 10,300 | 4.9 / 4.9 |
+| 80 % follow police instructions | 2,102 / 0 | 07:46 / 19:40 | 25:00+ / 12:59 | 38,772 / 11,700 | 5.0 / 4.8 |
+| 60 % follow police instructions | 2,102 / **1,749** | 07:46 / **25:00+** | 25:00+ / **25:00+** | 38,772 / 14,303 | 5.0 / 4.9 |
+| no-control spill-over after 30 s (not 10 s) | 2,149 / 1 | 07:46 / 22:12 | 25:00+ / 13:20 | 40,998 / 13,770 | 4.9 / 4.9 |
+| no-control crowd never ignores the signal | 6,414 / 1 | 07:46 / 22:12 | 25:00+ / 13:20 | 106,741 / 13,770 | 5.0 / 4.9 |
+
+(Rows that vary only one strategy's behaviour reuse the other strategy's base run.)
+
+What holds and what does not, in this model:
+
+* **The waiting moves into the station in every scenario (14/14).** The managed station empties 13:24 to beyond 25:00 after closing; with no control, 04:39–11:22. The concourse is not modelled spatially, so the model cannot say whether that indoor wait is safe or comfortable.
+* **Management helps much less when capacity is short or compliance is low** (bold): with 30 % less gate capacity, 25 % more people, destinations concentrated on the widest streets, or only 60 % of people following instructions, 900–1,749 people are still inside the station or on the streets after 25 min (vs 1 in the shipped run). With 60 % compliance the street crowd never falls below 2 p/m².
+* The managed runs always leave fewer people waiting after 25 min (14/14) and fewer person-minutes at ≥ 4 p/m², but the margin ranges from ~350 people (60 % compliance) to ~6,400 (no spill-over).
+* **Peak density does not discriminate**: every run reaches the model's occupancy cap (4.8–5.0 p/m² in a 3 m cell). That number is a property of the cap, not a finding.
+* The no-control result depends strongly on the spill-over rule: if that crowd never walks against the signal, three times as many are still waiting after 25 min.
+
+Knobs (`DISPERSAL.knobs`, overridable per run via `config.dispersal`): `capScale`, `destPower`, `compliance` (non-compliant people use their nearest gate, ignore staging, the police line and the cut-off), `spillAfter`; plus `seed`, `inside`, `plaza`. The defaults reproduce the shipped run bit for bit.
+
+## Performance / 性能
+
+`node web3d/shibuya/bench-halloween.mjs` measures solver step latency (one 0.1 s step, Node, single core, as each browser worker runs it) — see the table in the summary below. Rendering numbers come from the recorder's per-frame log (`recording.json`: draw calls, triangles, ms per frame). The video was captured offline on software WebGL (SwiftShader), so its frame times say nothing about interactive frame rate on a GPU; they are reported only as capture cost.
 
 ## Who the video is for / 動画の対象
 
@@ -84,7 +121,7 @@ Reading it honestly: the managed run trades a fast-clearing Hachiko and south si
 
 ## Honesty checks
 
-* `verify-halloween.mjs`: displacement per 0.1 s step ≤ walking speed; no teleports/rescues; ≤ 4 (Halloween) / ≤ 5 (dispersal) people per square metre; HUD counts equal recounts of motion codes; reported peak density equals a recount from positions; dispersal remaining/inside/held/left and "densest now" equal independent recounts; people are conserved, emerge only on gate cells and leave only at gateways; the comparison above holds for the shipped seed.
+* `verify-halloween.mjs`: displacement per 0.1 s step ≤ walking speed; no teleports/rescues; ≤ 4 (Halloween) / ≤ 5 (dispersal) people per square metre; HUD counts equal recounts of motion codes; reported peak density equals a recount from positions; dispersal remaining/inside/held/left and "densest now" equal independent recounts; people are conserved, emerge only on gate cells and leave only at gateways. Which strategy does better is **not** asserted (see the sensitivity sweep); the only strategy-specific check is that the managed run never holds cars.
 * `verify-halloween.mjs` also recounts the per-exit people and densest cell every 5 s and checks that zones never double count.
-* `tools/record_shibuya.py --mode halloween`: every frame, each number on screen (HUD, hook, split-screen panels and exit chips, exit board, results card, question card) is compared with the solver value of that frame (`check_overlay`), and the recording fails on any relocation or density above 5 p/m².
+* `tools/record_shibuya.py --mode halloween`: every frame, each number on screen (HUD, hook, split-screen tiles, exit board, results card and its sweep ranges, question card) is compared with the solver value of that frame (`check_overlay`), and the recording fails on any relocation or density above 5 p/m².
 * `tests/test_halloween.py` runs both and checks that the browser and recorder format numbers identically.

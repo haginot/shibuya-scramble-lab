@@ -1,4 +1,5 @@
 """The new default, installed resources, physical solver and Shibuya promotion."""
+import importlib.util
 import json
 from pathlib import Path
 import subprocess
@@ -80,10 +81,12 @@ def test_recording_contract():
 
 
 def test_shibuya_source_mirrors():
+    # web3d/ is authoritative; every runtime file (not the Node dev tools) is mirrored byte for byte.
+    spec=importlib.util.spec_from_file_location('sync_mirror',ROOT/'tools/sync_mirror.py')
+    sm=importlib.util.module_from_spec(spec);spec.loader.exec_module(sm)
+    assert sm.main(check=True)==([],[])
     for p in (ROOT/'src/asagaya_town_sim/web3d/shibuya').iterdir():
         assert p.read_bytes()==(ROOT/'web3d/shibuya'/p.name).read_bytes()
-    for name in ('shibuya_osm.json','shibuya_plateau.json','shibuya_traffic.json','shibuya_config.json','shibuya_calibration.json'):
-        assert (ROOT/'web3d/data'/name).read_bytes()==(ROOT/'src/asagaya_town_sim/web3d/data'/name).read_bytes()
 
 
 def test_mixed_adapter_component_licenses(tmp_path):

@@ -52,6 +52,14 @@ export const DISPERSAL=Object.freeze({
   pull:.6,           // outbound keep-left pull on lane-split sidewalks
  },
  tmax:1800,
+ // Sensitivity knobs (config.dispersal overrides these; defaults = the shipped scenario).
+ // See sweep-dispersal.mjs and docs/HALLOWEEN.md for the sweep over them.
+ knobs:{
+  capScale:1,        // × every station gate's capacity
+  destPower:.5,      // destination weight ∝ (gateway cells)^destPower (0 = uniform, 1 = ∝ width²)
+  compliance:1,      // managed: share of people who follow the staging, police line and cut-off
+  spillAfter:10,     // no control: s of cars held by people on the road before the crowd ignores the signal (Infinity = never)
+ },
  // Exit / route zones for the "which exit?" counters: discs (x, z, radius m) over walkable
  // cells, first match wins (no cell counted twice). An illustrative mapping of the model's
  // geometry (−z ≈ north, +x ≈ east) onto Shibuya Station's exits and the routes away from them.
@@ -89,12 +97,10 @@ function build(sim){
  const NAMES=['N','NE','E','SE','S','SW','W','NW'];
  const gateways=[];for(const [b,list] of [...sectors].sort((a,b)=>a[0]-b[0])){if(far[b]<D.gatewayRing[0])continue;const cells=list.filter(([r,d])=>d>=far[b]-D.gatewayDepth&&gates.every(q=>Math.hypot(X(r)-q.x,Z(r)-q.z)>=D.gatewayClear)).map(([r])=>r);if(cells.length<12)continue;const map=dijkstra(W,cells,pass,cost);
   // Walking distance from each gate (Infinity: that gate's side cannot reach this gateway on foot).
-  let cx=0,cz=0;for(const r of cells){cx+=X(r);cz+=Z(r);}gateways.push({name:NAMES[b],cells:cells.length,x:cx/cells.length,z:cz/cells.length,map,weight:Math.sqrt(cells.length)});}
+  let cx=0,cz=0;for(const r of cells){cx+=X(r);cz+=Z(r);}gateways.push({name:NAMES[b],cells:cells.length,x:cx/cells.length,z:cz/cells.length,map});}
  // Gate cells must connect to some gateway (a gate box can clip a separate sidewalk fragment).
  for(const q of gates){q.cells=q.cells.filter(r=>gateways.some(w=>w.map[r]<Infinity));let cx=0,cz=0;for(const r of q.cells){cx+=X(r);cz+=Z(r);}q.x=cx/Math.max(1,q.cells.length);q.z=cz/Math.max(1,q.cells.length);}
  for(const w of gateways)w.fromGate=gates.map(q=>q.cells.length?Math.min(...q.cells.map(r=>w.map[r])):Infinity);
- // Destination weights: ∝ √(gateway cells), a soft proxy for street width — assumption.
- const total=gateways.reduce((s,q)=>s+q.weight,0);let acc=0;const cumulative=gateways.map(q=>(acc+=q.weight/total));
  // Gate assignment under one-way routing: the gates within 25 m of the shortest walk to the
  // gateway, shared in proportion to their capacity.
  const assigned=gateways.map(q=>{const best=Math.min(...q.fromGate);return gates.map((gt,k)=>q.fromGate[k]<=best+25?gt.capacity:0);});
@@ -108,16 +114,20 @@ function build(sim){
  // Exit zones: 1-based zone index per 1 m cell, walkable area per zone.
  const zone=new Uint8Array(RN),zoneArea=new Array(D.exits.length).fill(0);
  for(let r=0;r<RN;r++){if(!pass[r])continue;const x=X(r),z=Z(r),k=D.exits.findIndex(({disc:[cx,cz,cr]})=>Math.hypot(x-cx,z-cz)<=cr);if(k>=0){zone[r]=k+1;zoneArea[k]++;}}
- return {gates,gateways,cumulative,assigned,study,studyArea,plazaCells,front,pass,zone,zoneArea};
+ return {gates,gateways,assigned,study,studyArea,plazaCells,front,pass,zone,zoneArea};
 }
 
 export class DispersalSimulation extends HalloweenSimulation{
  constructor(config,osm,plateau,traffic){
-  const D=DISPERSAL,inside=config.inside??D.inside,plaza=config.plaza??D.plaza;
+  const D=DISPERSAL,inside=config.inside??D.inside,plaza=config.plaza??D.plaza,knobs={...D.knobs,...config.dispersal};
   super({...config,agents:inside+plaza,quota:0},osm,plateau,traffic);
   this.mode='dispersal';this.strategy=config.strategy==='managed'?'managed':'none';this.managed=this.strategy==='managed';
   let s=this.d;if(!s){s=build(this);cache.set(this.g,s);}
-  this.insideN=inside;this.plazaN=plaza;this.quota=0;
+  this.insideN=inside;this.plazaN=plaza;this.knobs=knobs;
+  // Destination mix: weight ∝ (gateway cells)^destPower, a soft proxy for street width — assumption.
+  {const w=s.gateways.map(q=>knobs.destPower===.5?Math.sqrt(q.cells):Math.pow(q.cells,knobs.destPower)),t=w.reduce((a,b)=>a+b,0);let acc=0;this.cumulative=w.map(v=>(acc+=v/t));}
+  // Non-compliant people (managed only): a hash of the index, so the random streams are untouched.
+  this.defy=new Uint8Array(this.n);if(this.managed&&knobs.compliance<1)for(let i=0;i<this.n;i++)this.defy[i]=((Math.imul(i+1,2654435761)^Math.imul(this.seed+1,40503))>>>0)/4294967296>=knobs.compliance?1:0;this.quota=0;
   const n=this.n,W=this.g.rsize,R=this.g.R;
   this.gw=new Uint8Array(n);this.gate=new Uint8Array(n);this.stage=new Uint8Array(n);
   this.holdRun=0;this.holdMax=0;this.holdTotal=0;this.spillTime=0;this.held2=0;this.left=0;this.emerged=0;this.lost=0;this.rerouted=0;this.ddx=new Float32Array(n);this.ddz=new Float32Array(n);this.leg.fill(0);this.timer.fill(0);this.turnbacks=0;this.lostFlag=new Uint8Array(n);this.gateDebt=new Float64Array(s.gates.length);this.gateOpen=new Uint8Array(s.gates.length);this.gateQueue=s.gates.map(()=>[]);
@@ -125,14 +135,14 @@ export class DispersalSimulation extends HalloweenSimulation{
   this.still[HOLD]=1;
   // Destinations and gates. Unmanaged: the gate depends on where the person was on the
   // platforms (proportional to gate capacity). Managed: the gate on their destination's side.
-  for(let i=0;i<n;i++){const u=this.rand(i);let k=0;while(k<s.cumulative.length-1&&u>s.cumulative[k])k++;this.gw[i]=k;
+  for(let i=0;i<n;i++){const u=this.rand(i);let k=0;while(k<this.cumulative.length-1&&u>this.cumulative[k])k++;this.gw[i]=k;
    // (only gates from which the destination is reachable on foot)
-   const best=Math.min(...s.gateways[k].fromGate),ok=this.managed?s.assigned[k]:s.gates.map((q,j)=>s.gateways[k].fromGate[j]<=best+60?q.capacity:0),sum=ok.reduce((a,b)=>a+b,0);let v=this.rand(i)*sum,q=0;while(q<ok.length-1&&(v>=ok[q]||!ok[q])){v-=ok[q];q++;}this.gate[i]=q;}
+   const best=Math.min(...s.gateways[k].fromGate),ok=this.managed&&!this.defy[i]?s.assigned[k]:s.gates.map((q,j)=>s.gateways[k].fromGate[j]<=best+60?q.capacity:0),sum=ok.reduce((a,b)=>a+b,0);let v=this.rand(i)*sum,q=0;while(q<ok.length-1&&(v>=ok[q]||!ok[q])){v-=ok[q];q++;}this.gate[i]=q;}
   // Start: the first `plaza` agents stand on the plaza (≤ 2 per m²), the rest are inside.
   const occ=this.occ;occ.fill(0);const cells=s.plazaCells,key=this.g.key;let placed=0;
   for(let i=0;i<n;i++){this.vx[i]=this.vz[i]=0;this.poi[i]=-1;this.flag[i]=0;this.entered[i]=0;
    if(i<plaza){let x=0,z=0,ok=false;for(let t=0;t<400&&!ok;t++){const r=cells[Math.floor(this.rand(i)*cells.length)];x=Math.fround(r%W-R+.1+this.rand(i)*.8);z=Math.fround(Math.floor(r/W)-R+.1+this.rand(i)*.8);const k=key(x,z);ok=k>=0&&!this.sidewalkBlocked(x,z)&&occ[k]<2;if(ok)occ[k]++;}
-    if(!ok)throw Error('plaza too small for the start crowd');placed++;this.x[i]=this.px[i]=x;this.z[i]=this.pz[i]=z;this.motion[i]=this.managed?HOLD:DISPERSE;this.heading[i]=Math.atan2(-x,-z);}
+    if(!ok)throw Error('plaza too small for the start crowd');placed++;this.x[i]=this.px[i]=x;this.z[i]=this.pz[i]=z;this.motion[i]=this.managed&&!this.defy[i]?HOLD:DISPERSE;this.heading[i]=Math.atan2(-x,-z);}
    else{this.motion[i]=INSIDE;this.x[i]=this.px[i]=HIDDEN;this.z[i]=this.pz[i]=HIDDEN;this.gateQueue[this.gate[i]].push(i);}}
   // Staged release rings: plaza agents ranked by walking distance to their gateway (front first).
   if(this.managed){const order=[];for(let i=0;i<plaza;i++)order.push([this.field(s.gateways[this.gw[i]].map,this.x[i],this.z[i]),i]);order.sort((a,b)=>a[0]-b[0]||a[1]-b[1]);
@@ -163,13 +173,13 @@ export class DispersalSimulation extends HalloweenSimulation{
   if(Math.floor(this.time+1e-6)!==this.lastManage){this.lastManage=Math.floor(this.time+1e-6);this.control();}
   // Station gates: people step out onto a gate cell that has room (≤ 2 per m²).
   s.gates.forEach((gt,k)=>{const q=this.gateQueue[k];if(!this.gateOpen[k]||!q.length){this.gateDebt[k]=0;return;}
-   this.gateDebt[k]+=gt.capacity*(this.managed?M.gateShare:1)*dt;let tries=0;
+   this.gateDebt[k]+=gt.capacity*this.knobs.capScale*(this.managed?M.gateShare:1)*dt;let tries=0;
    while(this.gateDebt[k]>=1&&q.length&&tries<gt.cells.length){const r=gt.cells[Math.floor(this.random()*gt.cells.length)],x=Math.fround(r%W-R+.2+this.random()*.6),z=Math.fround(Math.floor(r/W)-R+.2+this.random()*.6),kk=key(x,z);tries++;
     if(kk<0||occ[kk]>=2||this.sidewalkBlocked(x,z))continue;const i=q.shift();occ[kk]++;this.gateDebt[k]-=1;this.emerged++;
     this.x[i]=this.px[i]=x;this.z[i]=this.pz[i]=z;this.vx[i]=this.vz[i]=0;this.motion[i]=DISPERSE;this.heading[i]=Math.atan2(gt.x-x,gt.z-z)+Math.PI;}
    this.gateDebt[k]=Math.min(this.gateDebt[k],3);});
   head.fill(-1);for(let i=0;i<n;i++){const a=Math.floor((X[i]+450)/cs),b=Math.floor((Z[i]+450)/cs);if(a>=0&&b>=0&&a<ns&&b<ns){const k=b*ns+a;next[i]=head[k];head[k]=i;}else next[i]=-1;}
-  const H=this.h,spill=!this.managed&&this.holdRun>10;if(spill)this.spillTime+=dt;
+  const H=this.h,spill=!this.managed&&this.holdRun>this.knobs.spillAfter;if(spill)this.spillTime+=dt;
   for(let i=0;i<n;i++){const m=this.motion[i];if(m===INSIDE||m===GONE)continue;
    const x=X[i],z=Z[i],route=s.gateways[this.gw[i]].map;
    if(m===HOLD){const dir=this.descend(route,x,z);if(dir)this.heading[i]=Math.atan2(dir[0],dir[1]);this.move(i,x,z,0,0,0,0,true,false,false,false);continue;}
@@ -187,14 +197,14 @@ export class DispersalSimulation extends HalloweenSimulation{
    else if(v===Infinity){// Pushed off the route network (should not happen): pick any reachable gateway.
     const k=s.gateways.findIndex(q=>this.field(q.map,x,z)<Infinity);if(k>=0){this.gw[i]=k;this.rerouted++;}else if(!this.lostFlag[i]){this.lostFlag[i]=1;this.lost++;}}
    else{const dir=this.descend(route,x,z);if(dir){dx=dir[0];dz=dir[1];d=1;
-     if(this.managed){const r=this.g.rkey(x,z),ln=r>=0?H.lane[r]:0;if(ln){const pull=ln===1?M.pull:M.pull*.3;dx-=H.laneN[2*r]*pull;dz-=H.laneN[2*r+1]*pull;d=Math.hypot(dx,dz);}}}}
+     if(this.managed&&!this.defy[i]){const r=this.g.rkey(x,z),ln=r>=0?H.lane[r]:0;if(ln){const pull=ln===1?M.pull:M.pull*.3;dx-=H.laneN[2*r]*pull;dz-=H.laneN[2*r+1]*pull;d=Math.hypot(dx,dz);}}}}
    // Spill-over (no control only): once cars have been held 10 s by people on the road,
    // the waiting crowd walks into the junction regardless of the signal.
-   const mayCross=onRoad||(phase==='walk'&&(!this.managed||walkLeft>M.cutoff))||spill;
+   const obey=this.managed&&!this.defy[i],mayCross=onRoad||(phase==='walk'&&(!obey||walkLeft>M.cutoff))||spill;
    if(onRoad&&phase!=='walk')speed=Math.max(speed,1.55);
    // Police line (managed): while crossing is not allowed, people heading onto the road
    // wait at least `line` metres back from the curb, keeping an arrival strip free.
-   if(this.managed&&!mayCross&&d>0){const c=this.field(this.g.curb,x,z);if(c<=HALLOWEEN.line+.3&&this.roadBlocked(x+dx/d*(c+1),z+dz/d*(c+1))){this.held2++;
+   if(obey&&!mayCross&&d>0){const c=this.field(this.g.curb,x,z);if(c<=HALLOWEEN.line+.3&&this.roadBlocked(x+dx/d*(c+1),z+dz/d*(c+1))){this.held2++;
      // Inside the line: step back from the curb (officers ask the front rows to move back).
      const back=c<HALLOWEEN.line?this.descend(this.g.curb,x,z,-1):null;
      if(back)this.move(i,x,z,back[0],back[1],1,.5,false,false,false,false);else this.move(i,x,z,0,0,0,0,true,false,false,false);continue;}}

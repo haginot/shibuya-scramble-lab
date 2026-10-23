@@ -43,7 +43,7 @@ TEXT = {
     'ja': {
         'brand': 'SHIBUYA HALLOWEEN · シミュレーション',
         'head': {'hook': '10/31 渋谷駅、\nどう帰る？', 'main': 'ハロウィン夜の\n渋谷駅前', 'dispersal': '00:30 駅閉鎖\n一斉に帰ると？', 'exits': '出口別\nどこが先に空く？',
-                 'results': '規制あり vs なし\n25分後', 'question': 'あなたなら\nどこから帰る？', 'credits': 'あなたなら\nどこから帰る？'},
+                 'results': '待ち時間は\nどこへ移る？', 'question': 'あなたなら\nどこから帰る？', 'credits': 'あなたなら\nどこから帰る？'},
         'sub': '渋谷で働く人・観光客のための帰り道ガイド',
         'tag': '人数はすべてシミュレーション上の人から集計',
         'est': '2026年 推計', 'est_l': 'ピーク時の路上の人出（渋谷区の見込み*）',
@@ -51,13 +51,15 @@ TEXT = {
         'assume': lambda r: f"シミュレーション上の仮定：区域内 {fmt(r['agents'])}人",
         'cols': ('規制なし', '一方通行＋段階的解放'), 'people': '出口付近の人数', 'clear': '混雑が解消した時刻（駅閉鎖から）',
         'clock': lambda t: f"駅閉鎖から +{mmss(t)}", 'remain': '現場に残る人',
+        'tiles': ('駅構内', '路上・広場', '帰路へ'), 'empty': '駅が空になった時刻', 'dense': '路上の密集が解消', 'never': '25分以内になし',
+        'trade': '規制あり：路上は早く空くが\n駅の中で長く待つ', 'nomodel': '駅の中は空間的にモデル化していない（改札の待ち行列）',
         'cta': 'コメントで教えてください',
         'foot': '*シブヤ経済新聞 2026-09-30（渋谷区の見込み：2024年並み 22時頃 約1万8千人）\n人数・出口ゾーンはシミュレーション上の仮定・予測ではない',
     },
     'en': {
         'brand': 'SHIBUYA HALLOWEEN · simulation',
         'head': {'hook': 'Shibuya on Halloween:\nheads-up', 'main': 'Halloween night at\nShibuya Station', 'dispersal': '00:30 the station closes.\nEveryone heads home.', 'exits': 'Which exit\nclears first?',
-                 'results': 'Managed vs no control\n25 min later', 'question': 'Which exit\nwould you take?', 'credits': 'Which exit\nwould you take?'},
+                 'results': 'Where does the\nwaiting go?', 'question': 'Which exit\nwould you take?', 'credits': 'Which exit\nwould you take?'},
         'sub': 'A getting-home guide for workers & visitors',
         'tag': 'every count comes from the simulated people',
         'est': '2026 ESTIMATE', 'est_l': 'people on the street at the peak (Shibuya City expectation*)',
@@ -65,6 +67,8 @@ TEXT = {
         'assume': lambda r: f"sim assumption: {fmt(r['agents'])} people in the area",
         'cols': ('NO CONTROL', 'ONE-WAY + STAGED'), 'people': 'people near each exit', 'clear': 'crowd cleared at (after closing)',
         'clock': lambda t: f"+{mmss(t)} since closing", 'remain': 'still in the area',
+        'tiles': ('in station', 'on streets', 'gone home'), 'empty': 'station empty at', 'dense': 'street crowd cleared', 'never': 'not within 25 min',
+        'trade': 'Managed: streets clear sooner,\nbut people wait inside longer', 'nomodel': 'station interiors not modelled spatially (gate queue)',
         'cta': 'Tell us in the comments',
         'foot': '*Shibuya Keizai Shimbun 2026-09-30 (ward expects about 2024\'s ≈18,000 at ~22:00)\nPeople counts and exit zones are sim assumptions, not a prediction',
     },
@@ -142,7 +146,26 @@ def band(r, cap, lang, base):
             d.rectangle([60, y-4, W-60, y+58], fill=(24, 14, 34)); d.text((84, y+2), 'ABCDEF'[k], font=font(38), fill=(255, 138, 31))
             d.text((150, y+2), name, font=fit(d, name, 38, W-260), fill=(255, 255, 255)); y += 74
         centered(d, y+24, T['cta'], font(48), (255, 207, 106))
-    elif sec in ('dispersal', 'exits', 'results') and 'exits' in r:
+    elif sec in ('dispersal', 'results') and 'split' in r:
+        # Where the same people are: station queue / modelled streets / gone, for each strategy.
+        d.text((48, y), T['clock'](r['clock']), font=font(34), fill=(255, 255, 255))
+        y += 60
+        for k, (side, color) in enumerate((('A', (255, 106, 90)), ('B', (79, 227, 193)))):
+            v = r['split'][side]
+            d.rectangle([40, y-6, W-40, y+178], fill=(20, 12, 30))
+            d.text((60, y), T['cols'][k], font=fit(d, T['cols'][k], 32, W-140), fill=color)
+            for j, (label, n) in enumerate(zip(T['tiles'], (v['inside'], v['streets'], v['gone']))):
+                cx = 60+(W-120)*(j+.5)/3; t = fmt(n); f = font(56)
+                d.text((cx-d.textlength(t, font=f)/2, y+44), t, font=f, fill=(255, 255, 255))
+                d.text((cx-d.textlength(label, font=font(26, False))/2, y+112), label, font=font(26, False), fill=(201, 194, 219))
+            e = mmss(v['empty']) or '—'; line = f"{T['empty']} {e}"
+            d.text((60, y+146), line, font=font(26), fill=(255, 207, 138))
+            y += 200
+        if sec == 'results' and (r['split']['B']['empty'] or 1e9) > (r['split']['A']['empty'] or 1e9):
+            centered(d, y+6, T['trade'], font(40), (255, 207, 106), 10)
+        else:
+            centered(d, y+6, T['nomodel'], fit(d, T['nomodel'], 26, W-100, False), (255, 226, 184))
+    elif sec == 'exits' and 'exits' in r:
         d.text((48, y), T['clock'](r['clock']), font=font(34), fill=(255, 255, 255))
         x1, x2 = 640, 900
         d.text((x1-110, y+50), T['cols'][0], font=fit(d, T['cols'][0], 26, 240), fill=(255, 106, 90))

@@ -60,7 +60,11 @@ export class HalloweenScene{
   const barrierGeo=parts([[new THREE.BoxGeometry(2,.05,.05).translate(0,1.02,0),steel],[new THREE.BoxGeometry(2,.04,.04).translate(0,.18,0),steel],
    ...[-.95,-.57,-.19,.19,.57,.95].map(x=>[new THREE.BoxGeometry(.025,.84,.025).translate(x,.6,0),steel]),
    [new THREE.BoxGeometry(1.2,.22,.012).translate(0,.62,.02),orange,.45],[new THREE.BoxGeometry(.6,.03,.5).translate(-.85,.015,0),steel],[new THREE.BoxGeometry(.6,.03,.5).translate(.85,.015,0),steel]]);
-  instanced(G,barrierGeo,layout.barriers,(d,o)=>{d.position.set(o.x,0,o.z);d.rotation.set(0,o.angle,0);d.scale.set(o.len/2,1,1);},{tint:o=>o.kind===1?[1,.85,.3,0]:[1,1,1,0]});
+  instanced(G,barrierGeo,layout.barriers.filter(o=>o.kind!==1),(d,o)=>{d.position.set(o.x,0,o.z);d.rotation.set(0,o.angle,0);d.scale.set(o.len/2,1,1);});
+  // Police gate barriers: swing open (about their outer end) while the solver's pen gate for that
+  // corner releases people (snapshot.gates: 0 closed, 1 pulse, 2 open for the green).
+  this.gateBars=layout.barriers.filter(o=>o.kind===1);this.gateOpen=new Float32Array(this.gateBars.length);
+  this.gateMesh=instanced(G,barrierGeo.clone(),this.gateBars,(d,o)=>this.placeGateBar(d,o,0),{tint:()=>[1,.85,.3,0]});this.gateDummy=new THREE.Object3D();
   const coneGeo=parts([[new THREE.ConeGeometry(.16,.7,8).translate(0,.35,0),orange],[new THREE.CylinderGeometry(.105,.125,.12,8).translate(0,.4,0),white,.5],[new THREE.BoxGeometry(.4,.04,.4).translate(0,.02,0),black],[new THREE.SphereGeometry(.05,6,4).translate(0,.72,0),[1,.08,.02],4]]);
   instanced(G,coneGeo,layout.cones,(d,o)=>{d.position.set(o.x,0,o.z);d.rotation.set(0,o.angle,0);},{tint:(o,i)=>[1,1,1,i%2?5:0]});
   const barGeo=parts([[new THREE.BoxGeometry(.05,.05,2.2).translate(0,.62,0),yellow,.25],...[-1.05,1.05].map(z=>[new THREE.ConeGeometry(.13,.66,6).translate(0,.33,z),orange])]);
@@ -137,6 +141,14 @@ export class HalloweenScene{
   c.strokeStyle='#ff7a1a';c.lineWidth=10;roundRect(c,10,10,W-20,H-80,48);c.stroke();c.textAlign='center';c.textBaseline='middle';
   c.fillStyle='#16121e';c.font=`900 ${ja.length>12?66:78}px ${FONT}`;c.fillText(ja,W/2,100);c.fillStyle='#7a3cff';c.font=`800 46px ${FONT}`;c.fillText(en,W/2,182);this.bubbleCanvas.texture.needsUpdate=true;}
  // Bubble cycles every 3.2 s of simulated time.
+ // Gate barrier (2 m, centred 1.6 m beside the gate officer along the gate line): closed = across the
+ // walkway; open = swung 90° about its outer end so it lies along the flow.
+ placeGateBar(d,o,open){const side=o.side??1,ax=Math.sin(o.angle),az=Math.cos(o.angle),px=o.x+ax*side,pz=o.z+az*side,a=o.angle-Math.PI/2+open*Math.PI/2;
+  d.position.set(px-side*Math.cos(a),0,pz+side*Math.sin(a));d.rotation.set(0,a,0);d.scale.set(o.len/2,1,1);}
+ gates(gates,dt){if(!this.gateMesh||!gates)return;const d=this.gateDummy;let moved=false;
+  this.gateBars.forEach((o,i)=>{const target=gates[o.corner]>0?1:0,v=this.gateOpen[i],nv=dt<=0?target:v+Math.sign(target-v)*Math.min(Math.abs(target-v),dt/1.2);
+   if(nv===v&&this.gateMesh.userData.placed)return;this.gateOpen[i]=nv;this.placeGateBar(d,o,nv);d.updateMatrix();this.gateMesh.setMatrixAt(i,d.matrix);moved=true;});
+  if(moved){this.gateMesh.instanceMatrix.needsUpdate=true;this.gateMesh.userData.placed=true;}}
  update(simTime){if(this.bubble){const k=Math.floor(simTime/3.2);if(k!==this.lastLine){this.lastLine=k;this.say(k);}}}
  set visible(v){this.group.visible=v;}
 }

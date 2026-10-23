@@ -68,6 +68,10 @@ export function buildCity({scene,osm,plateau,config,theme=null}){
     float lit=step(hash21(vec2(seed*97.+cl*1.7,fl*3.1)),occ)*floorOn;
     vec3 wcol=windowTint(hash21(vec2(seed*11.,fl+cl*.31)))*(.55+1.1*hash21(vec2(cl,fl+seed)));
     if(tower)wcol=mix(wcol,vec3(.75,.9,1.1),.6);
+    // Varied interiors (uFacade): per-window dimmer, drawn blinds, a ceiling-lit gradient.
+    float wv=hash21(vec2(cl*3.7+seed,fl*1.3));
+    float blind=mix(1.,.35+.65*step(.45,fract(cell.y*7.+wv*3.)),step(.62,wv));
+    wcol*=mix(1.,(.18+.7*wv*wv)*blind*(.6+.55*smoothstep(.15,.95,cell.y)),uFacade);
     // Far LOD: average the window grid once cells are smaller than ~2 px.
     float lod=smoothstep(.25,.6,max(aa.x,aa.y));
     float avgLit=occ*(tower?.85:.7)*ww*wh;
@@ -81,9 +85,13 @@ export function buildCity({scene,osm,plateau,config,theme=null}){
     vec3 amb=mix(vec3(.02,.022,.035),vec3(.55,.58,.62),uDaylight)*(.6+.4*N.z*.5+.2);
     float sun=max(0.,dot(N,uSunDir))*uDaylight*1.4;
     col=tint*(amb+street*low*.9+sun)+emit+glass;
+    // Floor slabs catch a little street light (uFacade).
+    float band=smoothstep(.06+aa.y,.06,cell.y)+smoothstep(.94-aa.y,.94,cell.y);
+    col+=uFacade*(1.-lod)*(1.-win)*(tint*.5+street*low*.2)*.3*band*step(4.2,y)*step(y,H-1.2);
     // Shopfront band: lit glass at street level where the street is bright.
     float shop=step(y,3.9)*step(.4,y);
     vec3 storefront=street*(1.2+1.6*hash11(seed*23.))*smoothstep(.05,.3,length(street));
+    storefront*=1.-.6*uFacade;// (Halloween look: no blown-out white shopfront walls)
     col=mix(col,storefront+tint*.05,shop*.85*(1.-.7*uDaylight));
     // Fascia line above storefronts.
     col+=street*smoothstep(4.25,4.05,y)*smoothstep(3.85,4.05,y)*2.5;

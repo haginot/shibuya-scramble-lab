@@ -161,13 +161,13 @@ H_LANGS = ('ja','en')
 H_CAPTIONS = [
     (0,'10/31 渋谷駅、どう帰る？','Shibuya on Halloween: heads-up'),
     (2.5,'10/31夜、渋谷で働く・観光する人へ · 仮定 {agents}人','Working or sightseeing in Shibuya on Oct 31? · sim: {agents} people'),
-    (6.5,'警察の規制で待機→段階的に解放','expect to be held, then released in waves'),
-    (10.5,'DJポリスの指示に従って','follow the "DJ police" instructions'),
-    (14,'歩行者青・前列から順に','all-way green: row by row'),
-    (19,'00:30 駅閉鎖：規制なし vs 一方通行＋段階的解放','00:30 station closes: no control vs one-way + staged release'),
-    (31,'出口別・混雑が解消した時刻','which exit clears first?'),
-    (36,'駅閉鎖から25分後','25 minutes after the station closes'),
-    (39.5,'あなたならどこから帰る？','Which exit would you take?'),
+    (6,'警察の規制で待機→段階的に解放','expect to be held, then released in waves'),
+    (9,'警察がバリケードで次の波を止める','officers hold the next wave behind the barriers'),
+    (12.5,'歩行者青：ゲートが開き前列から','green: gates open, front rows first'),
+    (16.5,'00:30 駅閉鎖：規制なし vs 一方通行＋段階的解放','00:30 station closes: no control vs one-way + staged release'),
+    (29.5,'待ち時間はどこへ移る？','where does the waiting go?'),
+    (35,'出口別・混雑が解消した時刻','which exit clears first?'),
+    (38.5,'あなたならどこから帰る？','Which exit would you take?'),
 ]
 H_CREDITS = CREDITS.replace('Crossing scale: Asahi Shimbun 2016-04-22 (up to 3,000 per green) · see NOTICE and web3d/data/',
     'Halloween crowd, police measures, station closing, exit zones and costumes are illustrative sim assumptions (web3d/shibuya/halloween.mjs, dispersal.mjs)\n'
@@ -192,7 +192,7 @@ def exit_clear_text(e):
     return 'not cleared · 未解消' if e['clearAt'] is None else mmss(e['clearAt'])
 
 
-def check_overlay(ov):
+def check_overlay(ov,sweep=None):
     """Every number on screen must equal the solver value it claims to show."""
     if ov.get('shown'):
         sh,src=ov['shown'],ov['source']
@@ -206,10 +206,10 @@ def check_overlay(ov):
         sp=ov['split']
         for side in ('A','B'):
             v=sp[side];src=v['src']
-            assert v['remaining']==fmt(src['remaining']) and v['inside']==fmt(src['inside']) and v['densNow']==p2(src['densNow']),v
-            assert v['peak']==p2(src['peak']) and v['crush']==fmt(src['crush']) and v['cars']==mmss(src['cars']),v
-            for chip in (sp.get('chips') or {}).get(side,[]): assert chip['people']==fmt(chip['src']),chip
-        assert sp['clock']=='+'+mmss(sp['source']['time']) and sp['heldB']==fmt(sp['source']['heldB'])
+            for k in ('inside','streets','gone','remaining'): assert v[k]==fmt(src[k]),(k,v)
+            assert v['densNow']==p2(src['densNow']) and v['empty']==mmss(src['empty']),v
+            assert src['inside']+src['streets']==src['remaining'],v
+        assert sp['clock']=='+'+mmss(sp['source']['time'])
     if ov.get('board'):
         for row in ov['board']['rows']:
             for side in ('A','B'):
@@ -220,15 +220,39 @@ def check_overlay(ov):
             ex=q['source'][side];slow=max(ex,key=lambda e:float('inf') if e['clearAt'] is None else e['clearAt'])
             assert q['slowest'][side]==slow['key'] and q['clear'][side]==exit_clear_text(slow),q
     if ov.get('results'):
-        r=ov['results'];A,B=r['source']['A'],r['source']['B']
-        assert r['rows'][0][2:]==[fmt(A['remaining']),fmt(B['remaining'])]
-        assert r['rows'][2][2:]==[f"{p2(A['peakCell'])} p/m²",f"{p2(B['peakCell'])} p/m²"]
-        assert r['rows'][3][2:]==[mmss(A['stationEmptyAt']) or 'still inside · 駅内に残る',mmss(B['stationEmptyAt']) or 'still inside · 駅内に残る']
-        assert r['rows'][4][2:]==[fmt(A['crush']),fmt(B['crush'])]
-        assert r['rows'][5][2:]==[mmss(A['holdTotal']),mmss(B['holdTotal'])]
+        r=ov['results'];A,B=r['source']['A'],r['source']['B'];rows=r['rows']
+        assert rows[0][2:4]==[mmss(A['stationEmptyAt']) or '25:00+',mmss(B['stationEmptyAt']) or '25:00+']
+        assert rows[1][2:4]==[fmt(A['remaining']),fmt(B['remaining'])]
         for col,src in ((2,A),(3,B)):
             cleared=src['denseClearedAt'] is not None and src['densePeakNow'] is not None and src['densePeakNow']<=2
-            assert r['rows'][1][col]==(mmss(src['denseClearedAt']) if cleared else 'not cleared · 未解消'),(r['rows'][1],src)
+            assert rows[2][col]==(mmss(src['denseClearedAt']) if cleared else '25:00+'),(rows[2],src)
+        assert rows[3][2:4]==[fmt(A['crush']),fmt(B['crush'])]
+        assert rows[4][2:4]==[f"{p2(A['peakCell'])} p/m²",f"{p2(B['peakCell'])} p/m²"]
+        # Ranges: recomputed here from the sweep file; this run is the sweep's base scenario.
+        sw=sweep if sweep is not None else load_sweep()
+        assert r['sweep'],'results card must show the sweep ranges'
+        rg=sweep_ranges(sw)
+        for row,metric in zip(rows,('stationEmptyAt','remaining','denseClearedAt','crushPersonMinutes','peakCell')):
+            assert row[4:6]==[rg[metric]['none'],rg[metric]['managed']],(row,rg[metric])
+        base=next(q for q in sw['scenarios'] if q['key']=='base')
+        assert (A['remaining'],B['remaining'],A['stationEmptyAt'],B['stationEmptyAt'])==(base['none']['remaining'],base['managed']['remaining'],base['none']['stationEmptyAt'],base['managed']['stationEmptyAt']),'video run = sweep base run'
+
+
+SWEEP_PATH = Path(__file__).resolve().parents[1]/'web3d/data/shibuya_dispersal_sweep.json'
+def load_sweep(path=SWEEP_PATH): return json.loads(Path(path).read_text(encoding='utf-8'))
+SWEEP_METRICS = {'remaining':fmt,'stationEmptyAt':lambda v:mmss(v) or '25:00+','denseClearedAt':lambda v:mmss(v) or '25:00+','crushPersonMinutes':fmt,'peakCell':p2}
+def sweep_ranges(sweep):
+    """Same as halloween-app.mjs sweepRanges(): min–max per metric and strategy (None = not reached, sorts last)."""
+    out={'n':len(sweep['scenarios'])}
+    for metric,f in SWEEP_METRICS.items():
+        out[metric]={}
+        for k in ('none','managed'):
+            v=sorted((q[k][metric] for q in sweep['scenarios']),key=lambda x:float('inf') if x is None else x)
+            lo,hi=f(v[0]),f(v[-1]);out[metric][k]=lo if lo==hi else f'{lo}–{hi}'
+    inf=lambda x:float('inf') if x is None else x
+    out['fewerWaiting']=sum(q['managed']['remaining']<q['none']['remaining'] for q in sweep['scenarios'])
+    out['laterStation']=sum(inf(q['managed']['stationEmptyAt'])>inf(q['none']['stationEmptyAt']) for q in sweep['scenarios'])
+    return out
 
 
 ESTIMATE_2026 = 18000  # sources-halloween.mjs CROWD_2026.estimate (Shibuya City expectation, Shibukei 2026-09-30)
@@ -307,6 +331,7 @@ def record_halloween(site,output,stills,frames=None,stills_at=None,start_frame=0
                 if d and state['shot'] in ('dispersal','exits','results','question'):
                     rec['clock']=d['A']['time'];rec['exits']={k:[[e['key'],e['people'],e['peak'],e['peakRun'],e['clearAt']] for e in d[k]['exits']] for k in ('A','B')}
                     rec['remaining']={k:d[k]['remaining'] for k in ('A','B')}
+                    rec['split']={k:{'inside':d[k]['inside'],'streets':d[k]['held']+d[k]['walking'],'gone':d[k]['left'],'empty':d[k]['stationEmptyAt'],'dense':d[k]['denseClearedAt']} for k in ('A','B')}
                 framelog.write(json.dumps(rec)+'\n')
                 if frame%(FPS//2)==0:
                     snap={k:state.get(k) for k in ('agents','phase','clock','time','active','waiting','approaching','held','attending','admitted','completed','released','cutoffs','teleports','rescued','laneViolations','deferred','lastCycle','vehicles','clearanceHold','shot','density','drawCalls','triangles','djLine')}

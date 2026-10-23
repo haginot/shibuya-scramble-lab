@@ -6,7 +6,7 @@
 //  • HUD numbers equal recounts of the agents' own motion codes
 //  • dispersal numbers (remaining, density, exposure) equal an independent recount, people
 //    are conserved, emerge only on gate cells and leave only at gateways on foot
-//  • the comparison shown in the video holds for the shipped seed
+//  • (which strategy does better is reported, not asserted; see sweep-dispersal.mjs)
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {Worker,isMainThread,parentPort,workerData} from 'node:worker_threads';
@@ -85,10 +85,11 @@ else{
   assert(snap.heatMax<=5.1,'heat map within the density scale');
   assert(stats.exitChecks>=DISPERSAL_SECONDS/5-1,'per-exit counters recounted every 5 s');
   for(const row of snap.exitSeries)assert(row.slice(1).reduce((a,b)=>a+b,0)<=n,'exit zones never double count');}
- // The comparison the video shows (same seed): measured, not assumed.
- assert(B.snap.remaining<=.01*(DISPERSAL.inside+DISPERSAL.plaza),'managed: (almost) everyone has left within 25 min');assert(B.snap.stationEmptyAt!=null,'managed: the station empties within 25 min');assert(A.snap.remaining>1000,'no control: thousands still in the area after 25 min');
- assert(B.snap.crush<A.snap.crush/2,'managed: far less time at ≥ 4 p/m²');assert.equal(B.snap.holdTotal,0,'managed: cars never held by people on the road');assert(A.snap.holdTotal>60,'no control: the crowd spills into the junction');
- assert(B.snap.denseClearedAt!=null&&B.snap.denseClearedAt<DISPERSAL_SECONDS,'managed: the dense crowd clears');
+ // No assertion about which strategy wins: the comparison is reported, not required (the
+ // sensitivity sweep, sweep-dispersal.mjs, lists every scenario including where management helps less).
+ // Only scenario-independent facts are checked: the managed run never lets people onto the road
+ // against the signal, so it never holds cars.
+ assert.equal(B.snap.holdTotal,0,'managed: cars never held by people on the road');
  console.log(`PASS dispersal (${DISPERSAL.inside+DISPERSAL.plaza} people, 25 min): remaining ${fmt(A.snap.remaining)} vs ${fmt(B.snap.remaining)} · peak ${p2(A.snap.peakCell)} vs ${p2(B.snap.peakCell)} p/m² · person-min ≥4 p/m² ${fmt(A.snap.crush)} vs ${fmt(B.snap.crush)} · cars held ${mmss(A.snap.holdTotal)} vs ${mmss(B.snap.holdTotal)} · dense cleared ${mmss(A.snap.denseClearedAt)??'never'} vs ${mmss(B.snap.denseClearedAt)} · station empty ${mmss(A.snap.stationEmptyAt)} vs ${mmss(B.snap.stationEmptyAt)}`);
  console.log(`PASS exits: ${B.snap.exits.map(e=>`${e.key} peak ${p2(A.snap.exits.find(q=>q.key===e.key).peakRun)}/${p2(e.peakRun)} clear ${mmss(A.snap.exits.find(q=>q.key===e.key).clearAt)??'—'}/${mmss(e.clearAt)??'—'}`).join(' · ')}`);
  console.log(JSON.stringify({A:A.snap,B:B.snap}));

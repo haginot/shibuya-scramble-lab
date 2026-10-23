@@ -1,0 +1,1580 @@
+{
+ "seconds": 1500,
+ "threshold": 2,
+ "base": {
+  "inside": 9000,
+  "plaza": 7000
+ },
+ "scenarios": [
+  {
+   "key": "base",
+   "label": "shipped scenario (seed 7)",
+   "change": {},
+   "none": {
+    "key": "base",
+    "strategy": "none",
+    "agents": 16000,
+    "remaining": 2102,
+    "inside": 0,
+    "inArea": 2102,
+    "left": 13898,
+    "stationEmptyAt": 466,
+    "denseClearedAt": null,
+    "crushPersonMinutes": 38771.683333333334,
+    "peakCell": 5,
+    "carsHeld": 684.7000000000871,
+    "spillTime": 674.7000000000849,
+    "marks": [
+     {
+      "t": 300,
+      "inside": 1902,
+      "area": 5640,
+      "left": 8458,
+      "densePeak": 4.857142857142857
+     },
+     {
+      "t": 600,
+      "inside": 0,
+      "area": 3814,
+      "left": 12186,
+      "densePeak": 4.857142857142857
+     },
+     {
+      "t": 900,
+      "inside": 0,
+      "area": 2511,
+      "left": 13489,
+      "densePeak": 4.75
+     },
+     {
+      "t": 1200,
+      "inside": 0,
+      "area": 2299,
+      "left": 13701,
+      "densePeak": 5
+     },
+     {
+      "t": 1500,
+      "inside": 0,
+      "area": 2102,
+      "left": 13898,
+      "densePeak": 5
+     }
+    ]
+   },
+   "managed": {
+    "key": "base",
+    "strategy": "managed",
+    "agents": 16000,
+    "remaining": 1,
+    "inside": 0,
+    "inArea": 1,
+    "left": 15999,
+    "stationEmptyAt": 1332,
+    "denseClearedAt": 800,
+    "crushPersonMinutes": 13769.616666666667,
+    "peakCell": 4.875,
+    "carsHeld": 0,
+    "spillTime": 0,
+    "marks": [
+     {
+      "t": 300,
+      "inside": 4346,
+      "area": 4830,
+      "left": 6824,
+      "densePeak": 4.75
+     },
+     {
+      "t": 600,
+      "inside": 2196,
+      "area": 2661,
+      "left": 11143,
+      "densePeak": 4.111111111111111
+     },
+     {
+      "t": 900,
+      "inside": 1296,
+      "area": 97,
+      "left": 14607,
+      "densePeak": 1
+     },
+     {
+      "t": 1200,
+      "inside": 396,
+      "area": 75,
+      "left": 15529,
+      "densePeak": 0.5555555555555556
+     },
+     {
+      "t": 1500,
+      "inside": 0,
+      "area": 1,
+      "left": 15999,
+      "densePeak": 0.1111111111111111
+     }
+    ]
+   }
+  },
+  {
+   "key": "seed11",
+   "label": "seed 11",
+   "change": {
+    "seed": 11
+   },
+   "none": {
+    "key": "seed11",
+    "strategy": "none",
+    "agents": 16000,
+    "remaining": 2014,
+    "inside": 0,
+    "inArea": 2014,
+    "left": 13986,
+    "stationEmptyAt": 487,
+    "denseClearedAt": null,
+    "crushPersonMinutes": 37307.85,
+    "peakCell": 5,
+    "carsHeld": 670.800000000084,
+    "spillTime": 660.8000000000817,
+    "marks": [
+     {
+      "t": 300,
+      "inside": 2013,
+      "area": 5254,
+      "left": 8733,
+      "densePeak": 4.857142857142857
+     },
+     {
+      "t": 600,
+      "inside": 0,
+      "area": 4048,
+      "left": 11952,
+      "densePeak": 4.857142857142857
+     },
+     {
+      "t": 900,
+      "inside": 0,
+      "area": 2318,
+      "left": 13682,
+      "densePeak": 4.857142857142857
+     },
+     {
+      "t": 1200,
+      "inside": 0,
+      "area": 2136,
+      "left": 13864,
+      "densePeak": 4.777777777777778
+     },
+     {
+      "t": 1500,
+      "inside": 0,
+      "area": 2014,
+      "left": 13986,
+      "densePeak": 4.857142857142857
+     }
+    ]
+   },
+   "managed": {
+    "key": "seed11",
+    "strategy": "managed",
+    "agents": 16000,
+    "remaining": 3,
+    "inside": 0,
+    "inArea": 3,
+    "left": 15997,
+    "stationEmptyAt": 1331,
+    "denseClearedAt": 791,
+    "crushPersonMinutes": 14573.1,
+    "peakCell": 4.875,
+    "carsHeld": 0,
+    "spillTime": 0,
+    "marks": [
+     {
+      "t": 300,
+      "inside": 4320,
+      "area": 4907,
+      "left": 6773,
+      "densePeak": 4.625
+     },
+     {
+      "t": 600,
+      "inside": 2191,
+      "area": 2661,
+      "left": 11148,
+      "densePeak": 4.111111111111111
+     },
+     {
+      "t": 900,
+      "inside": 1291,
+      "area": 79,
+      "left": 14630,
+      "densePeak": 0.4444444444444444
+     },
+     {
+      "t": 1200,
+      "inside": 391,
+      "area": 76,
+      "left": 15533,
+      "densePeak": 0.3333333333333333
+     },
+     {
+      "t": 1500,
+      "inside": 0,
+      "area": 3,
+      "left": 15997,
+      "densePeak": 0.2222222222222222
+     }
+    ]
+   }
+  },
+  {
+   "key": "seed23",
+   "label": "seed 23",
+   "change": {
+    "seed": 23
+   },
+   "none": {
+    "key": "seed23",
+    "strategy": "none",
+    "agents": 16000,
+    "remaining": 2555,
+    "inside": 0,
+    "inArea": 2555,
+    "left": 13445,
+    "stationEmptyAt": 481,
+    "denseClearedAt": null,
+    "crushPersonMinutes": 45146.566666666666,
+    "peakCell": 5,
+    "carsHeld": 699.6000000000905,
+    "spillTime": 689.6000000000882,
+    "marks": [
+     {
+      "t": 300,
+      "inside": 1984,
+      "area": 5457,
+      "left": 8559,
+      "densePeak": 5
+     },
+     {
+      "t": 600,
+      "inside": 0,
+      "area": 4445,
+      "left": 11555,
+      "densePeak": 5
+     },
+     {
+      "t": 900,
+      "inside": 0,
+      "area": 3169,
+      "left": 12831,
+      "densePeak": 5
+     },
+     {
+      "t": 1200,
+      "inside": 0,
+      "area": 2885,
+      "left": 13115,
+      "densePeak": 5
+     },
+     {
+      "t": 1500,
+      "inside": 0,
+      "area": 2555,
+      "left": 13445,
+      "densePeak": 5
+     }
+    ]
+   },
+   "managed": {
+    "key": "seed23",
+    "strategy": "managed",
+    "agents": 16000,
+    "remaining": 0,
+    "inside": 0,
+    "inArea": 0,
+    "left": 16000,
+    "stationEmptyAt": 1330,
+    "denseClearedAt": 794,
+    "crushPersonMinutes": 14765.9,
+    "peakCell": 4.875,
+    "carsHeld": 0,
+    "spillTime": 0,
+    "marks": [
+     {
+      "t": 300,
+      "inside": 4344,
+      "area": 4852,
+      "left": 6804,
+      "densePeak": 4.75
+     },
+     {
+      "t": 600,
+      "inside": 2190,
+      "area": 2701,
+      "left": 11109,
+      "densePeak": 4.111111111111111
+     },
+     {
+      "t": 900,
+      "inside": 1290,
+      "area": 78,
+      "left": 14632,
+      "densePeak": 0.5555555555555556
+     },
+     {
+      "t": 1200,
+      "inside": 390,
+      "area": 68,
+      "left": 15542,
+      "densePeak": 0.3333333333333333
+     },
+     {
+      "t": 1500,
+      "inside": 0,
+      "area": 0,
+      "left": 16000,
+      "densePeak": 0
+     }
+    ]
+   }
+  },
+  {
+   "key": "seed101",
+   "label": "seed 101",
+   "change": {
+    "seed": 101
+   },
+   "none": {
+    "key": "seed101",
+    "strategy": "none",
+    "agents": 16000,
+    "remaining": 1933,
+    "inside": 0,
+    "inArea": 1933,
+    "left": 14067,
+    "stationEmptyAt": 499,
+    "denseClearedAt": null,
+    "crushPersonMinutes": 37140.96666666667,
+    "peakCell": 5,
+    "carsHeld": 646.0000000000783,
+    "spillTime": 636.000000000076,
+    "marks": [
+     {
+      "t": 300,
+      "inside": 2204,
+      "area": 5418,
+      "left": 8378,
+      "densePeak": 4.888888888888889
+     },
+     {
+      "t": 600,
+      "inside": 0,
+      "area": 4120,
+      "left": 11880,
+      "densePeak": 4.777777777777778
+     },
+     {
+      "t": 900,
+      "inside": 0,
+      "area": 2393,
+      "left": 13607,
+      "densePeak": 5
+     },
+     {
+      "t": 1200,
+      "inside": 0,
+      "area": 2141,
+      "left": 13859,
+      "densePeak": 4.777777777777778
+     },
+     {
+      "t": 1500,
+      "inside": 0,
+      "area": 1933,
+      "left": 14067,
+      "densePeak": 4.777777777777778
+     }
+    ]
+   },
+   "managed": {
+    "key": "seed101",
+    "strategy": "managed",
+    "agents": 16000,
+    "remaining": 0,
+    "inside": 0,
+    "inArea": 0,
+    "left": 16000,
+    "stationEmptyAt": 1384,
+    "denseClearedAt": 790,
+    "crushPersonMinutes": 14156.466666666667,
+    "peakCell": 4.875,
+    "carsHeld": 0,
+    "spillTime": 0,
+    "marks": [
+     {
+      "t": 300,
+      "inside": 4442,
+      "area": 4795,
+      "left": 6763,
+      "densePeak": 4.625
+     },
+     {
+      "t": 600,
+      "inside": 2352,
+      "area": 2526,
+      "left": 11122,
+      "densePeak": 4.111111111111111
+     },
+     {
+      "t": 900,
+      "inside": 1452,
+      "area": 77,
+      "left": 14471,
+      "densePeak": 0.4444444444444444
+     },
+     {
+      "t": 1200,
+      "inside": 552,
+      "area": 69,
+      "left": 15379,
+      "densePeak": 0.3333333333333333
+     },
+     {
+      "t": 1500,
+      "inside": 0,
+      "area": 0,
+      "left": 16000,
+      "densePeak": 0
+     }
+    ]
+   }
+  },
+  {
+   "key": "demand60",
+   "label": "demand ×0.6 (9,600 people)",
+   "change": {
+    "inside": 5400,
+    "plaza": 4200
+   },
+   "none": {
+    "key": "demand60",
+    "strategy": "none",
+    "agents": 9600,
+    "remaining": 971,
+    "inside": 0,
+    "inArea": 971,
+    "left": 8629,
+    "stationEmptyAt": 279,
+    "denseClearedAt": null,
+    "crushPersonMinutes": 15243.983333333334,
+    "peakCell": 5,
+    "carsHeld": 336.8000000000081,
+    "spillTime": 326.8000000000058,
+    "marks": [
+     {
+      "t": 300,
+      "inside": 0,
+      "area": 2679,
+      "left": 6921,
+      "densePeak": 4.857142857142857
+     },
+     {
+      "t": 600,
+      "inside": 0,
+      "area": 1325,
+      "left": 8275,
+      "densePeak": 4.6
+     },
+     {
+      "t": 900,
+      "inside": 0,
+      "area": 1163,
+      "left": 8437,
+      "densePeak": 4.857142857142857
+     },
+     {
+      "t": 1200,
+      "inside": 0,
+      "area": 1058,
+      "left": 8542,
+      "densePeak": 4.857142857142857
+     },
+     {
+      "t": 1500,
+      "inside": 0,
+      "area": 971,
+      "left": 8629,
+      "densePeak": 4.857142857142857
+     }
+    ]
+   },
+   "managed": {
+    "key": "demand60",
+    "strategy": "managed",
+    "agents": 9600,
+    "remaining": 0,
+    "inside": 0,
+    "inArea": 0,
+    "left": 9600,
+    "stationEmptyAt": 804,
+    "denseClearedAt": 609,
+    "crushPersonMinutes": 5744.583333333333,
+    "peakCell": 4.875,
+    "carsHeld": 0,
+    "spillTime": 0,
+    "marks": [
+     {
+      "t": 300,
+      "inside": 1511,
+      "area": 3061,
+      "left": 5028,
+      "densePeak": 4.222222222222222
+     },
+     {
+      "t": 600,
+      "inside": 611,
+      "area": 128,
+      "left": 8861,
+      "densePeak": 1.4444444444444444
+     },
+     {
+      "t": 900,
+      "inside": 0,
+      "area": 7,
+      "left": 9593,
+      "densePeak": 0.4444444444444444
+     },
+     {
+      "t": 1200,
+      "inside": 0,
+      "area": 0,
+      "left": 9600,
+      "densePeak": 0
+     },
+     {
+      "t": 1500,
+      "inside": 0,
+      "area": 0,
+      "left": 9600,
+      "densePeak": 0
+     }
+    ]
+   }
+  },
+  {
+   "key": "demand125",
+   "label": "demand ×1.25 (20,000 people; the plaza is full at 7,000, so the extra wait inside)",
+   "change": {
+    "inside": 13000,
+    "plaza": 7000
+   },
+   "none": {
+    "key": "demand125",
+    "strategy": "none",
+    "agents": 20000,
+    "remaining": 2845,
+    "inside": 0,
+    "inArea": 2845,
+    "left": 17155,
+    "stationEmptyAt": 682,
+    "denseClearedAt": null,
+    "crushPersonMinutes": 43431.066666666666,
+    "peakCell": 5,
+    "carsHeld": 715.3000000000941,
+    "spillTime": 705.3000000000918,
+    "marks": [
+     {
+      "t": 300,
+      "inside": 4998,
+      "area": 6447,
+      "left": 8555,
+      "densePeak": 4.75
+     },
+     {
+      "t": 600,
+      "inside": 814,
+      "area": 5231,
+      "left": 13955,
+      "densePeak": 4.857142857142857
+     },
+     {
+      "t": 900,
+      "inside": 0,
+      "area": 3343,
+      "left": 16657,
+      "densePeak": 4.857142857142857
+     },
+     {
+      "t": 1200,
+      "inside": 0,
+      "area": 3076,
+      "left": 16924,
+      "densePeak": 4.857142857142857
+     },
+     {
+      "t": 1500,
+      "inside": 0,
+      "area": 2845,
+      "left": 17155,
+      "densePeak": 4.857142857142857
+     }
+    ]
+   },
+   "managed": {
+    "key": "demand125",
+    "strategy": "managed",
+    "agents": 20000,
+    "remaining": 1428,
+    "inside": 1354,
+    "inArea": 74,
+    "left": 18572,
+    "stationEmptyAt": null,
+    "denseClearedAt": 943,
+    "crushPersonMinutes": 18172.75,
+    "peakCell": 4.888888888888889,
+    "carsHeld": 0,
+    "spillTime": 0,
+    "marks": [
+     {
+      "t": 300,
+      "inside": 8017,
+      "area": 4981,
+      "left": 7002,
+      "densePeak": 4.666666666666667
+     },
+     {
+      "t": 600,
+      "inside": 4663,
+      "area": 3760,
+      "left": 11577,
+      "densePeak": 4.222222222222222
+     },
+     {
+      "t": 900,
+      "inside": 3154,
+      "area": 896,
+      "left": 15950,
+      "densePeak": 4
+     },
+     {
+      "t": 1200,
+      "inside": 2254,
+      "area": 75,
+      "left": 17671,
+      "densePeak": 0.5555555555555556
+     },
+     {
+      "t": 1500,
+      "inside": 1354,
+      "area": 74,
+      "left": 18572,
+      "densePeak": 0.3333333333333333
+     }
+    ]
+   }
+  },
+  {
+   "key": "cap70",
+   "label": "gate capacity ×0.7",
+   "change": {
+    "dispersal": {
+     "capScale": 0.7
+    }
+   },
+   "none": {
+    "key": "cap70",
+    "strategy": "none",
+    "agents": 16000,
+    "remaining": 2148,
+    "inside": 0,
+    "inArea": 2148,
+    "left": 13852,
+    "stationEmptyAt": 666,
+    "denseClearedAt": null,
+    "crushPersonMinutes": 38126.85,
+    "peakCell": 5,
+    "carsHeld": 734.2000000000984,
+    "spillTime": 724.2000000000961,
+    "marks": [
+     {
+      "t": 300,
+      "inside": 3432,
+      "area": 5213,
+      "left": 7355,
+      "densePeak": 4.888888888888889
+     },
+     {
+      "t": 600,
+      "inside": 464,
+      "area": 4699,
+      "left": 10837,
+      "densePeak": 5
+     },
+     {
+      "t": 900,
+      "inside": 0,
+      "area": 2559,
+      "left": 13441,
+      "densePeak": 5
+     },
+     {
+      "t": 1200,
+      "inside": 0,
+      "area": 2354,
+      "left": 13646,
+      "densePeak": 5
+     },
+     {
+      "t": 1500,
+      "inside": 0,
+      "area": 2148,
+      "left": 13852,
+      "densePeak": 5
+     }
+    ]
+   },
+   "managed": {
+    "key": "cap70",
+    "strategy": "managed",
+    "agents": 16000,
+    "remaining": 900,
+    "inside": 847,
+    "inArea": 53,
+    "left": 15100,
+    "stationEmptyAt": null,
+    "denseClearedAt": 791,
+    "crushPersonMinutes": 11730.883333333333,
+    "peakCell": 4.777777777777778,
+    "carsHeld": 0,
+    "spillTime": 0,
+    "marks": [
+     {
+      "t": 300,
+      "inside": 5479,
+      "area": 3969,
+      "left": 6552,
+      "densePeak": 4.111111111111111
+     },
+     {
+      "t": 600,
+      "inside": 2737,
+      "area": 2707,
+      "left": 10556,
+      "densePeak": 4.111111111111111
+     },
+     {
+      "t": 900,
+      "inside": 2107,
+      "area": 80,
+      "left": 13813,
+      "densePeak": 1.1111111111111112
+     },
+     {
+      "t": 1200,
+      "inside": 1477,
+      "area": 59,
+      "left": 14464,
+      "densePeak": 0.4444444444444444
+     },
+     {
+      "t": 1500,
+      "inside": 847,
+      "area": 53,
+      "left": 15100,
+      "densePeak": 0.2222222222222222
+     }
+    ]
+   }
+  },
+  {
+   "key": "cap130",
+   "label": "gate capacity ×1.3",
+   "change": {
+    "dispersal": {
+     "capScale": 1.3
+    }
+   },
+   "none": {
+    "key": "cap130",
+    "strategy": "none",
+    "agents": 16000,
+    "remaining": 2102,
+    "inside": 0,
+    "inArea": 2102,
+    "left": 13898,
+    "stationEmptyAt": 359,
+    "denseClearedAt": null,
+    "crushPersonMinutes": 37238.48333333333,
+    "peakCell": 5,
+    "carsHeld": 614.1000000000711,
+    "spillTime": 604.1000000000688,
+    "marks": [
+     {
+      "t": 300,
+      "inside": 822,
+      "area": 5854,
+      "left": 9324,
+      "densePeak": 4.888888888888889
+     },
+     {
+      "t": 600,
+      "inside": 0,
+      "area": 3573,
+      "left": 12427,
+      "densePeak": 4.888888888888889
+     },
+     {
+      "t": 900,
+      "inside": 0,
+      "area": 2474,
+      "left": 13526,
+      "densePeak": 5
+     },
+     {
+      "t": 1200,
+      "inside": 0,
+      "area": 2292,
+      "left": 13708,
+      "densePeak": 5
+     },
+     {
+      "t": 1500,
+      "inside": 0,
+      "area": 2102,
+      "left": 13898,
+      "densePeak": 5
+     }
+    ]
+   },
+   "managed": {
+    "key": "cap130",
+    "strategy": "managed",
+    "agents": 16000,
+    "remaining": 0,
+    "inside": 0,
+    "inArea": 0,
+    "left": 16000,
+    "stationEmptyAt": 1025,
+    "denseClearedAt": 796,
+    "crushPersonMinutes": 15487.416666666666,
+    "peakCell": 4.888888888888889,
+    "carsHeld": 0,
+    "spillTime": 0,
+    "marks": [
+     {
+      "t": 300,
+      "inside": 3683,
+      "area": 5197,
+      "left": 7120,
+      "densePeak": 4.555555555555555
+     },
+     {
+      "t": 600,
+      "inside": 1656,
+      "area": 2658,
+      "left": 11686,
+      "densePeak": 4.222222222222222
+     },
+     {
+      "t": 900,
+      "inside": 486,
+      "area": 110,
+      "left": 15404,
+      "densePeak": 0.5555555555555556
+     },
+     {
+      "t": 1200,
+      "inside": 0,
+      "area": 0,
+      "left": 16000,
+      "densePeak": 0
+     },
+     {
+      "t": 1500,
+      "inside": 0,
+      "area": 0,
+      "left": 16000,
+      "densePeak": 0
+     }
+    ]
+   }
+  },
+  {
+   "key": "destUniform",
+   "label": "destinations uniform",
+   "change": {
+    "dispersal": {
+     "destPower": 0
+    }
+   },
+   "none": {
+    "key": "destUniform",
+    "strategy": "none",
+    "agents": 16000,
+    "remaining": 2516,
+    "inside": 0,
+    "inArea": 2516,
+    "left": 13484,
+    "stationEmptyAt": 417,
+    "denseClearedAt": null,
+    "crushPersonMinutes": 41772.28333333333,
+    "peakCell": 5,
+    "carsHeld": 660.5000000000816,
+    "spillTime": 650.5000000000794,
+    "marks": [
+     {
+      "t": 300,
+      "inside": 1446,
+      "area": 6000,
+      "left": 8554,
+      "densePeak": 5
+     },
+     {
+      "t": 600,
+      "inside": 0,
+      "area": 4221,
+      "left": 11779,
+      "densePeak": 4.857142857142857
+     },
+     {
+      "t": 900,
+      "inside": 0,
+      "area": 2976,
+      "left": 13024,
+      "densePeak": 5
+     },
+     {
+      "t": 1200,
+      "inside": 0,
+      "area": 2745,
+      "left": 13255,
+      "densePeak": 5
+     },
+     {
+      "t": 1500,
+      "inside": 0,
+      "area": 2516,
+      "left": 13484,
+      "densePeak": 5
+     }
+    ]
+   },
+   "managed": {
+    "key": "destUniform",
+    "strategy": "managed",
+    "agents": 16000,
+    "remaining": 0,
+    "inside": 0,
+    "inArea": 0,
+    "left": 16000,
+    "stationEmptyAt": 951,
+    "denseClearedAt": 938,
+    "crushPersonMinutes": 20225.183333333334,
+    "peakCell": 4.875,
+    "carsHeld": 0,
+    "spillTime": 0,
+    "marks": [
+     {
+      "t": 300,
+      "inside": 4289,
+      "area": 5221,
+      "left": 6490,
+      "densePeak": 4.75
+     },
+     {
+      "t": 600,
+      "inside": 1051,
+      "area": 3888,
+      "left": 11061,
+      "densePeak": 4.111111111111111
+     },
+     {
+      "t": 900,
+      "inside": 151,
+      "area": 697,
+      "left": 15152,
+      "densePeak": 4.111111111111111
+     },
+     {
+      "t": 1200,
+      "inside": 0,
+      "area": 0,
+      "left": 16000,
+      "densePeak": 0
+     },
+     {
+      "t": 1500,
+      "inside": 0,
+      "area": 0,
+      "left": 16000,
+      "densePeak": 0
+     }
+    ]
+   }
+  },
+  {
+   "key": "destWide",
+   "label": "destinations ∝ street width²",
+   "change": {
+    "dispersal": {
+     "destPower": 1
+    }
+   },
+   "none": {
+    "key": "destWide",
+    "strategy": "none",
+    "agents": 16000,
+    "remaining": 1543,
+    "inside": 0,
+    "inArea": 1543,
+    "left": 14457,
+    "stationEmptyAt": 539,
+    "denseClearedAt": null,
+    "crushPersonMinutes": 33614.55,
+    "peakCell": 4.888888888888889,
+    "carsHeld": 0.9999999999999999,
+    "spillTime": 0,
+    "marks": [
+     {
+      "t": 300,
+      "inside": 2841,
+      "area": 4530,
+      "left": 8629,
+      "densePeak": 4.75
+     },
+     {
+      "t": 600,
+      "inside": 0,
+      "area": 3237,
+      "left": 12763,
+      "densePeak": 4.75
+     },
+     {
+      "t": 900,
+      "inside": 0,
+      "area": 2410,
+      "left": 13590,
+      "densePeak": 4.75
+     },
+     {
+      "t": 1200,
+      "inside": 0,
+      "area": 1673,
+      "left": 14327,
+      "densePeak": 4.857142857142857
+     },
+     {
+      "t": 1500,
+      "inside": 0,
+      "area": 1543,
+      "left": 14457,
+      "densePeak": 4.857142857142857
+     }
+    ]
+   },
+   "managed": {
+    "key": "destWide",
+    "strategy": "managed",
+    "agents": 16000,
+    "remaining": 982,
+    "inside": 909,
+    "inArea": 73,
+    "left": 15018,
+    "stationEmptyAt": null,
+    "denseClearedAt": 801,
+    "crushPersonMinutes": 10300.2,
+    "peakCell": 4.888888888888889,
+    "carsHeld": 0,
+    "spillTime": 0,
+    "marks": [
+     {
+      "t": 300,
+      "inside": 4589,
+      "area": 4443,
+      "left": 6968,
+      "densePeak": 4.75
+     },
+     {
+      "t": 600,
+      "inside": 3609,
+      "area": 1334,
+      "left": 11057,
+      "densePeak": 4.222222222222222
+     },
+     {
+      "t": 900,
+      "inside": 2709,
+      "area": 85,
+      "left": 13206,
+      "densePeak": 0.5555555555555556
+     },
+     {
+      "t": 1200,
+      "inside": 1809,
+      "area": 72,
+      "left": 14119,
+      "densePeak": 0.4444444444444444
+     },
+     {
+      "t": 1500,
+      "inside": 909,
+      "area": 73,
+      "left": 15018,
+      "densePeak": 0.3333333333333333
+     }
+    ]
+   }
+  },
+  {
+   "key": "comply80",
+   "label": "80 % follow police instructions",
+   "change": {
+    "dispersal": {
+     "compliance": 0.8
+    }
+   },
+   "none": {
+    "key": "base",
+    "strategy": "none",
+    "agents": 16000,
+    "remaining": 2102,
+    "inside": 0,
+    "inArea": 2102,
+    "left": 13898,
+    "stationEmptyAt": 466,
+    "denseClearedAt": null,
+    "crushPersonMinutes": 38771.683333333334,
+    "peakCell": 5,
+    "carsHeld": 684.7000000000871,
+    "spillTime": 674.7000000000849,
+    "marks": [
+     {
+      "t": 300,
+      "inside": 1902,
+      "area": 5640,
+      "left": 8458,
+      "densePeak": 4.857142857142857
+     },
+     {
+      "t": 600,
+      "inside": 0,
+      "area": 3814,
+      "left": 12186,
+      "densePeak": 4.857142857142857
+     },
+     {
+      "t": 900,
+      "inside": 0,
+      "area": 2511,
+      "left": 13489,
+      "densePeak": 4.75
+     },
+     {
+      "t": 1200,
+      "inside": 0,
+      "area": 2299,
+      "left": 13701,
+      "densePeak": 5
+     },
+     {
+      "t": 1500,
+      "inside": 0,
+      "area": 2102,
+      "left": 13898,
+      "densePeak": 5
+     }
+    ]
+   },
+   "managed": {
+    "key": "comply80",
+    "strategy": "managed",
+    "agents": 16000,
+    "remaining": 0,
+    "inside": 0,
+    "inArea": 0,
+    "left": 16000,
+    "stationEmptyAt": 1180,
+    "denseClearedAt": 779,
+    "crushPersonMinutes": 11700,
+    "peakCell": 4.777777777777778,
+    "carsHeld": 0,
+    "spillTime": 0,
+    "marks": [
+     {
+      "t": 300,
+      "inside": 4254,
+      "area": 4339,
+      "left": 7407,
+      "densePeak": 4.444444444444445
+     },
+     {
+      "t": 600,
+      "inside": 1740,
+      "area": 2264,
+      "left": 11996,
+      "densePeak": 4.111111111111111
+     },
+     {
+      "t": 900,
+      "inside": 840,
+      "area": 87,
+      "left": 15073,
+      "densePeak": 0.3333333333333333
+     },
+     {
+      "t": 1200,
+      "inside": 0,
+      "area": 32,
+      "left": 15968,
+      "densePeak": 0.4444444444444444
+     },
+     {
+      "t": 1500,
+      "inside": 0,
+      "area": 0,
+      "left": 16000,
+      "densePeak": 0
+     }
+    ]
+   }
+  },
+  {
+   "key": "comply60",
+   "label": "60 % follow police instructions",
+   "change": {
+    "dispersal": {
+     "compliance": 0.6
+    }
+   },
+   "none": {
+    "key": "base",
+    "strategy": "none",
+    "agents": 16000,
+    "remaining": 2102,
+    "inside": 0,
+    "inArea": 2102,
+    "left": 13898,
+    "stationEmptyAt": 466,
+    "denseClearedAt": null,
+    "crushPersonMinutes": 38771.683333333334,
+    "peakCell": 5,
+    "carsHeld": 684.7000000000871,
+    "spillTime": 674.7000000000849,
+    "marks": [
+     {
+      "t": 300,
+      "inside": 1902,
+      "area": 5640,
+      "left": 8458,
+      "densePeak": 4.857142857142857
+     },
+     {
+      "t": 600,
+      "inside": 0,
+      "area": 3814,
+      "left": 12186,
+      "densePeak": 4.857142857142857
+     },
+     {
+      "t": 900,
+      "inside": 0,
+      "area": 2511,
+      "left": 13489,
+      "densePeak": 4.75
+     },
+     {
+      "t": 1200,
+      "inside": 0,
+      "area": 2299,
+      "left": 13701,
+      "densePeak": 5
+     },
+     {
+      "t": 1500,
+      "inside": 0,
+      "area": 2102,
+      "left": 13898,
+      "densePeak": 5
+     }
+    ]
+   },
+   "managed": {
+    "key": "comply60",
+    "strategy": "managed",
+    "agents": 16000,
+    "remaining": 1749,
+    "inside": 753,
+    "inArea": 996,
+    "left": 14251,
+    "stationEmptyAt": null,
+    "denseClearedAt": null,
+    "crushPersonMinutes": 14302.933333333332,
+    "peakCell": 4.888888888888889,
+    "carsHeld": 3.900000000000002,
+    "spillTime": 0,
+    "marks": [
+     {
+      "t": 300,
+      "inside": 5263,
+      "area": 3617,
+      "left": 7120,
+      "densePeak": 4.555555555555555
+     },
+     {
+      "t": 600,
+      "inside": 3271,
+      "area": 1191,
+      "left": 11538,
+      "densePeak": 4.6
+     },
+     {
+      "t": 900,
+      "inside": 2154,
+      "area": 1046,
+      "left": 12800,
+      "densePeak": 4.555555555555555
+     },
+     {
+      "t": 1200,
+      "inside": 1271,
+      "area": 985,
+      "left": 13744,
+      "densePeak": 4.6
+     },
+     {
+      "t": 1500,
+      "inside": 753,
+      "area": 996,
+      "left": 14251,
+      "densePeak": 4.6
+     }
+    ]
+   }
+  },
+  {
+   "key": "spill30",
+   "label": "no-control spill-over after 30 s",
+   "change": {
+    "dispersal": {
+     "spillAfter": 30
+    }
+   },
+   "none": {
+    "key": "spill30",
+    "strategy": "none",
+    "agents": 16000,
+    "remaining": 2149,
+    "inside": 0,
+    "inArea": 2149,
+    "left": 13851,
+    "stationEmptyAt": 466,
+    "denseClearedAt": null,
+    "crushPersonMinutes": 40997.63333333333,
+    "peakCell": 4.888888888888889,
+    "carsHeld": 670.6000000000839,
+    "spillTime": 640.7000000000771,
+    "marks": [
+     {
+      "t": 300,
+      "inside": 1902,
+      "area": 5649,
+      "left": 8449,
+      "densePeak": 4.857142857142857
+     },
+     {
+      "t": 600,
+      "inside": 0,
+      "area": 4386,
+      "left": 11614,
+      "densePeak": 4.857142857142857
+     },
+     {
+      "t": 900,
+      "inside": 0,
+      "area": 2525,
+      "left": 13475,
+      "densePeak": 4.857142857142857
+     },
+     {
+      "t": 1200,
+      "inside": 0,
+      "area": 2338,
+      "left": 13662,
+      "densePeak": 4.857142857142857
+     },
+     {
+      "t": 1500,
+      "inside": 0,
+      "area": 2149,
+      "left": 13851,
+      "densePeak": 4.857142857142857
+     }
+    ]
+   },
+   "managed": {
+    "key": "base",
+    "strategy": "managed",
+    "agents": 16000,
+    "remaining": 1,
+    "inside": 0,
+    "inArea": 1,
+    "left": 15999,
+    "stationEmptyAt": 1332,
+    "denseClearedAt": 800,
+    "crushPersonMinutes": 13769.616666666667,
+    "peakCell": 4.875,
+    "carsHeld": 0,
+    "spillTime": 0,
+    "marks": [
+     {
+      "t": 300,
+      "inside": 4346,
+      "area": 4830,
+      "left": 6824,
+      "densePeak": 4.75
+     },
+     {
+      "t": 600,
+      "inside": 2196,
+      "area": 2661,
+      "left": 11143,
+      "densePeak": 4.111111111111111
+     },
+     {
+      "t": 900,
+      "inside": 1296,
+      "area": 97,
+      "left": 14607,
+      "densePeak": 1
+     },
+     {
+      "t": 1200,
+      "inside": 396,
+      "area": 75,
+      "left": 15529,
+      "densePeak": 0.5555555555555556
+     },
+     {
+      "t": 1500,
+      "inside": 0,
+      "area": 1,
+      "left": 15999,
+      "densePeak": 0.1111111111111111
+     }
+    ]
+   }
+  },
+  {
+   "key": "spillNever",
+   "label": "no-control crowd never ignores the signal",
+   "change": {
+    "dispersal": {
+     "spillAfter": "never"
+    }
+   },
+   "none": {
+    "key": "spillNever",
+    "strategy": "none",
+    "agents": 16000,
+    "remaining": 6414,
+    "inside": 0,
+    "inArea": 6414,
+    "left": 9586,
+    "stationEmptyAt": 466,
+    "denseClearedAt": null,
+    "crushPersonMinutes": 106741.25,
+    "peakCell": 5,
+    "carsHeld": 1374.0999999998457,
+    "spillTime": 0,
+    "marks": [
+     {
+      "t": 300,
+      "inside": 1902,
+      "area": 8027,
+      "left": 6071,
+      "densePeak": 4.777777777777778
+     },
+     {
+      "t": 600,
+      "inside": 0,
+      "area": 7385,
+      "left": 8615,
+      "densePeak": 4.75
+     },
+     {
+      "t": 900,
+      "inside": 0,
+      "area": 7051,
+      "left": 8949,
+      "densePeak": 4.857142857142857
+     },
+     {
+      "t": 1200,
+      "inside": 0,
+      "area": 6724,
+      "left": 9276,
+      "densePeak": 4.777777777777778
+     },
+     {
+      "t": 1500,
+      "inside": 0,
+      "area": 6414,
+      "left": 9586,
+      "densePeak": 4.857142857142857
+     }
+    ]
+   },
+   "managed": {
+    "key": "base",
+    "strategy": "managed",
+    "agents": 16000,
+    "remaining": 1,
+    "inside": 0,
+    "inArea": 1,
+    "left": 15999,
+    "stationEmptyAt": 1332,
+    "denseClearedAt": 800,
+    "crushPersonMinutes": 13769.616666666667,
+    "peakCell": 4.875,
+    "carsHeld": 0,
+    "spillTime": 0,
+    "marks": [
+     {
+      "t": 300,
+      "inside": 4346,
+      "area": 4830,
+      "left": 6824,
+      "densePeak": 4.75
+     },
+     {
+      "t": 600,
+      "inside": 2196,
+      "area": 2661,
+      "left": 11143,
+      "densePeak": 4.111111111111111
+     },
+     {
+      "t": 900,
+      "inside": 1296,
+      "area": 97,
+      "left": 14607,
+      "densePeak": 1
+     },
+     {
+      "t": 1200,
+      "inside": 396,
+      "area": 75,
+      "left": 15529,
+      "densePeak": 0.5555555555555556
+     },
+     {
+      "t": 1500,
+      "inside": 0,
+      "area": 1,
+      "left": 15999,
+      "densePeak": 0.1111111111111111
+     }
+    ]
+   }
+  }
+ ]
+}
