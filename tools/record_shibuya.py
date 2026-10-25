@@ -479,9 +479,12 @@ def record_halloween(site,output,stills,frames=None,stills_at=None,start_frame=0
                     if errors: raise RuntimeError('; '.join(errors))
                 log.close()
                 return
+            # SHIBUYA_FRAGMENTED=1: fragmented MP4 with a keyframe every 0.5 s, so a capture killed part-way
+            # (e.g. by a job time limit) stays playable up to its last fragment and can be resumed with --start-frame.
+            movflags=['-g',str(FPS//2),'-movflags','+frag_keyframe+empty_moov+default_base_moof+use_metadata_tags'] if os.environ.get('SHIBUYA_FRAGMENTED') else ['-movflags','+faststart+use_metadata_tags']
             for lang,path in outputs.items():
                 meta=f'comment={H_CREDITS}\nEscape Shibuya on Halloween ({lang}): counts, timers, DANGER and ESCAPED/CAUGHT are simulation; places and measures carry sources; the 2026 crowd figure is a cited estimate. Toy model, not a prediction.'
-                encoders[lang]=subprocess.Popen(['ffmpeg','-hide_banner','-loglevel','error','-y','-f','image2pipe','-vcodec','png','-framerate',str(FPS),'-i','-','-an','-c:v','libx264','-preset','medium','-crf','17','-threads','2','-pix_fmt','yuv420p','-movflags','+faststart+use_metadata_tags','-metadata',f'credit={H_CREDITS}','-metadata',meta,str(path)],stdin=subprocess.PIPE)
+                encoders[lang]=subprocess.Popen(['ffmpeg','-hide_banner','-loglevel','error','-y','-f','image2pipe','-vcodec','png','-framerate',str(FPS),'-i','-','-an','-c:v','libx264','-preset','medium','-crf','17','-threads','2','-pix_fmt','yuv420p',*movflags,'-metadata',f'credit={H_CREDITS}','-metadata',meta,str(path)],stdin=subprocess.PIPE)
             scene_frames=frames or scene_seconds*FPS
             for frame in range(start_frame): page.evaluate(f'window.__skip({frame/FPS})')
             framelog=(stills/'frames.jsonl').open('a' if start_frame else 'w',encoding='utf-8')
