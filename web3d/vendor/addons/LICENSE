@@ -1,0 +1,7 @@
+Vendored from three.js r160 (npm three@0.160.0, https://unpkg.com/three@0.160.0/examples/jsm/):
+  GLTFLoader.js                 <- examples/jsm/loaders/GLTFLoader.js
+  utils/BufferGeometryUtils.js  <- examples/jsm/utils/BufferGeometryUtils.js
+Same revision as ../three.module.min.js (REVISION "160"). Only change: bare `from 'three'` imports rewritten to
+relative paths of ../three.module.min.js, and GLTFLoader's '../utils/BufferGeometryUtils.js' import to './utils/...'.
+
+MIT License — Copyright © 2010-2023 Three.js Authors. Full licence text: ../LICENSE
