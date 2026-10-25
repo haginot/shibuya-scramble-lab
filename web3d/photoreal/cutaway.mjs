@@ -92,7 +92,10 @@ vec3 cwSection(float pu, float py, vec3 rd, float base, float top, float fh, flo
   float hr = cwHash(vec3(bid*0.37 + side*17.0, fi + 0.5, ci + 0.25));
   // whole floors tend to share one lighting state (offices strongly, homes less): reads as floor bands from afar
   float hf = cwHash(vec3(bid*0.53 + side*5.0, fi + 0.75, 9.1));
+  float hrRoom = hr;
   if (cwHash(vec3(ci*0.71 + 2.0, fi, bid*0.29)) < mix(0.4, 0.82, office)) hr = hf;
+  // never a whole Halloween-coloured floor (reads as a glitch): spooky rooms stay single
+  if (hr >= uDarkFrac && hr < uDarkFrac + uSpookyFrac*(1.0 - uDarkFrac)) hr = hrRoom;
   float hr2 = cwHash(vec3(ci*1.3 + 5.0, bid, fi*0.7 + side));
   float hr3 = cwHash(vec3(fi + 3.3, ci*0.91, bid + side*3.0));
 

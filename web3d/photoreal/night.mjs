@@ -83,7 +83,7 @@ void main(){
 
 // Buildings + generic photo-textured layers (frn, veg, brid) + untextured (ubld, untextured bldg parts)
 const FS_SURF = /* glsl */`
-uniform sampler2D map; uniform float uHasMap; uniform vec3 uAlbedo;
+uniform sampler2D map; uniform float uHasMap; uniform vec3 uAlbedo; uniform float uTexBias;
 uniform sampler2D uBInfo;
 uniform float uWinGain; uniform float uShopGain; uniform float uSignGain; uniform float uUplight;
 uniform float uHalloween; uniform float uDebug; uniform float uTexGain; uniform float uSelfLit; uniform float uDesat; uniform float uRoofDark;
@@ -91,7 +91,7 @@ varying vec2 vUv; varying vec3 vWP; varying vec3 vN; flat varying float vBid;
 ${GLSL_COMMON}
 void main(){
   vec3 N = normalize(vN);
-  vec3 tex = uHasMap > 0.5 ? texture2D(map, vUv).rgb*uTexGain : uAlbedo;
+  vec3 tex = uHasMap > 0.5 ? texture2D(map, vUv, uTexBias).rgb*uTexGain : uAlbedo;
   float lum = dot(tex, vec3(.2126,.7152,.0722));
   vec3 base = mix(tex, vec3(lum), uDesat);
   float up = N.y*0.5 + 0.5;
@@ -327,6 +327,7 @@ export function applyNight({ scene, renderer, manifest = {}, gltfs = {}, terrain
     uAmbSky: { value: new THREE.Vector3(0.17, 0.2, 0.3) }, uAmbGround: { value: new THREE.Vector3(0.09, 0.08, 0.085) },
     uMoonCol: { value: new THREE.Vector3(0.12, 0.14, 0.21) }, uMoonDir: { value: new THREE.Vector3(-0.35, 0.75, 0.55).normalize() },
     uTime: { value: 0 },
+    uTexBias: { value: 0 }, // mip LOD bias on photo textures (per shot: blurs legible third-party ads/logos at close range)
     uSkyTop: { value: new THREE.Color(0x03050b).convertSRGBToLinear() }, uSkyHorizon: { value: new THREE.Color(0x3a2c33).convertSRGBToLinear() },
   };
 
@@ -467,7 +468,7 @@ export function applyNight({ scene, renderer, manifest = {}, gltfs = {}, terrain
       const k = (j * GX + i) * 3; L[k] += col[0] * f; L[k + 1] += col[1] * f; L[k + 2] += col[2] * f;
     }
   }
-  for (const p of lamps) splat(p.x, p.z, 19, p.color, 1.6 * o.lampGain, 7);
+  for (const p of lamps) splat(p.x, p.z, 13, p.color, 1.9 * o.lampGain, 7);
   // shop spill: open cells next to shop buildings
   let spill = 0;
   for (let j = 2; j < GZ - 2; j += 1) for (let i = 2; i < GX - 2; i += 1) {
@@ -605,16 +606,14 @@ export function applyNight({ scene, renderer, manifest = {}, gltfs = {}, terrain
   const P = [], C = [], I = [];
   const add = (x, y, z, col, I3, size, blink = 0, phase = 0) => { P.push(x, y, z); C.push(col[0] * I3, col[1] * I3, col[2] * I3); I.push(size, blink, phase); };
   for (const p of lamps) if (inBox(p.x, p.z)) add(p.x, p.y, p.z, p.color, 6, 1.0);
-  for (const a of accents) add(a.x, a.y, a.z, a.color === ORANGE ? [1.0, 0.45, 0.1] : [0.5, 0.2, 1.0], 4, 1.8);
+  for (const a of accents) if (inBox(a.x, a.z)) add(a.x, a.y, a.z, a.color === ORANGE ? [1.0, 0.45, 0.1] : [0.5, 0.2, 1.0], 4, 1.8);
   // aviation obstruction lights (red, flashing) on tall buildings + steady rooftop lights on mid-rise
   for (const [bid, m] of bmeta) {
     if (!inBox(m.cx, m.cz)) continue;
     const b = m.b;
     if (m.H >= 85) {
-      const corners = [[b.minx, b.minz], [b.maxx, b.minz], [b.minx, b.maxz], [b.maxx, b.maxz]]
-        .map(([x, z]) => [x + (m.cx - x) * 0.12, z + (m.cz - z) * 0.12]).filter(([x, z]) => inBox(x, z, -1));
-      for (const [x, z] of corners) add(x, m.top + 0.5, z, [1.0, 0.04, 0.02], 14, 1.3, 1, hashI(bid, 1) * 0.3);
-      if (m.H >= 150) for (const [x, z] of corners) add(x, m.base + m.H * 0.5, z, [1.0, 0.05, 0.02], 8, 1.0, 1, hashI(bid, 2) * 0.3);
+      // roof centre only: bbox corners of tapered/irregular towers float in the air (QA)
+      if (inBox(m.cx, m.cz, -1)) add(m.cx, m.top + 0.5, m.cz, [1.0, 0.04, 0.02], 14, 1.3, 1, hashI(bid, 1) * 0.3);
     } else if (m.H > 25 && hashI(bid, 21) < 0.25) {
       add(m.cx + (hashI(bid, 22) - 0.5) * (b.maxx - b.minx) * 0.6, m.top + 0.4, m.cz + (hashI(bid, 23) - 0.5) * (b.maxz - b.minz) * 0.6,
         hashI(bid, 24) < 0.5 ? [1, 0.8, 0.6] : [0.8, 0.9, 1], 4, 1.2);

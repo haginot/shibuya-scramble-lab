@@ -65,13 +65,15 @@ async function main() {
   const fx = (x-g.x0)/g.step, fz = (z-g.z0)/g.step, i = Math.max(0, Math.min(g.nx-2, Math.floor(fx))), j = Math.max(0, Math.min(g.nz-2, Math.floor(fz)));
   const u = Math.min(1, Math.max(0, fx-i)), v = Math.min(1, Math.max(0, fz-j)), at = (a, b) => g.heights[b*g.nx+a];
   return (at(i, j)*(1-u)+at(i+1, j)*u)*(1-v)+(at(i, j+1)*(1-u)+at(i+1, j+1)*u)*v; });
- const plinth = C.makePlinth(heightAt, {step: 4, topMaterial: N?.makeGroundMaterial?.(), underground: N?.underground || []});
+ const plinth = C.makePlinth(heightAt, {step: 4, color: 0x4a4440, lipColor: 0xffd9a0, topMaterial: N?.makeGroundMaterial?.(), underground: N?.underground || []});
  patch(plinth.userData.top.material);
  scene.add(plinth);
  if (N?.terrainMesh) N.terrainMesh.visible = false; // the plinth top replaces it
 
  const frame = (t, shot) => {
-  applyCamera(camera, shot ? SHOTS[shot] : clipCamera(t));
+  const cam = shot ? SHOTS[shot] : clipCamera(t);
+  applyCamera(camera, cam);
+  if (N?.uniforms?.uTexBias) N.uniforms.uTexBias.value = cam.texBias || 0;
   C.update(camera, t);
   if (N) { N.update(t, camera); N.render ? N.render(camera) : renderer.render(scene, camera); }
   else renderer.render(scene, camera);

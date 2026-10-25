@@ -26,6 +26,7 @@ sys.path.insert(0, str(ROOT/'tools'))
 from record_shibuya import QuietHandler, browser_with_webgl  # noqa: E402
 
 FPS = 30
+CLIP_SECONDS = 10  # web3d/photoreal/camera.mjs CLIP_SECONDS; frame f of N shows t = f/(N-1)*10 (last frame = the 'cutaway' still)
 CREDIT = '出典：国土交通省 PLATEAU（渋谷区 2025 建築物LOD2・道路LOD3 ほか、加工して作成）／出典：国土地理院（標高タイル、加工して作成）'
 
 
@@ -52,6 +53,7 @@ def main():
     ap.add_argument('--output', type=Path, help='segment MP4 (fragmented)')
     ap.add_argument('--start-frame', type=int, default=0)
     ap.add_argument('--end-frame', type=int, default=300)
+    ap.add_argument('--total-frames', type=int, default=300, help='frames in the whole clip')
     ap.add_argument('--size', default='1080x1920')
     ap.add_argument('--query', default='', help='extra URL query (e.g. debug=1)')
     args = ap.parse_args()
@@ -81,11 +83,13 @@ def main():
                 print(name, timing[name], flush=True)
             for sec in [float(v) for v in args.clip_at.split(',') if v]:
                 page.evaluate(f'window.__frame({sec})'); (args.stills/f'clip-{sec:05.2f}.png').write_bytes(shot())
-            (args.stills/'timing.json').write_text(json.dumps(timing, indent=1))
+            tf = args.stills/'timing.json'
+            old = json.loads(tf.read_text()) if tf.exists() else {}
+            tf.write_text(json.dumps({**old, **timing}, indent=1))
         if args.output:
             enc = encoder(args.output)
             for f in range(args.start_frame, args.end_frame):
-                a = time.monotonic(); page.evaluate(f'window.__frame({f/FPS})'); png = shot()
+                a = time.monotonic(); page.evaluate(f'window.__frame({f/(args.total_frames-1)*CLIP_SECONDS})'); png = shot()
                 enc.stdin.write(png)
                 if f % 10 == 0: print(f'frame {f} {time.monotonic()-a:.2f}s', flush=True)
             enc.stdin.close()
