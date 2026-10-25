@@ -15,7 +15,8 @@ async function main() {
  const manifest = await (await fetch(new URL('manifest.json', DATA))).json();
  const terrain = await (await fetch(new URL('terrain.json', DATA))).json();
  const c = manifest.clip;
- const box = {x0: c.x0, x1: c.x1, z0: c.z0, z1: c.z1, yBottom: -42};
+ // z1 222 (manifest suggests 250): keeps the angled Sakura Stage tower (bid 1087, z ≥ 227) out instead of a thin sliver
+ const box = {x0: c.x0, x1: c.x1, z0: c.z0, z1: Math.min(c.z1, 222), yBottom: -42};
  const W = innerWidth, H = innerHeight;
  const renderer = new THREE.WebGLRenderer({antialias: true, stencil: true, preserveDrawingBuffer: true, powerPreference: 'high-performance'});
  renderer.setPixelRatio(1); renderer.setSize(W, H);
@@ -32,18 +33,23 @@ async function main() {
   Promise.all(bldgFiles.map(load)), ...['tran', 'frn', 'veg', 'brid', 'ubld'].map(k => manifest.layers[k]?.[0] ? load(manifest.layers[k][0]) : null)]);
  const gltfs = {bldg: bldg.filter(Boolean), tran, frn, veg, brid, ubld};
  for (const g of [...gltfs.bldg, tran, frn, veg, brid, ubld]) if (g) scene.add(g.scene);
+ for (const k of (Q.get('hide') || '').split(',').filter(Boolean)) for (const g of [gltfs[k]].flat()) if (g) g.scene.visible = false; // debug
  log('loaded', bldgFiles.length, 'building cells');
 
  // ---- cutaway (clip + interior caps + plinth)
- const C = createCutaway({box, floorHeight: 3.6, buildingInfo: manifest.buildings});
+ const C = createCutaway({box, floorHeight: 3.6, buildingInfo: manifest.buildings, darkFraction: .12, spookyFraction: .02});
+ const ubldMats = new Set(); ubld?.scene.traverse(o => { if (o.isMesh) ubldMats.add(o); });
+ // the underground mall pokes through the street at entrances (y up to +2.9): only show it below -0.8 m (in the cut)
  const patch = m => (C.patchMaterial(m), m);
+ const patchUnder = o => { for (const m of [o.material].flat()) { m.userData.cwMaxY = -0.8; m.needsUpdate = true; } };
 
  // ---- night look (lighting module); fallback: plain textures + hemisphere light
  let N = null;
  if (!Q.has('nonight')) {
-  try { const {applyNight} = await import('./night.mjs'); N = applyNight({scene, renderer, camera, manifest, gltfs, terrain, box, patch}); }
+  try { const {applyNight} = await import('./night.mjs'); N = applyNight({scene, renderer, camera, manifest, gltfs, terrain, box, patch, options: {terrainMesh: false, exposure: 1.35}}); }
   catch (e) { console.warn('night.mjs unavailable:', e.message); }
  }
+ for (const o of ubldMats) patchUnder(o);
  if (!N) {
   scene.background = new THREE.Color(0x06070c);
   scene.add(new THREE.HemisphereLight(0xb8c4ff, 0x30281c, 1.4));
@@ -59,7 +65,7 @@ async function main() {
   const fx = (x-g.x0)/g.step, fz = (z-g.z0)/g.step, i = Math.max(0, Math.min(g.nx-2, Math.floor(fx))), j = Math.max(0, Math.min(g.nz-2, Math.floor(fz)));
   const u = Math.min(1, Math.max(0, fx-i)), v = Math.min(1, Math.max(0, fz-j)), at = (a, b) => g.heights[b*g.nx+a];
   return (at(i, j)*(1-u)+at(i+1, j)*u)*(1-v)+(at(i, j+1)*(1-u)+at(i+1, j+1)*u)*v; });
- const plinth = C.makePlinth(heightAt, {step: 4, topMaterial: N?.groundMaterial, underground: N?.underground || []});
+ const plinth = C.makePlinth(heightAt, {step: 4, topMaterial: N?.makeGroundMaterial?.(), underground: N?.underground || []});
  patch(plinth.userData.top.material);
  scene.add(plinth);
  if (N?.terrainMesh) N.terrainMesh.visible = false; // the plinth top replaces it

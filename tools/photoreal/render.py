@@ -6,7 +6,7 @@ wall clock, so any frame range of the clip can be rendered on its own: long clip
 segments (fragmented MP4) and concatenated (tools/photoreal/render.sh).
 
 usage (always under `nice -n 10`):
-  uv run --with playwright python tools/photoreal/render.py --stills OUTDIR [--only aerial,topdown]
+  uv run --with playwright python tools/photoreal/render.py --stills OUTDIR [--only aerial,topdown] [--clip-at 0,5,9.9]
   uv run --with playwright python tools/photoreal/render.py --output seg-00.mp4 --start-frame 0 --end-frame 100
 """
 from __future__ import annotations
@@ -47,6 +47,8 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument('--stills', type=Path, help='write every still preset as OUTDIR/<name>.png')
     ap.add_argument('--only', default='', help='comma list of still presets')
+    ap.add_argument('--prefix', default='photoreal-', help='still file name prefix')
+    ap.add_argument('--clip-at', default='', help='with --stills: also write clip frames at these seconds (clip-<t>.png)')
     ap.add_argument('--output', type=Path, help='segment MP4 (fragmented)')
     ap.add_argument('--start-frame', type=int, default=0)
     ap.add_argument('--end-frame', type=int, default=300)
@@ -74,9 +76,11 @@ def main():
             timing = {}
             for name in names:
                 a = time.monotonic(); page.evaluate(f'window.__frame(0, {json.dumps(name)})')
-                b = time.monotonic(); (args.stills/f'{name}.png').write_bytes(shot())
+                b = time.monotonic(); (args.stills/f'{args.prefix}{name}.png').write_bytes(shot())
                 timing[name] = {'render_s': round(b-a, 2), 'shot_s': round(time.monotonic()-b, 2)}
                 print(name, timing[name], flush=True)
+            for sec in [float(v) for v in args.clip_at.split(',') if v]:
+                page.evaluate(f'window.__frame({sec})'); (args.stills/f'clip-{sec:05.2f}.png').write_bytes(shot())
             (args.stills/'timing.json').write_text(json.dumps(timing, indent=1))
         if args.output:
             enc = encoder(args.output)

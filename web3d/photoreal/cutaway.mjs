@@ -14,7 +14,7 @@
 //   const C = createCutaway({ box:{x0,x1,z0,z1,yBottom}, floorHeight=3.6, basementHeight=3.4, buildingInfo,
 //                             interiorGain=1, slabColor=0x3a3a3c, slabThickness=0.55, columnWidth=0.45,
 //                             darkFraction=0.16, spookyFraction=0.035, capBias=0.6, clipEps=0.02 })
-//   C.patchMaterial(material|material[])      world-space clip-box discard via onBeforeCompile (chains existing
+//   C.patchMaterial(material|material[])      world-space clip-box discard via onBeforeCompile (material.userData.cwMaxY: optional y ceiling) (chains existing
 //                                             onBeforeCompile + own customProgramCacheKey). Works for built-in and
 //                                             ShaderMaterial (falls back to `position` if there is no <project_vertex>).
 //   C.makeCapMesh(meshOrGeometry, {buildingInfo, bidAttribute, bid, basements=true, attach=true}) -> Group
@@ -68,8 +68,8 @@ vec3 cwLightColour(float r, float office, out float I){
   r = (r - spooky) / (1.0 - spooky);
   if (r < cool) { I = 0.95; return vec3(0.8, 0.9, 1.0); }             // ~5000K office
   r = (r - cool) / (1.0 - cool);
-  if (r < 0.55) { I = 0.8; return vec3(1.0, 0.5, 0.2); }             // ~2700K
-  I = 0.9; return vec3(1.0, 0.66, 0.36);                               // ~3500K
+  if (r < 0.5) { I = 0.8; return vec3(1.0, 0.6, 0.32); }             // ~2700K
+  I = 0.9; return vec3(1.0, 0.75, 0.5);                                // ~3500K
 }
 
 // returns colour; ent = entry t (unused), bid/fi/ci seeds
@@ -90,6 +90,9 @@ vec3 cwSection(float pu, float py, vec3 rd, float base, float top, float fh, flo
   float ly = py - y0;                // 0..fh
   float topLocal = min(fh, top - uSlabT*1.2 - y0);
   float hr = cwHash(vec3(bid*0.37 + side*17.0, fi + 0.5, ci + 0.25));
+  // whole floors tend to share one lighting state (offices strongly, homes less): reads as floor bands from afar
+  float hf = cwHash(vec3(bid*0.53 + side*5.0, fi + 0.75, 9.1));
+  if (cwHash(vec3(ci*0.71 + 2.0, fi, bid*0.29)) < mix(0.4, 0.82, office)) hr = hf;
   float hr2 = cwHash(vec3(ci*1.3 + 5.0, bid, fi*0.7 + side));
   float hr3 = cwHash(vec3(fi + 3.3, ci*0.91, bid + side*3.0));
 
@@ -303,10 +306,12 @@ export function createCutaway(opts = {}) {
         vs = injectMain(vs, CLIP_VERT.replace('CW_POS', 'position'));
       }
       shader.vertexShader = CLIP_VERT_DECL + vs;
-      shader.fragmentShader = CLIP_FRAG_DECL + injectMain(shader.fragmentShader, CLIP_FRAG);
+      const maxY = material.userData.cwMaxY; // optional ceiling (e.g. underground layers must never reach the street)
+      shader.fragmentShader = CLIP_FRAG_DECL + injectMain(shader.fragmentShader, CLIP_FRAG +
+        (maxY !== undefined ? `  if (vCwWorld.y > ${Number(maxY).toFixed(3)}) discard;\n` : ''));
     };
     material.customProgramCacheKey = function () {
-      return (prevKey ? prevKey.call(this) : (prev ? prev.toString() : '')) + '|cutaway1';
+      return (prevKey ? prevKey.call(this) : (prev ? prev.toString() : '')) + '|cutaway1|' + (this.userData.cwMaxY ?? '');
     };
     material.needsUpdate = true;
     return material;
