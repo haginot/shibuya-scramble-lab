@@ -67,3 +67,23 @@ lighting, cutaway caps and procedural interiors are made in the renderer. They a
   https://unpkg.com/three@0.160.0/examples/jsm/ into `web3d/vendor/addons/`. The only change is the import paths
   (see `web3d/vendor/addons/LICENSE`).
 - Build-time Python packages (not distributed): DracoPy (Apache-2.0), numpy, Pillow, shapely, mapbox-earcut, scipy.
+- three.js r160 core `web3d/vendor/three.module.min.js` (MIT, see `web3d/vendor/LICENSE`).
+- On-screen credit text renders in the system Noto Sans CJK JP font (SIL OFL 1.1); no font file is distributed.
+
+## 5. Rendered extent and on-screen credit
+
+- Rendered clip box (local metres, x east / z south from the Scramble): x −340…160, z −250…222, plinth bottom y −42.
+  The east plane x = 160 cuts Shibuya Scramble Square; the cut faces show procedurally generated interiors (not data).
+  The manifest suggests z1 = 250; `web3d/photoreal/app.mjs` uses 222 to leave out a thin sliver of the Sakura Stage tower.
+- Burnt-in credit (`web3d/photoreal/index.html`) and MP4 metadata: 「出典：国土交通省 PLATEAU（渋谷区 2025）を加工して作成」
+  「出典：国土地理院（標高タイル）を加工して作成」. Use the full form in §1 in descriptions / end cards.
+- The dataset ids contain `_pref_` (published through the Tokyo Metropolitan Government's PLATEAU programme); the MLIT
+  PLATEAU credit above is the one the site policy requires. Confirm the provider line before publishing.
+
+## 6. Third-party rights in the photo textures
+
+The PLATEAU facade textures are aerial/street photographs and contain real advertisements, trademarks and in places
+people's likenesses (e.g. billboards around the Scramble). The PLATEAU licence covers the dataset, **not** third-party
+rights in what is photographed. This prototype blurs the textures in close shots (mip LOD bias per shot,
+`SHOTS[*].texBias` in `web3d/photoreal/camera.mjs`, `uTexBias` in `night.mjs`) so that no brand is legible in the
+deliverables; before publishing, check every frame, or mask the ad-heavy atlas regions in `tools/photoreal/fetch_tiles.py`.

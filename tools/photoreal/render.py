@@ -27,7 +27,7 @@ from record_shibuya import QuietHandler, browser_with_webgl  # noqa: E402
 
 FPS = 30
 CLIP_SECONDS = 10  # web3d/photoreal/camera.mjs CLIP_SECONDS; frame f of N shows t = f/(N-1)*10 (last frame = the 'cutaway' still)
-CREDIT = '出典：国土交通省 PLATEAU（渋谷区 2025 建築物LOD2・道路LOD3 ほか、加工して作成）／出典：国土地理院（標高タイル、加工して作成）'
+CREDIT = '出典：国土交通省 PLATEAU（渋谷区 2025）を加工して作成／出典：国土地理院（標高タイル）を加工して作成'  # = index.html #credit; full form: licenses-photoreal.md
 
 
 def serve():
