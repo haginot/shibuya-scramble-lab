@@ -104,3 +104,25 @@ Pillow (MIT-CMU), Playwright (Apache-2.0), pytest and Hatchling (MIT).
 Optional acquisition inspection: Shapely (BSD-3-Clause), pyproj (MIT).
 FFmpeg/libx264 are external recording commands, not bundled binaries;
 their licensing depends on build configuration (LGPL/GPL).
+
+Series (line-by-line escape episodes, web3d/shibuya/series/):
+shibuya_plateau_lod2.json: LOD2 boundary surfaces (wall/roof/outer floor/ceiling/
+closure polygons; ground surfaces dropped) of the same PLATEAU 2023 Shibuya
+buildings as shibuya_plateau.json, from the same four CityGML members
+(SHA-256 listed in the file), reprojected to local metres and quantised to
+0.1 m by tools/fetch_plateau_lod2.py. CC BY 4.0 under the PLATEAU Site Policy
+section 3 (reviewed above). No textures. This supersedes the "no LOD2 roofs"
+sentence above for this file only.
+Credit: 国土交通省 Project PLATEAU・渋谷区 2023 を加工して作成 / modified.
+series_wide_osm.json: © OpenStreetMap contributors, ODbL 1.0
+(https://www.openstreetmap.org/copyright). Buildings outside the PLATEAU bbox,
+highways, surface rails, stations and parks for lat 35.643–35.687,
+lon 139.688–139.716 (Overpass queries and timestamp bundled), simplified to
+~1 m; untagged building heights are estimated by building type (context only).
+Its walking routes are OSRM foot-profile routes on OpenStreetMap data
+(routing.openstreetmap.de) computed by the series research (alt-routes.json),
+labelled 「OSMから概算」; the restriction-zone polygon is the research team's
+approximate reading of the police map (「規制図より概略」), not official data.
+The JR station interior (series/station-jr.mjs) is procedural generic
+architecture placed approximately from OSM indoor ways and sourced gate names;
+「位置・構造は概略」. No railway logos, signage or brand names are drawn.

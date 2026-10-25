@@ -4,6 +4,12 @@
 // ears/horns, capes, skirts/sheets, hand props, phone screens and glow sticks)
 // that lists only the people wearing it. Costumes are assigned by agent index
 // (deterministic); they do not change the simulation.
+// Ordinary-people mode (series episodes): costumeOf(i,{ordinary:true}) / ordinaryStyle /
+// new CostumeCrowd(scene,n,{ordinary:true}) draw everyone in normal clothes (everyday palette)
+// with at most small cat ears or a small hat; no monster bodies, no pale/green/orange skin.
+// Police (POLICE) and staff (STAFF) keep their normal uniforms. The default (v4) assignment is unchanged.
+// Series-only look uniforms (defaults keep the v4 look): crowd.uniforms.uStride (leg/arm swing scale, 1),
+// uKey (soft key light on body faces, 0), uFill (indoor fill light, 0), uNearDim (darkening of figures within ~9 m of the camera, 0).
 import * as THREE from '../vendor/three.module.min.js';
 import {shared,common} from './shaders.mjs';
 import {personGeometry} from './crowd.mjs';
@@ -11,18 +17,28 @@ import {personGeometry} from './crowd.mjs';
 export const COSTUMES=['casual','witch','vampire','devil','ears','pumpkin','ghost','zombie','wizard','hero','skeleton'];
 const WEIGHTS=[.2,.12,.09,.08,.12,.06,.05,.08,.06,.07,.07];
 export const POLICE=100,STAFF=101,PERFORMER=102;
+// Ordinary-people mode types (never produced by the default assignment).
+export const ORDINARY=20,ORDINARY_EARS=21,ORDINARY_HAT=22;
+export const ORDINARY_TYPES=Object.freeze([ORDINARY,ORDINARY_EARS,ORDINARY_HAT]);
+// Costume types that read as monsters / non-human bodies (excluded from ordinary mode).
+export const MONSTER_TYPES=Object.freeze([2,3,5,6,7,10]);// vampire, devil, pumpkin, ghost, zombie, skeleton
+const ORDINARY_WEIGHTS=[.82,.11,.07];
 const PHONE=1,GLOW=2;
 const hash=i=>{let t=(i+0x6D2B79F5)|0;t=Math.imul(t^t>>>15,1|t);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};
 // [type, seed, flags] for agent i.
-export function costumeOf(i){const u=hash(i*3+1),seed=hash(i*3+2),f=hash(i*3+3);let k=0,acc=WEIGHTS[0];while(u>acc&&k<WEIGHTS.length-1)acc+=WEIGHTS[++k];return [k,seed,f<.2?PHONE:f<.34?GLOW:0];}
+// opts.ordinary → ordinary-people mode (types ORDINARY_TYPES only).
+export function costumeOf(i,opts){const u=hash(i*3+1),seed=hash(i*3+2),f=hash(i*3+3);
+ if(opts?.ordinary){const k=u<ORDINARY_WEIGHTS[0]?0:u<ORDINARY_WEIGHTS[0]+ORDINARY_WEIGHTS[1]?1:2;return [ORDINARY_TYPES[k],seed,f<.2?PHONE:f<.27?GLOW:0];}
+ let k=0,acc=WEIGHTS[0];while(u>acc&&k<WEIGHTS.length-1)acc+=WEIGHTS[++k];return [k,seed,f<.2?PHONE:f<.34?GLOW:0];}
+export const ordinaryStyle=i=>costumeOf(i,{ordinary:true});
 
 // Accessory geometry, built in the body's rest frame (forward +z, feet at y=0).
 function build(parts){const p=[],n=[],part=[];for(const [geo,id] of parts){const g=geo.index?geo.toNonIndexed():geo;const a=g.getAttribute('position').array,b=g.getAttribute('normal').array;for(let i=0;i<a.length;i++){p.push(a[i]);n.push(b[i]);}for(let i=0;i<a.length/3;i++)part.push(id);}
  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(p,3));g.setAttribute('normal',new THREE.Float32BufferAttribute(n,3));g.setAttribute('aPart',new THREE.Float32BufferAttribute(part,1));return g;}
 const cape=()=>{const g=new THREE.BufferGeometry(),v=[],q=[[-.2,1.42,-.13],[.2,1.42,-.13],[-.34,.5,-.2],[.34,.5,-.2]];for(const [a,b,c] of [[0,2,1],[1,2,3]])v.push(...q[a],...q[b],...q[c]);g.setAttribute('position',new THREE.Float32BufferAttribute(v,3));g.computeVertexNormals();return g;};
 const LAYERS=[
- {name:'hat',has:(t)=>t===1||t===8||t===POLICE,geo:()=>build([[new THREE.CylinderGeometry(.27,.27,.02,10).translate(0,1.7,0),7],[new THREE.ConeGeometry(.13,.42,8).translate(0,1.92,-.02),8]])},
- {name:'ears',has:(t)=>t===3||t===4,geo:()=>build([[new THREE.ConeGeometry(.04,.13,5).rotateZ(.35).translate(-.08,1.74,.01),9],[new THREE.ConeGeometry(.04,.13,5).rotateZ(-.35).translate(.08,1.74,.01),10]])},
+ {name:'hat',has:(t)=>t===1||t===8||t===POLICE||t===ORDINARY_HAT,geo:()=>build([[new THREE.CylinderGeometry(.27,.27,.02,10).translate(0,1.7,0),7],[new THREE.ConeGeometry(.13,.42,8).translate(0,1.92,-.02),8]])},
+ {name:'ears',has:(t)=>t===3||t===4||t===ORDINARY_EARS,geo:()=>build([[new THREE.ConeGeometry(.04,.13,5).rotateZ(.35).translate(-.08,1.74,.01),9],[new THREE.ConeGeometry(.04,.13,5).rotateZ(-.35).translate(.08,1.74,.01),10]])},
  {name:'cape',has:(t)=>t===2||t===9,geo:()=>build([[cape(),11]]),side:THREE.DoubleSide},
  {name:'skirt',has:(t)=>t===1||t===6||t===8,geo:()=>build([[new THREE.CylinderGeometry(.2,.55,.7,10,1,true).translate(0,.6,0),12]]),side:THREE.DoubleSide},
  {name:'prop',has:(t)=>t===3||t===8||t===POLICE,geo:()=>build([[new THREE.CylinderGeometry(.016,.016,1.1,4).translate(.23,1.37,.06),13],[new THREE.OctahedronGeometry(.06,0).scale(1.4,1,1).translate(.23,1.95,.06),14]])},
@@ -31,7 +47,7 @@ const LAYERS=[
 
 const vertex=/* glsl */`${common}
 attribute vec4 aAgent,aStyle;attribute float aPart;
-uniform float uLift;
+uniform float uLift,uStride,uNearDim,uKey,uFill;
 varying vec3 vColor,vWorld,vLocal,vEmit;varying float vPart,vType,vSeed;
 vec3 pick4(float r,vec3 a,vec3 b,vec3 c,vec3 d){return r<.25?a:r<.5?b:r<.75?c:d;}
 vec3 rotX(vec3 p,float pivot,float a){float y=p.y-pivot;return vec3(p.x,pivot+y*cos(a)-p.z*sin(a),y*sin(a)+p.z*cos(a));}
@@ -39,7 +55,7 @@ void main(){
  float type=aStyle.x,seed=aStyle.y,flags=aStyle.z,id=aStyle.w;
  float spd=floor(aAgent.w/8.)/20.,ph=mod(aAgent.w,8.);
  float part=aPart;vec3 p=position,nrm=normal;
- float amp=clamp(spd/1.35,0.,1.),sw=sin(ph)*.48*amp;
+ float amp=clamp(spd/1.35,0.,1.),sw=sin(ph)*.48*amp*uStride;
  bool phone=mod(flags,2.)>.5,glow=mod(floor(flags/2.),2.)>.5;
  bool police=abs(type-100.)<.5,staff=abs(type-101.)<.5,performer=abs(type-102.)<.5;
  bool ghost=abs(type-6.)<.5,pumpkin=abs(type-5.)<.5;
@@ -51,9 +67,11 @@ void main(){
  vLocal=p;vPart=part;vType=type;vSeed=seed;
  // Accessory shapes per costume.
  if(part>6.5&&part<8.5){float tall=abs(type-8.)<.5?1.7:1.;if(police){tall=.22;if(part<7.5)p.xz*=.55;else p.xz*=1.45;}
-  if(part>7.5){p.y=1.71+(p.y-1.71)*tall*.85;p.xz*=.85;p.z-=(p.y-1.71)*(abs(type-1.)<.5?.18:.06);}else if(abs(type-8.)<.5)p.xz*=.7;}
+  if(part>7.5){p.y=1.71+(p.y-1.71)*tall*.85;p.xz*=.85;p.z-=(p.y-1.71)*(abs(type-1.)<.5?.18:.06);}else if(abs(type-8.)<.5)p.xz*=.7;
+  if(abs(type-22.)<.5){p.y=1.69+(p.y-1.7)*.42;p.xz*=.42;p.x+=.045;}}// ordinary mode: small hat on a hair clip
  if(part>8.5&&part<10.5){if(abs(type-4.)<.5&&seed>.5){p.y=1.69+(p.y-1.69)*2.8;p.xz=vec2(sign(p.x)*.06,.01)+(p.xz-vec2(sign(p.x)*.08,.01))*.8;}
-  if(abs(type-3.)<.5){p.y=1.69+(p.y-1.69)*.9;p.z+=(p.y-1.69)*.6;}}
+  if(abs(type-3.)<.5){p.y=1.69+(p.y-1.69)*.9;p.z+=(p.y-1.69)*.6;}
+  if(abs(type-21.)<.5){p.y=1.69+(p.y-1.69)*.65;p.xz=vec2(sign(p.x)*.075,.01)+(p.xz-vec2(sign(p.x)*.08,.01))*.8;}}// ordinary mode: small cat-ear headband
  if(part>11.5&&part<12.5){float t=clamp((p.y-.25)/.7,0.,1.);
   if(ghost){float r=mix(.46,.25,t)/mix(.55,.2,t);p.xz*=r;p.y=mix(.03,1.52,t);}
   else if(abs(type-8.)<.5){p.xz*=mix(.72,1.,t);p.y=mix(.05,.95,t);}}
@@ -95,6 +113,10 @@ void main(){
  else if(T==100){top=vec3(.03,.05,.13);bottom=vec3(.025,.035,.08);acc=vec3(.03,.05,.13);hair=BLACK;if(part>12.5&&part<14.5)emit=vec3(3.4,.35,.08)*(.85+.15*sin(uTime*9.+seed*30.));}
  else if(T==101){top=vec3(.25,.8,.15);bottom=vec3(.05);}
  else if(T==102){top=mix(ORANGE,PURPLE,step(.5,seed))*1.2;bottom=BLACK;}
+ else if(T>=20&&T<=22){// ordinary mode: everyday clothes (the normal-mode crowd palette), natural skin and hair
+  float h3=hash11(id*3.31+2.9);top=h3<.55?pick4(h4,vec3(.035,.035,.04),vec3(.06,.065,.09),vec3(.12,.11,.1),vec3(.025,.03,.05)):h3<.82?pick4(h4,vec3(.42,.44,.48),vec3(.75,.74,.72),vec3(.2,.22,.18),vec3(.45,.47,.5)):pick4(h4,vec3(.6,.08,.1),vec3(.1,.22,.5),vec3(.62,.45,.12),vec3(.15,.4,.32));
+  bottom=pick4(fract(h4*7.3),vec3(.03),vec3(.06,.07,.11),vec3(.2,.19,.18),vec3(.1,.14,.24));
+  acc=T==21?pick4(fract(seed*5.),BLACK,vec3(.12,.07,.04),vec3(.7,.68,.66),vec3(.35,.2,.25)):pick4(fract(seed*5.),BLACK,vec3(.15,.1,.06),vec3(.2,.2,.24),vec3(.3,.08,.1));}
  if(part>14.5&&part<15.5)emit=vec3(1.7,1.9,2.4);
  if(part>15.5&&part<16.5)emit=pick4(fract(seed*13.),vec3(.3,3.,.5),vec3(2.2,.4,3.2),vec3(3.2,1.,.1),vec3(.4,1.8,3.2));
  vec3 alb=part<.5?top:part<2.5?bottom:part<4.5?top:part<5.5?skin:part<6.5?hair:acc;
@@ -104,6 +126,11 @@ void main(){
  float side=.75+.25*(1.-abs(N.y));
  vec3 rim=uScreenGlow*.35*max(0.,dot(N,normalize(vec3(-w.x,8.,-w.z))))*exp(-length(w.xz)/70.);
  vColor=alb*(amb+street*side+rim);
+ // series options (defaults 0 = v4 look unchanged): uKey = soft key light so the faces of a near figure read as
+ // rounded, uNearDim = darken figures closer than ~8 m to the camera (eye-level shots: no flat bright mannequins).
+ if(uFill>0.)vColor+=alb*uFill*(.55+.45*side);// indoor fill light (station LEDs)
+ if(uKey>0.){float k=dot(N,normalize(vec3(.45,.55,.7)));vColor*=1.+uKey*(.55*k-.12);}
+ if(uNearDim>0.){float dc=length(w-cameraPosition);vColor*=mix(1.-uNearDim,1.,smoothstep(3.,12.,dc));}
  vWorld=w;
  gl_Position=projectionMatrix*viewMatrix*vec4(w,1.);
 }`;
@@ -123,10 +150,11 @@ void main(){vec3 c=vColor;int T=int(vType+.5);vec3 l=vLocal;
 
 export class CostumeCrowd{
  // style(i) -> [type, seed, flags]; accessories=false draws bodies only (aerial views).
- constructor(scene,n,{style=costumeOf,accessories=true}={}){
+ // ordinary=true: ordinary-people mode (ordinaryStyle) unless an explicit style is given.
+ constructor(scene,n,{style,accessories=true,ordinary=false}={}){style=style||(ordinary?ordinaryStyle:costumeOf);
   this.n=n;this.data=new Float32Array(Math.max(1,n)*4);this.phase=new Float32Array(Math.max(1,n));
   this.attr=new THREE.InstancedBufferAttribute(this.data,4).setUsage(THREE.DynamicDrawUsage);
-  this.uniforms={...shared,uLift:{value:0},uUmbrella:{value:0}};this.group=new THREE.Group();scene.add(this.group);
+  this.uniforms={...shared,uLift:{value:0},uUmbrella:{value:0},uStride:{value:1},uNearDim:{value:0},uKey:{value:0},uFill:{value:0}};this.group=new THREE.Group();scene.add(this.group);
   const styles=new Float32Array(Math.max(1,n)*4);this.types=new Uint8Array(n);
   for(let i=0;i<n;i++){const [t,s,f]=style(i);styles.set([t,s,f,i],4*i);this.types[i]=Math.min(255,t);}
   const material=side=>new THREE.ShaderMaterial({uniforms:this.uniforms,vertexShader:vertex,fragmentShader:fragment,side});

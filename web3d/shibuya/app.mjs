@@ -11,6 +11,8 @@ import {shotAt,SCENE_SECONDS,START_CLOCK} from './director.mjs';
 
 const $=id=>document.getElementById(id),params=new URLSearchParams(location.search);
 window.__ready=false;
+// Line series (?mode=series&ep=jr…): its own page module (series/app-jr.mjs); this module stops here (v4 modes unchanged).
+if(params.get('mode')==='series'){await (await import('./series/app-jr.mjs')).start(params);await new Promise(()=>{});}
 async function json(path){const r=await fetch(path);if(!r.ok)throw Error(`${path}: ${r.status}`);return r.json();}
 const [config,osm,plateau,traffic]=await Promise.all([json('../data/shibuya_config.json'),json('../data/shibuya_osm.json'),json('../data/shibuya_plateau.json'),json('../data/shibuya_traffic.json')]);
 // Halloween night mode (?mode=halloween): loaded on demand, the normal mode never imports it.
