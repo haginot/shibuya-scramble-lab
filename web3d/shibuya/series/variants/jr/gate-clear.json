@@ -1,0 +1,487 @@
+{
+ "id": "gate-clear",
+ "episode": "jr",
+ "pair": "gate",
+ "outcome": "CLEAR",
+ "title": {
+  "ja": "別の改札を選んだら…"
+ },
+ "start": {
+  "place": "hachiko-square",
+  "ja": "スタート：ハチ公前広場",
+  "factIds": []
+ },
+ "clock": {
+  "start": "21:58",
+  "ja": "ゲーム内時刻（架空）",
+  "rate": 0.5
+ },
+ "choice": {
+  "prompt": {
+   "ja": "どの改札から入る？"
+  },
+  "options": [
+   {
+    "key": "A",
+    "ja": "ハチ公改札（目の前）",
+    "factIds": []
+   },
+   {
+    "key": "B",
+    "ja": "南改札・新南改札",
+    "sub": "少し歩く",
+    "factIds": []
+   }
+  ],
+  "picked": "B"
+ },
+ "beats": [
+  {
+   "id": "start",
+   "dur": 2.5,
+   "shot": {
+    "key": "topdown",
+    "params": {
+     "center": [
+      16,
+      0,
+      26
+     ]
+    }
+   },
+   "crowd": {
+    "key": "hachiko-peak"
+   },
+   "hud": [
+    {
+     "c": "mission",
+     "ja": "JRの改札から\n電車に乗れ",
+     "factIds": []
+    },
+    {
+     "c": "caption",
+     "ja": "スタート：ハチ公前広場",
+     "factIds": [],
+     "tone": "sub",
+     "until": 1.2
+    },
+    {
+     "c": "caption",
+     "ja": "人出のピークは22時ごろ\n（区の見込み・2024年並み）",
+     "factIds": [
+      "CROWD-01"
+     ],
+     "at": 1.2
+    },
+    {
+     "c": "sim",
+     "ja": "人の流れ＝シミュレーション",
+     "factIds": []
+    }
+   ]
+  },
+  {
+   "id": "choice",
+   "dur": 4,
+   "shot": {
+    "key": "routemap",
+    "params": {
+     "routes": [
+      "JR-A-hachiko",
+      "JR-B-south",
+      "JR-C-newsouth-east"
+     ],
+     "highlight": null,
+     "colors": {
+      "JR-A-hachiko": "#FF7A9A",
+      "JR-B-south": "#FFD23F",
+      "JR-C-newsouth-east": "#4FE3C1"
+     },
+     "points": [
+      [
+       22,
+       34
+      ],
+      [
+       85.9,
+       18.9
+      ],
+      [
+       96.6,
+       162
+      ],
+      [
+       159.8,
+       260
+      ]
+     ],
+     "azimuth": 90,
+     "rect": {
+      "x0": 0.1,
+      "x1": 0.9,
+      "y0": 0.17,
+      "y1": 0.33
+     },
+     "span": true,
+     "redZone": 0,
+     "drawOn": [
+      0.1,
+      1.4
+     ]
+    }
+   },
+   "hud": [
+    {
+     "c": "choice"
+    },
+    {
+     "c": "pin",
+     "world": [
+      85.9,
+      0,
+      18.9
+     ],
+     "ja": "A ハチ公改札",
+     "color": "#FF7A9A",
+     "factIds": []
+    },
+    {
+     "c": "pin",
+     "world": [
+      96.6,
+      0,
+      162
+     ],
+     "ja": "B 南改札",
+     "color": "#FFD23F",
+     "factIds": []
+    },
+    {
+     "c": "pin",
+     "world": [
+      159.8,
+      0,
+      260
+     ],
+     "ja": "B 新南改札",
+     "color": "#4FE3C1",
+     "factIds": []
+    }
+   ]
+  },
+  {
+   "id": "move",
+   "dur": 4.5,
+   "shot": {
+    "key": "routemap",
+    "params": {
+     "routes": [
+      "JR-B-south",
+      "JR-C-newsouth-east",
+      "JR-A-hachiko"
+     ],
+     "highlight": "JR-B-south",
+     "colors": {
+      "JR-A-hachiko": "#FF7A9A",
+      "JR-B-south": "#FFD23F",
+      "JR-C-newsouth-east": "#4FE3C1"
+     },
+     "redZone": 0
+    }
+   },
+   "hud": [
+    {
+     "c": "legend",
+     "factIds": [],
+     "rows": [
+      {
+       "color": "#FFD23F",
+       "ja": "ルート例：南改札へ"
+      },
+      {
+       "color": "#4FE3C1",
+       "ja": "新南改札へ"
+      },
+      {
+       "color": "#FF7A9A",
+       "ja": "ハチ公改札へ"
+      }
+     ]
+    },
+    {
+     "c": "caption",
+     "ja": "ルート例：南改札（1F）へ\nハチ公前から約258m・約4分\n（OSMから概算）",
+     "factIds": [
+      "GATE-H-S",
+      "JR-GATE-01"
+     ],
+     "until": 2.3
+    },
+    {
+     "c": "caption",
+     "ja": "新南改札（3F）なら約7〜8分\n（OSMから概算）",
+     "factIds": [
+      "GATE-H-NS-E",
+      "GATE-H-NS-W",
+      "JR-GATE-01"
+     ],
+     "at": 2.3
+    }
+   ],
+   "transition": "dip"
+  },
+  {
+   "id": "result",
+   "dur": 4,
+   "shot": {
+    "key": "gate-newsouth",
+    "params": {
+     "gate": "south",
+     "mode": "hall",
+     "dur": 6.5
+    }
+   },
+   "crowd": {
+    "key": "gate-newsouth",
+    "params": {
+     "path": [
+      [
+       102.49,
+       144.99
+      ],
+      [
+       98.38,
+       156.26
+      ],
+      [
+       94.95,
+       165.65
+      ],
+      [
+       91.52,
+       175.05
+      ]
+     ],
+     "width": 2.4,
+     "density": 0.7,
+     "fill": 0.4,
+     "approach": 6
+    }
+   },
+   "hud": [
+    {
+     "c": "caption",
+     "ja": "この回は列が流れた\n（シミュレーション）",
+     "factIds": [],
+     "sim": true,
+     "until": 2
+    },
+    {
+     "c": "caption",
+     "ja": "当日は係員の誘導に従う",
+     "factIds": [],
+     "tone": "note",
+     "at": 2
+    },
+    {
+     "c": "sim",
+     "ja": "人の流れ＝シミュレーション",
+     "factIds": []
+    }
+   ]
+  },
+  {
+   "id": "stamp",
+   "dur": 2.5,
+   "shot": {
+    "key": "gate-newsouth",
+    "params": {
+     "gate": "south",
+     "mode": "hall",
+     "dur": 6.5
+    },
+    "t0": 4
+   },
+   "crowd": {
+    "key": "gate-newsouth",
+    "params": {
+     "path": [
+      [
+       102.49,
+       144.99
+      ],
+      [
+       98.38,
+       156.26
+      ],
+      [
+       94.95,
+       165.65
+      ],
+      [
+       91.52,
+       175.05
+      ]
+     ],
+     "width": 2.4,
+     "density": 0.7,
+     "fill": 0.4,
+     "approach": 6
+    }
+   },
+   "hud": [
+    {
+     "c": "stamp",
+     "kind": "GAME_CLEAR",
+     "ja": "南改札から乗車！\n（シミュレーション）",
+     "factIds": []
+    }
+   ],
+   "bgm": "victory"
+  },
+  {
+   "id": "lesson",
+   "dur": 5,
+   "shot": {
+    "key": "card-bg"
+   },
+   "hud": [
+    {
+     "c": "lesson"
+    }
+   ],
+   "clock": false,
+   "header": true,
+   "bgm": "victory",
+   "transition": "dip"
+  },
+  {
+   "id": "cheat",
+   "dur": 3.5,
+   "shot": {
+    "key": "card-bg",
+    "params": {
+     "yaw0": 1.1
+    }
+   },
+   "hud": [
+    {
+     "c": "cheat"
+    }
+   ],
+   "clock": false,
+   "bgm": "victory"
+  },
+  {
+   "id": "sources",
+   "dur": 2,
+   "shot": {
+    "key": "card-bg",
+    "params": {
+     "yaw0": 1.5
+    }
+   },
+   "hud": [
+    {
+     "c": "sources",
+     "note": "徒歩はOSMから概算（混雑・信号は含まず）",
+     "factIds": []
+    }
+   ],
+   "clock": false,
+   "bgm": "victory",
+   "fadeOut": 0.4
+  }
+ ],
+ "lesson": {
+  "title": "別の改札も選択肢に",
+  "ja": "別の改札も選択肢に\n南改札（1F）・新南改札（3F）\nも選択肢に\nハチ公改札前は一方通行\nUターンして入る形\n（2025年1月の報道）\nハロウィーンは例年一部規制\n（例：2024年・2023年）\n2026年のJRの対策は\n10/25時点で未発表",
+  "points": [
+   "南改札（1F）・新南改札（3F）\nも選択肢に",
+   "ハチ公改札前は一方通行\nUターンして入る形\n（2025年1月の報道）",
+   "ハロウィーンは例年一部規制\n（例：2024年・2023年）",
+   "2026年のJRの対策は\n10/25時点で未発表"
+  ],
+  "factIds": [
+   "JR-GATE-03",
+   "JR-GATE-05",
+   "MEAS-15",
+   "MEAS-16",
+   "JR-GATE-01",
+   "NA-JR-2026"
+  ],
+  "summary": "ハチ公改札は2025年1月の移設で改札前が一方通行になり、ハチ公側からはUターンして入る形に（2025年1月の報道）。ハロウィーン期間は例年一部規制があるため（例：2024年・2023年）、南改札・新南改札など別の改札も選択肢に。2026年のJRの対策は10/25時点で未発表。"
+ },
+ "cheat": {
+  "title": "保存版 JR渋谷の改札",
+  "sub": "4つの改札と出口",
+  "asOf": "10/25時点",
+  "note": "当日は係員の誘導に従う",
+  "rows": [
+   {
+    "sec": "改札 → 出口",
+    "ja": "ハチ公改札 1F：前は一方通行",
+    "sub": "Uターンして入る（2025年1月の報道）",
+    "tone": "ng",
+    "factIds": [
+     "JR-GATE-01",
+     "JR-GATE-03"
+    ]
+   },
+   {
+    "ja": "南改札 1F → 西口・東口",
+    "sub": "ハチ公前から約4分（OSMから概算）",
+    "factIds": [
+     "JR-GATE-13",
+     "GATE-H-S"
+    ]
+   },
+   {
+    "ja": "新南改札 3F → サクラステージ・ストリーム",
+    "sub": "ハチ公前から約7〜8分（OSMから概算）",
+    "factIds": [
+     "JR-GATE-14",
+     "GATE-H-NS-E",
+     "GATE-H-NS-W"
+    ]
+   },
+   {
+    "ja": "中央改札 3F → スクランブルスクエア",
+    "factIds": [
+     "JR-GATE-01",
+     "JR-GATE-12"
+    ]
+   },
+   {
+    "sec": "2026年",
+    "ja": "JRの対策：10/25時点で未発表",
+    "factIds": [
+     "NA-JR-2026"
+    ]
+   },
+   {
+    "ja": "例：2024年 ハチ公改札を16〜23時ごろ一部規制",
+    "factIds": [
+     "MEAS-15"
+    ]
+   }
+  ]
+ },
+ "sources": [
+  "CROWD-01",
+  "GATE-H-S",
+  "JR-GATE-01",
+  "GATE-H-NS-E",
+  "GATE-H-NS-W",
+  "JR-GATE-03",
+  "JR-GATE-05",
+  "MEAS-15",
+  "MEAS-16",
+  "NA-JR-2026",
+  "JR-GATE-13",
+  "JR-GATE-14",
+  "JR-GATE-12"
+ ],
+ "bgm": "tension",
+ "amb": "crowd-night"
+}

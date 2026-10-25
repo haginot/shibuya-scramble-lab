@@ -14,6 +14,7 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 FACTS_JSON = ROOT.parent / 'logs/ssl-claude-halloween/series/facts-series.json'
+FACTS_VARIANTS_JSON = ROOT.parent / 'logs/ssl-claude-halloween/variants/facts-variants.json'
 MOD = './web3d/shibuya/series/copy-jr.mjs'
 SRC = './web3d/shibuya/series/sources-series.mjs'
 
@@ -128,7 +129,13 @@ def test_check_copy_rejects_banned_names():
 def _facts_json():
     if not FACTS_JSON.exists():
         pytest.skip('facts-series.json not available')
-    return {f['id']: f for f in json.loads(FACTS_JSON.read_text())}
+    out = {f['id']: f for f in json.loads(FACTS_JSON.read_text())}
+    # JR編 variants: new fact ids appended to sources-series.mjs come from the variants fact-check
+    # (same claim format; its verdict field is `status`). Series entries win for reused ids.
+    if FACTS_VARIANTS_JSON.exists():
+        for f in json.loads(FACTS_VARIANTS_JSON.read_text()):
+            out.setdefault(f['id'], {**f, 'verdict': f.get('verdict', f.get('status'))})
+    return out
 
 
 def test_verdicts_match_fact_check(data):
@@ -154,6 +161,9 @@ def test_source_urls_match_fact_check(data):
     fj = _facts_json()
     for fid, f in data['facts'].items():
         if f.get('na'):
+            continue
+        if f.get('derived'):  # computed from other facts (e.g. a difference of two walks): check those instead
+            assert all(d in data['facts'] for d in f['derived']), (fid, f['derived'])
             continue
         blob = _blob(fj[fid])
         urls = [data['sources'][k]['url'] for k in f['src']]

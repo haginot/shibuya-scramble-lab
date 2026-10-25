@@ -8,7 +8,7 @@ the frame is drawn; nothing runs on a wall clock. Frames [start, end) of a segme
 (the solver catches up deterministically), so a long render is split into resumable segments
 (tools/render_series.sh) written as fragmented MP4 (a killed segment keeps every finished fragment).
 
-Each frame is checked (check_frame): title present (header or title card), 「※パロディ」 present, every
+Each frame is checked (check_frame): title present (header or title card), 「フィクション」 tag on the cold open + parody line on the end card (steering 2026-10-26), every
 simulation number labelled 「シミュレーション」 and equal to its source value, fact ids on screen known
 (sources-series.mjs FACTS) and never dropped, every claim covered by the on-screen footnote, GAME OVER only in
 the tally. frames.jsonl gets one line per frame with every shown sim number (text + source) and the fact ids.
@@ -48,6 +48,7 @@ TITLE = '🧙ハロウィンの渋谷を脱出せよ！🎃 JR編'
 SUBTITLE = '10/31 渋谷からどう帰る？'
 QUESTION = 'あなたはどの改札から脱出する？'
 PARODY = '※パロディ'
+FICTION = 'フィクション'
 SIM_JA = 'シミュレーション'
 CHEAT_MIN_SECONDS = 3
 GAME_OVER_RE = re.compile(r'GAME\s*OVER|ゲームオーバー', re.I)
@@ -90,7 +91,11 @@ def check_frame(rec, plan=None, facts=None):
     assert rec['title']['header'] or rec['title']['card'], ('title missing', t)
     if rec['title']['header']: assert TITLE in strings and SUBTITLE in strings, ('title header text', t)
     if rec['title']['card']: assert any(s.replace('\n', '').replace('🎃JR', '🎃 JR') == TITLE for s in strings), ('title card text', t)
-    assert rec['parody'] and PARODY in strings, ('※パロディ missing', t)
+    # HAGINO steering 2026-10-26: no persistent ※パロディ; the fictional cold open carries the 「フィクション」 tag and the
+    # end card its parody line (a persistent sticker, ?parody=1, is still accepted)
+    if not rec.get('parody'):
+        if sec == 'cold': assert rec.get('fiction') and FICTION in strings, ('「フィクション」 tag missing on the cold open', t)
+        if sec == 'end': assert any('パロディ' in s or 'parody' in s.lower() for s in strings), ('parody note missing on the end card', t)
     # simulation numbers: labelled and equal to their source
     for s in rec.get('sims') or []:
         assert s['label'] and (SIM_JA in s['text'] or 'simulation' in s['text'].lower()), ('sim number without label', t, s)

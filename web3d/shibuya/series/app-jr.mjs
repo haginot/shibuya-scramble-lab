@@ -5,6 +5,8 @@
 // series/station-jr.mjs (procedural JR station, approximate) + series/wide-area.mjs (OSM context / route map) +
 // halloween-scene.mjs (police, barriers) + the crowd as ORDINARY people (costume.mjs ordinary mode).
 // + series/landmarks-jr.mjs (koban, JR bridge girders, passage divider, 明治通り plate: what the walk captions name).
+// + series/people-close.mjs: within 18 m of an eye-level / interior camera the people are drawn as articulated, animated
+//   near models (arms-down rest pose, walk/idle/phone cycles by sim time); costume.mjs figures beyond (same colours per id).
 // Platform people: derived from the precomputed concourse run (inbound walkers continue along the Yamanote island).
 // Crowd: one live JRCrowdSimulation (crowd-jr-worker.mjs 'init'/'advance'): every frame the solver is stepped to the
 // director's JR time simAt(t) (monotonic; a resumed segment simply catches up), and the overlay's live numbers are
@@ -32,6 +34,7 @@ import {makeDirector,SECTIONS,DURATION,FPS,ALT_ROUTES,PILOT_ROUTES,T_SIM0} from 
 import {SeriesOverlay,ALT_COLORS} from './overlay-jr.mjs';
 import {createLandmarks} from './landmarks-jr.mjs';
 import {PLATFORM_Y} from './station-jr.mjs';
+import {NearCrowdLayer} from './people-close.mjs';
 
 const json=async p=>{const r=await fetch(p);if(!r.ok)throw Error(`${p}: ${r.status}`);return r.json();};
 const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
@@ -130,12 +133,13 @@ export async function start(params){
   const x=a[0]+(b[0]-a[0])*u,z=a[1]+(b[1]-a[1])*u,w=Math.max(.4,(a[2]+(b[2]-a[2])*u)-1.5),dx=a[3],dz=a[4];return {x:x+dz*lat*w,z:z-dx*lat*w,dx,dz};}
  function platformPeople(cr,t){if(!yamP||!cr)return [];const out=[],top=0,speed=1.15;
   for(const p of cr.people){const h1=hsh(p.id*3+1),h2=hsh(p.id*3+2),D=6+h1*Math.min(90,pcum.at(-1)-8),lat=h2*2-1;
-   if(p.dir>0&&p.doneAt!=null){const dt=t-p.doneAt;if(dt<0||dt>150)continue;const d=Math.min(D,top+dt*speed),q=onStrip(d,lat*Math.min(1,d/6));const walking=d<D;out.push({x:q.x,z:q.z,angle:walking?Math.atan2(q.dx,q.dz):Math.atan2(q.dx,q.dz)+(h2>.5?1.4:-1.4)});}
-   else if(p.dir<0){const dt=p.t0-t;if(dt<0||dt>D/speed+20)continue;const d=Math.min(D,dt*speed),q=onStrip(d,lat*Math.min(1,d/6));out.push({x:q.x,z:q.z,angle:Math.atan2(-q.dx,-q.dz)});}
+   if(p.dir>0&&p.doneAt!=null){const dt=t-p.doneAt;if(dt<0||dt>150)continue;const d=Math.min(D,top+dt*speed),q=onStrip(d,lat*Math.min(1,d/6));const walking=d<D;out.push({x:q.x,z:q.z,y:PLATFORM_Y,id:p.id,speed:walking?speed:0,angle:walking?Math.atan2(q.dx,q.dz):Math.atan2(q.dx,q.dz)+(h2>.5?1.4:-1.4)});}
+   else if(p.dir<0){const dt=p.t0-t;if(dt<0||dt>D/speed+20)continue;const d=Math.min(D,dt*speed),q=onStrip(d,lat*Math.min(1,d/6));out.push({x:q.x,z:q.z,y:PLATFORM_Y,id:p.id,speed:d<D?speed:0,angle:Math.atan2(-q.dx,-q.dz)});}
    if(out.length>=PCAP)break;}
   return out;}
  function placePlatform(list){plat.place(list);plat.body.geometry.instanceCount=list.length;for(const L of plat.layers){let k=0;for(const i of L.idx)if(i<list.length)k++;L.mesh.geometry.instanceCount=Math.min(k,L.idx.length);}}
  showInterior(false);
+ const nearL=new NearCrowdLayer(scene,{shared,radius:18,minDist:1.1});// near-camera people (series/people-close.mjs)
 
  // ---------- director ----------
  let run=null;
@@ -145,7 +149,9 @@ export async function start(params){
  let D=makeDirector({walk,dolly:st.dolly('hachiko'),wide,pilot,gates:gatePts,taxi});
  const plan={duration:DURATION,fps:FPS,frames:DURATION*FPS,sections:SECTIONS.map(s=>[...s]),simStart:T_SIM0,warmup:eStart,agents:nAgents,baseAgents:config.agents};
  window.__seriesPlan=plan;
- const overlay=new SeriesOverlay(document.body,{lang});
+ const overlay=new SeriesOverlay(document.body,{lang,persistentParody:params.get('parody')==='1'});
+ // design-system skin (ui/pilot-skin.mjs: shared HUD fonts/panels; ?skin=flat = the original flat look)
+ if(params.get('skin')!=='flat'){try{const m=await import('./ui/pilot-skin.mjs');await m.applyPilotSkin(document);}catch(e){console.warn('pilot skin unavailable:',e.message);}}
 
  // ---------- sim stepping ----------
  let simAbs=state.time;// absolute solver time requested so far (the worker keeps the remainder)
@@ -164,7 +170,7 @@ export async function start(params){
   await stepTo(eStart+shot.sim,cpt);const simMs=performance.now()-T0;
   const dt=state.dt||.1,alpha=clamp(state.alpha||0),dtSim=lastT==null?0:Math.max(0,(t-lastT))*shot.rate;lastT=t;
   // hide simulated people within NEAR m of an eye-level camera (QA M1: close figures read as mannequins / fill the lens)
-  const NEAR=shot.section==='walk'?4.8:.9;
+  const NEAR=shot.section==='walk'?1.3:.9;
   if(shot.eye){const cx=cam.pos.x,cz=cam.pos.z,P=state.positions,Q=state.previous;for(let i=0;i<nAgents;i++){const x=P[2*i],z=P[2*i+1];if(Math.abs(x-cx)<NEAR&&Math.abs(z-cz)<NEAR&&Math.hypot(x-cx,z-cz)<NEAR){P[2*i]=Q[2*i]=HIDDEN;P[2*i+1]=Q[2*i+1]=HIDDEN;}}}
   crowd.update(state,alpha,dtSim);
   const simTime=state.time-dt+alpha*dt;
@@ -183,10 +189,12 @@ export async function start(params){
   LM.visible=!flat&&!shot.interior;crowd.uniforms.uNearDim.value=shot.eye?LOOK.nearDim:0;
   R.setInterior(shot.interior,{keepCity:true});R.setDetail(shot.aerial||flat?'aerial':'street');
   for(const r of ribbons){r.mesh.visible=shot.section==='gates';r.mat.uniforms.uProg.value=clamp((shot.local-.2-(r.key==='A'?0:r.key==='B'?.3:.6))/1.4);}
-  if(shot.interior){const cr=run?.concourse?.run,tS=eStart+shot.sim,fr=cr?concourseFrame(cr,tS):null,far=p=>Math.hypot(p.x-cam.pos.x,p.z-cam.pos.z)>2.4||Math.abs(p.y+1.6-cam.pos.y)>1.2;
-   placeInterior((fr?.people||[]).filter(far));placePlatform(platformPeople(cr,tS).filter(p=>Math.hypot(p.x-cam.pos.x,p.z-cam.pos.z)>2.2));showInterior(true);
+  camera.far=cam.far||9000;applyShot(camera,cam);nearL.begin();
+  if(shot.interior){const cr=run?.concourse?.run,tS=eStart+shot.sim,fr=cr?concourseFrame(cr,tS):null,far=p=>Math.hypot(p.x-cam.pos.x,p.z-cam.pos.z)>1.1||Math.abs(p.y+1.6-cam.pos.y)>1.2;
+   placeInterior(nearL.takeList((fr?.people||[]).filter(far),camera,{idBase:300000}));placePlatform(nearL.takeList(platformPeople(cr,tS).filter(p=>Math.hypot(p.x-cam.pos.x,p.z-cam.pos.z)>1.1),camera,{idBase:400000}));showInterior(true);
    for(const c of [...inner,plat]){c.uniforms.uNearDim.value=LOOK.nearDim*.4;c.uniforms.uFill.value=c===plat?.32:.18;}}else showInterior(false);
-  camera.far=cam.far||9000;applyShot(camera,cam);
+  if(crowd.visible&&(shot.eye||cam.pos.y<6))nearL.takeCrowd(crowd,camera);
+  const nearSt=nearL.end({animTime:simTime,camera,fill:shot.interior?.2:0});nearL.visible=!flat&&shot.section!=='cheat'&&shot.section!=='end';
   const drawn=crowd.visible?cullCrowd(shot.eye?220:4000,cam.pos.y<40):0;
   shared.uTime.value=t;post.settings.uFade.value=shot.fade;post.settings.uExposure.value=shot.aerial&&!flat?1.22:shot.interior?.85-.25*clamp((cam.pos.y-3)/5):1;// QA M2: platform level not blown out
   R.update(t,camera);
@@ -199,7 +207,7 @@ export async function start(params){
    taxi:project(taxi[0],0,taxi[1]),stations:[],redZone:null};
   if(wide&&flat){for(const s of wide.project(camera,W,H)){if(s.kind==='station')proj.stations.push({...s,key:s.id.split(':')[1]});if(s.id==='start:H')proj.altStart=s;if(s.kind==='redZone')proj.redZone=s;}}
   const rec=overlay.update({t,section:shot.section,local:shot.local,u:shot.u,clip:shot.clip,wp:shot.wp,rate:shot.rate,jr,proj,W,H});
-  rec.shot=cam.name;rec.sim={t:shot.sim,abs:state.time,rate:shot.rate};rec.ms={sim:Math.round(simMs),render:Math.round(renderMs)};rec.peopleDrawn=drawn;
+  rec.shot=cam.name;rec.sim={t:shot.sim,abs:state.time,rate:shot.rate};rec.ms={sim:Math.round(simMs),render:Math.round(renderMs)};rec.peopleDrawn=drawn;rec.nearPeople=nearSt;
   window.__seriesOverlay=rec;lastSection=shot.section;
   return {t,frame:shot.frame,section:shot.section,shot:cam.name,simTime:state.jr?.simTime??null,time:state.time,ms:rec.ms,drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,agents:nAgents};}
 

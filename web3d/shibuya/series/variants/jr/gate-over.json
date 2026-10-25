@@ -1,0 +1,437 @@
+{
+ "id": "gate-over",
+ "episode": "jr",
+ "pair": "gate",
+ "outcome": "GAME_OVER",
+ "title": {
+  "ja": "ハチ公改札に直行したら…"
+ },
+ "start": {
+  "place": "hachiko-square",
+  "ja": "スタート：ハチ公前広場",
+  "factIds": []
+ },
+ "clock": {
+  "start": "21:58",
+  "ja": "ゲーム内時刻（架空）",
+  "rate": 0.5
+ },
+ "choice": {
+  "prompt": {
+   "ja": "どの改札から入る？"
+  },
+  "options": [
+   {
+    "key": "A",
+    "ja": "ハチ公改札（目の前）",
+    "factIds": []
+   },
+   {
+    "key": "B",
+    "ja": "南改札・新南改札",
+    "sub": "少し歩く",
+    "factIds": []
+   }
+  ],
+  "picked": "A"
+ },
+ "beats": [
+  {
+   "id": "start",
+   "dur": 2.5,
+   "shot": {
+    "key": "topdown",
+    "params": {
+     "center": [
+      16,
+      0,
+      26
+     ]
+    }
+   },
+   "crowd": {
+    "key": "hachiko-peak"
+   },
+   "hud": [
+    {
+     "c": "mission",
+     "ja": "JRの改札から\n電車に乗れ",
+     "factIds": []
+    },
+    {
+     "c": "caption",
+     "ja": "スタート：ハチ公前広場",
+     "factIds": [],
+     "tone": "sub",
+     "until": 1.2
+    },
+    {
+     "c": "caption",
+     "ja": "人出のピークは22時ごろ\n（区の見込み・2024年並み）",
+     "factIds": [
+      "CROWD-01"
+     ],
+     "at": 1.2
+    },
+    {
+     "c": "sim",
+     "ja": "人の流れ＝シミュレーション",
+     "factIds": []
+    }
+   ]
+  },
+  {
+   "id": "choice",
+   "dur": 4,
+   "shot": {
+    "key": "routemap",
+    "params": {
+     "routes": [
+      "JR-A-hachiko",
+      "JR-B-south",
+      "JR-C-newsouth-east"
+     ],
+     "highlight": null,
+     "colors": {
+      "JR-A-hachiko": "#FF7A9A",
+      "JR-B-south": "#FFD23F",
+      "JR-C-newsouth-east": "#4FE3C1"
+     },
+     "points": [
+      [
+       22,
+       34
+      ],
+      [
+       85.9,
+       18.9
+      ],
+      [
+       96.6,
+       162
+      ],
+      [
+       159.8,
+       260
+      ]
+     ],
+     "azimuth": 90,
+     "rect": {
+      "x0": 0.1,
+      "x1": 0.9,
+      "y0": 0.17,
+      "y1": 0.33
+     },
+     "span": true,
+     "redZone": 0,
+     "drawOn": [
+      0.1,
+      1.4
+     ]
+    }
+   },
+   "hud": [
+    {
+     "c": "choice"
+    },
+    {
+     "c": "pin",
+     "world": [
+      85.9,
+      0,
+      18.9
+     ],
+     "ja": "A ハチ公改札",
+     "color": "#FF7A9A",
+     "factIds": []
+    },
+    {
+     "c": "pin",
+     "world": [
+      96.6,
+      0,
+      162
+     ],
+     "ja": "B 南改札",
+     "color": "#FFD23F",
+     "factIds": []
+    },
+    {
+     "c": "pin",
+     "world": [
+      159.8,
+      0,
+      260
+     ],
+     "ja": "B 新南改札",
+     "color": "#4FE3C1",
+     "factIds": []
+    }
+   ]
+  },
+  {
+   "id": "move",
+   "dur": 4.5,
+   "shot": {
+    "key": "eye-walk",
+    "params": {
+     "walk": "hachiko",
+     "wp": 3,
+     "speed": 1.25
+    }
+   },
+   "crowd": {
+    "key": "hachiko-peak"
+   },
+   "hud": [
+    {
+     "c": "caption",
+     "ja": "改札前の通路は一方通行\n東口側でUターンして改札へ\n（2025年1月の報道）",
+     "factIds": [
+      "JR-GATE-03"
+     ]
+    },
+    {
+     "c": "sim",
+     "ja": "混雑＝シミュレーション",
+     "factIds": []
+    }
+   ],
+   "transition": "dip"
+  },
+  {
+   "id": "result",
+   "dur": 4,
+   "shot": {
+    "key": "gate-queue",
+    "params": {
+     "mode": "approach",
+     "back": 17,
+     "speed": 0.3,
+     "stopGo": 0.9,
+     "eyeY": 2.3,
+     "nearHide": 2.2,
+     "lookGate": 0.85,
+     "lookY": 1.9
+    }
+   },
+   "crowd": {
+    "key": "hachiko-peak"
+   },
+   "cues": [
+    {
+     "at": 0,
+     "sfx": "crowd_swell"
+    },
+    {
+     "at": 0.02,
+     "sfx": "ui_blip",
+     "gain_db": -4
+    },
+    {
+     "at": 0.6,
+     "sfx": "red_alert",
+     "duck": 1
+    }
+   ],
+   "hud": [
+    {
+     "c": "caption",
+     "ja": "列がほとんど進まない…\n（シミュレーション）",
+     "factIds": [],
+     "tone": "warn",
+     "sim": true,
+     "until": 2
+    },
+    {
+     "c": "caption",
+     "ja": "ハロウィーンは例年\n一部規制（2025年1月の報道）",
+     "factIds": [
+      "JR-GATE-05"
+     ],
+     "at": 2
+    },
+    {
+     "c": "sim",
+     "ja": "⚠ 密集（シミュレーション）",
+     "factIds": [],
+     "at": 0.6
+    }
+   ]
+  },
+  {
+   "id": "stamp",
+   "dur": 2.5,
+   "shot": {
+    "key": "gate-queue",
+    "params": {
+     "mode": "approach",
+     "back": 17,
+     "speed": 0.3,
+     "stopGo": 0.9,
+     "eyeY": 2.3,
+     "nearHide": 2.2,
+     "lookGate": 0.85,
+     "lookY": 1.9
+    },
+    "t0": 4
+   },
+   "crowd": {
+    "key": "hachiko-peak"
+   },
+   "hud": [
+    {
+     "c": "stamp",
+     "kind": "GAME_OVER",
+     "ja": "人波にのまれて\n改札までたどり着けない\n（シミュレーション）",
+     "factIds": []
+    }
+   ],
+   "bgm": "calm"
+  },
+  {
+   "id": "lesson",
+   "dur": 5,
+   "shot": {
+    "key": "card-bg"
+   },
+   "hud": [
+    {
+     "c": "lesson"
+    }
+   ],
+   "clock": false,
+   "header": true,
+   "bgm": "calm",
+   "transition": "dip"
+  },
+  {
+   "id": "cheat",
+   "dur": 3.5,
+   "shot": {
+    "key": "card-bg",
+    "params": {
+     "yaw0": 1.1
+    }
+   },
+   "hud": [
+    {
+     "c": "cheat"
+    }
+   ],
+   "clock": false,
+   "bgm": "calm"
+  },
+  {
+   "id": "sources",
+   "dur": 2,
+   "shot": {
+    "key": "card-bg",
+    "params": {
+     "yaw0": 1.5
+    }
+   },
+   "hud": [
+    {
+     "c": "sources",
+     "note": "徒歩はOSMから概算（混雑・信号は含まず）",
+     "factIds": []
+    }
+   ],
+   "clock": false,
+   "bgm": "calm",
+   "fadeOut": 0.4
+  }
+ ],
+ "lesson": {
+  "title": "改札は1つじゃない",
+  "ja": "改札は1つじゃない\nハチ公改札前は一方通行\nUターンして入る形\n（2025年1月の報道）\nハロウィーンは例年一部規制\n（例：2024年・2023年）\n南改札（1F）・新南改札（3F）\nも選択肢に\n2026年のJRの対策は\n10/25時点で未発表",
+  "points": [
+   "ハチ公改札前は一方通行\nUターンして入る形\n（2025年1月の報道）",
+   "ハロウィーンは例年一部規制\n（例：2024年・2023年）",
+   "南改札（1F）・新南改札（3F）\nも選択肢に",
+   "2026年のJRの対策は\n10/25時点で未発表"
+  ],
+  "factIds": [
+   "JR-GATE-03",
+   "JR-GATE-05",
+   "MEAS-15",
+   "MEAS-16",
+   "JR-GATE-01",
+   "NA-JR-2026"
+  ],
+  "summary": "ハチ公改札は2025年1月の移設で改札前が一方通行になり、ハチ公側からはUターンして入る形に（2025年1月の報道）。ハロウィーン期間は例年一部規制があるため（例：2024年・2023年）、南改札・新南改札など別の改札も選択肢に。2026年のJRの対策は10/25時点で未発表。"
+ },
+ "cheat": {
+  "title": "保存版 JR渋谷の改札",
+  "sub": "4つの改札と出口",
+  "asOf": "10/25時点",
+  "note": "当日は係員の誘導に従う",
+  "rows": [
+   {
+    "sec": "改札 → 出口",
+    "ja": "ハチ公改札 1F：前は一方通行",
+    "sub": "Uターンして入る（2025年1月の報道）",
+    "tone": "ng",
+    "factIds": [
+     "JR-GATE-01",
+     "JR-GATE-03"
+    ]
+   },
+   {
+    "ja": "南改札 1F → 西口・東口",
+    "sub": "ハチ公前から約4分（OSMから概算）",
+    "factIds": [
+     "JR-GATE-13",
+     "GATE-H-S"
+    ]
+   },
+   {
+    "ja": "新南改札 3F → サクラステージ・ストリーム",
+    "sub": "ハチ公前から約7〜8分（OSMから概算）",
+    "factIds": [
+     "JR-GATE-14",
+     "GATE-H-NS-E",
+     "GATE-H-NS-W"
+    ]
+   },
+   {
+    "ja": "中央改札 3F → スクランブルスクエア",
+    "factIds": [
+     "JR-GATE-01",
+     "JR-GATE-12"
+    ]
+   },
+   {
+    "sec": "2026年",
+    "ja": "JRの対策：10/25時点で未発表",
+    "factIds": [
+     "NA-JR-2026"
+    ]
+   },
+   {
+    "ja": "例：2024年 ハチ公改札を16〜23時ごろ一部規制",
+    "factIds": [
+     "MEAS-15"
+    ]
+   }
+  ]
+ },
+ "sources": [
+  "CROWD-01",
+  "JR-GATE-03",
+  "JR-GATE-05",
+  "MEAS-15",
+  "MEAS-16",
+  "JR-GATE-01",
+  "NA-JR-2026",
+  "JR-GATE-13",
+  "GATE-H-S",
+  "JR-GATE-14",
+  "GATE-H-NS-E",
+  "GATE-H-NS-W",
+  "JR-GATE-12"
+ ],
+ "bgm": "tension",
+ "amb": "crowd-night"
+}

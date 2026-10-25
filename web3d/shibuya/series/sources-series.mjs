@@ -9,7 +9,8 @@
 //              say?:[[alt…],…]  every group needs ≥1 alternative in the ja text of a string citing the
 //                               fact (or in the string its `labelBy` points to): year labels for past
 //                               reports, 「概略」 for approximate positions, 「未発表」 for unannounced 2026,
-//              sayEn?:[[alt…],…] same for the en text, na?:true (an "unannounced / no info" status: no outlet)}
+//              sayEn?:[[alt…],…] same for the en text, na?:true (an "unannounced / no info" status: no outlet),
+//              derived?:[fact ids] (computed from other facts, e.g. a difference of two walks)}
 // On screen only the outlet NAME (+ year, or date on the end card) is shown; URLs are listed here and in
 // facts-series.json.
 import {SOURCES as V4_SOURCES} from '../sources-halloween.mjs';
@@ -38,15 +39,35 @@ export const SOURCES=Object.freeze({
  jrTtHarajuku:{ja:'JR東日本 時刻表',en:'JR East timetable',date:'2026-10-25',url:TT+'tt1256/1256011.html',noYear:true,note:'1256011/021'},
  jrTtYoyogi:{ja:'JR東日本 時刻表',en:'JR East timetable',date:'2026-10-25',url:TT+'tt1654/1654011.html',noYear:true,note:'1654011/021/031/041'},
  jrTtEbisu:{ja:'JR東日本 時刻表',en:'JR East timetable',date:'2026-10-25',url:TT+'tt0290/0290011.html',noYear:true,note:'0290011/021/051/061'},
+ // per-direction Yamanote pages (fixer 2026-10-26, QA finding 9: the inner-loop facts pointed at outer-loop pages);
+ // URLs = facts-variants.json JR-LAST-01/02/07/08/09/10/13/14. Same outlet name on screen.
+ jrTtShibuyaOut:{ja:'JR東日本 時刻表',en:'JR East timetable',date:'2026-10-25',url:TT+'tt0808/0808051.html',noYear:true,note:'渋谷 山手線 外回り 土曜・休日'},
+ jrTtShibuyaIn:{ja:'JR東日本 時刻表',en:'JR East timetable',date:'2026-10-25',url:TT+'tt0808/0808061.html',noYear:true,note:'渋谷 山手線 内回り 土曜・休日'},
+ jrTtHarajukuOut:{ja:'JR東日本 時刻表',en:'JR East timetable',date:'2026-10-25',url:TT+'tt1256/1256011.html',noYear:true,note:'原宿 山手線 外回り'},
+ jrTtHarajukuIn:{ja:'JR東日本 時刻表',en:'JR East timetable',date:'2026-10-25',url:TT+'tt1256/1256021.html',noYear:true,note:'原宿 山手線 内回り'},
+ jrTtYoyogiOut:{ja:'JR東日本 時刻表',en:'JR East timetable',date:'2026-10-25',url:TT+'tt1654/1654031.html',noYear:true,note:'代々木 山手線 外回り'},
+ jrTtYoyogiIn:{ja:'JR東日本 時刻表',en:'JR East timetable',date:'2026-10-25',url:TT+'tt1654/1654041.html',noYear:true,note:'代々木 山手線 内回り'},
+ jrTtEbisuOut:{ja:'JR東日本 時刻表',en:'JR East timetable',date:'2026-10-25',url:TT+'tt0290/0290051.html',noYear:true,note:'恵比寿 山手線 外回り'},
+ jrTtEbisuIn:{ja:'JR東日本 時刻表',en:'JR East timetable',date:'2026-10-25',url:TT+'tt0290/0290061.html',noYear:true,note:'恵比寿 山手線 内回り'},
  livedoor:{ja:'ライブドアニュース',en:'livedoor News',date:'2023-10-30',url:'https://news.livedoor.com/article/detail/25262788/'},
  tokyuMap:{ja:'東急電鉄 構内図',en:'Tokyu station map',date:'2026-08-21',url:TOKYU_MAP},
  keioMap:{ja:'京王電鉄 構内マップ',en:'Keio station map',date:'2026-09-30',url:'https://www.keio.co.jp/train/station/station_map/pdf/in01_shibuya.pdf'},
  osmWalk:{osm:true,ja:'OSM（徒歩概算）',en:'OSM (walk est.)',date:'2026-10-25',url:OSRM,noYear:true,note:'OSRM foot on OpenStreetMap (ODbL), computed 2026-10-25, 80 m/min'},
  osmMap:{osm:true,ja:'OpenStreetMap',en:'OpenStreetMap',date:'2026-10-25',url:'https://www.openstreetmap.org/node/11393698165',noYear:true,note:'© OpenStreetMap contributors (ODbL)'},
+ // ---- JR編 variants (CLEAR / GAME OVER), $LOGS/variants/facts-variants.json (researcher, 2026-10-25) ----
+ shibukei18757:{ja:'シブヤ経済新聞',en:'Shibuya Keizai Shimbun',date:'2024-10-31',url:SK+'18757/'},
+ shibukei17945:{ja:'シブヤ経済新聞',en:'Shibuya Keizai Shimbun',date:'2023-11-01',url:SK+'17945/'},
+ ttcNews:{ja:'東京タクシーセンター',en:'Tokyo Taxi Center',date:'2026-10-25',url:'https://www.tokyo-tc.or.jp/news/driver/',noYear:true,
+  note:'news list (drivers) p1-8 checked 2026-10-25: no reopening notice for the Shibuya West Exit stand'},
+ jrTokyuMetro2025:{ja:'東急・JR東日本・東京メトロ',en:'Tokyu / JR East / Tokyo Metro',date:'2025-09-17',
+  url:'https://web.archive.org/web/20251014135937/https://www.jreast.co.jp/info/2025/20250917_ho01.pdf',
+  note:'live URL https://www.jreast.co.jp/info/2025/20250917_ho01.pdf returned 403; Wayback copy read with pdftotext'},
 });
 
 const F=(src,v='verified',extra={})=>Object.freeze({src:Object.freeze(src),v,...extra});
-const LAST=k=>F([k],'verified',{say:[['土休日']]});
+const LAST=(k,x={})=>F([k],'verified',{say:[['土休日']],...x});
+// sayV (variant configs only; the pilot copy keeps its own labels): regular timetable, 2026 special timetable 未発表
+const REG={sayV:[['通常','目安']]};
 const WALK=(extra={})=>F(['osmWalk'],'verified',{osm:true,...extra});
 const Y2025J=[['2025年1月','2025年']];
 
@@ -76,11 +97,11 @@ export const FACTS=Object.freeze({
  'JR-LINE-01':F(['norimono2016']),
  'JR-LINE-02':F(['wikipedia'],'needs-label',{say:[['概略','参考']],sayEn:[['approx']]}),
  // last trains: regular Sat/holiday timetable as published, checked 2026-10-25 (10/31/2026 is a Saturday)
- 'JR-LAST-01':LAST('jrTtShibuya'),'JR-LAST-02':LAST('jrTtShibuya'),'JR-LAST-03':LAST('jrTtShibuya'),
+ 'JR-LAST-01':LAST('jrTtShibuyaOut',REG),'JR-LAST-02':LAST('jrTtShibuyaIn',REG),'JR-LAST-03':LAST('jrTtShibuya'),
  'JR-LAST-04':LAST('jrTtShibuya'),'JR-LAST-05':LAST('jrTtShibuya'),'JR-LAST-06':LAST('jrTtShibuya'),
- 'JR-LAST-07':LAST('jrTtHarajuku'),'JR-LAST-08':LAST('jrTtHarajuku'),
- 'JR-LAST-09':LAST('jrTtYoyogi'),'JR-LAST-10':LAST('jrTtYoyogi'),'JR-LAST-11':LAST('jrTtYoyogi'),'JR-LAST-12':LAST('jrTtYoyogi'),
- 'JR-LAST-13':LAST('jrTtEbisu'),'JR-LAST-14':LAST('jrTtEbisu'),'JR-LAST-15':LAST('jrTtEbisu'),'JR-LAST-16':LAST('jrTtEbisu'),
+ 'JR-LAST-07':LAST('jrTtHarajukuOut'),'JR-LAST-08':LAST('jrTtHarajukuIn'),
+ 'JR-LAST-09':LAST('jrTtYoyogiOut'),'JR-LAST-10':LAST('jrTtYoyogiIn'),'JR-LAST-11':LAST('jrTtYoyogi'),'JR-LAST-12':LAST('jrTtYoyogi'),
+ 'JR-LAST-13':LAST('jrTtEbisuOut'),'JR-LAST-14':LAST('jrTtEbisuIn'),'JR-LAST-15':LAST('jrTtEbisu'),'JR-LAST-16':LAST('jrTtEbisu'),
  // 2026 measures and past examples
  'MEAS-01':F(['police']),
  'MEAS-02':F(['policeMap']),
@@ -125,9 +146,32 @@ export const FACTS=Object.freeze({
  'NA-JR-2026':F([],'verified',{na:true,say:[['未発表']],sayEn:[['not announced']]}),
  'NA-METRO-TOKYU-KEIO-2026':F([],'verified',{na:true,say:[['未発表']],sayEn:[['not announced']]}),
  'NA-REST':F([],'verified',{na:true}),
+ // ---- JR編 variants (CLEAR / GAME OVER): new ids from $LOGS/variants/facts-variants.json (2026-10-25) ----
+ // computed walks (OSRM foot on OSM, 80 m/min; label 「OSMから概算（混雑・信号は含まず）」)
+ 'GATE-H-S':F(['osmWalk'],'needs-label',{osm:true}),'GATE-H-NS-E':F(['osmWalk'],'needs-label',{osm:true}),
+ 'GATE-H-NS-W':F(['osmWalk'],'needs-label',{osm:true}),
+ // shortest Hachiko → Harajuku walk through the crowd core (1350 m, ~347 m inside the red frame): cite MEAS-04 too
+ // whenever the red frame is mentioned (「規制図より概略」)
+ 'ZONE-D-H-HARA':F(['osmWalk'],'needs-label',{osm:true,say:[['概算']],sayEn:[['OSM']]}),
+ // derived: 1572 − 1350 m = ~220 m, 20 − 17 = ~3 min (outlets = those of the facts it is derived from)
+ 'ZONE-DETOUR-COST':F(['osmWalk'],'needs-label',{osm:true,derived:['ZONE-D-H-HARA','ALT-HARA-H'],say:[['概算']],sayEn:[['OSM']]}),
+ // police request to detour via surrounding roads: it is in a VEHICLE notice → always say 「車両」
+ 'MEAS-25':F(['policeMap'],'needs-label',{say:[['車両']],sayEn:[['vehicle','car']]}),
+ // past pedestrian one-way flows (examples only; 2026 lanes not announced → NA-PED-2026)
+ 'PED-2024':F(['shibukei18757'],'verified',{say:[['2024年']],sayEn:[['2024']]}),
+ 'PED-2024-PLAN':F(['shibukei2024'],'verified',{say:[['2024年']],sayEn:[['2024']]}),
+ 'PED-2023':F(['shibukei17945'],'verified',{say:[['2023年']],sayEn:[['2023']]}),
+ 'NA-PED-2026':F([],'verified',{na:true,say:[['未発表']],sayEn:[['not announced']]}),
+ // last trains differ by station (regular Sat/holiday timetable, derived from JR-LAST-01/02/08/10/13)
+ 'ALT-LAST-CMP':F(['jrTtHarajukuIn','jrTtShibuyaIn','jrTtYoyogiIn','jrTtEbisuOut','jrTtShibuyaOut'],'verified',{say:[['土休日']],sayEn:[['Sat']]}),
+ // taxi
+ 'TAXI-03':F(['shibukichi'],'needs-label',{say:[['2025年']],sayEn:[['2025']]}),
+ 'TAXI-08':F(['jrTokyuMetro2025'],'verified',{say:[['2025年']],sayEn:[['2025']]}),
+ 'TAXI-09':F(['ttcNews'],'verified',{say:[['10/25']],sayEn:[['Oct 25']]}),// absence of a notice, not a certainty
 });
 // Never on screen (fact-check verdict 'dropped'); MEAS-14 was dropped in v4.
-export const DROPPED=Object.freeze(['TAXI-02','TOI-OSM-01','NA-LAST-OTHER','MEAS-14']);
+// UNOFF-01 (variants research): unofficial "exits toward Hachiko close" claim, no official source.
+export const DROPPED=Object.freeze(['TAXI-02','TOI-OSM-01','NA-LAST-OTHER','MEAS-14','UNOFF-01']);
 export const SOURCE_NOTE=Object.freeze({
  ja:'出典は各社・報道の公開情報（10/25確認）。徒歩はOSMから概算',
  en:'Sources: public operator and press pages (checked Oct 25). Walks: OSM estimates.',

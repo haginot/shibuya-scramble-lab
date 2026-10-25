@@ -1,0 +1,476 @@
+{
+ "id": "alt-clear",
+ "episode": "jr",
+ "pair": "alt",
+ "outcome": "CLEAR",
+ "title": {
+  "ja": "恵比寿駅へ歩いたら…"
+ },
+ "start": {
+  "place": "hachiko-square",
+  "ja": "スタート：ハチ公前広場",
+  "factIds": []
+ },
+ "clock": {
+  "start": "00:20",
+  "ja": "ゲーム内時刻（架空）",
+  "rate": 0.5
+ },
+ "choice": {
+  "prompt": {
+   "ja": "渋谷を避けて隣の駅へ。\nどっちへ歩く？"
+  },
+  "options": [
+   {
+    "key": "A",
+    "ja": "原宿駅（北へ）",
+    "sub": "約20分・OSMから概算",
+    "factIds": [
+     "ALT-HARA-H"
+    ]
+   },
+   {
+    "key": "B",
+    "ja": "恵比寿駅（南へ）",
+    "sub": "約25分・OSMから概算",
+    "factIds": [
+     "ALT-EBI-H"
+    ]
+   }
+  ],
+  "picked": "B"
+ },
+ "beats": [
+  {
+   "id": "start",
+   "dur": 2.5,
+   "shot": {
+    "key": "topdown",
+    "params": {
+     "center": [
+      16,
+      0,
+      26
+     ]
+    }
+   },
+   "crowd": {
+    "key": "hachiko-peak"
+   },
+   "hud": [
+    {
+     "c": "mission",
+     "ja": "山手線の内回りで\n品川方面へ帰れ",
+     "factIds": [
+      "JR-PLAT-01"
+     ]
+    },
+    {
+     "c": "caption",
+     "ja": "渋谷の内回り終電は0:48\n（通常の土休日ダイヤ）",
+     "factIds": [
+      "JR-LAST-02"
+     ],
+     "until": 1.2
+    },
+    {
+     "c": "caption",
+     "ja": "混雑で駅の出入口が\n変わる可能性も（2026年）",
+     "factIds": [
+      "MEAS-12"
+     ],
+     "at": 1.2
+    },
+    {
+     "c": "sim",
+     "ja": "人の流れ＝シミュレーション",
+     "factIds": []
+    }
+   ]
+  },
+  {
+   "id": "choice",
+   "dur": 4,
+   "shot": {
+    "key": "routemap",
+    "params": {
+     "routes": [
+      "ALT-HARA-H",
+      "ALT-EBI-H"
+     ],
+     "routeWidth": 30,
+     "highlight": null,
+     "colors": {
+      "ALT-HARA-H": "#FF9A3D",
+      "ALT-EBI-H": "#4FE3C1"
+     },
+     "points": [
+      [
+       209.8,
+       -1211.2
+      ],
+      [
+       768.8,
+       1406
+      ],
+      [
+       22,
+       34
+      ]
+     ],
+     "azimuth": -8,
+     "rect": {
+      "x0": 0.14,
+      "x1": 0.86,
+      "y0": 0.2,
+      "y1": 0.86
+     },
+     "span": true,
+     "redZone": 0,
+     "drawOn": [
+      0.1,
+      1.4
+     ]
+    }
+   },
+   "hud": [
+    {
+     "c": "choice"
+    },
+    {
+     "c": "pin",
+     "world": [
+      209.8,
+      0,
+      -1211.2
+     ],
+     "ja": "A 原宿駅",
+     "color": "#FF9A3D",
+     "factIds": []
+    },
+    {
+     "c": "pin",
+     "world": [
+      768.8,
+      0,
+      1406
+     ],
+     "ja": "B 恵比寿駅",
+     "color": "#4FE3C1",
+     "factIds": []
+    }
+   ]
+  },
+  {
+   "id": "move",
+   "dur": 4.5,
+   "shot": {
+    "key": "routemap",
+    "params": {
+     "routes": [
+      "ALT-EBI-H",
+      "ALT-HARA-H"
+     ],
+     "routeWidth": 30,
+     "highlight": "ALT-EBI-H",
+     "colors": {
+      "ALT-HARA-H": "#FF9A3D",
+      "ALT-EBI-H": "#4FE3C1"
+     },
+     "points": [
+      [
+       768.8,
+       1406
+      ],
+      [
+       22,
+       34
+      ],
+      [
+       209.8,
+       -1211.2
+      ]
+     ],
+     "rect": {
+      "x0": 0.12,
+      "x1": 0.88,
+      "y0": 0.2,
+      "y1": 0.74
+     },
+     "span": true,
+     "redZone": 0
+    }
+   },
+   "hud": [
+    {
+     "c": "caption",
+     "ja": "恵比寿の内回り終電は0:50\n渋谷0:48より遅い\n（通常の土休日ダイヤ）",
+     "factIds": [
+      "JR-LAST-14",
+      "JR-LAST-02"
+     ],
+     "until": 2.3
+    },
+    {
+     "c": "caption",
+     "ja": "恵比寿へ 約1932m・約25分\n（OSMから概算）",
+     "factIds": [
+      "ALT-EBI-H"
+     ],
+     "at": 2.3
+    },
+    {
+     "c": "pin",
+     "world": [
+      768.8,
+      0,
+      1406
+     ],
+     "ja": "恵比寿駅",
+     "color": "#4FE3C1",
+     "factIds": []
+    }
+   ],
+   "transition": "dip"
+  },
+  {
+   "id": "result",
+   "dur": 4,
+   "clock": {
+    "set": "00:46"
+   },
+   "shot": {
+    "key": "alt-platform",
+    "params": {
+     "station": "ebisu",
+     "mode": "board",
+     "trainLeaveAt": 9
+    }
+   },
+   "crowd": {
+    "key": "alt-platform"
+   },
+   "board": {
+    "title": "恵比寿 山手線 内回り",
+    "rows": [
+     {
+      "note": "終電",
+      "time": "0:50",
+      "dest": "大崎"
+     }
+    ],
+    "foot": "通常の土休日ダイヤ（10/25確認）",
+    "status": ""
+   },
+   "factIds": [
+    "JR-LAST-14"
+   ],
+   "amb": "street-quiet",
+   "hud": [
+    {
+     "c": "caption",
+     "ja": "恵比寿に0:46ごろ到着\n（シミュレーション）",
+     "factIds": [],
+     "sim": true
+    },
+    {
+     "c": "sim",
+     "ja": "到着時刻＝シミュレーション",
+     "factIds": [],
+     "at": 0.4
+    }
+   ]
+  },
+  {
+   "id": "stamp",
+   "dur": 2.5,
+   "shot": {
+    "key": "alt-platform",
+    "params": {
+     "station": "ebisu",
+     "mode": "board",
+     "trainLeaveAt": 9
+    },
+    "t0": 4
+   },
+   "crowd": {
+    "key": "alt-platform"
+   },
+   "board": {
+    "title": "恵比寿 山手線 内回り",
+    "rows": [
+     {
+      "note": "終電",
+      "time": "0:50",
+      "dest": "大崎"
+     }
+    ],
+    "foot": "通常の土休日ダイヤ（10/25確認）",
+    "status": ""
+   },
+   "factIds": [
+    "JR-LAST-14"
+   ],
+   "amb": "street-quiet",
+   "hud": [
+    {
+     "c": "stamp",
+     "kind": "GAME_CLEAR",
+     "ja": "終電に間に合った！\n（シミュレーション）",
+     "factIds": []
+    }
+   ],
+   "bgm": "victory"
+  },
+  {
+   "id": "lesson",
+   "dur": 5,
+   "shot": {
+    "key": "card-bg"
+   },
+   "hud": [
+    {
+     "c": "lesson"
+    }
+   ],
+   "clock": false,
+   "header": true,
+   "bgm": "victory",
+   "transition": "dip"
+  },
+  {
+   "id": "cheat",
+   "dur": 3.5,
+   "shot": {
+    "key": "card-bg",
+    "params": {
+     "yaw0": 1.1
+    }
+   },
+   "hud": [
+    {
+     "c": "cheat"
+    }
+   ],
+   "clock": false,
+   "bgm": "victory"
+  },
+  {
+   "id": "sources",
+   "dur": 2,
+   "shot": {
+    "key": "card-bg",
+    "params": {
+     "yaw0": 1.5
+    }
+   },
+   "hud": [
+    {
+     "c": "sources",
+     "note": "徒歩はOSMから概算（混雑・信号は含まず）",
+     "factIds": []
+    }
+   ],
+   "clock": false,
+   "bgm": "victory",
+   "fadeOut": 0.4
+  }
+ ],
+ "lesson": {
+  "title": "行き先の駅の終電を確認",
+  "ja": "行き先の駅の終電を確認\n恵比寿の内回りは0:50\n渋谷0:48より遅い\n内回りの終電は\n原宿0:45・代々木0:43\n渋谷0:48より早い\n通常の土休日ダイヤ（10/25確認）\n2026年の臨時ダイヤは未発表\n別の駅へ歩くなら\nその駅の終電と歩く時間を\n先に確認",
+  "points": [
+   "恵比寿の内回りは0:50\n渋谷0:48より遅い",
+   "内回りの終電は\n原宿0:45・代々木0:43\n渋谷0:48より早い",
+   "通常の土休日ダイヤ（10/25確認）\n2026年の臨時ダイヤは未発表",
+   "別の駅へ歩くなら\nその駅の終電と歩く時間を\n先に確認"
+  ],
+  "factIds": [
+   "JR-LAST-08",
+   "JR-LAST-10",
+   "JR-LAST-02",
+   "JR-LAST-14",
+   "ALT-LAST-CMP",
+   "NA-JR-2026"
+  ],
+  "summary": "同じ山手線でも終電は駅ごとに違う。内回り（品川方面）の終電は原宿0:45・代々木0:43で渋谷0:48より早く、恵比寿は0:50（通常の土休日ダイヤ・10/25確認、2026年の臨時ダイヤは未発表）。別の駅へ歩くなら、その駅の終電と歩く時間を先に確認。"
+ },
+ "cheat": {
+  "title": "保存版 山手線の終電",
+  "sub": "通常の土休日ダイヤ（10/25確認）",
+  "asOf": "10/25時点",
+  "note": "当日は駅・警察の案内を確認",
+  "rows": [
+   {
+    "sec": "駅 外回り（新宿方面）・内回り（品川方面）",
+    "ja": "渋谷 外回り0:33・内回り0:48",
+    "sub": "通常の土休日・内回りは大崎行",
+    "factIds": [
+     "JR-LAST-01",
+     "JR-LAST-02"
+    ]
+   },
+   {
+    "ja": "原宿 外回り0:36・内回り0:45",
+    "sub": "土休日・内回りは渋谷より早い",
+    "tone": "ng",
+    "factIds": [
+     "JR-LAST-07",
+     "JR-LAST-08"
+    ]
+   },
+   {
+    "ja": "代々木 外回り0:38・内回り0:43",
+    "sub": "土休日・内回りは渋谷より早い",
+    "tone": "ng",
+    "factIds": [
+     "JR-LAST-09",
+     "JR-LAST-10"
+    ]
+   },
+   {
+    "ja": "恵比寿 外回り0:30・内回り0:50",
+    "sub": "土休日・内回りは渋谷より遅い",
+    "tone": "ok",
+    "factIds": [
+     "JR-LAST-13",
+     "JR-LAST-14"
+    ]
+   },
+   {
+    "sec": "歩く時間",
+    "ja": "原宿 約20分・恵比寿 約25分",
+    "sub": "ハチ公前から（OSMから概算）",
+    "factIds": [
+     "ALT-HARA-H",
+     "ALT-EBI-H"
+    ]
+   },
+   {
+    "ja": "2026年の臨時ダイヤ：未発表",
+    "sub": "10/25時点",
+    "factIds": [
+     "NA-JR-2026"
+    ]
+   }
+  ]
+ },
+ "sources": [
+  "ALT-HARA-H",
+  "ALT-EBI-H",
+  "JR-PLAT-01",
+  "JR-LAST-02",
+  "MEAS-12",
+  "JR-LAST-14",
+  "JR-LAST-08",
+  "JR-LAST-10",
+  "ALT-LAST-CMP",
+  "NA-JR-2026",
+  "JR-LAST-01",
+  "JR-LAST-07",
+  "JR-LAST-09",
+  "JR-LAST-13"
+ ],
+ "bgm": "tension",
+ "amb": "crowd-night"
+}

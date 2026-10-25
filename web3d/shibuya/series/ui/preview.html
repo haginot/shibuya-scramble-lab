@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><title>series HUD preview</title>
+<!-- Standalone HUD preview: every component at a given t over a pilot still (no WebGL).
+     web3d/shibuya/series/ui/preview.html?scene=choice&t=1.4      (scene list: window.__preview.scenes)
+     window.__preview.render(scene, t) → {ms, rec}   (rec = GameHUD.frame() record)
+     Sample copy below is PREVIEW-ONLY placeholder text (real copy + fact ids come from the variant configs). -->
+<style>html,body{margin:0;background:#000;overflow:hidden;width:720px;height:1280px}
+#bg{position:fixed;inset:0;width:720px;height:1280px;object-fit:cover}
+#dim{position:fixed;inset:0;background:radial-gradient(ellipse at 50% 45%,rgba(8,4,14,.35),rgba(8,4,14,.8))}
+#logo-ph{position:fixed;left:60px;right:60px;top:430px;height:300px;border:2px dashed rgba(255,255,255,.25);color:rgba(255,255,255,.35);font:600 18px/300px sans-serif;text-align:center}</style></head>
+<body><img id="bg" alt=""><div id="dim"></div><div id="logo-ph" hidden>3D logo (series/ui/logo3d.mjs)</div>
+<script type="module">
+import {GameHUD} from './components.mjs';
+const hud=new GameHUD(document.body,{lang:'ja'});
+const bgEl=document.getElementById('bg'),dim=document.getElementById('dim'),ph=document.getElementById('logo-ph');
+const CONFIG={
+ choice:{prompt:{ja:'どの改札へ向かう？'},options:[{key:'A',ja:'ハチ公改札',sub:'いちばん近い・人も多い'},{key:'B',ja:'新南改札',sub:'少し歩く・南側'}],picked:'A'},
+ lesson:{ja:'混む改札に一直線、が一番の罠\n近い改札ほど人が集まる。別の改札・別の出口も選択肢に\n一方通行・規制の案内が出たら係員の誘導に従う\n終電の時刻は駅ごとに違う。出発前に確認',factIds:['DEMO-1']},
+ cheat:{title:'保存版 渋谷脱出メモ',sub:'JR編・10/31（土）夜　※パロディ動画の要約',asOf:'2026/10/25時点',rows:[
+  {sec:'改札',ja:'ハチ公改札は混雑しやすい',sub:'一方通行になった例あり（2025年）',tone:'ng',factIds:['DEMO-2']},
+  {ja:'新南改札・南改札も使える',sub:'南側の改札。位置は駅構内図で確認',tone:'ok',icon:'gate'},
+  {sec:'終電（土休日ダイヤ・目安）',ja:'山手線 外回り 0:33／内回り 0:48',sub:'2026年は未発表。当日の公式発表を確認',icon:'train'},
+  {sec:'タクシー',ja:'西口タクシー乗り場は休止の例',sub:'渋谷SAKURAテラス前の乗り場（位置は概略）',icon:'taxi'},
+  {sec:'行動',ja:'人の流れに逆らわない・止まらない',sub:'係員・警察官の誘導に従う',icon:'walk'}],
+  note:'混雑は「シミュレーション」、徒歩時間は「OSMから概算」'},
+};
+const SOURCES=[{label:'JR東日本 プレスリリース',date:'2024-10',url:'https://www.jreast.co.jp/press/'},{label:'渋谷区 ハロウィン対策',date:'2025-10',url:'https://www.city.shibuya.tokyo.jp/'},{label:'警視庁 交通規制のお知らせ',date:'2025-10',url:'https://www.keishicho.metro.tokyo.lg.jp/'},{label:'シブヤ経済新聞',date:'2025-10-31',url:'https://www.shibuyakeizai.jp/'},{label:'MATCHA 渋谷駅ガイド',date:'2025-07-25',url:'https://matcha-jp.com/'},{label:'© OpenStreetMap contributors（ODbL）',url:'https://www.openstreetmap.org/copyright'},{label:'3D都市モデル PLATEAU（国土交通省）',url:'https://www.mlit.go.jp/plateau/'}];
+const FOOT='出典：JR東日本 プレスリリース 2024・シブヤ経済新聞 2025・3D：PLATEAU／© OpenStreetMap contributors';
+const CLOCK={start:'22:10',rate:.5};
+const S=(bg,items,o={})=>({bg,items,header:true,clock:CLOCK,footnote:FOOT,...o});
+const SCENES={
+ notice:t=>S('aerial',[{c:'notice',head:'運営からのお知らせ',when:'10/31（土）夜・渋谷',ja:'今夜の渋谷は\n巨大な脱出ゲーム会場です',order:'参加者は全員、\nJRの改札をめざせ',t,dur:5}],{clock:null,dim:.6}),
+ rules:t=>S('aerial',[{c:'rules',head:'ゲームのルール＝本物の注意',items:[{title:'警察・係員の指示が最優先',tip:'出入口は混雑で変わることも'},{title:'路上飲酒は18時〜翌5時禁止',tip:'渋谷区の条例（期間中）'},{title:'ハチ公前で待ち合わせない',tip:'銅像は囲いで見られない例あり'},{title:'終電の前に動く',tip:'駅ごとに時刻が違う'}],t,dur:5}],{clock:null,dim:.6}),
+ press:t=>S('aerial',[{c:'logo'},{c:'press-start',t,dur:3}],{header:false,clock:null,footnote:'3D：PLATEAU／© OpenStreetMap contributors',logo:true,dim:.25}),
+ start:t=>S('topdown',[{c:'mission',ja:'JRの改札までたどり着け',t,dur:6},{c:'direction',ja:'正面：ハチ公改札',sub:'スクランブル交差点の先',dir:'up',t:t-.4,dur:6},{c:'caption',ja:'スタート：ハチ公前広場',t:t-.2,dur:6},{c:'sim',ja:'人の流れ＝シミュレーション',t:t-.6,dur:6},{c:'pin',x:330,y:640,ja:'あなた',t,color:'#FF8A1F'}]),
+ choice:t=>S('gate',[{c:'choice',t,dur:4.2,pickAt:3.2}],{config:CONFIG,dim:.35}),
+ consequence:t=>S('eye',[{c:'caption',tone:'warn',ja:'一方通行の列でUターン…\n改札が遠のいていく',t,dur:4},{c:'caption',tone:'sub',ja:'ハチ公改札前は人の列が折り返す（シミュレーション）',t:t-.3,dur:4},{c:'sim',ja:'待ち 18分（シミュレーション）',t:t-.5,dur:4}]),
+ 'stamp-over':t=>S('eye',[{c:'stamp',kind:'GAME_OVER',ja:'人波に飲まれて改札にたどり着けない…',sub:'（シミュレーション）',t,dur:2.6}]),
+ 'stamp-clear':t=>S('interior',[{c:'stamp',kind:'GAME_CLEAR',ja:'新南改札からホームへ！',sub:'（シミュレーション）',t,dur:2.6}]),
+ 'stamp-esc':t=>S('interior',[{c:'stamp',kind:'ESCAPED',ja:'渋谷SAKURAテラス前でタクシーに乗れた！',sub:'（シミュレーション）',t,dur:2.6}]),
+ lesson:t=>S('eye',[{c:'lesson',t,dur:5}],{config:CONFIG,dim:.7,footnote:'出典：JR東日本 プレスリリース 2024・シブヤ経済新聞 2025'}),
+ cheat:t=>S('topdown',[{c:'cheat',t,dur:4}],{config:CONFIG,dim:.7,header:false,footnote:'出典：JR東日本 時刻表 2026・シブヤ経済新聞 2025・渋谷区 2025'}),
+ sources:t=>S('aerial',[{c:'sources',rows:SOURCES,note:'人の流れ・待ち時間＝シミュレーション（予測ではない）／徒歩時間＝OSMから概算',t,dur:4}],{dim:.7,clock:null,footnote:null}),
+ map:t=>S('routemap',[{c:'mission',label:'ROUTE',labelJa:'ルート例',ja:'となりの駅まで歩く？（ルート例）',t,dur:5},{c:'pin',x:300,y:830,ja:'渋谷（スタート）',color:'#FFFFFF',t},{c:'pin',x:420,y:560,ja:'原宿駅',color:'#FF8A1F',t},{c:'pin',x:470,y:300,ja:'代々木駅',color:'#5AB8FF',t},{c:'caption',tone:'note',ja:'徒歩時間＝OSMから概算・位置は概略',t,dur:5}],{dim:0}),
+};
+let lastBg='';
+async function setBg(name){const src=`./preview-bg/${name}.jpg`;if(src===lastBg)return;lastBg=src;bgEl.src=src;await bgEl.decode();}
+window.__preview={scenes:Object.keys(SCENES),async render(scene,t){const s=SCENES[scene](t);await setBg(s.bg);dim.style.opacity=s.dim??0;ph.hidden=!s.logo;
+ const a=performance.now();const rec=hud.frame({T:t,...s});await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));return {ms:performance.now()-a,rec};}};
+await hud.ready;
+const q=new URLSearchParams(location.search);
+if(q.get('scene'))await window.__preview.render(q.get('scene'),Number(q.get('t')||1));
+window.__ready=true;
+</script></body></html>

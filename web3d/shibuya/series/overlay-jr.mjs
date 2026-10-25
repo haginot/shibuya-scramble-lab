@@ -4,7 +4,7 @@
 //
 // Layout = safe areas of vertical social apps (TikTok / Reels / Shorts UI): nothing important in the top 84 px
 // (status bar, tabs), the bottom 240 px (caption, buttons, progress) or the right 92 px (action buttons).
-//   • ※パロディ badge: top-left, every frame;  • title header (🧙…🎃 JR編): every frame except while the big
+//   • 「フィクション」 tag top-left during the cold open only (steering 2026-10-26; ?parody=1 = old persistent ※パロディ);  • title header (🧙…🎃 JR編): every frame except while the big
 //     title card is up (2–5 s) — the title is always the most prominent element;
 //   • game clock (parody, not simulation) under the header;  • captions / panels in the middle band;
 //   • per-section footnote 「出典：…」 just above the bottom safe area: the outlets of every fact on screen.
@@ -47,7 +47,7 @@ const CSS=`
 #sj{position:fixed;left:0;top:0;width:720px;height:1280px;pointer-events:none;z-index:40;color:#F4F1EA;font-family:"Noto Sans CJK JP","Noto Color Emoji",sans-serif;-webkit-font-smoothing:antialiased}
 #sj .emo{font-family:"Noto Color Emoji";font-weight:400}
 #sj *{box-sizing:border-box}
-#sj-parody{position:absolute;left:${SAFE.left}px;top:${SAFE.top+2}px;padding:3px 10px 4px;border-radius:6px;background:#FFD23F;color:#14081C;font:900 17px/1.2 "Noto Sans CJK JP";letter-spacing:.04em;box-shadow:0 2px 10px #0008;z-index:5}
+#sj-parody:empty{display:none!important}#sj-parody{position:absolute;left:${SAFE.left}px;top:${SAFE.top+2}px;padding:3px 10px 4px;border-radius:6px;background:#FFD23F;color:#14081C;font:900 17px/1.2 "Noto Sans CJK JP";letter-spacing:.04em;box-shadow:0 2px 10px #0008;z-index:5}
 #sj-head{position:absolute;left:${SAFE.left}px;right:${SAFE.right-14}px;top:${SAFE.top+34}px;text-align:left}
 #sj-head .t{font:900 35px/1.16 "Noto Sans CJK JP","Noto Color Emoji";color:#FFF3E2;-webkit-text-stroke:7px #1A0626;paint-order:stroke fill;text-shadow:0 0 18px #FF8A1F88;letter-spacing:0;white-space:nowrap}
 #sj-head .t .jr{color:#9EE86A;text-shadow:0 0 16px #4FE36Acc}
@@ -118,7 +118,7 @@ const CSS=`
 `;
 
 export class SeriesOverlay{
- constructor(parent,{run=null,lang='ja'}={}){
+ constructor(parent,{run=null,lang='ja',persistentParody=false}={}){this.persistentParody=persistentParody;
   this.lang=lang;this.run=run;
   const st=document.createElement('style');st.textContent=CSS;document.head.append(st);
   const root=document.createElement('div');root.id='sj';parent.append(root);this.root=root;
@@ -134,8 +134,11 @@ export class SeriesOverlay{
   const sim=(key,T,vals,src)=>{let s=T[L];for(const [k,v] of Object.entries(vals))s=s.replaceAll(`{${k}}`,v);for(const id of T.factIds||[])claims.add(id);rec.strings.push(s);rec.sims.push({key,shown:vals,src,text:s,label:/シミュレーション|simulation/i.test(s)});return html(s);};
   const S=f.section,lu=f.local,jr=f.jr,run=this.run;
   let top='',card='',caps='',stamp='',pins='',tags=[];
-  // persistent: ※パロディ + title header (+ subtitle)
-  this.set('parody',txt(C.PARODY.cue));rec.parody=true;
+  // HAGINO steering 2026-10-26 01:25: no persistent ※パロディ label. A small 「フィクション」 tag sits in the corner only during
+  // the fictional cold-open notice; the end card keeps its parody line (END_CARD.parody). ?parody=1 restores the old sticker.
+  if(this.persistentParody){this.set('parody',txt(C.PARODY.cue));rec.parody=true;}
+  else if(S==='cold'){this.set('parody',txt(C.PARODY.fiction));rec.fiction=true;}else this.set('parody','');
+  // title header (+ subtitle)
   const showHeader=S!=='title';
   if(showHeader){const m=C.TITLE.main[L],k=m.lastIndexOf(' ');rec.strings.push(m);// 2 lines: 「🧙…🎃」 / 「JR編」 (green) + subtitle
    this.set('head',`<div class="t">${html(m.slice(0,k))}<br><span class="jr">${html(m.slice(k+1))}</span><span class="s">${txt(C.TITLE.sub)}</span></div>`);}else this.set('head','');rec.title.header=showHeader;

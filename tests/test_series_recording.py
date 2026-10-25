@@ -37,7 +37,7 @@ def test_sim_clock_is_monotonic_and_resumable(plan):
 
 def test_fades(plan):
     f = plan['fade']
-    assert f[0] == 0 and f[2] == 1 and f[5] == 1 and f[4] < 1
+    assert f[0] == 1 and f[1] == 1 and f[2] == 1 and f[5] == 1 and f[4] < 1, 'no black first frame (the video opens on a real image)'
 
 
 def frame(**kw):
@@ -58,8 +58,9 @@ def test_check_frame_accepts_a_good_frame():
 
 @pytest.mark.parametrize('bad', [
     dict(title={'header': False, 'card': False}),
-    dict(parody=False),
-    dict(strings=[rs.TITLE, rs.SUBTITLE]),
+    dict(parody=False, section='cold'),
+    dict(parody=False, section='end', strings=[rs.TITLE, rs.SUBTITLE]),
+    dict(strings=[rs.PARODY, '改札前の待ち 12人\n（シミュレーション）']),
     dict(sims=[{'key': 'queue', 'shown': {'queue': '12'}, 'src': {'value': 12}, 'text': '改札前の待ち 12人', 'label': False}]),
     dict(sims=[{'key': 'queue', 'shown': {'queue': '13'}, 'src': {'value': 12}, 'text': '13人（シミュレーション）', 'label': True}]),
     dict(sims=[{'key': 'density', 'shown': {'d': '3.0'}, 'src': {'value': 3.26}, 'text': '3.0（シミュレーション）', 'label': True}]),
@@ -166,3 +167,9 @@ def test_app_hook_is_small_and_mirrored():
     app = (ROOT/'web3d/shibuya/app.mjs').read_text(encoding='utf-8')
     assert "params.get('mode')==='series'" in app and './series/app-jr.mjs' in app
     assert app == (ROOT/'src/asagaya_town_sim/web3d/shibuya/app.mjs').read_text(encoding='utf-8')
+
+
+def test_no_persistent_parody_label():
+    """HAGINO steering 2026-10-26: walk frames pass without ※パロディ; the cold open needs 「フィクション」."""
+    rs.check_frame(frame(parody=False, strings=[rs.TITLE, rs.SUBTITLE, '改札前の待ち 12人\n（シミュレーション）']), facts=FACTS)
+    rs.check_frame(frame(parody=False, section='cold', fiction=True, strings=[rs.TITLE, rs.SUBTITLE, rs.FICTION, '改札前の待ち 12人\n（シミュレーション）']), facts=FACTS)

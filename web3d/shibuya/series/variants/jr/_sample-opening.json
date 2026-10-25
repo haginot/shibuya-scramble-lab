@@ -1,0 +1,11 @@
+{
+ "id": "_sample-opening", "episode": "jr", "part": "opening",
+ "_note": "variant-system test fixture: short stand-in for _opening.json (writer-owned). Used when _opening.json is missing.",
+ "beats": [
+  {"id": "fly", "dur": 1.5, "shot": {"key": "op-flythrough", "params": {"dur": 1.5}}, "header": false, "hud": []},
+  {"id": "logo", "dur": 2.0, "shot": {"key": "op-flythrough", "t0": 1.5, "params": {"dur": 1.5, "shake": [{"t": 2.4, "amp": 0.35}]}}, "hud": [{"c": "logo"}]},
+  {"id": "press", "dur": 1.0, "shot": {"key": "op-flythrough", "t0": 3.5, "params": {"dur": 1.5}}, "hud": [{"c": "logo", "outAt": 0.6}, {"c": "press-start"}]},
+  {"id": "notice", "dur": 1.5, "shot": {"key": "card-bg"}, "hud": [{"c": "notice", "head": "運営からのお知らせ", "ja": "今夜の渋谷は巨大な脱出ゲーム会場（という設定）", "factIds": []}]}
+ ],
+ "bgm": "tension", "amb": "crowd-night"
+}

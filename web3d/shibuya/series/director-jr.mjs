@@ -52,7 +52,9 @@ export const SIM_RATE=t=>t>=13.5&&t<23.5?WALK_RATE:1;
 const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v)),ease=t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2,smooth=t=>t*t*(3-2*t);
 // Cuts (hard cuts get a 3-frame dip to black on each side; continuous camera moves have none).
 export const CUTS=Object.freeze([9,13.5,15.5,17.5,19.5,21.5,23.5,27.25,31,46]);
-export function fadeAt(t){let f=1;for(const c of CUTS){const d=Math.abs(t-c);if(d<.1)f=Math.min(f,.25+.75*d/.1);}if(t<.25)f=Math.min(f,t/.25);if(t>DURATION-.3)f=Math.min(f,(DURATION-t)/.3);return f;}
+// No fade-in from black at t = 0 (QA: the pilot's first frame was black — a video must open on a real image; the
+// recorder's warm-up render takes the shader-compile frame). The end still fades out over the last 0.3 s.
+export function fadeAt(t){let f=1;for(const c of CUTS){const d=Math.abs(t-c);if(d<.1)f=Math.min(f,.25+.75*d/.1);}if(t>DURATION-.3)f=Math.min(f,(DURATION-t)/.3);return f;}
 
 // ctx: {insideSim?, walk:{points, waypoints:[{n,s}]}, dolly:[keys], wide (wide-area api|null), pilot:{id:{points}}, gates:{key:{x,y,z}}, taxi:[x,z]}
 export function makeDirector(ctx){

@@ -1,0 +1,25 @@
+{
+ "id": "_sample", "episode": "jr", "pair": "_sample", "outcome": "GAME_OVER",
+ "_note": "variant-system test fixture (short): exercises every beat kind; not a deliverable. Copy a real config from gate-over.json.",
+ "title": {"ja": "ハチ公改札に直行したら…（サンプル）"},
+ "start": {"place": "hachiko-square", "ja": "スタート：ハチ公前広場", "factIds": []},
+ "clock": {"start": "22:10", "ja": "ゲーム内時刻（架空）", "rate": 2},
+ "choice": {"prompt": {"ja": "どの改札へ向かう？"},
+            "options": [{"key": "A", "ja": "ハチ公改札", "factIds": []}, {"key": "B", "ja": "新南改札", "factIds": []}], "picked": "A"},
+ "beats": [
+  {"id": "start", "dur": 1.5, "shot": {"key": "topdown"}, "crowd": {"key": "hachiko-peak"},
+   "hud": [{"c": "mission", "ja": "終電までに改札を通れ！", "factIds": []}, {"c": "sim", "ja": "人の流れ＝シミュレーション", "factIds": []}]},
+  {"id": "choice", "dur": 2.5, "shot": {"key": "aerial"}, "hud": [{"c": "choice", "pickAt": 1.6}]},
+  {"id": "queue", "dur": 1.5, "shot": {"key": "gate-queue", "params": {"mode": "uturn"}}, "crowd": {"key": "hachiko-peak"}, "transition": "dip",
+   "hud": [{"c": "caption", "ja": "一方通行の列でUターン…（2025年1月の報道）", "factIds": ["JR-GATE-03"]}]},
+  {"id": "stamp", "dur": 1.5, "shot": {"key": "gate-queue", "params": {"mode": "lane"}}, "crowd": {"key": "hachiko-peak"}, "clock": {"set": "23:58"},
+   "hud": [{"c": "stamp", "kind": "GAME_OVER", "ja": "人波に飲まれて改札にたどり着けない…（シミュレーション）", "factIds": []}]},
+  {"id": "lesson", "dur": 1.0, "shot": {"key": "card-bg"}, "clock": false, "hud": [{"c": "lesson"}]},
+  {"id": "cheat", "dur": 3.0, "shot": {"key": "card-bg"}, "clock": false, "hud": [{"c": "cheat"}]},
+  {"id": "sources", "dur": 1.0, "shot": {"key": "no-such-shot"}, "clock": false, "hud": [{"c": "sources"}, {"c": "no-such-component", "ja": "代替表示テスト", "factIds": []}], "fadeOut": 0.3}
+ ],
+ "lesson": {"ja": "混む改札を避ける\nハチ公改札前は一方通行の列になった（2025年1月の報道）\n別の改札も選択肢に", "factIds": ["JR-GATE-03"]},
+ "cheat": {"rows": [{"ja": "ハチ公改札前は一方通行の列（2025年1月の報道）", "factIds": ["JR-GATE-03"], "tone": "ng"}, {"ja": "駅係員・警察の案内に従う", "factIds": [], "tone": "ok"}]},
+ "sources": ["JR-GATE-03"],
+ "bgm": "tension", "amb": "crowd-night"
+}

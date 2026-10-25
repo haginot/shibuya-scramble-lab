@@ -64,13 +64,16 @@ export function interiorDolly(keys,{name='interior'}={}){
   return makeShot(cr(P,i,e),cr(L,i,e),{fov:keys[i].fov+(keys[i+1].fov-keys[i].fov)*e,name});};}
 
 // ---------- fit a set of ground points into the frame ----------
-export function fitView({points,azimuth=-12,pitch=58,fov=40,aspect=9/16,pad=.08,y=0,rect=null}){
+// span:true (fixer 2026-10-26): fit the points' SPAN into the rect size (then re-centre on it) — needed for off-centre rects
+// (e.g. a band above the choice panel); default false keeps the original test (pilot framings unchanged)
+export function fitView({points,azimuth=-12,pitch=58,fov=40,aspect=9/16,pad=.08,y=0,rect=null,span=false}){
  let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9;for(const p of points){x0=Math.min(x0,p[0]);x1=Math.max(x1,p[0]);z0=Math.min(z0,p[1]);z1=Math.max(z1,p[1]);}
  const look=new THREE.Vector3((x0+x1)/2,y,(z0+z1)/2),a=THREE.MathUtils.degToRad(azimuth),e=THREE.MathUtils.degToRad(pitch);
  const dir=new THREE.Vector3(-Math.sin(a)*Math.cos(e),Math.sin(e),Math.cos(a)*Math.cos(e)),cam=new THREE.PerspectiveCamera(fov,aspect,.5,1e6),v=new THREE.Vector3();
  const R=rect??{x0:pad,x1:1-pad,y0:pad,y1:1-pad};
  const fits=d=>{cam.position.copy(look).addScaledVector(dir,d);cam.lookAt(look);cam.updateMatrixWorld();cam.updateProjectionMatrix();
-  for(const p of points){v.set(p[0],y,p[1]).project(cam);const sx=(v.x+1)/2,sy=(1-v.y)/2;if(v.z>1||sx<R.x0||sx>R.x1||sy<R.y0||sy>R.y1)return false;}return true;};
+  const ox=span?(R.x0+R.x1)/2-.5:0,oy=span?(R.y0+R.y1)/2-.5:0;
+  for(const p of points){v.set(p[0],y,p[1]).project(cam);const sx=(v.x+1)/2+ox,sy=(1-v.y)/2+oy;if(v.z>1||sx<R.x0||sx>R.x1||sy<R.y0||sy>R.y1)return false;}return true;};
  let lo=10,hi=20000;for(let k=0;k<44;k++){const m=(lo+hi)/2;if(fits(m))hi=m;else lo=m;}
  // re-centre on the target rect centre
  cam.position.copy(look).addScaledVector(dir,hi);cam.lookAt(look);cam.updateMatrixWorld();
@@ -80,8 +83,8 @@ export function fitView({points,azimuth=-12,pitch=58,fov=40,aspect=9/16,pad=.08,
  return {pos:cam.position.clone().add(off),look:look.clone().add(off),fov,distance:hi};}
 
 // ---------- aerial route-map ----------
-export function routeMap({bounds,points=null,azimuth=-12,pitch=58,fov=40,aspect=9/16,pad=.08,push=.06,dur=8,rect=null,name='route-map'}){
- const pts=points??[[bounds[0],bounds[1]],[bounds[2],bounds[3]],[bounds[0],bounds[3]],[bounds[2],bounds[1]]];const f=fitView({points:pts,azimuth,pitch,fov,aspect,pad,rect});
+export function routeMap({bounds,points=null,azimuth=-12,pitch=58,fov=40,aspect=9/16,pad=.08,push=.06,dur=8,rect=null,span=false,name='route-map'}){
+ const pts=points??[[bounds[0],bounds[1]],[bounds[2],bounds[3]],[bounds[0],bounds[3]],[bounds[2],bounds[1]]];const f=fitView({points:pts,azimuth,pitch,fov,aspect,pad,rect,span});
  return t=>{const k=push*ease(clamp(t/dur));const sh=makeShot(f.pos.clone().lerp(f.look,k),f.look,{fov,name});sh.far=Math.max(5000,f.distance*2.2);sh.distance=f.distance;return sh;};}
 
 // ---------- OSM walking routes ----------

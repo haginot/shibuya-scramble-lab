@@ -36,6 +36,7 @@ export const EPISODE=S({id:'jr',lang:'ja',aspect:'9:16',checked:'2026-10-25'});
 // Permanent parody label (top corner, every frame).
 export const PARODY=S({
  cue:T('※パロディ','PARODY'),
+ fiction:T('フィクション','FICTION'),// cold-open corner tag (steering 2026-10-26: no persistent ※パロディ)
  long:T('※ホラー・デスゲーム風の\nパロディです','Parody of horror &\ndeath-game movies'),
 });
 

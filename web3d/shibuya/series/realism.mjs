@@ -13,7 +13,7 @@
 //       options: {lod2:true, lamps:true, shopfronts:true, ground:true, viaduct:true, skyGlow:true,
 //                 skyline:true (procedural far skyline ring), skylineAvoid:[x0,z0,x1,z1] (no procedural boxes there;
 //                 pass wide-area.mjs W.bounds so the real OSM context and the ring do not overlap),
-//                 look:'night'|'keep', radius:380 (detail radius for shop fronts/kerbs),
+//                 look:'night'|'keep', roofs:true (lit concrete roofs + rooftop units; QA m12), radius:380 (detail radius for shop fronts/kerbs),
 //                 hoarding:[x,z]|null (white temporary panels around the Hachiko statue, MEAS-06; default city.mjs statue spot),
 //                 exclude:[[x0,z0,x1,z1]] rects without shop fronts (default: the JR Hachiko paid concourse of station-jr.mjs)}
 //     R.group                 THREE.Group with every added mesh
@@ -106,6 +106,19 @@ export function applyRealism({scene,city,shared,post,osm,plateau,lod2=null,sky=n
  // Window LOD: city.mjs averages the window grid when either cell axis is < ~2 px, which turns walls seen at a
  // grazing angle into flat tan slabs from the air; here the horizontal axis counts at 35 % (series only).
  {const m=city.buildings.material,from='float lod=smoothstep(.25,.6,max(aa.x,aa.y));';if(m.fragmentShader.includes(from)){m.fragmentShader=m.fragmentShader.replace(from,'float lod=smoothstep(.25,.6,max(aa.x*.35,aa.y));');m.needsUpdate=true;stats.windowLod='patched';}else stats.windowLod='unpatched';}
+ // Roofs (QA m12, pilot top-down "flat black roof" read as a hole): concrete deck with panel seams, hashed rooftop
+ // units (plant boxes) and a few small rooftop lamps / red aviation lights on tall roofs, lit by the city sky glow and
+ // the street light field — instead of city.mjs's near-black roof. Series only (option roofs:true).
+ if(o.roofs!==false){const m=city.buildings.material,from='col=tint*.55*(.6+.5*g)*(.035+.9*uDaylight)+streetLight(vWorld.xz)*.015;';
+  if(m.fragmentShader.includes(from)){m.fragmentShader=m.fragmentShader.replace(from,`{vec2 q=vWorld.xz;vec2 cl=fract(q/1.8);float seam=smoothstep(.05,0.,min(min(cl.x,1.-cl.x),min(cl.y,1.-cl.y)));
+     vec3 base=mix(vec3(.2,.2,.21),vec3(.27,.26,.24),hash11(seed*41.))*(.7+.45*g)*(1.-.3*seam);
+     vec2 uc=floor(q/5.5),uf=fract(q/5.5);float hu=hash21(uc+seed*7.);vec2 uo=uf-vec2(.3,.3)-.4*vec2(hash11(hu*3.),hash11(hu*7.));float unit=step(.8,hu)*step(abs(uo.x),.1+.16*hash11(hu*9.))*step(abs(uo.y),.08+.1*hash11(hu*5.));
+     base=mix(base,vec3(.11,.115,.12),unit);float vent=step(.86,hash21(uc*1.3+seed))*smoothstep(.09,.05,length(uf-vec2(.25,.7)));base=mix(base,vec3(.42,.43,.44),vent);
+     vec3 amb=vec3(.07,.066,.08)+uSkyHorizon*.32;
+     col=base*(amb+streetLight(q)*.16+vec3(.8)*uDaylight);
+     float lamp=step(.94,hash21(uc*1.7+seed*3.))*smoothstep(.1,.0,length(uf-.5));col+=vec3(1.,.78,.5)*lamp*.55*(1.-uDaylight);
+     float red=step(60.,H)*step(.9,hash21(uc*2.3+seed))*smoothstep(.12,.0,length(uf-.5))*(.35+.65*step(.5,fract(uTime*.5+seed*3.)));col+=vec3(2.2,.1,.05)*red*(1.-uDaylight);}`);
+   m.needsUpdate=true;stats.roofs='patched';}else stats.roofs='unpatched';}
  // Station shell: PLATEAU buildings overlapping the station-interior rects (o.exclude) go into their own mesh,
  // hidden while the camera is inside (setInterior), so their walls do not cut through the procedural concourse.
  const shellIds=new Set();

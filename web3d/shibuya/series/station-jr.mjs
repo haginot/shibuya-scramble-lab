@@ -147,12 +147,16 @@ export function createJRStation(scene,{shared,osm,gates=['hachiko','central','so
     const n=[side*a[4],0,-side*a[3]];if(side>0)B.quad(bot0,bot1,top1,top0,n,M.wall);else B.quad(bot1,bot0,top0,top1,n,M.wall);
     // track bed (ballast) beyond the edge to the far rail
     const t0=P(a,side*w,JR_TRACK_Y-.3),t1=P(b,side*w2,JR_TRACK_Y-.3),u0=P(a,side*(w+3.4),JR_TRACK_Y-.3),u1=P(b,side*(w2+3.4),JR_TRACK_Y-.3);
-    if(side>0)B.quad(t0,u0,u1,t1,[0,1,0],M.bed);else B.quad(u0,t0,t1,u1,[0,1,0],M.bed);}
+    if(side>0)B.quad(t0,u0,u1,t1,[0,1,0],M.bed);else B.quad(u0,t0,t1,u1,[0,1,0],M.bed);
+    // rails (two steel heads on the bed, 1.067 m gauge) + sleepers every 3rd strip step
+    for(const r of [1.15,2.22]){const r0=P(a,side*(w+r),JR_TRACK_Y-.12),r1=P(b,side*(w2+r),JR_TRACK_Y-.12);B.beam(r0[0],r0[1],r0[2],r1[0],r1[1],r1[2],.08,.14,M.metal);}
+    for(let q=0;q<4;q++){const u=q/4;const m0=P(a,side*(w+1.68),JR_TRACK_Y-.25),m1=P(b,side*(w2+1.68),JR_TRACK_Y-.25);const cx=m0[0]+(m1[0]-m0[0])*u,cz=m0[2]+(m1[2]-m0[2])*u;B.box(cx,m0[1],cz,2.0,.1,.22,M.wall,Math.atan2(a[3],a[4]));}}
    // canopy
    const cy=11.4;B.quad(P(b,-(w2+2.6),cy),P(b,w2+2.6,cy),P(a,w+2.6,cy),P(a,-(w+2.6),cy),[0,-1,0],M.canopy);
    if(k%3===0){B.box(a[0],(PLATFORM_Y+cy)/2,a[1],.55,cy-PLATFORM_Y,.55,M.pillar,Math.atan2(a[3],a[4]));}
    // hanging guide sign boxes across the platform (dark face + amber band; words would be DOM, none here)
-   if(k%5===2)B.box(a[0],PLATFORM_Y+2.75,a[1],Math.min(2.4,w*.9),.42,.14,M.sign,Math.atan2(a[3],a[4]));}
+   if(k%5===2)B.box(a[0],PLATFORM_Y+2.75,a[1],Math.min(2.4,w*.9),.42,.14,M.sign,Math.atan2(a[3],a[4]));
+   if(k%6===4&&w>2.4){const ry=Math.atan2(a[3],a[4]);B.box(a[0],PLATFORM_Y+.44,a[1],.45,.06,2.2,M.metal,ry);for(const o2 of [-.8,.8])B.box(a[0]+a[3]*o2,PLATFORM_Y+.22,a[1]+a[4]*o2,.4,.44,.06,M.metal,ry);}}
   const mid2=strip[Math.floor(strip.length/2)];anchors[key+'Platform']={center:{x:mid2[0],y:PLATFORM_Y,z:mid2[1]},dir:{x:mid2[3],z:mid2[4]},north:{x:strip[0][0],y:PLATFORM_Y,z:strip[0][1]},south:{x:strip.at(-1)[0],y:PLATFORM_Y,z:strip.at(-1)[1]}};}
 
  // ---------- 1F Hachiko gate + paid concourse ----------
@@ -169,7 +173,12 @@ export function createJRStation(scene,{shared,osm,gates=['hachiko','central','so
   B.quad([R.x0,.03,R.z1],[R.x1,.03,R.z1],[R.x1,.03,R.z0],[R.x0,.03,R.z0],[0,1,0],M.floor);
   const hole={x0:stair.x0-.3,x1:esc.x1+.3,z0:Math.min(stair.z0,esc.z0)+5,z1:R.z1};
   const ceil=(x0,x1,z0,z1)=>{if(x1>x0&&z1>z0)B.quad([x0,H,z0],[x1,H,z0],[x1,H,z1],[x0,H,z1],[0,-1,0],M.ceil);};
-  ceil(R.x0,R.x1,R.z0,hole.z0);ceil(R.x0,hole.x0,hole.z0,R.z1);ceil(hole.x1,R.x1,hole.z0,R.z1);
+  // second escalator bank to the Saikyo/Shonan-Shinjuku island (OSM conveying steps "level 1;2", ways at x≈81–85,
+  // z≈47–63; shifted ~7 m north here so its foot stays inside the modelled concourse — approximate, 「概略」)
+  const sai=platforms.find(p=>p.name==='saikyo');const e2=sai?{x0:80.6,x1:85.4,z0:40,z1:56}:null;
+  const hole2=e2?{x0:e2.x0-.3,x1:e2.x1+.3,z0:44,z1:R.z1}:null;
+  ceil(R.x0,R.x1,R.z0,hole.z0);ceil(R.x0,hole.x0,hole.z0,R.z1);
+  if(hole2&&hole2.x0>hole.x1&&hole2.x1<R.x1){ceil(hole.x1,hole2.x0,hole.z0,R.z1);ceil(hole2.x1,R.x1,hole.z0,R.z1);ceil(hole2.x0,hole2.x1,hole.z0,hole2.z0);}else ceil(hole.x1,R.x1,hole.z0,R.z1);
   // stairwell shaft up to the platform deck (so the platform level is enclosed above the opening)
   const wall=(a,b,n,y0=0,y1=H)=>B.quad([a[0],y0,a[1]],[b[0],y0,b[1]],[b[0],y1,b[1]],[a[0],y1,a[1]],n,M.wall);
   wall([hole.x0,hole.z0],[hole.x0,hole.z1],[1,0,0],H,PLATFORM_Y);wall([hole.x1,hole.z1],[hole.x1,hole.z0],[-1,0,0],H,PLATFORM_Y);wall([hole.x1,hole.z0],[hole.x0,hole.z0],[0,0,1],H,PLATFORM_Y+3.2);
@@ -201,6 +210,18 @@ export function createJRStation(scene,{shared,osm,gates=['hachiko','central','so
    B.beam(cx,.12,z0+flat,cx,PLATFORM_Y-.04,z1-flat,1.0,.02,M.esc);
    B.box(cx,PLATFORM_Y-.02,z1-flat/2,1.0,.04,flat,M.esc,0,{bottom:true});
    for(const sd of [-1,1]){B.beam(cx+sd*.58,.12,z0+flat,cx+sd*.58,PLATFORM_Y,z1-flat,.08,.95,M.glass);B.beam(cx+sd*.58,1.07,z0+flat,cx+sd*.58,PLATFORM_Y+.95,z1-flat,.1,.07,M.metal);}}
+  if(hole2&&hole2.x0>hole.x1){const w2=(a,b,n,y0,y1)=>B.quad([a[0],y0,a[1]],[b[0],y0,b[1]],[b[0],y1,b[1]],[a[0],y1,a[1]],n,M.wall);
+   w2([hole2.x0,hole2.z0],[hole2.x0,hole2.z1],[1,0,0],H,PLATFORM_Y);w2([hole2.x1,hole2.z1],[hole2.x1,hole2.z0],[-1,0,0],H,PLATFORM_Y);w2([hole2.x1,hole2.z0],[hole2.x0,hole2.z0],[0,0,1],H,PLATFORM_Y+3.2);
+   for(const cx of [e2.x0+1.1,e2.x1-1.1]){const z0=e2.z0,z1=e2.z1;
+    B.box(cx,.06,z0+flat/2,1.0,.12,flat,M.esc,0,{bottom:true});B.beam(cx,.12,z0+flat,cx,PLATFORM_Y-.04,z1-flat,1.0,.02,M.esc);B.box(cx,PLATFORM_Y-.02,z1-flat/2,1.0,.04,flat,M.esc,0,{bottom:true});
+    for(const sd of [-1,1]){B.beam(cx+sd*.58,.12,z0+flat,cx+sd*.58,PLATFORM_Y,z1-flat,.08,.95,M.glass);B.beam(cx+sd*.58,1.07,z0+flat,cx+sd*.58,PLATFORM_Y+.95,z1-flat,.1,.07,M.metal);}}
+   B.box((e2.x0+e2.x1)/2,2.95,e2.z0-.6,e2.x1-e2.x0,.45,.2,M.sign);anchors.esc2Bottom={x:(e2.x0+e2.x1)/2,y:0,z:e2.z0};anchors.esc2Top={x:(e2.x0+e2.x1)/2,y:PLATFORM_Y,z:e2.z1};}
+  // generic fare-adjustment / ticket machines along the west wall inside the paid area (blank lit screens, no text)
+  for(let k=0;k<4;k++){const z=R.z0+3.2+k*1.05;B.box(R.x0+.45,.85,z,.8,1.7,.95,M.gate);B.box(R.x0+.86,1.25,z,.02,.42,.6,M.reader);}
+  // tactile guidance strip from the wide aisle to the stairs (yellow, raised dots)
+  {const wa=gateRow.aisles.at(-1),sx=(stair.x0+stair.x1)/2;B.quad([wa.x-.15,.035,gateRow.z+.9],[wa.x+.15,.035,gateRow.z+.9],[wa.x+.15,.035,gateRow.z+4],[wa.x-.15,.035,gateRow.z+4],[0,1,0],M.tactile);
+   B.quad([sx+.15,.035,gateRow.z+4],[wa.x+.15,.035,gateRow.z+4],[wa.x+.15,.035,gateRow.z+4.3],[sx+.15,.035,gateRow.z+4.3],[0,1,0],M.tactile);
+   B.quad([sx-.15,.035,gateRow.z+4],[sx+.15,.035,gateRow.z+4],[sx+.15,.035,stair.z0-.4],[sx-.15,.035,stair.z0-.4],[0,1,0],M.tactile);}
   anchors.passageSouthLane={x:HG.x+14,y:0,z:12};anchors.hachikoGate={x:HG.x,y:0,z:gateRow.z};
   anchors.stairsBottom={x:(stair.x0+stair.x1)/2,y:0,z:stair.z0};anchors.stairsTop={x:(stair.x0+stair.x1)/2,y:PLATFORM_Y,z:stair.z1};
   anchors.escBottom={x:ex[0],y:0,z:esc.z0};anchors.escTop={x:ex[0],y:PLATFORM_Y,z:esc.z1};anchors.concourse={x:(R.x0+R.x1)/2,y:0,z:(R.z0+R.z1)/2};}
@@ -213,6 +234,15 @@ export function createJRStation(scene,{shared,osm,gates=['hachiko','central','so
   B.quad(P(-w/2,0,-d/2),P(-w/2,0,d/2),P(-w/2,H,d/2),P(-w/2,H,-d/2),nrm(1,0,0),M.wall);B.quad(P(w/2,0,d/2),P(w/2,0,-d/2),P(w/2,H,-d/2),P(w/2,H,d/2),nrm(-1,0,0),M.wall);
   let lx=-(n*.84)/2;for(let k=0;k<=n;k++){const q=P(lx+.12,.5,0);B.box(q[0],q[1],q[2],.24,1,1.6,M.gate,rot);const r=P(lx+.12,1.01,-.62);B.box(r[0],r[1],r[2],.22,.02,.3,M.reader,rot);lx+=.84;}
   const sg=P(0,2.9,-.9);B.box(sg[0],sg[1],sg[2],n*.84,.5,.25,M.sign,rot);
+  // dressing (generic, no text): second readers, fences from the gate row to the side walls, blank light boxes on the
+  // walls, a row of generic ticket machines on the free side, a sign box over the paid side, tactile strip to the gates
+  {let lx2=-(n*.84)/2;for(let k=0;k<=n;k++){const r=P(lx2+.12,1.01,.62);B.box(r[0],r[1],r[2],.22,.02,.3,M.reader,rot+Math.PI);lx2+=.84;}
+   for(const sd of [-1,1]){const a=sd*(n*.84/2+.3),b=sd*(w/2-.1);const f=P((a+b)/2,.55,0);B.box(f[0],f[1],f[2],Math.abs(b-a),1.1,.08,M.metal,rot);}
+   for(const sd of [-1,1])for(let k=0;k<2;k++){const q=P(sd*(w/2-.06),1.75,-d/2+3+k*(d-6));B.box(q[0],q[1],q[2],.08,1.5,2.4,M.panel,rot);}
+   for(let k=0;k<3;k++){const q=P(-w/2+4+k*5.5,1.75,d/2-.06);B.box(q[0],q[1],q[2],2.4,1.5,.08,M.panel,rot);}
+   for(let k=0;k<6;k++){const q=P(-w/2+3+k*1.05,.85,-d/2+.5);B.box(q[0],q[1],q[2],.95,1.7,.8,M.gate,rot);const r=P(-w/2+3+k*1.05,1.25,-d/2+.91);B.box(r[0],r[1],r[2],.6,.42,.02,M.reader,rot);}
+   const sp=P(0,2.9,.9);B.box(sp[0],sp[1],sp[2],n*.84,.5,.25,M.sign,rot);
+   const t0=P(.3,.035,-d/2+1.4),t1=P(.6,.035,-d/2+1.4),t2=P(.6,.035,-1),t3=P(.3,.035,-1);B.quad(t0,t1,t2,t3,[0,1,0],M.tactile);}
   for(const px2 of [-w/2+2,w/2-2])for(const pz2 of [-d/2+2,d/2-2]){const q=P(px2,H/2,pz2);B.box(q[0],q[1],q[2],.8,H,.8,M.pillar,rot);}
   anchors[key]={x,y,z};};
  for(const key of ['central','south','newSouth'])if(gates.includes(key))hall(key,JR_GATES[key],{rot:key==='newSouth'?.4:key==='central'?-.35:-.35});
