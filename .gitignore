@@ -6,3 +6,4 @@ out/
 .pytest_cache/
 
 _site/
+web3d/photoreal/data/
