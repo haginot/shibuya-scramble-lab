@@ -4,6 +4,10 @@ Required set (CONTRACT.md): logo_slam, whoosh, ui_blip, ui_select, tick, escaped
 red_alert, stamp_hit.  Extras: tock (2nd tick pitch), riser (1.8 s build that ends on its cue time + 1.8 s;
 place it 1.8 s before a slam), heartbeat, card_in (soft paper/air swipe), press_start (soft shimmer for the
 PRESS START beat), choice_move (cursor move), crowd_swell (brief crowd surge used under red_alert / zone scenes).
+Combined episodes (REQUIRED_COMBINED): crowd_press zombie_groan caught_hit red_flash cut_black continue_tick
+continue_yes kaiju_rumble kaiju_roar smash_cut, plus zombie_groan_b (2nd groan voice), boing (gag), end_sting (end
+card).  cut_black / smash_cut also *act* in mix.py (CUT_DEFAULTS: other buses silenced / tails chopped), and the
+caught/kaiju sounds hard-duck the BGM by default (mix.AUTO_DUCK).
 
 Design notes: red_alert is a *game* sting — detuned buzzy saw pulses with downward pitch drops over a drum hit; it
 does not use sine chimes, ascending bell arpeggios or siren sweeps, so it can't be mistaken for J-ALERT / NHK / any
@@ -26,6 +30,10 @@ BASE_DB = {
     'escaped': -6.0, 'clear_jingle': -5.0, 'gameover_jingle': -8.0, 'red_alert': -6.0, 'stamp_hit': -5.5,
     'riser': -6.0, 'heartbeat': -6.0, 'card_in': -14.0, 'press_start': -10.0, 'choice_move': -14.0,
     'crowd_swell': -9.0,
+    # combined episodes
+    'crowd_press': -8.0, 'zombie_groan': -6.0, 'zombie_groan_b': -7.0, 'caught_hit': -3.0, 'red_flash': -7.0,
+    'cut_black': -4.0, 'continue_tick': -12.0, 'continue_yes': -8.0, 'kaiju_rumble': -6.0, 'kaiju_roar': -2.5,
+    'boing': -9.0, 'smash_cut': -4.0, 'end_sting': -7.0,
 }
 
 _IR = {}
@@ -243,20 +251,306 @@ def crowd_swell() -> np.ndarray:
     return y * np.sin(np.pi * u) ** 1.2
 
 
+# ------------------------------------------------------------------ combined episodes (2026-10-26)
+# caught sequence (crowd_press, zombie_groan[_b], caught_hit, red_flash, cut_black), CONTINUE? (continue_tick,
+# continue_yes), kaiju gag (kaiju_rumble, kaiju_roar, boing, smash_cut) and the end card (end_sting).  All synthesized
+# here.  The zombies are cartoon *game* creatures: a low, muffled, bouncy synth "mmuh-uh" (buzzy source -> moving
+# vowel formants -> heavy low-pass -> a touch of sample-and-hold grit), not a horror-film growl.  The kaiju is a
+# goofy giant: a warbly tuba/foghorn bellow (harmonic brass tone below ~3 kHz, scoop up, wide slow vibrato), a comic
+# "hic!", then a deflating fall.  No noise screech, no resonant metal scrape, nothing like a famous film roar.
+
+def _formants(x: np.ndarray, f1, f2, f3=None, floor: float = 0.08, bw: float = 0.18) -> np.ndarray:
+    """Time-varying vowel colouring: STFT magnitude x (floor + Gaussian bumps at F1(t), F2(t)[, F3(t)]).
+    f* are callables of time (s) -> Hz (arrays)."""
+    def g(f, t):
+        out = np.full(np.broadcast_shapes(f.shape, t.shape), floor)
+        for k, fk in enumerate((f1, f2, f3)):
+            if fk is None:
+                continue
+            c = fk(t)
+            out = out + (1.0, 0.6, 0.3)[k] * np.exp(-0.5 * ((f - c) / (bw * c + 40)) ** 2)
+        return out
+    return dsp.spectral_shape(x, g, nper=1024)
+
+
+def _contour(t: np.ndarray, pts) -> np.ndarray:
+    """Piecewise-smooth curve through [(t, value)] (smoothstep between points)."""
+    y = np.full_like(t, pts[0][1], dtype=float)
+    for (ta, va), (tb, vb) in zip(pts[:-1], pts[1:]):
+        m = t >= ta
+        y[m] = va + (vb - va) * dsp.smoothstep((t[m] - ta) / max(tb - ta, 1e-6))
+    return y
+
+
+def crowd_press() -> np.ndarray:
+    """~2.7 s: the crowd closing in — babble that gets nearer *and* more muffled (bodies around you), cloth
+    rustle, shuffling feet, a low pressure swell; the stereo image narrows (boxed in).  Meant to be cut by the
+    hard cut to black (mix.py chops it at cut_black)."""
+    import ambience
+    r = rng('crowd_press')
+    d = 2.7
+    n = ns(d)
+    u = np.arange(n) / n
+    bab = dsp.fit(ambience.babble(d + 0.1, 'press', voices=32, rate=5.5, talk=(1.0, 3.0), pause=(0.2, 0.8)), n)
+    bab = dsp.sweep_filter(bab, 'lowpass', 2600 * (1 - u) ** 1.4 + 520, order=2)
+    rust = dsp.bp(r.standard_normal((2, n)), 900, 5000)
+    grains = np.abs(dsp.lp(r.standard_normal(n), 14)) ** 2
+    rust = dsp.sweep_filter(rust * grains / (grains.std() + 1e-9), 'lowpass', 5000 - 3500 * u)
+    feet = np.zeros(n)
+    for k, ts in enumerate(np.sort(r.uniform(0.05, d - 0.15, 22))):
+        th = ins.thump(r.uniform(70, 95), 0.14, r.uniform(0.4, 0.8), f'cp{k}')
+        scuff = dsp.bp(r.standard_normal(ns(0.09)), 300, 1800) * dsp.env_perc(0.09, 0.004, 0.025) * 0.5
+        i = ns(ts)
+        feet[i:i + th.size] += th[:n - i]
+        feet[i:i + scuff.size] += scuff[:max(0, min(scuff.size, n - i))]
+    swell = dsp.lp(dsp.brown(n, r), 160) * 0.5
+    y = (bab * (0.55 + 0.6 * u ** 0.8) + rust * 0.10 * (0.4 + u) + dsp.stereo(feet * 0.5 * (0.5 + u))
+         + dsp.stereo(swell * u ** 1.5))
+    m, s = (y[0] + y[1]) / 2, (y[0] - y[1]) / 2
+    s *= 1 - 0.8 * u                                            # image closes in
+    y = np.vstack([m + s, m - s]) * dsp.smoothstep(u / 0.12)
+    return _rev(dsp.fade(y, 0.02, 0.15), 'room', 0.12)
+
+
+def _groan(seed: str, pts, dur: float, hiccup: float | None) -> np.ndarray:
+    r = rng('groan', seed)
+    t = tvec(dur)
+    f0 = _contour(t, pts) * 2 ** (0.35 * np.sin(2 * np.pi * 6.3 * t + r.uniform(0, 6)) * dsp.smoothstep(t / 0.4) / 12)
+    if hiccup is not None:                                      # cartoon bounce: a quick pitch blip up and back
+        f0 *= 2 ** (5 * np.exp(-0.5 * ((t - hiccup) / 0.035) ** 2) / 12)
+    src = 0.7 * dsp.saw(f0, dur) + 0.4 * dsp.square(f0 * 0.5, dur, 0.3) + 0.06 * r.standard_normal(t.size)
+    v = dsp.smoothstep(t / dur)
+    y = _formants(src, lambda q: np.interp(q, [0, dur * .3, dur], [300, 520, 340]),
+                  lambda q: np.interp(q, [0, dur * .3, dur], [750, 900, 700]), floor=0.05)
+    hold = np.repeat(y[::5], 5)[:y.size]                        # sample-and-hold grit: reads as a game creature
+    y = dsp.lp(0.75 * y + 0.25 * hold, 950, 4)                  # muffled ("behind" the crowd)
+    env = dsp.env_adsr(dur, 0.12, 0.3, 0.8, 0.35) * (1 - 0.25 * v)
+    return dsp.fade(y * env, 0.01, 0.05)
+
+
+def zombie_groan() -> np.ndarray:
+    """~1.5 s cartoon game-creature 'mmmuh-uh' (low, muffled, bouncy).  Not a real-film monster sound."""
+    y = _groan('a', [(0, 88), (0.28, 108), (0.9, 84), (1.5, 70)], 1.5, 0.98)
+    return _rev(dsp.haas(y, 6), 'room', 0.3)
+
+
+def zombie_groan_b() -> np.ndarray:
+    """Second voice (different contour / pitch) so two groans in one beat don't sound copy-pasted."""
+    y = _groan('b', [(0, 76), (0.2, 92), (0.6, 96), (1.25, 64)], 1.25, None)
+    return _rev(dsp.haas(y, 9, -1), 'room', 0.3)
+
+
+def caught_hit() -> np.ndarray:
+    """~1.1 s: a soft, heavy 'whump' (pillow-like body hit, no crunch), then one last muffled heartbeat 'lub'
+    without its 'dub' — the heartbeat stops.  A slow low slide underneath drains away."""
+    r = rng('caught_hit')
+    d = 1.1
+    t = tvec(d)
+    n = t.size
+    whump = np.sin(2 * np.pi * dsp.phase_of(62 + 120 * np.exp(-t / 0.05), n)) * np.exp(-t / 0.24)
+    thick = dsp.lp(r.standard_normal(n), 700) * np.exp(-t / 0.06) * 0.9
+    thick += dsp.bp(r.standard_normal(n), 110, 320) * np.exp(-t / 0.12) * 1.4      # audible 'body' on phones
+    slap = dsp.bp(r.standard_normal(n), 250, 2200) * np.exp(-t / 0.015) * 0.6
+    y = dsp.soft_clip((whump * 1.2 + thick + slap) * np.clip(t / 0.001, 0, 1), 1.6)
+    lub = ins.thump(62, 0.4, 0.75, 'ch-lub')
+    i = ns(0.36)
+    y[i:i + lub.size] += (dsp.lp(lub, 300) + 0.5 * dsp.soft_clip(lub * 3, 3) * 0.3)[:n - i]
+    drain = dsp.sine(70 * 2 ** (-1.2 * t), d) * dsp.env_adsr(d, 0.05, 0.2, 0.6, 0.6) * 0.18
+    return _rev(dsp.stereo(dsp.fade(y + drain, 0, 0.2)), 'room', 0.25)
+
+
+def red_flash() -> np.ndarray:
+    """~0.6 s game 'damage' sting: detuned buzzy stab that dips in pitch + a white 'flash' burst + small drum."""
+    r = rng('red_flash')
+    d = 0.6
+    t = tvec(d)
+    f = 622 * (1 - 0.12 * dsp.smoothstep(t / 0.12))
+    y = sum(dsp.saw(f * m, d) for m in (1.0, 1.012, 0.5, 0.497)) / 4
+    y = dsp.sweep_filter(y, 'lowpass', 1400 + 5000 * np.exp(-t / 0.08))
+    y = dsp.soft_clip(y * 2.2, 2) * dsp.env_perc(d, 0.002, 0.14)
+    burst = dsp.hp(r.standard_normal(t.size), 3000) * np.exp(-t / 0.03) * 0.35
+    out = dsp.haas(y + burst, 7)
+    dsp.place(out, dsp.stereo(ins.taiko(58, 0.5, 0.6, 'rf')), 0.0, 0.5)
+    return _rev(out, 'room', 0.2)
+
+
+def cut_black() -> np.ndarray:
+    """~0.2 s: the hard cut — one short, dull 'thunk' (nothing above ~400 Hz) that is gone within ~0.15 s, so the
+    rest of the black is true silence: mix.py silences every other bus right at this cue (CUT_DEFAULTS) and chops
+    the tails of everything that started before it."""
+    r = rng('cut_black')
+    d = 0.2
+    t = tvec(d)
+    boom = np.sin(2 * np.pi * dsp.phase_of(60 + 60 * np.exp(-t / 0.02), t.size)) * np.exp(-t / 0.045)
+    body = dsp.bp(r.standard_normal(t.size), 90, 380) * np.exp(-t / 0.025) * 1.6
+    y = dsp.lp(dsp.soft_clip((boom + body) * np.clip(t / 0.0008, 0, 1), 1.3), 420)
+    return dsp.stereo(dsp.fade(y, 0, 0.08))
+
+
+def continue_tick() -> np.ndarray:
+    """Countdown digit beep for CONTINUE?: short pulse-wave blip with a soft click (chip-style, original)."""
+    d = 0.22
+    y = dsp.square(784, d, 0.25) * 0.8 + 0.25 * dsp.sine(1568, d)
+    y = dsp.lp(y, 6500) * dsp.env_adsr(d, 0.002, 0.04, 0.45, 0.1)
+    y[:ns(0.012)] += dsp.hp(rng('ct').standard_normal(ns(0.012)), 4000) * np.linspace(0.3, 0, ns(0.012))
+    return _rev(dsp.pan(dsp.fade(y, 0.001, 0.02), 0.0), 'room', 0.15)
+
+
+def continue_yes() -> np.ndarray:
+    """~1.1 s YES confirm: a quick 3-step pulse run up (G5 C6 E6) landing on a shimmering chord + bell."""
+    out = np.zeros((2, ns(1.3)))
+    for i, nm in enumerate(['G5', 'C6', 'E6']):
+        d = 0.14 if i < 2 else 0.6
+        y = dsp.lp(dsp.square(note(nm), d, 0.25), 7000) * dsp.env_adsr(d, 0.002, 0.05, 0.6, 0.06 if i < 2 else 0.4)
+        dsp.place(out, dsp.pan(y, -0.3 + 0.3 * i), i * 0.055, 0.5)
+    for i, nm in enumerate(['C6', 'E6', 'G6']):
+        dsp.place(out, dsp.pan(ins.bell(note(nm), 1.1, 0.6, f'cy{i}'), -0.3 + 0.3 * i), 0.13, 0.45)
+    sp = dsp.hp(rng('cy').standard_normal(ns(0.8)), 6500) * dsp.env_perc(0.8, 0.02, 0.18) * 0.12
+    dsp.place(out, dsp.haas(sp, 9), 0.13)
+    return _rev(out, 'room', 0.25)
+
+
+def kaiju_rumble() -> np.ndarray:
+    """~4.2 s: something huge rising behind the buildings — a slow low rumble swelling (brown noise + a rattling
+    ground tone), gravel/debris trickles getting denser, two heavy shifts of weight.  No roar in it."""
+    r = rng('kaiju_rumble')
+    d = 4.2
+    n = ns(d)
+    t = np.arange(n) / SR
+    u = t / d
+    grow = dsp.smoothstep(u / 0.8) * (0.85 + 0.15 * np.sin(2 * np.pi * 0.6 * t))
+    low = dsp.hp(dsp.lp(dsp.brown(n, r), 160, 4), 45, 2) * 0.5
+    mid = dsp.bp(dsp.pink(n, r), 80, 500) * 1.1
+    ground = dsp.sine(62 + 8 * u, d) * (0.6 + 0.4 * np.abs(np.sin(2 * np.pi * 7 * t))) * 0.3
+    ground += dsp.lp(dsp.saw(62 + 8 * u, d), 300) * (0.6 + 0.4 * np.abs(np.sin(2 * np.pi * 7 * t))) * 0.2
+    y = dsp.stereo((low + mid + ground) * grow)
+    for k, ts in enumerate(np.sort(r.uniform(0.4, d - 0.2, 70) ** 1.0)):
+        if r.random() > 0.25 + 0.75 * ts / d:
+            continue
+        g = dsp.bp(r.standard_normal(ns(0.06)), 900, 4500) * dsp.env_perc(0.06, 0.002, 0.012)
+        dsp.place(y, dsp.pan(g, r.uniform(-0.8, 0.8)), ts, r.uniform(0.05, 0.16))
+    for ts, f in ((1.5, 58), (2.8, 54)):
+        dsp.place(y, dsp.stereo(dsp.lp(ins.taiko(f, 1.4, 1.0, f'kr{ts}'), 500)), ts, 0.9)
+    return _rev(dsp.fade(y, 0.1, 0.5), 'big', 0.3)
+
+
+def kaiju_roar() -> np.ndarray:
+    """~1.75 s ORIGINAL silly giant bellow: 'BWOOO-AAAH' (tuba/foghorn: buzzy harmonic tone with brightness that
+    follows loudness, scoop up, wide warbly vibrato, vowel oo -> aa, a kazoo-ish buzz on top), a comic 'hic!', then
+    a deflating fall 'bwuuu'.  Harmonic and tonal (< ~3 kHz), so it can't be mistaken for any famous screech roar.
+    Compact on purpose (QA 2026-10-26): the whole gag — bellow .0–.95, hic 1.0–1.14, fall 1.2–1.7 — must land before
+    the smash cut at the kaiju beat end (combined cue at roarAt 1.85 of the 4 s beat → over by ≈3.6 s, swell at 3.9)."""
+    r = rng('kaiju_roar')
+    d = 1.75
+    t = tvec(d)
+    n = t.size
+    out = np.zeros((2, n))
+    # 1) the bellow 0.0 – 0.95 s
+    db_ = 0.95
+    tb = tvec(db_)
+    f0 = _contour(tb, [(0, 52), (0.22, 74), (0.65, 70), (0.95, 66)])
+    vib = 2 ** ((0.25 + 0.6 * dsp.smoothstep((tb - 0.2) / 0.5)) * np.sin(2 * np.pi * 4.6 * tb) / 12)
+    f0 = f0 * vib
+    env = dsp.env_adsr(db_, 0.16, 0.15, 0.9, 0.1)
+    src = 0.8 * dsp.saw(f0, db_) + 0.5 * dsp.square(f0 * 0.5, db_, 0.5) + 0.35 * dsp.saw(f0 * 1.006, db_)
+    brass = dsp.sweep_filter(src, 'lowpass', 220 + 1700 * env ** 1.5)
+    brass = _formants(brass, lambda q: np.interp(q, [0, .35, db_], [320, 650, 700]),
+                      lambda q: np.interp(q, [0, .35, db_], [700, 1050, 1150]), floor=0.25, bw=0.3)
+    kazoo = dsp.bp(dsp.saw(f0 * 2, db_), 500, 1300) * 0.25
+    bel = dsp.lp(dsp.soft_clip((brass + kazoo) * env * 1.6, 1.4), 3000, 4)
+    bel = dsp.fade(bel, 0.005, 0.04)
+    dsp.place(out, dsp.haas(bel, 11), 0.0)
+    dsp.place(out, dsp.haas(dsp.lp(dsp.saw(f0 * 0.997 * 2 ** (6 / 1200), db_), 600) * env * 0.3, 4, -1), 0.0)
+    # 2) the hiccup 1.0 – 1.14 s: short upward chirp, 'i' vowel
+    dh = 0.14
+    th = tvec(dh)
+    fh = 150 * 2 ** (1.3 * th / dh)
+    hic = dsp.lp(dsp.saw(fh, dh) + 0.5 * dsp.square(fh, dh, 0.4), 2600) * dsp.env_adsr(dh, 0.004, 0.03, 0.7, 0.05)
+    hic = _formants(hic, lambda q: 0 * q + 330, lambda q: 0 * q + 2100, floor=0.3)
+    hic = dsp.fade(hic, 0.006, 0.03)                           # STFT edges -> no click
+    dsp.place(out, dsp.haas(hic, 5), 1.0, 1.1)
+    # 3) the deflating fall 1.2 – 1.7 s
+    df = 0.5
+    tf = tvec(df)
+    ff = 72 * 2 ** (-1.0 * dsp.smoothstep(tf / df)) * 2 ** (0.4 * np.sin(2 * np.pi * 7 * tf) / 12)
+    fall = dsp.sweep_filter(dsp.saw(ff, df) + 0.4 * dsp.square(ff * 0.5, df), 'lowpass', 900 - 600 * tf / df)
+    fall *= dsp.env_adsr(df, 0.04, 0.12, 0.7, 0.22) * 0.6
+    dsp.place(out, dsp.haas(fall, 8), 1.2)
+    return _rev(dsp.fade(out, 0.005, 0.08), 'big', 0.22)
+
+
+def boing() -> np.ndarray:
+    """~0.7 s cartoon spring 'boyoyoing' for the gag caption."""
+    d = 0.7
+    t = tvec(d)
+    f = 240 + 160 * (1 - np.exp(-t / 0.03)) + 70 * np.sin(2 * np.pi * 15 * t) * np.exp(-t / 0.22)
+    ph = 2 * np.pi * dsp.phase_of(f, t.size)
+    y = (np.sin(ph) + 0.3 * np.sin(2 * ph) + 0.12 * np.sin(3 * ph)) * dsp.env_perc(d, 0.003, 0.22)
+    tw = dsp.resonator(rng('boing').standard_normal(t.size) * np.exp(-t / 0.004), 1800, 12) * 0.1
+    return _rev(dsp.pan(dsp.fade(y + tw, 0.001, 0.05), 0.1), 'room', 0.15)
+
+
+def smash_cut() -> np.ndarray:
+    """~0.6 s: 0.1 s sucked-in noise swell into a hard punchy 'thwack' (kick + snap) — the gag's smash cut.
+    The hit is at 0.1 s (HIT_AT, place with align:'hit'); mix.py chops earlier SFX tails right at the hit."""
+    r = rng('smash_cut')
+    pre = 0.1
+    d = 0.6
+    n = ns(d)
+    out = np.zeros((2, n))
+    k = ns(pre)
+    uu = np.arange(k) / k
+    sw = dsp.sweep_filter(r.standard_normal((2, k)), 'highpass', 500 + 5000 * uu ** 2) * uu ** 2.5 * 0.5
+    out[:, :k] += sw
+    th = tvec(d - pre)
+    kick = np.sin(2 * np.pi * dsp.phase_of(68 + 130 * np.exp(-th / 0.025), th.size)) * np.exp(-th / 0.1)
+    snap = dsp.bp(r.standard_normal(th.size), 1500, 8000) * np.exp(-th / 0.03) * 0.8
+    body = dsp.bp(r.standard_normal(th.size), 200, 1200) * np.exp(-th / 0.05) * 0.5
+    dsp.place(out, dsp.haas(dsp.soft_clip(kick + snap + body, 1.5), 3), pre)
+    return _rev(dsp.fade(out, 0, 0.1), 'room', 0.18)
+
+
+def end_sting() -> np.ndarray:
+    """~1.8 s end-card sting: light pluck flourish up into a soft bright chord (F major add9) + small drum."""
+    out = np.zeros((2, ns(2.2)))
+    for i, nm in enumerate(['C5', 'F5', 'A5', 'C6']):
+        dsp.place(out, dsp.pan(ins.pluck(note(nm), 0.5, 0.7, f'es{i}', bright=2), -0.4 + 0.27 * i), i * 0.06, 0.6)
+    t0 = 0.26
+    for i, nm in enumerate(['F4', 'C5', 'G5', 'A5', 'F6']):
+        dsp.place(out, dsp.pan(ins.bell(note(nm), 1.8, 0.55, f'esb{i}'), -0.4 + 0.2 * i), t0, 0.5)
+    dsp.place(out, dsp.stereo(ins.taiko(70, 0.9, 0.7, 'es')), t0, 0.5)
+    return _rev(out, 'hall', 0.3)
+
+
 REGISTRY = {
     'logo_slam': logo_slam, 'whoosh': whoosh, 'ui_blip': ui_blip, 'ui_select': ui_select, 'tick': tick, 'tock': tock,
     'escaped': escaped, 'clear_jingle': clear_jingle, 'gameover_jingle': gameover_jingle, 'red_alert': red_alert,
     'stamp_hit': stamp_hit, 'riser': riser, 'heartbeat': heartbeat, 'card_in': card_in, 'press_start': press_start,
     'choice_move': choice_move, 'crowd_swell': crowd_swell,
+    'crowd_press': crowd_press, 'zombie_groan': zombie_groan, 'zombie_groan_b': zombie_groan_b,
+    'caught_hit': caught_hit, 'red_flash': red_flash, 'cut_black': cut_black, 'continue_tick': continue_tick,
+    'continue_yes': continue_yes, 'kaiju_rumble': kaiju_rumble, 'kaiju_roar': kaiju_roar, 'boing': boing,
+    'smash_cut': smash_cut, 'end_sting': end_sting,
 }
 REQUIRED = ('logo_slam', 'whoosh', 'ui_blip', 'ui_select', 'tick', 'escaped', 'clear_jingle', 'gameover_jingle',
             'red_alert', 'stamp_hit')
+# combined-episodes contract (CONTRACT.md "Sound"); selftest / tests check these exist too
+REQUIRED_COMBINED = ('crowd_press', 'zombie_groan', 'caught_hit', 'red_flash', 'cut_black', 'continue_tick',
+                     'continue_yes', 'kaiju_rumble', 'kaiju_roar', 'smash_cut')
 ALIASES = {'slam': 'logo_slam', 'blip': 'ui_blip', 'select': 'ui_select', 'alert': 'red_alert', 'stamp': 'stamp_hit',
-           'clear': 'clear_jingle', 'gameover': 'gameover_jingle', 'game_over': 'gameover_jingle'}
+           'clear': 'clear_jingle', 'gameover': 'gameover_jingle', 'game_over': 'gameover_jingle',
+           # combined episodes: tolerant spellings a cue sheet might use
+           'press': 'crowd_press', 'crowd_close': 'crowd_press', 'groan': 'zombie_groan', 'zombie': 'zombie_groan',
+           'groan_b': 'zombie_groan_b', 'zombie_groan2': 'zombie_groan_b', 'zombie_groan_2': 'zombie_groan_b',
+           'hit': 'caught_hit', 'caught': 'caught_hit', 'flash': 'red_flash', 'black': 'cut_black',
+           'cut_to_black': 'cut_black', 'tick_continue': 'continue_tick', 'countdown': 'continue_tick',
+           'yes': 'continue_yes', 'continue_select': 'continue_yes', 'rumble': 'kaiju_rumble',
+           'roar': 'kaiju_roar', 'kaiju': 'kaiju_roar', 'spring': 'boing', 'gag': 'boing', 'smash': 'smash_cut',
+           'endcard': 'end_sting', 'end_card': 'end_sting', 'sting': 'end_sting'}
 
 
 def canonical(name: str) -> str | None:
-    n = name.strip().lower().replace('-', '_')
+    n = str(name).strip().lower().replace('-', '_').replace(' ', '_')
     n = ALIASES.get(n, n)
     return n if n in REGISTRY else None
 
@@ -280,4 +574,5 @@ def get(name: str) -> np.ndarray:
 
 # Offsets for cues whose musical "hit" is not at sample 0 (e.g. riser ends at its length).  mix.py uses
 # 'align': 'end' to place by the hit point.
-HIT_AT = {'riser': 1.8, 'escaped': 0.32, 'clear_jingle': 7 * 0.07 + 0.05, 'gameover_jingle': 0.0}
+HIT_AT = {'riser': 1.8, 'escaped': 0.32, 'clear_jingle': 7 * 0.07 + 0.05, 'gameover_jingle': 0.0,
+          'smash_cut': 0.1, 'kaiju_roar': 0.3, 'continue_yes': 0.0, 'end_sting': 0.26}

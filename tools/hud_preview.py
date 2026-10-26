@@ -2,7 +2,8 @@
 
   uv run --with playwright python tools/hud_preview.py --out DIR [--shots choice@1.4,stamp-over@0.2 ...] [--contact]
 
-Default shot list covers every component incl. animation phases. Writes DIR/<scene>@<t>.png, DIR/timing.json
+Default shot list covers every component incl. animation phases (+ the combined-episode components: stamp on black,
+CONTINUE?, gag, end card, compact sources). Writes DIR/<scene>@<t>.png, DIR/timing.json
 (per-frame DOM update+paint ms and screenshot ms) and DIR/records.json (GameHUD records: safe-area check etc.).
 No WebGL needed (pure DOM over a still).
 """
@@ -12,7 +13,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT = ('notice@0.12,notice@2.0,rules@0.15,rules@2.5,press@0.3,press@1.6,start@0.1,start@2.0,choice@0.12,choice@1.2,choice@2.4,choice@3.35,choice@3.9,'
            'consequence@1.5,stamp-over@0.08,stamp-over@0.2,stamp-over@0.45,stamp-over@1.4,stamp-clear@0.22,stamp-clear@1.4,stamp-esc@1.4,'
-           'lesson@0.2,lesson@2.0,cheat@0.3,cheat@2.0,sources@2.0,map@1.5')
+           'lesson@0.2,lesson@2.0,cheat@0.3,cheat@2.0,sources@2.0,map@1.5,'
+           # combined episodes (2026-10-26)
+           'stamp-black@0.2,stamp-black@1.2,continue@0.4,continue@1.6,continue@2.4,gag@0.3,gag@1.5,endcard@0.6,endcard@1.8,sources-union@2.0')
 
 
 class Quiet(http.server.SimpleHTTPRequestHandler):
@@ -45,14 +48,17 @@ def main():
                 f = out / f'{scene}@{t:.2f}.png'; f.write_bytes(png); files.append(f)
                 rec = r['rec']; records[s] = rec
                 timing.append({'shot': s, 'frame_ms': round(r['ms'], 1), 'eval_ms': round((t1-t0)*1000), 'screenshot_ms': round((t2-t1)*1000)})
-                print(f"{s:18s} frame {r['ms']:6.1f} ms · png {(t2-t1)*1000:5.0f} ms · safe {'ok' if rec['safe']['ok'] else rec['safe']['violations']} · parody {rec['parody']}")
+                print(f"{s:18s} frame {r['ms']:6.1f} ms · png {(t2-t1)*1000:5.0f} ms · safe {'ok' if rec['safe']['ok'] else rec['safe']['violations']} · note {rec.get('parodyNote')} · fiction {rec.get('fiction')}")
             b.close()
     finally:
         srv.shutdown()
     (out/'timing.json').write_text(json.dumps(timing, indent=1))
     (out/'records.json').write_text(json.dumps(records, ensure_ascii=False, indent=1))
     if errors: raise SystemExit('page errors: ' + '; '.join(errors))
-    bad = [k for k, r in records.items() if not r['safe']['ok'] or not r['parody']]
+    # HAGINO steering 2026-10-26: no persistent ※パロディ sticker; the sources card must carry the parody/fiction note and
+    # the fictional notice the 「フィクション」 tag (same rule as tools/record_variant.py check_frame)
+    bad = [k for k, r in records.items() if not r['safe']['ok'] or ('sources' in r['items'] and not r.get('parodyNote'))
+           or ('notice' in r['items'] and not r.get('fiction'))]
     if a.contact:
         from PIL import Image
         cols = 6; w, h = 360, 640; rows = (len(files)+cols-1)//cols

@@ -22,6 +22,10 @@ usage:
   python tools/record_variant.py --variant gate-over --part body --output seg.mp4 --log seg.jsonl --start-frame 0 --end-frame 300
   python tools/record_variant.py --variant gate-over --part opening --stills-at 0,2.5,4.6 --stills DIR
   python tools/record_variant.py contact --video V.mp4 --timeline tl.json --out C.jpg [--times 0,1.2,...]
+  python tools/record_variant.py --variant combined/gate --part body --output seg.mp4 --start-frame 450 --end-frame 585
+Combined episodes (variants/jr/combined/<pair>.json, tools/render_combined.sh): --variant combined/<pair>; the video must be
+60–80 s (variant-system.mjs COMBINED_VIDEO) instead of 30–45 s; the contact sheet labels every combined beat (caught
+press/flash/black, GAME OVER on black, CONTINUE?, kaiju rise/roar, end card, the fixed clear-result frame, …).
 """
 from __future__ import annotations
 
@@ -51,6 +55,12 @@ STAMP_OF = {'GAME_OVER': 'gameover', 'GAME_CLEAR': 'clear', 'CLEAR': 'clear', 'E
 ALERT_RE = re.compile(r'J-?ALERT|Jアラート|緊急速報|国民保護|NHK|エリアメール', re.I)
 CHEAT_MIN_SECONDS = 3
 CONTACT_FONT = '/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc'
+VIDEO_RANGE = (30, 45)
+COMBINED_RANGE = (60, 80)  # series/variant-system.mjs COMBINED_VIDEO
+
+
+def is_combined(plan):
+    return str(plan.get('variant') or '').startswith('combined/') or plan.get('kind') == 'combined'
 
 
 def check_frame(rec, plan=None, facts=None, soft=None):
@@ -105,7 +115,8 @@ def check_plan(plan):
     edges = [(b['f0'], b['f1']) for b in plan['beats']]
     assert edges[0][0] == 0 and edges[-1][1] == plan['frames'] and all(a[1] == b[0] for a, b in zip(edges, edges[1:])), 'beats must tile the part'
     if plan['part'] == 'body':
-        assert 30-1e-6 <= plan['videoDuration'] <= 45+1e-6 or str(plan['id']).startswith('_'), ('video must be 30–45 s', plan['videoDuration'])
+        lo, hi = COMBINED_RANGE if is_combined(plan) else VIDEO_RANGE
+        assert lo-1e-6 <= plan['videoDuration'] <= hi+1e-6 or str(plan['id']).startswith('_'), (f'video must be {lo}–{hi} s', plan['videoDuration'])
         cheat = [b for b in plan['beats'] if 'cheat' in b['hud']]
         assert cheat and max(b['t1']-b['t0'] for b in cheat) >= CHEAT_MIN_SECONDS-1e-6, 'cheat sheet beat ≥ 3 s'
         assert any(b['stamps'] for b in plan['beats']), 'body has no stamp'
@@ -231,8 +242,15 @@ def contact_times(timeline):
         elif press: out.append((b['t0']+d*.45, f"PRESS START · {b['id']}"))
         elif b['shot'] == 'op-flythrough': out += [(b['t0'], f"OP first frame · {b['id']}"), (b['t0']+d*.6, f"OP fly · {b['id']}")]
         else: out.append((b['t0']+d*.6, f"OP {b['id']}"))
+    combined = timeline.get('kind') == 'combined'
     for b in body['beats']:
         d = b['t1']-b['t0']; hud = b['hud']; t0 = body['offset']+b['t0']
+        if combined and b['id'] in COMBINED_CONTACT:
+            out += [(t0+min(d-1/FPS, max(0, x if x >= 0 else d+x)), f"{lab} · {b['id']}") for x, lab in COMBINED_CONTACT[b['id']]]
+            continue
+        if combined and (b.get('fix') or b.get('origin')) and b['id'] == 'clear-result':
+            out += [(t0+d*.3, f"clear-result (re-shot) · {b['id']}"), (t0+FIX_AT, f"FIX frame (orig {timeline['parts']['opening']['duration']+FIX_BODY:.1f}s) · {b['id']}")]
+            continue
         if 'choice' in hud: out += [(t0+d*.45, f"choice · {b['id']}"), (t0+d-.2, f"selected · {b['id']}")]
         elif any(h.startswith('stamp') for h in hud): out.append((t0+min(d-.05, 1.0), f"stamp · {b['id']}"))
         else: out.append((t0+d*.6, f"{b['id']}"))
@@ -241,6 +259,19 @@ def contact_times(timeline):
         f = max(0, min(timeline['frames']-1, round(t*FPS)))
         if f not in seen: seen.add(f); res.append((f/FPS, lab))
     return res
+
+
+# combined beats: (beat-local s, negative = from the end; label). The caught times follow caught-pov flashAt 1.75 / blackAt 2.15.
+COMBINED_CONTACT = {
+    'caught': [(.5, 'caught: press'), (1.5, 'caught: hands'), (1.8, 'caught: red flash'), (2.3, 'caught: black')],
+    'over-stamp': [(1.0, 'GAME OVER on black'), (-.1, 'OVER + safety')],
+    'continue': [(.6, 'CONTINUE? 3'), (-.3, 'CONTINUE? YES')],
+    'kaiju': [(1.0, 'kaiju rise'), (2.6, 'kaiju roar + gag')],
+    'endcard': [(1.2, 'end card')],
+    'sources': [(1.8, 'sources (union)')],
+}
+FIX_BODY = 13.4        # the QA'd fix moment: 13.4 s into the clear body (27.6 s video) …
+FIX_AT = FIX_BODY-11.0  # … = 2.4 s into its result beat (body 11.0–15.0 s)
 
 
 def contact(video, out, times, cols=5, width=216):
@@ -258,7 +289,9 @@ def contact(video, out, times, cols=5, width=216):
             im = Image.open(png).convert('RGB')
             x, y = (i % cols)*width, (i//cols)*h
             sheet.paste(im, (x, y))
-            ImageDraw.Draw(sheet).text((x+4, y+im.height+5), f'{t:5.2f}s {label}', fill=(255, 210, 63), font=font)
+            txt = f'{t:5.2f}s {label}'
+            while len(txt) > 8 and hasattr(font, 'getlength') and font.getlength(txt) > width-8: txt = txt[:-2]+'…'  # one tile, no overlap
+            ImageDraw.Draw(sheet).text((x+4, y+im.height+5), txt, fill=(255, 210, 63), font=font)
     Path(out).parent.mkdir(parents=True, exist_ok=True)
     sheet.save(out, quality=90)
     return out

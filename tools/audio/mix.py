@@ -13,8 +13,24 @@ Cue sheet (CONTRACT.md; produced by tools/variant_cues.mjs):
                "offset": s?}],
    "amb":    [{"t0", "t1", "bed": "crowd-night|station-hall|street-quiet", "gain_db": 0?, "fade_in"?, "fade_out"?}],
    "duck":   [{"t0", "t1", "depth_db": -8}],
+   "silence": [{"t0", "t1"}]?,                                        # explicit silence windows (see cuts below)
    "segments": [{"name": "opening", "t0": 0, "t1": 10.5}, ...]?        # optional, same as --split
   }
+Tolerance (combined episodes, 2026-10-26): an event's time may be "t" or "at"; sfx / track / bed names go through
+alias tables (sfx.ALIASES, music.ALIASES: continue|light -> retry, ambience aliases); "none"/null tracks are
+silence; unknown names warn and are skipped (--strict: error); unknown keys are ignored.
+Combined-episode rules (no extra cue fields needed, all overridable per event):
+  * AUTO_DUCK: the caught / kaiju sounds (crowd_press, zombie_groan[_b], caught_hit, red_flash, kaiju_rumble,
+    kaiju_roar) hard-duck the BGM (-20…-26 dB) for their length unless the event sets "duck" itself
+    ("duck": 0 disables) — so the BGM is effectively off in those beats even if the cue sheet keeps a track there.
+  * CUT_DEFAULTS: cut_black is a *hard cut*: every SFX that started before it is chopped at its time (6 ms), and
+    the BGM + ambience buses are silent for "silence" s (default 0.4) after it, then come back (BGM 0.35 s,
+    ambience 0.6 s ramps) if their runs continue.  smash_cut chops earlier SFX tails at its hit (align:"hit") and
+    dips BGM/ambience to zero with a 0.25 s recovery.  Per event: "silence": s, "chop": false.
+    "silence": [{t0, t1}] windows behave like a cut at t0 with silence t1 - t0.
+  * auto_continue_bed: a CONTINUE? countdown (continue_tick … continue_yes) with no BGM run over it gets the light
+    `retry` bed (-2 dB) from just before the first tick to ~1 s after YES / the next run; "auto_bgm": false = off.
+  * Track switches inside a segment crossfade across the boundary (resolve_runs, XFADE_*).
 Runs: abutting runs of the same track/bed continue the loop seamlessly (no fades at the junction); a run that ends
 on a segment boundary without continuation fades out over 0.8 s *after* the boundary (see resolve_runs).
 Ducking applies to the BGM bus (and ~35 % of the depth to the ambience bus); ramps are causal (start at t0, 60 ms
@@ -45,6 +61,14 @@ from dsp import SR, ns  # noqa: E402
 
 DEFAULT_DUCK_DB = -9.0
 AMB_DUCK_FRACTION = 0.35
+# combined episodes: BGM "off" under the caught / kaiju sounds (depth dB, for the sound's own length, ≤ 4.5 s)
+AUTO_DUCK = {'crowd_press': -20.0, 'zombie_groan': -20.0, 'zombie_groan_b': -20.0, 'caught_hit': -24.0,
+             'red_flash': -24.0, 'kaiju_rumble': -22.0, 'kaiju_roar': -26.0}
+AUTO_DUCK_MAX = 4.5
+# hard cuts: sfx -> silence (s) on the BGM + ambience buses after the cut; earlier SFX tails are chopped at the cut
+CUT_DEFAULTS = {'cut_black': 0.4, 'smash_cut': 0.0}
+CUT_RECOVER = {'bgm': 0.35, 'amb': 0.6}       # ramp back after a silence window (s); 0.25 s after a 0 s cut
+CHOP_FADE = 0.006
 
 
 def _f(d, k, default=None):
@@ -56,9 +80,11 @@ def expand_events(events, duration):
     out = []
     for i, e in enumerate(events):
         name = e.get('sfx') or e.get('name')
-        if not name:
+        if not name or not isinstance(name, str):
             continue
-        t = _f(e, 't', 0.0)
+        t = _f(e, 't', _f(e, 'at', None))
+        if t is None:
+            continue
         rep = _f(e, 'repeat', 0.0)
         times = [t]
         if rep and rep > 0:
@@ -110,6 +136,10 @@ def _range_gain(n_total: int, t0: float, t1: float, fin: float, fout: float) -> 
 
 
 SEAM_TAIL = 0.8   # s: a run that ends on a master-segment boundary (and isn't continued) fades out *after* it
+# track switch inside a segment (e.g. lesson calm -> CONTINUE? retry -> clear tension): the old run rings on
+# XFADE_TAIL s past the boundary and fades over XFADE_OUT s; the new one fades in over XFADE_IN s from the boundary
+# (no level dip at the switch).  Explicit fade_in / fade_out on a run still win.
+XFADE_TAIL, XFADE_OUT, XFADE_IN = 0.5, 0.8, 0.25
 
 
 def resolve_runs(runs, key: str, canon, duration: float, cuts, fin_def: float, fout_def: float, strict=False,
@@ -121,11 +151,13 @@ def resolve_runs(runs, key: str, canon, duration: float, cuts, fin_def: float, f
     * A run ending on a master-segment boundary (e.g. the end of the shared opening) is never faded *before*
       the boundary — if it isn't continued, it rings on for SEAM_TAIL s past the boundary and fades there.  So
       the audio before the boundary doesn't depend on what follows (identical shared opening in every variant).
+    * A run handing over to a *different* track/bed at the same time inside a segment crossfades across the
+      boundary (XFADE_*) instead of fading out before it and in after it (that left a ~10 dB dip).
     Explicit fade_in / fade_out / offset always win."""
     out = []
     for r in runs or []:
         nm = r.get(key) or r.get('track') or r.get('bed')
-        if nm in (None, 'none', 'silence', ''):
+        if nm in (None, False, 'none', 'null', 'off', 'silence', ''):
             continue
         c = canon(nm)
         if c is None:
@@ -149,6 +181,13 @@ def resolve_runs(runs, key: str, canon, duration: float, cuts, fin_def: float, f
         elif r['fade_out'] is None and any(abs(r['t1'] - c) < 1e-3 for c in cuts) and r['t1'] < duration - 1e-3:
             r['t1'] = min(duration, r['t1'] + SEAM_TAIL)
             r['fade_out'] = SEAM_TAIL
+        else:   # a different track/bed takes over right here (inside a segment): crossfade across the boundary
+            sw = next((q for q in out[k + 1:] if q['name'] != r['name'] and abs(q['t0'] - r['t1']) < 1e-3), None)
+            if sw is not None and r['fade_out'] is None:
+                r['t1'] = min(duration, r['t1'] + XFADE_TAIL)
+                r['fade_out'] = XFADE_OUT
+                if sw['fade_in'] is None:
+                    sw['fade_in'] = XFADE_IN
     for r in out:
         r['offset'] = float(r['offset'] or 0.0)
         r['fade_in'] = float(fin_def if r['fade_in'] is None else r['fade_in'])
@@ -157,13 +196,84 @@ def resolve_runs(runs, key: str, canon, duration: float, cuts, fin_def: float, f
     return out
 
 
+def cut_list(cues: dict, evs) -> list:
+    """Hard cuts [{t, silence, chop, src}] from cut SFX events (CUT_DEFAULTS, or any event with a "silence" field)
+    and from explicit cues["silence"] windows.  t = the event's cue time (its hit time when align:"hit")."""
+    cuts = []
+    for k, (e, name, _start) in enumerate(evs):
+        if name in CUT_DEFAULTS or e.get('silence') is not None:
+            cuts.append({'t': float(e['t']), 'silence': max(0.0, _f(e, 'silence', CUT_DEFAULTS.get(name, 0.0))),
+                         'chop': e.get('chop', True) is not False, 'src': k, 'sfx': name})
+    for w in cues.get('silence', []) or []:
+        t0 = _f(w, 't0', _f(w, 't', None))
+        if t0 is None:
+            continue
+        t1 = _f(w, 't1', t0 + _f(w, 'dur', 0.4))
+        cuts.append({'t': t0, 'silence': max(0.0, t1 - t0), 'chop': w.get('chop', True) is not False, 'src': -1,
+                     'sfx': None})
+    return sorted(cuts, key=lambda c: c['t'])
+
+
+def cut_gate(n: int, cuts, recover: float) -> np.ndarray:
+    """Bus gain (linear): 0 from each cut for its silence, then a sin² ramp back over `recover` s (0.25 s after a
+    0 s cut).  A 3 ms ramp *into* the cut avoids a click; overlapping cuts take the min."""
+    g = np.ones(n)
+    for c in cuts:
+        a = ns(c['t'])
+        b = a + ns(c['silence'])
+        r = ns(recover if c['silence'] > 0 else 0.25)
+        k = ns(0.003)
+        seg = np.ones(n)
+        ia = np.arange(max(a - k, 0), min(a, n))
+        seg[ia] = np.linspace(1, 0, k)[-ia.size:] if ia.size else seg[ia]
+        seg[max(a, 0):min(b, n)] = 0.0
+        ib = np.arange(max(b, 0), min(b + r, n))
+        if ib.size:
+            seg[ib] = np.sin(np.pi / 2 * (ib - b + 1) / max(r, 1)) ** 2
+        g = np.minimum(g, seg)
+    return g
+
+
+AUTO_RETRY_GAIN_DB = -2.0
+
+
+def auto_continue_bed(cues: dict, duration: float) -> list:
+    """CONTINUE? needs its light bed: if the sheet has a countdown (continue_tick … continue_yes) and *no* BGM run
+    overlaps it, add a `retry` run from just before the first tick to ~1 s after YES (or up to the next BGM run
+    if that starts within 2 s).  Opt out with cues["auto_bgm"] = false.  Returns the runs to add."""
+    if cues.get('auto_bgm') is False:
+        return []
+    evs = [(_f(e, 't', _f(e, 'at', None)), sfx.canonical(str(e.get('sfx') or e.get('name') or '')))
+           for e in cues.get('events', []) or []]
+    evs = [(t, nm) for t, nm in evs if t is not None and nm in ('continue_tick', 'continue_yes')]
+    yes = [t for t, nm in evs if nm == 'continue_yes']
+    ticks = [t for t, nm in evs if nm == 'continue_tick']
+    out = []
+    bg = [(_f(r, 't0', 0.0), _f(r, 't1', duration)) for r in cues.get('bgm', []) or []
+          if music.canonical(r.get('track') or r.get('bgm') or 'none')]
+    for y in yes:
+        tk = [t for t in ticks if y - 4.0 <= t < y]
+        t0 = max(0.0, (min(tk) if tk else y - 1.0) - 0.34)
+        nxt = [a for a, _ in bg if y < a <= y + 2.0]
+        t1 = min(nxt) if nxt else min(duration, y + 1.0)
+        if any(a < t1 - 1e-3 and b > t0 + 1e-3 for a, b in bg):
+            continue
+        out.append({'t0': round(t0, 4), 't1': round(t1, 4), 'track': 'retry', 'gain_db': AUTO_RETRY_GAIN_DB,
+                    'fade_in': 0.25, 'auto': True})
+    return out
+
+
 def render_stems(cues: dict, duration: float, strict: bool = False, warn=print, cuts=()):
     n = ns(duration)
     bgm = np.zeros((2, n))
     amb = np.zeros((2, n))
     fx = np.zeros((2, n))
-    tracks = lambda nm: nm if nm in music.TRACKS else None  # noqa: E731
-    runs = {'bgm': resolve_runs(cues.get('bgm'), 'track', tracks, duration, cuts, 0.5, 1.0, strict, warn),
+    tracks = music.canonical
+    auto = auto_continue_bed(cues, duration)
+    if auto:
+        warn(f'note: CONTINUE? had no BGM -> auto retry bed {[(r["t0"], r["t1"]) for r in auto]} (auto_bgm:false = off)')
+    runs = {'bgm': resolve_runs(list(cues.get('bgm') or []) + auto, 'track', tracks, duration, cuts, 0.5, 1.0, strict,
+                                warn),
             'amb': resolve_runs(cues.get('amb'), 'bed', ambience.canonical, duration, cuts, 0.8, 1.0, strict, warn)}
     for kind, bus, src in (('bgm', bgm, music.loop), ('amb', amb, ambience.bed)):
         for r in runs[kind]:
@@ -171,6 +281,7 @@ def render_stems(cues: dict, duration: float, strict: bool = False, warn=print, 
             if e > a:
                 bus[:, a:e] += dsp.tile(src(r['name']), e - a, ns(r['offset'])) * g * dsp.db(r['gain_db'])
     ducks = [(_f(d, 't0'), _f(d, 't1'), _f(d, 'depth_db', DEFAULT_DUCK_DB)) for d in cues.get('duck', []) or []]
+    evs = []
     for e in expand_events(cues.get('events', []) or [], duration):
         name = sfx.canonical(e['sfx'])
         if name is None:
@@ -178,19 +289,32 @@ def render_stems(cues: dict, duration: float, strict: bool = False, warn=print, 
                 raise SystemExit(f'unknown sfx {e["sfx"]!r}')
             warn(f'warning: unknown sfx {e["sfx"]!r} skipped')
             continue
+        start = e['t'] - (sfx.HIT_AT.get(name, 0.0) if e.get('align') == 'hit' else 0.0)
+        evs.append((e, name, start))
+    hard = cut_list(cues, evs)
+    for k, (e, name, start) in enumerate(evs):
         y = sfx.get(name)
-        t = e['t']
-        if e.get('align') == 'hit':
-            t -= sfx.HIT_AT.get(name, 0.0)
         if 'pan' in e and e['pan'] is not None:
             p = float(e['pan'])
             y = y * np.array([[min(1.0, 1 - p)], [min(1.0, 1 + p)]])
-        dsp.place(fx, y, t, dsp.db(_f(e, 'gain_db', 0.0)))
-        if e.get('duck'):
-            ducks.append((e['t'], e['t'] + float(e['duck']), _f(e, 'duck_db', DEFAULT_DUCK_DB)))
+        # hard cuts chop the tails of sounds that started before them (never the cut sound itself)
+        chop = next((c for c in hard if c['chop'] and c['src'] != k and c['t'] > start + 1e-4), None)
+        if chop is not None and chop['t'] < start + y.shape[-1] / SR:
+            m = max(ns(chop['t'] - start), 0)
+            y = dsp.fade(y[:, :m], 0, CHOP_FADE) if m > 0 else y[:, :0]
+        dsp.place(fx, y, start, dsp.db(_f(e, 'gain_db', 0.0)))
+        if e.get('duck') is not None:
+            if e['duck']:
+                ducks.append((e['t'], e['t'] + float(e['duck']), _f(e, 'duck_db', DEFAULT_DUCK_DB)))
+        elif name in AUTO_DUCK and y.shape[-1]:     # BGM "off" under caught / kaiju sounds (ends with a chop)
+            ducks.append((start, start + min(y.shape[-1] / SR, AUTO_DUCK_MAX), _f(e, 'duck_db', AUTO_DUCK[name])))
     dc = duck_curve(n, ducks)
     bgm *= dc
     amb *= 1 - (1 - dc) * AMB_DUCK_FRACTION
+    if hard:
+        bgm *= cut_gate(n, hard, CUT_RECOVER['bgm'])
+        amb *= cut_gate(n, hard, CUT_RECOVER['amb'])
+    runs['hard_cuts'] = [{k: v for k, v in c.items() if k != 'src'} for c in hard]
     return {'bgm': bgm, 'amb': amb, 'sfx': fx}, ducks, runs
 
 

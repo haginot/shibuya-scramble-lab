@@ -6,6 +6,9 @@ mastered as its own segment so it sounds identical in every variant. Everything 
 at the end (HAGINO steering 2026-10-26: no persistent ※パロディ label; a small 「フィクション」 corner tag during the
 fictional operator notice of the cold open + a parody/fiction note on every sources card).
 
+Combined episodes (one video per pair: GAME OVER → CONTINUE? → CLEAR → kaiju gag, built mostly from these renders):
+`docs/COMBINED.md`, `tools/render_combined.sh`.
+
 ## One command
 
 ```sh

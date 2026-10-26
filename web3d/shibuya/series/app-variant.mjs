@@ -5,11 +5,20 @@
 // part=opening renders the SHARED opening (variants/<ep>/_opening.json; identical for every variant), part=body the
 // variant body (variants/<ep>/<id>.json). The timeline is series/variant-system.mjs; per frame:
 //   frameSpec → SHOTS[key](ctx, params)(local) (shots-variants.mjs; unknown key → 'aerial') → applyEnv on the shared
-//   scene (scene-jr.mjs) → background crowd = live JR solver stepped to JR time BG0 + video time (monotonic, resumable)
+//   scene (scene-jr.mjs) → background crowd = live JR solver stepped to JR time BG0 + video time (spec.vt; monotonic, resumable)
 //   → crowd state (crowd-variants.mjs crowdFrame; its regions hide the solver crowd) → near-camera people
 //   (people-close.mjs NearPeople: state people + solver agents within 18 m of an eye-level camera) → 3D logo
-//   (opening.mjs createOpeningLogo / ui/logo3d.mjs) → post → DOM HUD (ui/components.mjs GameHUD; unknown component →
-//   plain caption; missing HUD module → plain text fallback).
+//   (opening.mjs createOpeningLogo / ui/logo3d.mjs) → shot effects (below) → post → DOM HUD (ui/components.mjs GameHUD;
+//   unknown component → plain caption; missing HUD module → plain text fallback).
+// Shot effects (combined episodes, optional modules like the others; a missing module = the plain shot):
+//   env.caught (shots 'caught-pov') → series/vfx-caught.mjs createCaughtVFX({scene,camera,renderer,post}).update(env.caught|null,
+//   {aspect}); env.kaiju ('kaiju-skyline') → series/kaiju.mjs createKaiju({scene}).update(env.kaiju|null,{camera,time}). Both
+//   are created up front when the plan uses those shot keys (shaders compiled in __warmup), else lazily on the first frame
+//   whose env carries them; every later frame calls update (null when the env has none → hidden). A caught-pov beat's crowd
+//   state gets params.pov = {x, z, y (floor), dir:[dx,dz], heading} (the frozen player spot, static per beat → cached setup);
+//   'caught-press' also gets at:[x,z] / heading / y from it unless the config sets them.
+//   env.blank ('black', caught-pov after the cut): treated like a flat frame (no solver step, no near people, no reflection
+//   pass, scene parts hidden) → a black frame costs ≈ the post pass only.
 // Recording API (tools/record_variant.py; one call per video frame, nothing on a wall clock):
 //   window.__variantPlan     {id, part, ep, duration, frames, fps, offset, beats:[{id,t0,t1,shot,crowd,hud,stamps}], validation,
 //                             videoDuration, openingDuration}
@@ -90,19 +99,41 @@ export async function start(params){
  const crowdCtx={insideBuilding:S.R.insideBuilding,run:null};
  // crowd states sit on the set-piece anchors (taxi-sakura queue at the moved stand, closure line, platform…); taxi-west keeps
  // its default spot beside the stand so the queue does not hide the 「休止中」 board (stills review 2026-10-26)
- function crowdState(spec){if(!spec.crowd||!crowdM)return null;try{return crowdM.crowdFrame(spec.crowd.key,spec.crowd.t,{params:{...(crowdM.paramsFromSets&&sets?.anchors&&spec.crowd.key!=='taxi-west'?crowdM.paramsFromSets(spec.crowd.key,sets.anchors):{}),...spec.crowd.params},ctx:crowdCtx});}catch(e){console.error('crowd state',e.message);spec.fallbacks.push(`crowd:${spec.crowd.key}!→none`);return null;}}
+ function crowdState(spec,e={}){if(!spec.crowd||!crowdM)return null;const C=e.caught,hd=C?.dir?Math.atan2(C.dir[0],C.dir[1]):0;
+  // caught-pov → the frozen player spot: params.pov for any state + at/heading/y defaults for 'caught-press' (config wins)
+  const press=C?.at&&(crowdM.resolveCrowdState?crowdM.resolveCrowdState(spec.crowd.key)==='caught-press':spec.crowd.key==='caught-press');
+  const pov=C?.at?{pov:{x:C.at[0],z:C.at[1],y:C.floorY??0,dir:C.dir,heading:hd},...(press?{at:[+C.at[0].toFixed(2),+C.at[1].toFixed(2)],heading:+hd.toFixed(4),y:C.floorY??0}:{})}:{};
+  try{return crowdM.crowdFrame(spec.crowd.key,spec.crowd.t,{params:{...(crowdM.paramsFromSets&&sets?.anchors&&spec.crowd.key!=='taxi-west'?crowdM.paramsFromSets(spec.crowd.key,sets.anchors):{}),...pov,...spec.crowd.params},ctx:crowdCtx});}catch(e){console.error('crowd state',e.message);spec.fallbacks.push(`crowd:${spec.crowd.key}!→none`);return null;}}
+
+ // ---------- shot effects: caught VFX + kaiju (optional modules) ----------
+ const fx={caught:null,kaiju:null,tried:{}};
+ async function ensureFx(kind){if(fx[kind]||fx.tried[kind])return fx[kind];fx.tried[kind]=true;
+  try{if(kind==='caught'){const M=await optional('./vfx-caught.mjs');if(M?.createCaughtVFX)fx.caught=M.createCaughtVFX({scene,camera,renderer:S.renderer,post});}
+   else{const M=await optional('./kaiju.mjs');if(M?.createKaiju){fx.kaiju=M.createKaiju({scene});if(fx.kaiju?.group&&!fx.kaiju.group.parent)scene.add(fx.kaiju.group);}}}
+  catch(err){console.error(`variant page: ${kind} effect failed (${err.message}) → plain shot`);fx[kind]=null;}return fx[kind];}
+ const planKeys=new Set(plan.beats.map(b=>b.shot?.key));
+ if(planKeys.has('caught-pov'))await ensureFx('caught');if(planKeys.has('kaiju-skyline'))await ensureFx('kaiju');
+ function updateFx(e,vt,fb){const out={caught:null,kaiju:null};
+  for(const [k,arg] of [['caught',{aspect:S.W/S.H}],['kaiju',{camera,time:vt}]]){const v=fx[k];if(!v)continue;
+   try{v.update(e[k]??null,arg);out[k]=!!e[k];}catch(err){console.error(`${k} update`,err.message);fb.push(`${k}!→none`);}}
+  return out;}
 
  window.__variantPlan={id:cfg.id,variant:id,part,ep,openingId,duration:plan.duration,frames:plan.frames,fps:VS.FPS,offset:plan.offset,videoDuration:V.duration,openingDuration:V.opening.duration,
   outcome:body.outcome,beats:plan.beats.map(b=>({id:b.id,t0:b.t0,t1:b.t1,f0:b.f0,f1:b.f1,shot:b.shot?.key,crowd:b.crowd?.key??null,hud:(b.hud||[]).map(h=>h.c),stamps:(b.hud||[]).filter(h=>h.c==='stamp').map(h=>h.kind)})),
   validation,agents:S.nAgents};
 
  // ---------- one frame ----------
- let lastT=null;
+ let lastT=null,lastPartT=null;
  async function frame(t){const T0=performance.now();
-  const spec=VS.frameSpec(plan,cfg,t,keys),vt=plan.offset+t;// vt = video time (opening + body)
+  // vt = video time of the background world (solver crowd, near-people anim, interior, uTime): spec.vt = beat.vt0 + local on
+  // combined re-shot / new beats (the original's video time, so a re-shot clear beat sees the same crowd), else opening + t.
+  // The solver only steps forward: a recording segment starts fresh at its own vt; live preview / multi-time stills that
+  // jump back in vt keep the later solver state (cosmetic, preview only).
+  const spec=VS.frameSpec(plan,cfg,t,keys),vt=spec.vt??(plan.offset+t);lastPartT=t;
   const lg=logo?logo.update(spec.logo):null;
   const shot=shotFor(spec);
-  const res=shotsM.applyEnv(shot,S.parts,spec.shot.local);const flat=res.flat,e=shot.env||{};
+  const res=shotsM.applyEnv(shot,S.parts,spec.shot.local);const flat=res.flat||!!res.blank,e=shot.env||{};
+  if(e.caught&&!fx.tried.caught)await ensureFx('caught');if(e.kaiju&&!fx.tried.kaiju)await ensureFx('kaiju');
   post.settings.uFade.value*=spec.fade;if(lg?.flash)post.settings.uExposure.value*=1+lg.flash*.6;
   // background crowd: JR solver to BG0 + video time
   const cpt=e.focus?{x:e.focus[0],z:e.focus[1]}:{x:shot.look.x,z:shot.look.z};
@@ -112,7 +143,7 @@ export async function start(params){
   const dtSim=lastT==null?0:Math.max(0,vt-lastT);lastT=vt;
   S.updateCrowd(dtSim);
   // crowd-state people are invisible from high aerials (>80 m): skip them (and their solver mask) there
-  const frAll=crowdState(spec),fr=camera.position.y>80?null:frAll;
+  const frAll=crowdState(spec,e),fr=camera.position.y>80||res.blank?null:frAll;
   if(S.crowd){if(fr?.regions?.length)crowdM.maskCrowdRegions(S.crowd,fr.regions);S.crowd.uniforms.uNearDim.value=e.eye?LOOK.nearDim:0;}
   // near people: crowd-state people + solver agents close to an eye-level camera (replaces the low-poly figures)
   let nearList=[];if(fr&&!flat)nearList=fr.people.slice();
@@ -125,20 +156,29 @@ export async function start(params){
   const nInterior=S.interior(!!e.interior&&!flat,S.eStart+BG_SIM0+vt,shot);
   const drawn=S.crowd&&S.crowd.visible?S.cullCrowd(e.eye?220:4000,camera.position.y<40):0;
   shared.uTime.value=vt;S.R.update(vt,camera);
+  const fxOn=updateFx(e,vt,spec.fallbacks);
   S.render(flat);S.finish();
   const renderMs=performance.now()-T0-simMs;
   // HUD
   let items=spec.items.filter(it=>it.c!=='parody');
   items=items.map(it=>{if(it.c==='pin'&&Array.isArray(it.world)){const q=S.project(it.world[0],it.world[1]??0,it.world[2]??0);return q.inFrame?{...it,x:q.x,y:q.y}:null;}if(typeof it.crowd==='string'){const f=frAll?.hud?.items?.find(x=>x.id===it.crowd);return f?{...it,c:it.c==='sim'?'sim':it.c,ja:f.text}:null;}return it;}).filter(Boolean);
   // 「位置・構造は概略」 for approximate sets / the station interior: a design-system corner tag (ui/components.mjs tag)
-  const approx=(e.approx||e.interior)&&!flat?(shotsM.APPROX_LABEL?.[lang]??'位置・構造は概略'):null;
-  const rec=hud.frame({T:t,items,header:spec.header,clock:spec.clock,tags:approx?[approx]:[],footnote:ids=>footnote([...new Set([...spec.factIds,...ids])]),config:body,sources:srcRows,lang});
+  // (not on the caught POV: the creature hands own the frame edges there)
+  const approx=(e.approx||e.interior)&&!flat&&!e.caught?(shotsM.APPROX_LABEL?.[lang]??'位置・構造は概略'):null;
+  // beat.factIds cover the 3D content (e.g. the departure board): not on screen on blank frames (black / after the caught cut);
+  // beat.footnote:false (end card: its own credit line) → no page footnote; a blank frame without claims → none either
+  // kaiju gag: the footnote sits over the bright street-light row → dark backing plate (ui footnote plate:true)
+  const beatIds=res.blank?[]:spec.factIds;
+  const rec=hud.frame({T:t,items,header:spec.header,clock:spec.clock,tags:approx?[approx]:[],footnote:spec.footnote===false?null:ids=>{const all=[...new Set([...beatIds,...ids])];if(res.blank&&!all.length)return null;const f=footnote(all);return f&&e.kaiju?{ja:f,[lang]:f,plate:true}:f;},config:body,sources:srcRows,lang});
   const strings=[...rec.strings];
-  const claims=[...new Set([...spec.factIds,...rec.factIds])];
+  const claims=[...new Set([...beatIds,...rec.factIds])];
   const out={t,vt,part,beat:spec.beat.id,beatIndex:spec.beat.index,local:spec.beat.local,shot:{key:spec.shot.key,requested:spec.shot.requested,name:shot.name},
    crowd:spec.crowd?{key:spec.crowd.key,t:spec.crowd.t,people:fr?.people?.length??0}:null,
    title:{header:!!rec.header,logo:!!spec.logo&&spec.logo.t>=0&&(spec.logo.dissolve??0)<1},parody:!!rec.parody,fiction:!!rec.fiction,notice:!!rec.notice,parodyNote:!!rec.parodyNote,approx:!!approx,strings,sims:rec.sims,stamps:rec.stamps,allowedStamps:spec.stamps,
    claims,footnote:rec.footnote?{ids:claims,text:rec.footnote.text}:{ids:[],text:''},footBox:rec.footBox||null,safe:rec.safe,cheat:!!rec.cheat,choice:rec.choice,items:rec.items,fallbacks:spec.fallbacks,
+   caught:e.caught?{t:+e.caught.t.toFixed(3),intensity:+e.caught.intensity.toFixed(3),press:+e.caught.press.toFixed(3),flash:+e.caught.flash.toFixed(3),black:e.caught.black,vfx:!!fxOn.caught}:null,
+   kaiju:e.kaiju?{rise:+e.kaiju.rise.toFixed(3),eyes:+e.kaiju.eyes.toFixed(3),roar:+e.kaiju.roar.toFixed(3),model:!!fxOn.kaiju}:null,blank:!!res.blank,
+   cont:rec.cont??null,endcard:rec.endcard??null,gag:rec.gag??null,credit:rec.credit??null,
    ms:{sim:Math.round(simMs),render:Math.round(renderMs)},peopleDrawn:drawn,near:near?.last?.drawn??0,interior:nInterior,fade:+(post.settings.uFade.value).toFixed(3)};
   window.__variantOverlay=out;
   return {t,frame:Math.round(t*VS.FPS),beat:spec.beat.id,shot:spec.shot.key,ms:out.ms,drawCalls:S.renderer.info.render.calls,triangles:S.renderer.info.render.triangles,agents:S.nAgents};}
@@ -151,5 +191,5 @@ export async function start(params){
  window.__frame=async t=>frame(t);
  window.__variantDebug={S,plan,cfg,opening,body,VS,get logo(){return logo;},near,hud};
  window.__ready=true;
- if(!recording){await window.__warmup(0);let t0=null;const loop=async now=>{t0??=now;const t=((now-t0)/1000)%plan.duration;if(lastT!=null&&plan.offset+t<lastT)location.reload();await frame(t);requestAnimationFrame(loop);};requestAnimationFrame(loop);}
+ if(!recording){await window.__warmup(0);let t0=null;const loop=async now=>{t0??=now;const t=((now-t0)/1000)%plan.duration;if(lastPartT!=null&&t<lastPartT)location.reload();await frame(t);requestAnimationFrame(loop);};requestAnimationFrame(loop);}
 }

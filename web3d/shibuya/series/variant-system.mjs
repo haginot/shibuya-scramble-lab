@@ -33,11 +33,26 @@
 //   sourceRows(ids, {facts, sources}) → [{label, date, url, factIds}]
 //   buildCues(opening, body, {fps}) → cue sheet (CONTRACT.md format + segments for tools/audio/mix.py)
 //   collectFactIds(cfg) / collectStrings(cfg) / openingHash(openingCfg, extra)
+//   COMBINED_BEATS, COMBINED_REUSE, isCombined(cfg), validateCombined(cfg, {configs?}), reuseMap(cfg, configs),
+//   clockState(plan, cfg, t)
+//
+// COMBINED EPISODES (2026-10-26, combined/CONTRACT.md; docs/COMBINED.md): one video per pair = shared opening + a
+// combined body (variants/<ep>/combined/<pair>.json, page variant=combined/<pair>) that plays the GAME OVER run → caught
+// sequence → GAME OVER on black → lesson → CONTINUE? → the CLEAR run → kaiju gag → end card → union sources card.
+//  {…variant schema, kind:'combined', outcome:'COMBINED', parts:{over:'<pair>-over', clear:'<pair>-clear'},
+//   beats:[…16 beats in COMBINED_BEATS order; per beat reuse?:{variant, beat} (frames copied from that variant's rendered
+//   body.mp4; dur must equal the source beat's) or origin?:{variant, beat} (a NEW render that re-shoots a source beat, e.g.
+//   with a fix: zone/alt clear-result + clear-stamp), vt0? (s: video time of the background crowd solver at the beat
+//   start — the origin's video time, so a re-shot beat sees the same crowd as the original; default opening + body t)]}
+//  Copied/re-shot beats carry explicit shot.t0 / crowd.t0+restart / clock.set (generator tools/combined_configs.mjs), so
+//  every beat also renders on its own exactly like its source. Stamps: GAME_OVER only in over-stamp, the CLEAR stamp only
+//  in clear-stamp; two choice beats (item.picked = that run's pick). clock.set also takes 'HH:MM:SS' (fractional game
+//  minutes: the re-shot clear beats continue the original clear video's clock exactly).
 
 export const FPS=30;
 export const PARTS=Object.freeze(['opening','body']);
 export const OUTCOMES=Object.freeze(['GAME_OVER','CLEAR']);
-export const STAMP_FOR=Object.freeze({GAME_OVER:['GAME_OVER'],CLEAR:['GAME_CLEAR','CLEAR','ESCAPED']});
+export const STAMP_FOR=Object.freeze({GAME_OVER:['GAME_OVER'],CLEAR:['GAME_CLEAR','CLEAR','ESCAPED'],COMBINED:['GAME_OVER','GAME_CLEAR','CLEAR','ESCAPED']});
 export const SIM_RE=/シミュレーション|simulation/i;
 export const FALLBACK_SHOT='aerial';
 const STAMP_DROP=.16;            // ui/tokens.mjs MOTION.stampDrop (impact frame of the stamp component)
@@ -79,7 +94,7 @@ function citingObjects(v,path='',out=[]){if(Array.isArray(v)){v.forEach((x,i)=>c
 // ---------------------------------------------------------------- validation
 // facts: {id:{na, say?, v?}} (sources-series.mjs FACTS); dropped: [ids]. Keys lists: unknown keys are warnings
 // (the page falls back: shot → aerial, crowd → none, component → plain caption) unless strict.
-export function validateConfig(cfg,{part=null,facts=null,dropped=[],shotKeys=null,crowdKeys=null,componentKeys=null,strict=false}={}){
+export function validateConfig(cfg,{part=null,facts=null,dropped=[],shotKeys=null,crowdKeys=null,componentKeys=null,strict=false,configs=null}={}){
  const E=[],W=[];const err=m=>E.push(m),warn=m=>(strict?E:W).push(m);
  if(!isObj(cfg))return {ok:false,errors:['config is not an object'],warnings:[]};
  part??=cfg.part??(cfg.id==='_opening'||cfg.id==='opening'?'opening':'body');
@@ -99,23 +114,25 @@ export function validateConfig(cfg,{part=null,facts=null,dropped=[],shotKeys=nul
   for(const [j,h] of (b.hud||[]).entries()){const hat=`${at}.hud[${j}]`;
    if(!isObj(h)||typeof h.c!=='string'){err(`${hat}.c missing`);continue;}
    if(componentKeys&&!componentKeys.includes(h.c)&&h.c!=='logo')warn(`${hat}.c '${h.c}' unknown → plain caption`);
-   if(!Array.isArray(h.factIds)&&!['logo','choice','lesson','cheat','sources','parody','header','press-start','pressStart','clock'].includes(h.c))warn(`${hat} has no factIds ([] for game framing)`);
+   if(!Array.isArray(h.factIds)&&!['logo','choice','lesson','cheat','sources','parody','header','press-start','pressStart','clock','continue','endcard','gag'].includes(h.c))warn(`${hat} has no factIds ([] for game framing)`);
    if(h.c==='sim'&&!SIM_RE.test(txt(h)))err(`${hat}: sim item text must contain 「シミュレーション」`);
    if(h.at!=null&&!(h.at>=0&&h.at<b.dur))err(`${hat}.at outside the beat`);
    if(h.until!=null&&!(h.until>(h.at??0)&&h.until<=b.dur+1e-9))err(`${hat}.until must be in (at, dur]`);
    if(h.c==='stamp'&&part==='opening')err(`${hat}: no stamps in the opening`);
    if(h.c==='stamp'&&cfg.outcome&&!(STAMP_FOR[cfg.outcome]||[]).includes(h.kind))err(`${hat}: stamp ${h.kind} does not match outcome ${cfg.outcome}`);}
   for(const [j,c] of (b.cues||[]).entries())if(!isObj(c)||typeof c.sfx!=='string'||!(c.at>=0))err(`${at}.cues[${j}] must be {at>=0, sfx}`);
-  if(b.clock!=null&&b.clock!==false&&!(isObj(b.clock)&&(b.clock.set==null||/^\d{1,2}:\d{2}$/.test(b.clock.set))))err(`${at}.clock must be false or {set:'HH:MM', rate?}`);});
+  if(b.clock!=null&&b.clock!==false&&!(isObj(b.clock)&&(b.clock.set==null||HM_RE.test(b.clock.set))))err(`${at}.clock must be false or {set:'HH:MM[:SS]', rate?}`);
+  if(b.vt0!=null&&!(typeof b.vt0==='number'&&b.vt0>=0))err(`${at}.vt0 must be a number >= 0 (s)`);});
  const has=c=>cfg.beats.some(b=>(b.hud||[]).some(h=>h.c===c));
  const beatWith=c=>cfg.beats.find(b=>(b.hud||[]).some(h=>h.c===c));
  if(part==='opening'){
   if(!has('logo'))warn('opening has no logo item');
   if(!has('press-start')&&!has('pressStart')&&!cfg.beats.some(b=>(b.hud||[]).some(h=>h.c==='logo'&&h.press)))warn('opening has no PRESS START beat (press-start item or logo {press:true})');
   if(dur<8||dur>14.5)W.push(`opening is ${dur.toFixed(2)} s (target 9–14.5 s)`);
-  if(cfg.beats[0]?.shot?.key!=='op-flythrough')W.push('opening should start on the op-flythrough shot');}
+  if(cfg.beats[0]?.shot?.key!=='op-flythrough')W.push('opening should start on the op-flythrough shot');
+  if(isCombined(cfg))err('a combined config is a body (part=body)');}
  else{
-  if(!OUTCOMES.includes(cfg.outcome))err(`outcome must be GAME_OVER|CLEAR (${cfg.outcome})`);
+  if(!OUTCOMES.includes(cfg.outcome)&&!(isCombined(cfg)&&cfg.outcome==='COMBINED'))err(`outcome must be GAME_OVER|CLEAR${isCombined(cfg)?'|COMBINED':''} (${cfg.outcome})`);
   if(typeof cfg.pair!=='string'||!cfg.pair)err('pair missing');
   if(!txt(cfg.title))err('title.ja missing');
   const C=cfg.choice;
@@ -131,9 +148,11 @@ export function validateConfig(cfg,{part=null,facts=null,dropped=[],shotKeys=nul
   if(!isObj(cfg.cheat)||!Array.isArray(cfg.cheat.rows)||!cfg.cheat.rows.length)err('cheat.rows missing');
   if(!Array.isArray(cfg.sources)||!cfg.sources.length)err('sources[] missing');
   if(isObj(cfg.clock)&&cfg.clock.start!=null&&!/^\d{1,2}:\d{2}$/.test(cfg.clock.start))err('clock.start must be HH:MM');
-  if(dur<20||dur>34)W.push(`body is ${dur.toFixed(2)} s (target 24–32 s)`);
+  if(isCombined(cfg)){if(dur<48||dur>64)W.push(`combined body is ${dur.toFixed(2)} s (target 50–62 s)`);}
+  else if(dur<20||dur>34)W.push(`body is ${dur.toFixed(2)} s (target 24–32 s)`);
   // the stamp shown must come after the choice is made
-  const ci=cfg.beats.indexOf(beatWith('choice')),si=cfg.beats.indexOf(beatWith('stamp'));if(ci>=0&&si>=0&&si<ci)err('stamp before the choice');}
+  const ci=cfg.beats.indexOf(beatWith('choice')),si=cfg.beats.indexOf(beatWith('stamp'));if(ci>=0&&si>=0&&si<ci)err('stamp before the choice');
+  if(isCombined(cfg)){const c=validateCombined(cfg,{configs});E.push(...c.errors);W.push(...c.warnings);}}
  // text rules
  for(const s of collectStrings(cfg)){
   for(const re of TEXT_RULES.banned)if(re.test(s.text))err(`banned name in ${s.path}`);
@@ -178,12 +197,17 @@ export function beatAt(plan,t){const f=Math.max(0,Math.min(plan.frames-1,Math.fl
  const beat=plan.beats[lo],local=Math.max(0,t-beat.t0);return {beat,index:lo,local,u:clamp(local/beat.dur)};}
 
 // ---------------------------------------------------------------- game clock
-const hm=s=>{const [h,m]=String(s).split(':').map(Number);return h*60+m;};
+const HM_RE=/^\d{1,2}:\d{2}(:\d{2})?$/;
+const hm=s=>{const [h,m,sec=0]=String(s).split(':').map(Number);return h*60+m+sec/60;};
 const fmtHM=m=>{m=Math.floor(m);return `${String(Math.floor(m/60)%24).padStart(2,'0')}:${String(((m%60)+60)%60).padStart(2,'0')}`;};
-export function clockAt(plan,cfg,t){const C=cfg.clock;if(!isObj(C)||!C.start)return null;let base=hm(C.start),rate=C.rate??1,tb=0;
+// clockState → {minutes (game minutes since 00:00, fractional), rate, visible} at part time t (combined generator: the
+// exact clock of a source beat, re-applied with clock.set 'HH:MM:SS')
+export function clockState(plan,cfg,t){const C=cfg.clock;if(!isObj(C)||!C.start)return null;let base=hm(C.start),rate=C.rate??1,tb=0;
  for(const b of plan.beats){if(b.t0>t+1e-9)break;if(isObj(b.clock)){if(b.clock.set){base=hm(b.clock.set);tb=b.t0;}else{base+=rate*(b.t0-tb);tb=b.t0;}if(b.clock.rate!=null)rate=b.clock.rate;}}
- const {beat}=beatAt(plan,t);if(beat.clock===false)return null;
- return {time:fmtHM(base+rate*(t-tb)+1e-6),label:txt(C)||'ゲーム内時刻（架空）'};}
+ const {beat}=beatAt(plan,t);return {minutes:base+rate*(t-tb),rate,visible:beat.clock!==false};}
+export const fmtHMS=m=>{const s=Math.round(m*60);return `${String(Math.floor(s/3600)%24).padStart(2,'0')}:${String(Math.floor(s/60)%60).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;};
+export function clockAt(plan,cfg,t){const st=clockState(plan,cfg,t);if(!st||!st.visible)return null;
+ return {time:fmtHM(st.minutes+1e-6),label:txt(cfg.clock)||'ゲーム内時刻（架空）'};}
 
 // ---------------------------------------------------------------- footnote / sources
 export function footnoteFor(ids,{facts,sourceNames,lang='ja',credit=null}={}){
@@ -202,7 +226,9 @@ export function sourceRows(ids,{facts,sources}={}){const rows=[],seen=new Set();
 // ---------------------------------------------------------------- per-frame spec
 // → {t, part, beat:{id,index,local,u,dur}, shot:{key, requested, params, local}, crowd:{key, params, t}|null,
 //    items:[hud items with t/dur], logo:{t, press, dissolve}|null, header:bool, clock, fade, stamps:[kinds allowed now],
-//    factIds:[ids of the items on screen + beat.factIds], fallbacks:[…]}
+//    factIds:[ids of the items on screen + beat.factIds], fallbacks:[…], vt (video time for the background crowd solver:
+//    beat.vt0 + local when the beat sets vt0 (combined re-shot beats), else plan.offset + t), footnote (false when the
+//    beat sets footnote:false — e.g. the end card, whose own credit line replaces the page footnote)}
 export function frameSpec(plan,cfg,t,{shotKeys=null,crowdKeys=null,componentKeys=null}={}){
  const {beat,index,local,u}=beatAt(plan,t);const fb=[];
  const key=beat.shot?.key;let shotKey=key;if(shotKeys&&!shotKeys.includes(key)){shotKey=FALLBACK_SHOT;fb.push(`shot:${key}→${FALLBACK_SHOT}`);}
@@ -225,9 +251,15 @@ export function frameSpec(plan,cfg,t,{shotKeys=null,crowdKeys=null,componentKeys
  if(beat.fadeOut!=null&&local>beat.dur-beat.fadeOut)fade=Math.min(fade,(beat.dur-local)/beat.fadeOut);
  const stamps=(beat.hud||[]).filter(h=>h.c==='stamp').map(h=>h.kind);
  return {t,part:plan.part,beat:{id:beat.id,index,local,u,dur:beat.dur},shot:{key:shotKey,requested:key,params,local:local+beat.shotOffset},
-  crowd,items,logo,header:beat.header!==false&&!logo,clock:plan.part==='body'?clockAt(plan,cfg,t):null,fade,stamps,factIds:[...ids],fallbacks:fb};}
+  crowd,items,logo,header:beat.header!==false&&!logo,clock:plan.part==='body'?clockAt(plan,cfg,t):null,fade,stamps,factIds:[...ids],fallbacks:fb,
+  vt:beat.vt0!=null?beat.vt0+local:(plan.offset||0)+t,footnote:beat.footnote!==false};}
 
 // ---------------------------------------------------------------- audio cue sheet
+// CONTINUE? timing = ui/components.mjs continueTiming (HUD owner; mirrored here so this module stays dependency-free):
+// digits count … 1 pop at tickAt[i] (evenly from .34 s to yesAt), YES is pressed at yesAt (default max(.34+.3·count, dur−1));
+// the combined configs pin yesAt explicitly so picture and sound cannot drift apart
+export function continueTiming(h,dur){const count=Math.max(1,Math.round(h.count??3)),t0=.34,yesAt=+(h.yesAt??Math.max(t0+count*.3,dur-1)).toFixed(3),step=(yesAt-t0)/count;
+ return {count,yesAt,tickAt:Array.from({length:count},(_,i)=>+(t0+i*step).toFixed(3))};}
 function autoCues(b){const out=[];
  for(const h of b.hud||[]){const a=h.at??0,dur=(h.until??b.dur)-a;
   if(h.c==='logo'){if(b.logoRun===b.t0&&!h.seq){out.push({at:a,sfx:'whoosh',gain_db:-3},{at:a+LOGO_SLAM,sfx:'riser',align:'hit'},{at:a+LOGO_SLAM,sfx:'logo_slam',duck:1.6,duck_db:-14});}}
@@ -235,6 +267,12 @@ function autoCues(b){const out=[];
   else if(h.c==='choice'){const pick=h.pickAt??Math.max(1.2,dur-1);out.push({at:a+.05,sfx:'card_in'},{at:a+.3,sfx:'tick',repeat:.5,until:a+pick},{at:a+.5+(pick-.5)*.38,sfx:'choice_move'},{at:a+.5+(pick-.5)*.72,sfx:'choice_move'},{at:a+pick,sfx:'ui_select'});}
   else if(h.c==='stamp'){const k=h.kind==='GAME_OVER'?'gameover_jingle':h.kind==='ESCAPED'?'escaped':'clear_jingle';out.push({at:a+STAMP_DROP,sfx:'stamp_hit',duck:2.4,duck_db:-12},{at:a+STAMP_DROP+.05,sfx:k});}
   else if(['notice','rules','lesson','cheat','sources'].includes(h.c))out.push({at:a+.02,sfx:'card_in'});
+  // combined episodes: CONTINUE? = card_in + one tick per digit (count … 1, evenly until yesAt) + continue_yes at yesAt;
+  // end card = smash_cut on the cut in + end_sting; gag caption = boing (the kaiju beat carries its own cues)
+  else if(h.c==='continue'){const {count,yesAt,tickAt}=continueTiming(h,dur);out.push({at:a+.02,sfx:'card_in'});
+   for(let i=0;i<count;i++)out.push({at:a+tickAt[i],sfx:'continue_tick'});out.push({at:a+yesAt,sfx:'continue_yes',duck:.8,duck_db:-5});}
+  else if(h.c==='endcard')out.push({at:a,sfx:'smash_cut',align:'hit'},{at:a+.15,sfx:'end_sting'});
+  else if(h.c==='gag')out.push({at:a+.02,sfx:'boing',gain_db:-2});
   else if(CARD_COMPONENTS.includes(h.c)||h.c==='sim')out.push({at:a+.02,sfx:'ui_blip',gain_db:-4});}
  return out;}
 export function buildCues(opening,body,{fps=FPS}={}){const V=videoPlan(opening,body);const ev=[],bgm=[],amb=[],duck=[];
@@ -253,7 +291,88 @@ export function buildCues(opening,body,{fps=FPS}={}){const V=videoPlan(opening,b
  // one hit per (time, sfx): several HUD items entering together give one blip, not a stacked (louder) one
  for(let i=ev.length-1;i>0;i--)if(ev.slice(0,i).some(e=>Math.abs(e.t-ev[i].t)<1e-3&&e.sfx===ev[i].sfx&&!e.repeat&&!ev[i].repeat))ev.splice(i,1);
  return {duration:+V.duration.toFixed(4),fps,segments:V.segments.map(s=>({...s,t0:+s.t0.toFixed(4),t1:+s.t1.toFixed(4)})),events:ev,bgm,amb,duck,
-  meta:{opening:opening.id,body:body.id,outcome:body.outcome,frames:V.frames}};}
+  meta:{opening:opening.id,body:body.id,outcome:body.outcome,frames:V.frames,...(isCombined(body)?{kind:'combined',parts:body.parts,
+   beats:V.body.beats.map(b=>({id:b.id,t0:+(V.body.offset+b.t0).toFixed(4),t1:+(V.body.offset+b.t1).toFixed(4),reuse:b.reuse?`${b.reuse.variant}/${b.reuse.beat}`:null}))}:{})}};}
+
+// ---------------------------------------------------------------- combined episodes (2026-10-26)
+// Binding beat order (combined/CONTRACT.md table). COMBINED_REUSE: copied beat → [part, source beat id]; clear-result /
+// clear-stamp may instead be re-shot (origin: zone/alt fixes). New beats: caught (caught-pov), over-stamp (black),
+// continue (continue-bg), kaiju (kaiju-skyline), endcard + sources (card-bg|black).
+export const COMBINED_BEATS=Object.freeze(['over-start','over-choice','over-move','over-result','caught','over-stamp','over-lesson','continue',
+ 'clear-choice','clear-move','clear-result','clear-stamp','clear-cheat','kaiju','endcard','sources']);
+export const COMBINED_REUSE=Object.freeze({'over-start':['over','start'],'over-choice':['over','choice'],'over-move':['over','move'],'over-result':['over','result'],
+ 'over-lesson':['over','lesson'],'clear-choice':['clear','choice'],'clear-move':['clear','move'],'clear-result':['clear','result'],'clear-stamp':['clear','stamp'],'clear-cheat':['clear','cheat']});
+export const COMBINED_RESHOOT=Object.freeze(['clear-result','clear-stamp']);
+export const COMBINED_NEW=Object.freeze({caught:{shot:['caught-pov'],dur:2.5},'over-stamp':{shot:['black'],dur:2},continue:{shot:['continue-bg'],dur:3},
+ kaiju:{shot:['kaiju-skyline'],dur:4},endcard:{shot:['card-bg','black'],dur:2.5},sources:{shot:['card-bg'],dur:3}});
+export const COMBINED_VIDEO=Object.freeze([60,80]);   // opening + combined body, s (tools/variant_cues.mjs validateVideo)
+export const isCombined=cfg=>isObj(cfg)&&cfg.kind==='combined';
+const CLEAR_KINDS=['GAME_CLEAR','CLEAR','ESCAPED'];
+// combined rules on top of the body rules of validateConfig. configs = {id: variant config} of the two parts (optional:
+// the page validates without them; tools/variant_cues.mjs passes them → source beats / durations / pair / sources union)
+export function validateCombined(cfg,{configs=null}={}){const E=[],W=[];const err=m=>E.push(m);
+ const P=cfg.parts;if(!isObj(P)||typeof P.over!=='string'||typeof P.clear!=='string'){err("combined: parts:{over, clear} missing");return {errors:E,warnings:W};}
+ if(cfg.outcome!=='COMBINED')err(`combined: outcome must be 'COMBINED' (${cfg.outcome})`);
+ if(P.over!==`${cfg.pair}-over`||P.clear!==`${cfg.pair}-clear`)W.push(`combined: parts ${P.over}/${P.clear} are not ${cfg.pair}-over/${cfg.pair}-clear`);
+ const ids=(cfg.beats||[]).map(b=>b?.id);
+ if(JSON.stringify(ids)!==JSON.stringify(COMBINED_BEATS))err(`combined: beats must be ${COMBINED_BEATS.join(' → ')} (got ${ids.join(' → ')})`);
+ const by=Object.fromEntries((cfg.beats||[]).filter(isObj).map(b=>[b.id,b]));
+ const items=(b,c)=>(b?.hud||[]).filter(h=>isObj(h)&&h.c===c);
+ for(const b of cfg.beats||[]){if(!isObj(b))continue;const at=`combined ${b.id}`,src=COMBINED_REUSE[b.id];
+  for(const k of ['reuse','origin'])if(b[k]!=null){
+   if(!src){err(`${at}: a new beat cannot have ${k}`);continue;}
+   if(!isObj(b[k])||b[k].variant!==P[src[0]]||b[k].beat!==src[1])err(`${at}.${k} must be {variant:'${P[src[0]]}', beat:'${src[1]}'}`);}
+  if(src){if(b.reuse&&b.origin)err(`${at}: reuse and origin are exclusive`);
+   else if(!b.reuse&&!b.origin)err(`${at}: copied beat needs reuse:{variant:'${P[src[0]]}', beat:'${src[1]}'}`);
+   else if(b.origin&&!COMBINED_RESHOOT.includes(b.id))err(`${at}: only ${COMBINED_RESHOOT.join('/')} may be re-shot (origin)`);}
+  const nw=COMBINED_NEW[b.id];
+  if(nw){if(!nw.shot.includes(b.shot?.key))W.push(`${at}: shot ${b.shot?.key} (contract: ${nw.shot.join('|')})`);
+   if(Math.abs(b.dur-nw.dur)>1e-9)W.push(`${at}: ${b.dur} s (contract: ${nw.dur} s)`);}
+  // stamps live only in their beat
+  for(const h of items(b,'stamp')){if(h.kind==='GAME_OVER'&&b.id!=='over-stamp')err(`${at}: GAME_OVER stamp only in over-stamp`);
+   if(CLEAR_KINDS.includes(h.kind)&&b.id!=='clear-stamp')err(`${at}: ${h.kind} stamp only in clear-stamp`);}}
+ const rs=COMBINED_RESHOOT.map(i=>!!by[i]?.origin);if(rs[0]!==rs[1])W.push('combined: clear-result and clear-stamp should both be reused or both re-shot');
+ if(by['over-stamp']){if(!items(by['over-stamp'],'stamp').some(h=>h.kind==='GAME_OVER'))err('combined over-stamp: needs a GAME_OVER stamp');
+  else if(!items(by['over-stamp'],'stamp').some(h=>h.onBlack))W.push('combined over-stamp: stamp should be onBlack:true');
+  if(by['over-stamp'].header!==false)err('combined over-stamp: header:false');}
+ if(by['clear-stamp']&&!items(by['clear-stamp'],'stamp').some(h=>CLEAR_KINDS.includes(h.kind)))err('combined clear-stamp: needs a GAME_CLEAR/ESCAPED stamp');
+ for(const id of ['caught','kaiju'])if(by[id]){if(by[id].header!==false)err(`combined ${id}: header:false`);if(by[id].clock!==false)err(`combined ${id}: clock:false`);}
+ if(by.kaiju&&by.kaiju.bgm!==null)err('combined kaiju: bgm:null (BGM off for the gag)');
+ if(by.caught&&by.caught.bgm!==null)W.push('combined caught: bgm:null expected (BGM off in the caught sequence)');
+ for(const [id,c] of [['continue','continue'],['endcard','endcard'],['sources','sources'],['over-lesson','lesson'],['clear-cheat','cheat'],['over-choice','choice'],['clear-choice','choice']])
+  if(by[id]&&!items(by[id],c).length)err(`combined ${id}: needs a '${c}' item`);
+ // two runs → two picks (choice item.picked; default = config choice.picked)
+ const pk=id=>items(by[id],'choice')[0]?.picked??cfg.choice?.picked;
+ if(by['over-choice']&&by['clear-choice']&&pk('over-choice')===pk('clear-choice'))err('combined: over-choice and clear-choice pick the same option');
+ // with the source configs: pair, picks, source beats + durations, sources union
+ if(configs){const O=configs[P.over],C=configs[P.clear];
+  if(!O||!C)err(`combined: source configs ${!O?P.over:''} ${!C?P.clear:''} missing`);
+  else{for(const e of validatePair(O,C))err('combined parts: '+e);
+   if(O.outcome!=='GAME_OVER'||C.outcome!=='CLEAR')err('combined: parts.over must be GAME_OVER and parts.clear CLEAR');
+   if(O.pair!==cfg.pair)err(`combined: pair ${cfg.pair} ≠ parts pair ${O.pair}`);
+   if(pk('over-choice')!==O.choice?.picked)err(`combined over-choice picks ${pk('over-choice')} (${P.over} picks ${O.choice?.picked})`);
+   if(pk('clear-choice')!==C.choice?.picked)err(`combined clear-choice picks ${pk('clear-choice')} (${P.clear} picks ${C.choice?.picked})`);
+   for(const b of cfg.beats||[]){const r=b?.reuse??b?.origin;if(!isObj(r))continue;const sc=configs[r.variant];const sb=sc?.beats?.find(x=>x.id===r.beat);
+    if(!sb){err(`combined ${b.id}: source beat ${r.variant}/${r.beat} missing`);continue;}
+    if(Math.round(sb.dur*FPS)!==Math.round(b.dur*FPS))err(`combined ${b.id}: ${b.dur} s ≠ source ${r.variant}/${r.beat} ${sb.dur} s`);
+    if(b.origin&&sb.shot?.key!==b.shot?.key)W.push(`combined ${b.id}: re-shot with ${b.shot?.key} (origin ${sb.shot?.key})`);}
+   const have=new Set(cfg.sources||[]);const miss=[...new Set([...(O.sources||[]),...(C.sources||[])])].filter(id=>!have.has(id));
+   if(miss.length)err(`combined: sources[] must include the union of both parts (missing ${miss.join(', ')})`);}}
+ return {errors:E,warnings:W};}
+// reuse map of a combined body: per beat {id, f0, f1, frames, mode:'reuse'|'new', src:{variant, beat, f0, f1}|null, origin,
+// shot} + pieces (maximal runs: consecutive new beats, or consecutive reused beats that continue the same source body
+// contiguously) + the source timelines used. Throws when a source config / beat is missing or a duration differs.
+export function reuseMap(cfg,configs={}){const P=buildPart(cfg,'body'),src={};
+ const beats=P.beats.map(b=>{const r=b.reuse;let s=null;
+  if(isObj(r)){const c=configs[r.variant];if(!c)throw Error(`reuseMap: no config ${r.variant}`);const sp=src[r.variant]??=buildPart(c,'body');
+   const sb=sp.beats.find(x=>x.id===r.beat);if(!sb)throw Error(`reuseMap: ${r.variant} has no beat ${r.beat}`);
+   if(sb.f1-sb.f0!==b.f1-b.f0)throw Error(`reuseMap: ${b.id} ${b.f1-b.f0} frames ≠ ${r.variant}/${r.beat} ${sb.f1-sb.f0}`);s={variant:r.variant,beat:r.beat,f0:sb.f0,f1:sb.f1};}
+  return {id:b.id,f0:b.f0,f1:b.f1,frames:b.f1-b.f0,mode:s?'reuse':'new',src:s,origin:isObj(b.origin)?`${b.origin.variant}/${b.origin.beat}`:null,shot:b.shot?.key??null};});
+ const pieces=[];for(const b of beats){const p=pieces.at(-1);
+  if(p&&p.f1===b.f0&&p.mode===b.mode&&(b.mode==='new'||(p.src.variant===b.src.variant&&p.src.f1===b.src.f0))){p.f1=b.f1;p.frames=p.f1-p.f0;p.beats.push(b.id);if(b.src)p.src.f1=b.src.f1;}
+  else pieces.push({mode:b.mode,f0:b.f0,f1:b.f1,frames:b.frames,beats:[b.id],src:b.src?{variant:b.src.variant,f0:b.src.f0,f1:b.src.f1}:null});}
+ return {id:cfg.id,pair:cfg.pair,fps:FPS,frames:P.frames,duration:P.duration,beats,pieces,
+  sources:Object.fromEntries(Object.entries(src).map(([k,p])=>[k,{frames:p.frames,beats:p.beats.map(b=>({id:b.id,f0:b.f0,f1:b.f1}))}]))};}
 
 // ---------------------------------------------------------------- cache keys
 // stable JSON (sorted keys) + FNV-1a 64 → hex; the opening cache key also covers `extra` (file hashes of the code)

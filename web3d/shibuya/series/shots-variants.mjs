@@ -51,7 +51,18 @@
 //  'alt-platform'   generic platform at an alternative station + departure board (sets 'alt-platform'); the board text
 //                   comes from params.board {title, rows:[{note:'終電', time, dest}], status, foot} (SOURCED by the
 //                   scenario config). {station='harajuku'|'ebisu'|… (the set is re-placed there: sets.setAltStation),
-//                   mode='board'|'train'|'empty', trainLeaveAt=1.2, fov=52}
+//                   mode='board'|'train'|'empty', trainLeaveAt=1.2, fov=52,
+//                   board mode framing: dist=10.5 (m in front of the board at t=0), push=.3 (m/s toward it), side=-1.2 (m,
+//                   lateral offset, + = toward the train track), pan=.55 (0 = hold on the board … 1 = full tilt/pan down to
+//                   the track; the pan lifts the board + the canopy light strip into the header), lookDy=0 (m, look target
+//                   above(+)/below(−) the board centre: + puts the board lower in frame)}
+//                   alt-clear FIX (combined alt clear-result / clear-stamp beats, both with the same params; stamp t0:4):
+//                   {"station":"ebisu","mode":"board","trainLeaveAt":9,"pan":0,"side":3,"dist":7.5,"push":0.05,"fov":56,
+//                    "lookDy":-0.6} → the camera stands just past the pillar at local z +2 (behind it, out of view), 3 m to
+//                   the side, and holds on the board: board at screen y≈.32–.52, x≈.03–.90 (fully below the header + clock,
+//                   y<.17, above the caption box, y>.62; stills 2026-10-26), canopy light strips out of the frame (they sat
+//                   behind the header lockup in the original pan), the pillar at local z −4 falls on the board's empty
+//                   right part (canvas x > 402 px: never over 「終電 0:50」「大崎」 or the foot line).
 //  'taxi-west'      suspended West-Exit stand (sets 'taxi-west'). {mode='front'|'queue', dur=4, fov=52, height=3.2 (front),
 //                   lookY=1.2 (lower = signs sit higher in the frame, above the captions), lookSign=0 (queue: 0..1 toward the pole sign)}
 //  'taxi-sakura'    渋谷SAKURAテラス前 stand with moving taxis (sets 'taxi-sakura'). {mode='front'|'queue'|'hero' (kerb view of the
@@ -59,7 +70,42 @@
 //  'interior'       Hachiko concourse dolly (station-jr dolly keys): {part='gates'|'stairs'|'platform'|'all' or
 //                   from/to (dolly key time, s), dur (beat length the move is stretched over, default = to-from)}
 //  'card-bg'        dim slow orbit behind cards. {center=[40,0,70], radius=430, height=300, yaw0=.6, yawSpeed=.03, dim=.3, fov=40}
-// Exports: SHOTS, SHOT_KEYS, SHOT_PARAMS (documented defaults), OP_LOGO, opLogoAnchor, applyEnv, resolvePath, withShake.
+// Combined episodes (GAME OVER → CONTINUE? → CLEAR → kaiju gag):
+//  'caught-pov'     movie-style caught POV (beat `caught`, 2.5 s): the pair's over-result base shot frozen at baseT0, forced to
+//                   eye level, the crowd presses in, a decelerating push, violent handheld shake ramping up, red flash, hard
+//                   cut to black (stays black). {base='gate-queue' (shot key), baseParams={} (the over config's result-beat
+//                   params), baseT0=4 (s into the base shot = end of the 4 s result beat), dur=2.5, eyeY=1.55 (m above the
+//                   base's floor: 0, alt-platform = platform top ≈1.1), floorY=null (auto), push=.6 (m forward, eased out
+//                   until flashAt), lookPitch=-3 (deg), fov=null (base fov), zoom=-8 (deg over the press: tunnel),
+//                   hand=[.25,2.2] (deg handheld noise amplitude at t=0 → flashAt, 7 Hz value noise, yaw/pitch/roll),
+//                   shake=[{t:.5,amp:.7},{t:.95,amp:1.2},{t:1.35,amp:1.9},{t:1.75,amp:3.4,decay:.22,freq:13}] (impacts:
+//                   deg, damped decay=.3 s, freq=11 Hz), flashAt=1.75, blackAt=2.15 (s), nearHide=.45 (m), hands={} (passed
+//                   to vfx-caught), seed=7, board (alt-platform base only: the over board text → baseParams.board; frameSpec
+//                   merges beat.board only for the 'alt-platform' key)}.
+//                   env.caught = {t, dur, intensity 0..1 (smooth to flashAt), press 0..1 (ease-out to .9·flashAt), flash
+//                   (1 at flashAt, e^(−Δt/.12 s), 0 after blackAt), black 0|1 (t ≥ blackAt), seed, hands, flashAt, blackAt,
+//                   at:[x,z], dir:[dx,dz], floorY}; after blackAt env.dim=0 + env.blank (nothing drawn → fast).
+//                   Pair bases: CAUGHT_BASES {gate: gate-queue approach, taxi: taxi-west queue, zone: zone-edge, alt:
+//                   alt-platform harajuku train} (= the over configs' result beats). caughtPovAnchor(ctx, params) → the
+//                   frozen player spot {pos, dir, at, floorY, heading} (app-variant feeds it to 'caught-press').
+//  'kaiju-skyline'  absurd gag (beat `kaiju`, 4 s): low view (1.7 m) from Meiji-dori ≈260 m north of the station looking
+//                   south down the neon street canyon at the real PLATEAU Scramble-Square-class tower (229 m, x113–193
+//                   z80–164) with the open sky above; the kaiju rises ≈1.26 km behind it (behind every tower: nothing
+//                   intersects it), the tower + the canyon walls hide its lower body, its open mouth clears the tower top
+//                   at the roar, eyes + party hat high in the sky (stills 2026-10-26). {from=[155,1.7,-262], look=[160,128,
+//                   100], fov=60, dur=4, rise=[.2,2.1] (s, smoothstep 0→1), roarAt=2.35, roarDur=1.05 (s: .22 attack, .3
+//                   release), push=.35 (m/s slow push in), kaiju={pos:[160,1000], scale:700 (kaiju.mjs: body height m),
+//                   ground:430 (base y: lifted — the base stays hidden behind the tower, the face clears it)}, shake={amp:.9
+//                   (deg), decay:.45, freq:9} (at the roar), seed=3, crowd=true, nearHide=3}.
+//                   env.kaiju = {...params.kaiju, t, rise, eyes (lights over [rise1−.35, rise1+.1]), roar 0..1, shake 0..1
+//                   (roar shake envelope), pos, scale, seed, roarAt, riseT:[t0,t1], riseEnd}. sh.far = 2950.
+//  'black'          pure black frame (GAME OVER stamp on black): env.blank + dim 0 → no scene parts drawn, no solver step.
+//  'continue-bg'    CONTINUE? background: darker card-bg orbit {yaw0=2.1, yawSpeed=.05, dim=.2, radius=380, height=260,
+//                   saturation=.35, alertVig=.55 (red edge vignette)} → env.grade.
+// env.grade {saturation, alertVig, vignette} (post uniforms, per frame; other shots get the page's first-seen defaults back);
+// env.blank (bool) hides every scene part (applyEnv returns {flat, crowdVisible, blank}).
+// Exports: SHOTS, SHOT_KEYS, SHOT_PARAMS (documented defaults), OP_LOGO, opLogoAnchor, applyEnv, resolvePath, withShake,
+//          CAUGHT_DEFAULT, CAUGHT_BASES, caughtPovAnchor, KAIJU_DEFAULT.
 import * as THREE from '../../vendor/three.module.min.js';
 import {aerialOrbit,closeTopDown,eyeLevel,interiorDolly,routeMap,makeShot,applyShot,jrWalkPath,walkRoute,smoothPath,JR_WALKS} from './camera.mjs';
 import {JR_GATES,APPROX_LABEL} from './station-jr.mjs';
@@ -216,8 +262,8 @@ function altPlatform(ctx,p={}){const o={station:'harajuku',mode:'board',trainLea
   if(o.mode==='train'){// stand near the edge, watch the train pull away down the platform
    pos=[C.x+rx*2.4+D.x*14,C.y+1.6,C.z+rz*2.4+D.z*14];const k=smooth(clamp((t-o.trainLeaveAt)/3));look=[E.x+rx*2-D.x*(10+30*k),C.y+1.7,E.z+rz*2-D.z*(10+30*k)];}
   else{// board: start under the board, tilt down/pan to the empty track as the train leaves
-   const k=smooth(clamp((t-.6)/2.4));pos=[Bd.x-rx*1.2+D.x*(10.5-.3*t),C.y+1.62,Bd.z-rz*1.2+D.z*(10.5-.3*t)];// fixer: 13 m → 10.5 m (board readable, never cropped)
-   const lb=[Bd.x,Bd.y,Bd.z],lt=[E.x+rx*3-D.x*6,C.y+1.4,E.z+rz*3-D.z*6];look=[lb[0]+(lt[0]-lb[0])*k*.55,lb[1]+(lt[1]-lb[1])*k*.55,lb[2]+(lt[2]-lb[2])*k*.55];}
+   const k=smooth(clamp((t-.6)/2.4))*(o.pan??.55),dd=(o.dist??10.5)-(o.push??.3)*t,sd=o.side??-1.2;pos=[Bd.x+rx*sd+D.x*dd,C.y+1.62,Bd.z+rz*sd+D.z*dd];// fixer: 13 m → 10.5 m (board readable, never cropped)
+   const lb=[Bd.x,Bd.y+(o.lookDy??0),Bd.z],lt=[E.x+rx*3-D.x*6,C.y+1.4,E.z+rz*3-D.z*6];look=[lb[0]+(lt[0]-lb[0])*k,lb[1]+(lt[1]-lb[1])*k,lb[2]+(lt[2]-lb[2])*k];}
   const sh=makeShot(pos,look,{fov:o.fov,name:'alt-platform'});
   return tag(sh,{eye:true,sets:['alt-platform'],crowd:false,vehicles:false,landmarks:false,station:false,nearHide:1.2,focus:[C.x,C.z],exposure:.95,approx:true},'alt-platform');};}
 
@@ -256,6 +302,68 @@ function interiorShot(ctx,p={}){const r=INTERIOR_PARTS[p.part]||null;const from=
 function cardBg(ctx,p={}){const o={center:[40,0,70],radius:430,height:300,yaw0:.6,yawSpeed:.03,dim:.3,fov:40,...p};const orb=aerialOrbit(o);
  return t=>tag(orb(t),{aerial:true,detail:'aerial',dim:o.dim,exposure:1.1,crowd:o.crowd??false,focus:[o.center[0],o.center[2]]},'card-bg');}// integrator: crowd off by default (invisible at 300 m under a .3 dim, ≈3 s/frame)
 
+
+// ---------- combined episodes: caught POV / kaiju gag / black / continue ----------
+// deterministic hash noise (seeded), smooth value noise in t: handheld shake without a wall clock / RNG state
+const hash1=n=>{let t=(n+0x6D2B79F5)|0;t=Math.imul(t^t>>>15,1|t);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};
+function vnoise(t,seed){const i=Math.floor(t),f=t-i,u=f*f*(3-2*f),a=hash1(i*7919+seed*104729)*2-1,b=hash1((i+1)*7919+seed*104729)*2-1;return a+(b-a)*u;}
+// rotate a shot's view: yaw/pitch/roll in degrees about the camera's own axes (keeps the eye position)
+function rotView(sh,yaw,pitch,roll){const d=sh.look.clone().sub(sh.pos),len=d.length()||1;const fwd=d.normalize(),up0=sh.up?.clone?.()??new THREE.Vector3(0,1,0);
+ const right=new THREE.Vector3().crossVectors(fwd,up0).normalize(),up=new THREE.Vector3().crossVectors(right,fwd).normalize(),r=Math.PI/180;
+ fwd.applyAxisAngle(up,-yaw*r).applyAxisAngle(right,pitch*r);up.applyAxisAngle(right,pitch*r);up.applyAxisAngle(fwd,roll*r);sh.look=sh.pos.clone().addScaledVector(fwd,len);sh.up=up;return sh;}
+// handheld + impact shake: hand=[amp at t=0, amp at rampTo] (deg, value noise at `freq` Hz), hits=[{t, amp (deg), decay=.3 s,
+// freq=11 Hz}] (damped oscillation), pos (m per deg: small positional jolt along the camera's right/up axes)
+function povShake(sh,t,{hand=[.2,2],rampTo=1.75,freq=7,hits=[],seed=1,pos=.012}={}){const k=smooth(clamp(t/Math.max(.01,rampTo))),a=hand[0]+(hand[1]-hand[0])*k;
+ let yaw=a*vnoise(t*freq,seed),pitch=a*.8*vnoise(t*freq*1.13+31,seed+1),roll=a*1.3*vnoise(t*freq*.71+57,seed+2);
+ for(const h of hits){const d=t-h.t;if(d<0)continue;const e=(h.amp??1)*Math.exp(-d/(h.decay??.3)),w=(h.freq??11)*6.2832;yaw+=e*Math.sin(d*w+.3);pitch+=e*.9*Math.sin(d*w*1.31+1.1);roll+=e*1.6*Math.sin(d*w*.77+2.2);}
+ const fwd=sh.look.clone().sub(sh.pos).normalize(),right=new THREE.Vector3().crossVectors(fwd,sh.up).normalize(),up=new THREE.Vector3().crossVectors(right,fwd).normalize();
+ const off=right.multiplyScalar(yaw*pos).addScaledVector(up,pitch*pos);sh.pos.add(off);sh.look.add(off);return rotView(sh,yaw,pitch,roll);}
+
+export const CAUGHT_DEFAULT=Object.freeze({base:'gate-queue',baseParams:{},baseT0:4,dur:2.5,eyeY:1.55,floorY:null,push:.6,lookPitch:-3,fov:null,zoom:-8,
+ shake:[{t:.5,amp:.7},{t:.95,amp:1.2},{t:1.35,amp:1.9},{t:1.75,amp:3.4,decay:.22,freq:13}],hand:[.25,2.2],flashAt:1.75,blackAt:2.15,nearHide:.45,hands:{},seed:7});
+// Pair bases (the over-result shots of the GAME OVER configs; eye height is forced to eyeY above the base's floor):
+export const CAUGHT_BASES=Object.freeze({
+ gate:{base:'gate-queue',baseParams:{mode:'approach',back:17,speed:.3,stopGo:.9,eyeY:2.3,nearHide:2.2,lookGate:.85,lookY:1.9},baseT0:4},
+ taxi:{base:'taxi-west',baseParams:{mode:'queue',dur:6.5,lookSign:.8,lookY:.6},baseT0:4},
+ zone:{base:'zone-edge',baseParams:{side:'open',back:8,height:4.2,lookY:0,far:3,nearHide:2.5},baseT0:4},
+ alt:{base:'alt-platform',baseParams:{station:'harajuku',mode:'train',trainLeaveAt:.4},baseT0:4}});
+const floorOf=(ctx,key)=>key==='alt-platform'?(ctx.sets?.anchors?.['alt-platform.center']?.y??1.1):0;
+// static player anchor of a caught-pov beat (base shot frozen at baseT0, flattened to eye level): {pos, dir:[dx,dz], at:[x,z],
+// floorY, heading (rad, atan2(dx,dz))} — app-variant passes it to the beat's crowd state as params.pov
+export function caughtPovAnchor(ctx,p={}){const o={...CAUGHT_DEFAULT,...p};const bk=SHOTS[o.base]?o.base:'gate-queue';const bs=SHOTS[bk](ctx,o.baseParams||{})(o.baseT0);
+ const fy=o.floorY??floorOf(ctx,bk);let dx=bs.look.x-bs.pos.x,dz=bs.look.z-bs.pos.z;const l=Math.hypot(dx,dz);if(l<1e-3){dx=0;dz=-1;}else{dx/=l;dz/=l;}
+ return {pos:[bs.pos.x,fy+o.eyeY,bs.pos.z],dir:[dx,dz],at:[bs.pos.x,bs.pos.z],floorY:fy,heading:Math.atan2(dx,dz),fov:bs.fov,baseEnv:bs.env,base:bk};}
+function caughtPov(ctx,p={}){const o={...CAUGHT_DEFAULT,...p};if(o.board&&(o.base==='alt-platform'))o.baseParams={...(o.baseParams||{}),board:o.board};const A=caughtPovAnchor(ctx,o),fov0=o.fov??A.fov,pr=o.lookPitch*Math.PI/180;
+ return t=>{const u=clamp(t/Math.max(.01,o.flashAt));// the press: a decelerating push, then nothing moves but the shake
+  const d=o.push*easeOut(u),bob=.012*Math.sin(t*2*Math.PI*1.1)*(1-u);
+  const pos=[A.pos[0]+A.dir[0]*d,A.pos[1]+bob,A.pos[2]+A.dir[1]*d],look=[pos[0]+A.dir[0]*8*Math.cos(pr),pos[1]+8*Math.sin(pr),pos[2]+A.dir[1]*8*Math.cos(pr)];
+  const sh=makeShot(pos,look,{fov:fov0+o.zoom*smooth(u),name:'caught-pov'});povShake(sh,t,{hand:o.hand,rampTo:o.flashAt,hits:o.shake,seed:o.seed});
+  const black=t>=o.blackAt?1:0,flash=black?0:t<o.flashAt?0:Math.exp(-(t-o.flashAt)/.12);
+  const caught={t,dur:o.dur,intensity:black?1:smooth(u),press:black?1:easeOut(clamp(t/(o.flashAt*.9))),flash,black,seed:o.seed,hands:o.hands||{},flashAt:o.flashAt,blackAt:o.blackAt,at:A.at,dir:A.dir,floorY:A.floorY};
+  const be=A.baseEnv||{};sh.at=A.at;
+  return tag(sh,{...be,eye:true,interior:false,nearHide:o.nearHide,focus:A.at,dim:black?0:1,caught,...(black?{blank:true,crowd:false,sets:[],vehicles:false,landmarks:false,station:false}:{})},'caught-pov');};}
+
+// kaiju gag: low street view up at the real PLATEAU towers (Scramble-Square-class 229 m x113–193 z80–164, Hikarie-class 185 m
+// x216–347 z−2–91); the kaiju rises far behind them (its lower body hidden by the towers / the wide-area city)
+export const KAIJU_DEFAULT=Object.freeze({from:[155,1.7,-262],look:[160,128,100],fov:60,dur:4,rise:[.2,2.1],roarAt:2.35,roarDur:1.05,push:.35,
+ kaiju:{pos:[160,1000],scale:700,ground:430},shake:{amp:.9,decay:.45,freq:9},seed:3,crowd:true,nearHide:3});
+function kaijuSkyline(ctx,p={}){const o={...KAIJU_DEFAULT,...p,kaiju:{...KAIJU_DEFAULT.kaiju,...(p.kaiju||{})},shake:{...KAIJU_DEFAULT.shake,...(p.shake||{})}};
+ const F=V3(o.from),Lk=V3(o.look),fwd=Lk.clone().sub(F).normalize();
+ return t=>{const pos=F.clone().addScaledVector(fwd,o.push*t),look=Lk.clone().addScaledVector(fwd,o.push*t);
+  const sh=makeShot(pos,look,{fov:o.fov,name:'kaiju-skyline'});sh.far=2950;
+  const rise=smooth(clamp((t-o.rise[0])/Math.max(.01,o.rise[1]-o.rise[0]))),eyes=smooth(clamp((t-o.rise[1]+.35)/.45));
+  const dr=t-o.roarAt,roar=dr<0?0:dr<.22?smooth(dr/.22):dr<o.roarDur-.3?1:smooth(clamp((o.roarDur-dr)/.3));
+  const sk=dr<0?0:Math.exp(-dr/o.shake.decay)*smooth(clamp(dr/.08));// shake envelope 0..1 (the page / kaiju may also bob with it)
+  if(sk>0)povShake(sh,dr,{hand:[0,0],hits:[{t:0,amp:o.shake.amp,decay:o.shake.decay,freq:o.shake.freq}],seed:o.seed,pos:.03});
+  const kaiju={...o.kaiju,t,rise,eyes,roar,shake:sk,pos:[...o.kaiju.pos],scale:o.kaiju.scale,seed:o.seed,roarAt:o.roarAt,riseT:[...o.rise],riseEnd:o.rise[1]};
+  return tag(sh,{eye:true,detail:'street',exposure:1.08,crowd:o.crowd,vehicles:true,nearHide:o.nearHide,focus:[pos.x+fwd.x*30,pos.z+fwd.z*30],kaiju},'kaiju-skyline');};}
+
+// pure black (after the caught cut; GAME OVER stamp on black): nothing drawn, post faded out → fast
+function blackShot(){return t=>tag(makeShot([0,-500,0],[0,-500,-10],{fov:50,name:'black'}),{blank:true,dim:0,crowd:false,vehicles:false,landmarks:false,station:false,sets:[],aerial:true,detail:'aerial',exposure:1},'black');}
+// CONTINUE? background: a darker, desaturated, red-vignetted card-bg orbit
+function continueBg(ctx,p={}){const o={yaw0:2.1,yawSpeed:.05,dim:.2,radius:380,height:260,saturation:.35,alertVig:.55,...p};const f=cardBg(ctx,o);
+ return t=>{const sh=f(t);sh.env.grade={saturation:o.saturation,alertVig:o.alertVig};sh.name='continue-bg';return sh;};}
+
 export const SHOTS=Object.freeze({
  'op-flythrough':opShot,
  aerial:(ctx,p={})=>{const f=aerialOrbit({center:[40,0,70],radius:440,height:300,yaw0:-.9,yawSpeed:.045,fov:40,lookY:0,...p});return t=>tag(f(t),{aerial:true,detail:'aerial',exposure:1.22,focus:[(p.center||[40])[0],(p.center||[0,0,70])[2]]},'aerial');},
@@ -271,25 +379,34 @@ export const SHOTS=Object.freeze({
  'taxi-sakura':taxiShot('taxi-sakura'),
  interior:interiorShot,
  'card-bg':cardBg,
+ 'caught-pov':caughtPov,
+ 'kaiju-skyline':kaijuSkyline,
+ black:blackShot,
+ 'continue-bg':continueBg,
 });
 export const SHOT_KEYS=Object.freeze(Object.keys(SHOTS));
-export const SHOT_PARAMS=Object.freeze({'op-flythrough':OP_DEFAULT,interiorParts:INTERIOR_PARTS});
+export const SHOT_PARAMS=Object.freeze({'op-flythrough':OP_DEFAULT,interiorParts:INTERIOR_PARTS,'caught-pov':CAUGHT_DEFAULT,caughtBases:CAUGHT_BASES,'kaiju-skyline':KAIJU_DEFAULT});
 export {APPROX_LABEL};
 
 // ---------- apply a shot to the shared scene ----------
 // parts: {camera, sky, R (realism), st (station), LM (landmarks), wide, city, crowd?, hs? (HalloweenScene), vehicles?, post,
-//         sets?, extraCrowds?:[CostumeCrowd...]}. Returns {flat, crowdVisible}. Crowd culling / near-hide stays with the page.
+//         sets?, extraCrowds?:[CostumeCrowd...]}. Returns {flat, crowdVisible, blank}. Crowd culling / near-hide stays with the page.
 export function applyEnv(shot,P,tLocal=0){const e=shot.env||env({});const k=e.map||0,flat=k>.5;
  if(P.wide){P.wide.group.visible=true;P.wide.setMapAmount(k);P.wide.mapCity(P.city,k);
   const W=e.wideRoutes;P.wide.showRoutes(W?W.ids:null,{highlight:W?.highlight??null});if(W)for(const id of W.ids){P.wide.drawOn(id,typeof W.progress==='object'?(W.progress[id]??1):(W.progress??1));if(P.wide.setRouteStyle&&(W.colors?.[id]||W.width))P.wide.setRouteStyle(id,{color:W.colors?.[id]??null,width:W.width?W.width*(id===W.highlight?1.4:1):null});}
   P.wide.showRedZone(e.redZone||0);}
- if(P.sky)P.sky.visible=!flat;if(P.R){if(P.R.glow)P.R.glow.visible=!flat;if(P.R.skyline)P.R.skyline.visible=!flat;P.R.group.visible=!flat;P.R.setInterior(!!e.interior,{keepCity:e.keepCity!==false});P.R.setDetail(e.aerial||flat?'aerial':(e.detail||'street'));}
- if(P.st)P.st.group.visible=!flat&&e.station!==false;
- if(P.LM)P.LM.visible=!flat&&!e.interior&&e.landmarks!==false;
- if(P.hs)P.hs.visible=!flat&&!e.interior;
- if(P.vehicles)P.vehicles.mesh.visible=!flat&&e.vehicles!==false;
- const crowdVisible=!flat&&e.crowd!==false;if(P.crowd)P.crowd.visible=crowdVisible;
- if(P.sets){P.sets.show(flat?[]:e.sets||[]);P.sets.update(tLocal);const R=e.routes;P.sets.showRoutes(R?R.ids:null,{progress:R?.progress??1,highlight:R?.highlight??null});}
- if(P.post){P.post.settings.uExposure.value=e.exposure??(e.aerial&&!flat?1.22:e.interior?.85:1);P.post.settings.uFade.value=(shot.fade??1)*(e.dim??1);}
+ const blank=!!e.blank;// 'black' / caught-pov after the cut: nothing drawn (the page treats it like a flat frame → fast)
+ if(P.sky)P.sky.visible=!flat&&!blank;if(P.R){if(P.R.glow)P.R.glow.visible=!flat;if(P.R.skyline)P.R.skyline.visible=!flat;P.R.group.visible=!flat&&!blank;P.R.setInterior(!!e.interior,{keepCity:e.keepCity!==false});P.R.setDetail(e.aerial||flat?'aerial':(e.detail||'street'));}
+ if(P.st)P.st.group.visible=!flat&&!blank&&e.station!==false;
+ if(P.LM)P.LM.visible=!flat&&!blank&&!e.interior&&e.landmarks!==false;
+ if(P.hs)P.hs.visible=!flat&&!blank&&!e.interior;
+ if(P.vehicles)P.vehicles.mesh.visible=!flat&&!blank&&e.vehicles!==false;
+ const crowdVisible=!flat&&!blank&&e.crowd!==false;if(P.crowd)P.crowd.visible=crowdVisible;
+ if(P.wide&&blank)P.wide.group.visible=false;
+ if(P.sets){P.sets.show(flat||blank?[]:e.sets||[]);P.sets.update(tLocal);const R=e.routes;P.sets.showRoutes(R?R.ids:null,{progress:R?.progress??1,highlight:R?.highlight??null});}
+ if(P.post){const U=P.post.settings;U.uExposure.value=e.exposure??(e.aerial&&!flat?1.22:e.interior?.85:1);U.uFade.value=(shot.fade??1)*(e.dim??1);
+  // env.grade {saturation, alertVig, vignette}: per frame from the page's first-seen defaults (stateless: other shots get them back)
+  const G=P.post.__gradeDefaults??=({saturation:U.uSaturation?.value??1.08,alertVig:U.uAlertVig?.value??0,vignette:U.uVignette?.value??.55});const g=e.grade||{};
+  if(U.uSaturation)U.uSaturation.value=g.saturation??G.saturation;if(U.uAlertVig)U.uAlertVig.value=g.alertVig??G.alertVig;if(U.uVignette)U.uVignette.value=g.vignette??G.vignette;}
  if(P.camera){P.camera.far=shot.far||9000;applyShot(P.camera,shot);}
- return {flat,crowdVisible};}
+ return {flat,crowdVisible,blank};}

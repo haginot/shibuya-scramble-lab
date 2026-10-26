@@ -5,6 +5,9 @@
            no alternating semitone bass ostinato, no 5/4 piano figure, no tubular-bell pattern.)
   calm     F major, 72 BPM, 8 bars (26.7 s): warm pad, soft celesta arpeggio, sub bass, air — the "relief" bed.
   victory  D major, 120 BPM, 8 bars (16 s): drum groove, bass, pluck arpeggio, bell melody (I-I-bVI-bVII-I-I-IV-V).
+  retry    F major, 120 BPM, 4 bars (8 s): the light CONTINUE? bed (combined episodes) — soft pulse-wave arpeggio,
+           round triangle bass, offbeat shaker, a little toy-piano answer line; quiet and bouncy, leaves room for the
+           countdown ticks (beats land on whole seconds when a run starts on a beat).  Aliases: continue, light.
 
 Loops are exact: note events are rendered into an over-long buffer and wrap-added onto the loop length, continuous
 layers are periodic by construction (frequencies quantized to whole cycles per loop, FFT-made noise), and the reverb
@@ -21,7 +24,8 @@ import instruments as ins
 from dsp import SR, note, ns
 
 BGM_LUFS = -18.0
-TRACKS = ('tension', 'calm', 'victory')
+TRACKS = ('tension', 'calm', 'victory', 'retry')
+ALIASES = {'continue': 'retry', 'light': 'retry', 'retry_bgm': 'retry', 'relief': 'calm', 'win': 'victory'}
 
 
 class Seq:
@@ -239,13 +243,51 @@ def victory() -> np.ndarray:
     return s.render(ir, 0.8)
 
 
-_BUILDERS = {'tension': tension, 'calm': calm, 'victory': victory}
+def _chip(f: float, dur: float, vel: float, seed: str, duty: float = 0.25) -> np.ndarray:
+    """Soft pulse-wave note (rounded by a low-pass, quick decay) — the 'game menu' voice of the retry bed."""
+    y = dsp.lp(dsp.square(f * 2 ** (dsp.rng('chip', f, seed).uniform(-3, 3) / 1200), dur, duty), 3200)
+    return dsp.fade(y * dsp.env_adsr(dur, 0.003, 0.08, 0.35, 0.08) * vel, 0, 0.01)
+
+
+def retry() -> np.ndarray:
+    s = Seq('retry', 120, 4)
+    prog = ['F', 'Dm9', 'Bbmaj7', 'Csus']
+    for b in range(4):
+        names = CH[prog[b]]
+        root = note(_up(names[0], -1))
+        for q in range(4):                                       # round bass on the beats (+ octave pop on 4)
+            f = root * (2 if q == 3 else 1)
+            s.add(ins.pad_voice(f, 0.42, 0.5, f'rb{b}{q}', bright=500, attack=0.005, release=0.15, voices=1,
+                                kind='tri'), b, q, 0.55, send=0.02)
+        tones = [_up(nm, 2) for nm in names[1:4]]
+        for k in range(8):                                       # 8th-note pulse arpeggio
+            nm = tones[[0, 1, 2, 1, 0, 2, 1, 2][k] % len(tones)]
+            s.add(_chip(note(nm), 0.2, 0.55 if k % 2 == 0 else 0.35, f'ra{b}{k}'), b, k * 0.5, 0.16,
+                  p=-0.35 + 0.1 * k, send=0.25)
+        for k in range(4):
+            s.add(ins.shaker(0.1, 0.4, f'rs{b}{k}'), b, k + 0.5, 0.16, p=0.3, send=0.1)
+        s.add(ins.thump(70, 0.3, 0.5, f'rk{b}'), b, 0, 0.5, send=0.0)
+    ans = [(0, 3, 'C6', 0.5), (0, 3.5, 'A5', 0.5), (1, 3, 'D6', 0.5), (1, 3.5, 'F6', 1),
+           (2, 3, 'D6', 0.5), (2, 3.5, 'C6', 0.5), (3, 2.5, 'G5', 0.5), (3, 3, 'A5', 0.5), (3, 3.5, 'C6', 0.5)]
+    for i, (b, beat, nm, ln) in enumerate(ans):                  # toy-piano answer (original)
+        s.add(ins.music_box(note(nm), 1.2, 0.6, f'rm{i}'), b, beat, 0.22, p=0.2, send=0.4)
+    ir = dsp.reverb_ir(1.4, 'retry', predelay=0.012, bright=6500)
+    return s.render(ir, 0.6)
+
+
+def canonical(name) -> str | None:
+    n = str(name).strip().lower().replace('-', '_')
+    n = ALIASES.get(n, n)
+    return n if n in TRACKS else None
+
+
+_BUILDERS = {'tension': tension, 'calm': calm, 'victory': victory, 'retry': retry}
 
 
 @lru_cache(maxsize=None)
 def loop(name: str) -> np.ndarray:
     """(2, n) seamless loop, normalized to BGM_LUFS integrated (measured over three repetitions)."""
-    y = _BUILDERS[name]()
+    y = _BUILDERS[canonical(name) or name]()
     y = _make_periodic_hp(y)
     L = dsp.lufs_integrated(np.tile(y, 3))
     return y * dsp.db(BGM_LUFS - L)

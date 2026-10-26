@@ -27,7 +27,9 @@
 //         'alt-platform' (sparse platform at an alternative station, the last train has left),
 //         'taxi-west'    (suspended stand: a waiting line, no taxi comes),
 //         'taxi-sakura'  (working stand: the line moves as taxis arrive),
-//         'gate-newsouth'(moderate flow into 新南 / 南改札: short queue, steady admission).
+//         'gate-newsouth'(moderate flow into 新南 / 南改札: short queue, steady admission),
+//         'caught-press' (combined episodes: ordinary people pack in around the stopped POV player; neutral, backs/sides).
+// detour-light params.clear: clear cone in front of the eye camera (zone-clear fix, see the state).
 // CrowdStateView(scene, {state, params?, ctx?, near?: NearPeople, capacity=1600, includePlayer=false}) renders a state's people
 //   with series/people-close.mjs (detailed LOD near the camera, light LOD beyond). .update(t, camera, {animTime?}) → frame;
 //   .maskCrowd(crowd) hides costume.mjs crowd agents inside frame.regions (call after crowd.update, before culling).
@@ -152,14 +154,28 @@ const zoneDense={key:'zone-dense',label:{ja:'規制エリアの人混み',en:'De
    previewShot:eyeShot(pl,7,'zone-dense')};}};
 
 // Light two-way flow on a detour street (closed loop along the path; people near the path ends are dropped).
+// params.clear (default null = off, byte-identical to the variant renders) keeps a CLEAR CONE in front of the player
+// (= the eye camera of 'detour' mode:'eye' / 'eye-walk', which walks ≈0.6 m behind the player on the same path):
+//   {ahead=8 (m in front of the player), behind=1.5 (m behind), half=2.4 (min lateral distance from the player's line),
+//    ease=3 (m over which the side-step fades in/out at both ends), minDist=1.2 (radial: nobody closer)}.
+// Walkers inside the cone side-step to |lateral| ≥ half (smooth in t: the required offset is a smooth function of the
+// along-distance, the walker keeps its side), so nobody walks into / through the camera: with the eye camera
+// (fov 58, 9:16 → ±17° horizontal) a person at |lateral| ≥ 2.4 is out of frame closer than ≈6.5 m.
+// zone-clear fix (result + stamp beats): crowd.params.clear = {ahead:8, behind:1.5, half:2.4, ease:3}.
+export function clearCone(x,z,pl,o){const dx=x-pl.x,dz=z-pl.z,al=dx*pl.dx+dz*pl.dz,sd=dx*pl.nx+dz*pl.nz;
+ const w=smooth(-o.behind-o.ease,-o.behind,al)*(1-smooth(o.ahead,o.ahead+o.ease,al));const need=o.half*w;
+ if(Math.abs(sd)>=need)return {x,z,w,moved:0};const s=sd>=0?1:-1,ds=s*need-sd;return {x:x+pl.nx*ds,z:z+pl.nz*ds,w,moved:Math.abs(ds)};}
+const CLEAR_DEFAULTS={ahead:8,behind:1.5,half:2.4,ease:3,minDist:1.2};
 const detourLight={key:'detour-light',label:{ja:'迂回ルート（すいている）',en:'Detour street (light)'},
  assumptions:{ja:'シミュレーション（仮定）：迂回路の人の密度 約0.15人/m²、歩く速さ 毎秒1.1〜1.5m。実際の人数ではありません',en:'Simulation (assumptions): ~0.15 p/m² on the detour, walking 1.1–1.5 m/s. Not real counts.'},
- defaults:{path:[[150,-70],[156,-20],[160,30],[164,80],[168,130]],width:4.5,density:.15,player:{u:.35,speed:1.3},phoneShare:.15},
+ defaults:{path:[[150,-70],[156,-20],[160,30],[164,80],[168,130]],width:4.5,density:.15,player:{u:.35,speed:1.3},phoneShare:.15,clear:null},
  setup(ctx={},params={}){const o={...this.defaults,...params};const P=polyline(o.path);const n=Math.round(P.L*o.width*o.density);
   const walkers=Array.from({length:n},(_,k)=>({k,u0:H(k,1)*P.L,dir:H(k,2)<.5?1:-1,v:1.1+.4*H(k,3),lat:(H(k,4)-.5)*o.width}));return {o,P,walkers};},
  advance(h,t){const o=h.o,P=h.P,people=[];const pu=o.player.u*P.L+o.player.speed*t,pf=P.frame(Math.min(P.L,pu));
+  const cl=o.clear?{...CLEAR_DEFAULTS,...o.clear}:null;
   for(const w of h.walkers){let u=((w.u0+w.dir*w.v*t)%P.L+P.L)%P.L;if(u<3||u>P.L-3)continue;const f=P.frame(u);const lat=w.lat+(w.dir>0?.6:-.6);
-   const x=f.x+f.nx*lat,z=f.z+f.nz*lat;if(Math.hypot(x-pf.x,z-pf.z)<1.2)continue;
+   let x=f.x+f.nx*lat,z=f.z+f.nz*lat;if(cl){const q=clearCone(x,z,pf,cl);x=q.x;z=q.z;if(Math.hypot(x-pf.x,z-pf.z)<cl.minDist)continue;}
+   if(Math.hypot(x-pf.x,z-pf.z)<1.2)continue;
    people.push({x,z,y:0,heading:Math.atan2(f.dx*w.dir,f.dz*w.dir),speed:w.v,id:230000+w.k,anim:H(w.k,5)<o.phoneShare?'phone':'walk'});}
   const pl={x:pf.x,z:pf.z,y:0,heading:Math.atan2(pf.dx,pf.dz),speed:pu<P.L?o.player.speed:0};
   const dp=densityAround(people,pl.x,pl.z,6),ms=people.length?people.reduce((s,p)=>s+p.speed,0)/people.length:0;
@@ -211,16 +227,70 @@ const taxiSakura=taxiState({key:'taxi-sakura',label:{ja:'渋谷SAKURAテラス�
  assumptions:{ja:'シミュレーション（仮定）：タクシー 約35秒ごとに1台、1台に1〜2人。実際の台数・人数ではありません',en:'Simulation (assumptions): a taxi every ~35 s, 1–2 people each. Not real counts.'},
  defaults:{stand:[112.1,311.9],dir:[-.35,-1],length:26,spacing:.95,n0:12,lambda:.035,playerJoin:-3,phoneShare:.4,approach:10,roadSide:1,headway:35,firstTaxi:4}});
 
+// 'caught-press' (combined episodes, beat `caught`, shot 'caught-pov'): ORDINARY people close in around the stopped
+// player (= the POV camera) and pack — neutral poses only (idle / queue shuffle / phone, arms down, never reaching),
+// mostly BACKS or SIDES to the camera: people ahead face the camera's heading (backs), people beside face forward or
+// turn away from the camera, nobody faces it (|facing·toCamera| ≤ .2). The fictional game zombies are VFX only
+// (vfx-caught.mjs); the crowd is never the attacker. Closed form in t (ring radius eased over closeIn).
+// params: {at:[x,z] (the POV camera ground point; default: params.pov {x,z,y,heading} (app-variant, caught-pov anchor),
+//          else the base state's player at base t0, else the zone-dense default player), heading (rad, camera yaw, atan2(dx,dz) convention; default: base player heading),
+//          y (ground), base:{key, params?, t0=0} (keep that state's people around — e.g. the over-result crowd —
+//          minus those within clearBase m, at time base.t0 + t), n=26, inner=8 (people on the inner ring), front=7 (extra backs ahead, 1.5–3.4 m),
+//          rFrom:[1.7,3.6] / rTo:[.7,1.5] (start / packed ring radii, m), closeIn:[0,1.8] (s; match the shot's
+//          press ramp), frontMin=1.3 (m: nobody closer straight ahead — the frame is not one back, the caught-pov push is ≈.6 m), frontCone=.5 (rad),
+//          clearBase=3.4, phoneShare=.15, seed=0 (per pair: other people / jitter in the ring; ids 270000 + seed·64 + k)}
+// Pair params (camera at the caught-pov base pose): pass at/heading = the camera's x,z / yaw (pressFromShot(shot)).
+export const pressFromShot=shot=>{const p=shot.pos,l=shot.look;return {at:[+p.x.toFixed(2),+p.z.toFixed(2)],heading:+Math.atan2(l.x-p.x,l.z-p.z).toFixed(4)};};
+const caughtPress={key:'caught-press',label:{ja:'人混みに囲まれて止まる',en:'Pressed in by the crowd'},
+ assumptions:{ja:'シミュレーション（演出）：立ち止まった人のまわりに人が詰まってくる様子。実際の人数ではありません',en:'Simulation (staging): people pack in around someone who stopped. Not real counts.'},
+ defaults:{at:null,heading:null,y:0,base:null,n:26,inner:8,front:7,rFrom:[1.7,3.6],rTo:[.7,1.5],closeIn:[0,1.8],frontMin:1.3,frontCone:.5,clearBase:3.4,phoneShare:.15,seed:0},
+ setup(ctx={},params={}){const o={...this.defaults,...params};let base=null,bp=null;
+  if(o.base?.key){const bk=resolveCrowdState(o.base.key);if(bk&&bk!=='caught-press'){const def=CROWD_STATES[bk];
+   const bpar={...(o._anchors&&bk!=='taxi-west'?paramsFromSets(bk,o._anchors):{}),...(o.base.params||{})};base={def,h:def.setup(ctx,bpar),t0:o.base.t0??0};bp=def.advance(base.h,base.t0).player;}}
+  const pv=o.pov&&Number.isFinite(o.pov.x)?o.pov:null;// app-variant: params.pov = the caught-pov frozen player spot {x,z,y,heading}
+  if(!bp&&!o.at&&!pv){const zd=CROWD_STATES['zone-dense'];bp=zd.advance(zd.setup({},{}),0).player;}
+  const at=o.at||(pv?[pv.x,pv.z]:[bp.x,bp.z]),heading=o.heading??pv?.heading??bp?.heading??0,y=o.y||pv?.y||bp?.y||0;
+  const K=k=>k+(o.seed|0)*64;// seed → other hash slots + people ids (other faces / clothes / ring jitter per pair)
+  const slots=[];for(let k=0;k<o.n;k++){const inner=k<o.inner,m=inner?o.inner:o.n-o.inner,j=inner?k:k-o.inner;
+   const rel=(j+.5)/m*2*Math.PI+(H(K(k),11)-.5)*(2*Math.PI/m)*.5+(inner?0:Math.PI/m);// angle from straight ahead
+   const a=((rel+Math.PI)%(2*Math.PI))-Math.PI;
+   let r1=inner?o.rTo[0]+(o.rTo[1]-o.rTo[0])*.25*H(K(k),12):o.rTo[0]+(o.rTo[1]-o.rTo[0])*(.55+.45*H(K(k),12));
+   if(Math.abs(a)<o.frontCone)r1=Math.max(r1,o.frontMin+(inner?0:.55));
+   const r0=o.rFrom[0]+(o.rFrom[1]-o.rFrom[0])*H(K(k),13)+(inner?0:.6);slots.push({k:K(k),a,r0,r1,delay:H(K(k),14)*.35});}
+  // front cluster: backs filling the view ahead (staggered rows 1.5–3.4 m, inside ±frontCone·1.3)
+  for(let j=0;j<o.front;j++){const k=K(o.n+j),a=((j+.5)/o.front-.5)*2*o.frontCone*1.3+(H(k,11)-.5)*.12,r1=o.frontMin+.25+(j%2)*.75+H(k,12)*.5;
+   slots.push({k,a,r0:r1+1.4+H(k,13)*1.2,r1,delay:H(k,14)*.35});}
+  return {o,at,heading,y,base,slots};},
+ advance(h,t){const o=h.o,[ax,az]=h.at,hd=h.heading,fx=Math.sin(hd),fz=Math.cos(hd);const people=[];
+  const pos=(s,tt)=>{const p=smooth(o.closeIn[0]+s.delay,o.closeIn[1]+s.delay,tt);const r=s.r0+(s.r1-s.r0)*p+Math.sin(tt*.8+s.k)*.03;const a=s.a+Math.sin(tt*.35+s.k*1.7)*.04;
+   const lx=Math.sin(a)*r,lz=Math.cos(a)*r;// local: z ahead, x right
+   return {x:ax+fz*lx+fx*lz,z:az-fx*lx+fz*lz,p};};
+  for(const s of h.slots){const q=pos(s,t),q0=pos(s,t-.2);const speed=Math.hypot(q.x-q0.x,q.z-q0.z)/.2;
+   // facing: ahead → camera heading (backs); beside → forward, turned AWAY from the camera; behind → camera heading
+   const side=Math.sign(Math.sin(s.a))||1,abs=Math.abs(s.a);let face=hd+(H(s.k,15)-.5)*.6;
+   if(abs>1.0&&abs<2.4)face=hd+side*(.25+.9*H(s.k,16));
+   const tx=ax-q.x,tz=az-q.z,tl=Math.hypot(tx,tz)||1;if((Math.sin(face)*tx+Math.cos(face)*tz)/tl>.2)face=hd;
+   people.push({x:q.x,z:q.z,y:h.y,heading:face,speed,id:270000+s.k,anim:speed>.25?'queue':H(s.k,17)<o.phoneShare?'phone':'idle',role:'press'});}
+  let regions=[{x:ax,z:az,r:Math.max(...o.rFrom)+1.5}],baseN=0;
+  if(h.base){const bf=h.base.def.advance(h.base.h,h.base.t0+t);for(const p of bf.people){if(Math.hypot(p.x-ax,p.z-az)<o.clearBase)continue;people.push(p);baseN++;}regions=regions.concat(bf.regions||[]);}
+  const around=people.filter(p=>Math.hypot(p.x-ax,p.z-az)<2).length,dens=densityAround(people,ax,az,1.5);
+  const pl={x:ax,z:az,y:h.y,heading:hd,speed:0};
+  return {key:this.key,t,label:'simulation',people,player:pl,focus:{x:ax,z:az},regions,
+   hud:{label:'シミュレーション',numbers:{around,density:dens,base:baseN,press:smooth(o.closeIn[0],o.closeIn[1],t)},
+    items:[item('around','まわりの人','People around you',around,U.people),item('density','まわりの混雑','Density around you',dens,U.dens,1)]},
+   previewShot:eyeShot(pl,6,'caught-press')};}};
+
 // Params from series/sets-variants.mjs anchors (S.anchors, flat {'<piece>.<name>':{x,y,z}}): place each state on its set.
 export function paramsFromSets(key,A){if(!A)return {};const g=n=>A[n];const k=resolveCrowdState(key);
  if(k==='hachiko-peak'&&g('gate-queue.northLane')){const n=g('gate-queue.northLane'),so=g('gate-queue.southLane'),u=g('gate-queue.uTurn'),gt=g('gate-queue.gate');return {path:hachikoQueuePath({north:n.z,south:so.z,uTurn:u.x,gate:[gt.x,gt.z]})};}
+ if(k==='caught-press')return {_anchors:A};// resolved in setup for params.base.key
  if((k==='taxi-west'||k==='taxi-sakura')&&g(k+'.queueHead')){const h=g(k+'.queueHead'),d=g(k+'.queueDir');return {stand:[h.x,h.z],dir:[d.x,d.z]};}
  if(k==='zone-dense'&&g('closure.a')){const a=g('closure.a'),b=g('closure.b'),nm=g('closure.normal'),ux=b.x-a.x,uz=b.z-a.z;return {barrier:[[a.x,a.z],[b.x,b.z]],side:Math.sign(-uz*nm.x+ux*nm.z)||1};}
  if(k==='alt-platform'&&g('alt-platform.center')){const c=g('alt-platform.center'),e=g('alt-platform.edge'),d=g('alt-platform.dir'),nx=-d.z,nz=d.x,side=Math.sign((e.x-c.x)*nx+(e.z-c.z)*nz)||1,hw=Math.hypot(e.x-c.x,e.z-c.z);
   return {platform:{x:c.x,y:c.y??e.y??0,z:c.z,dir:[d.x,d.z],length:110,width:2*hw,edge:side,stairs:.45}};}
  return {};}
-export const CROWD_STATES=Object.freeze({'hachiko-peak':hachikoPeak,'gate-newsouth':gateNewSouth,'zone-dense':zoneDense,'detour-light':detourLight,'alt-platform':altPlatform,'taxi-west':taxiWest,'taxi-sakura':taxiSakura});
-export const CROWD_STATE_ALIASES=Object.freeze({'hachiko-queue':'hachiko-peak','gate-queue':'hachiko-peak','newsouth':'gate-newsouth','gate-clear':'gate-newsouth','zone':'zone-dense','zone-edge':'zone-dense','closure':'zone-dense','detour':'detour-light','platform':'alt-platform','taxi-suspended':'taxi-west','taxi-moving':'taxi-sakura'});
+export const CROWD_STATES=Object.freeze({'hachiko-peak':hachikoPeak,'gate-newsouth':gateNewSouth,'zone-dense':zoneDense,'detour-light':detourLight,'alt-platform':altPlatform,'taxi-west':taxiWest,'taxi-sakura':taxiSakura,'caught-press':caughtPress});
+export const CROWD_STATE_ALIASES=Object.freeze({'hachiko-queue':'hachiko-peak','gate-queue':'hachiko-peak','newsouth':'gate-newsouth','gate-clear':'gate-newsouth','zone':'zone-dense','zone-edge':'zone-dense','closure':'zone-dense','detour':'detour-light','platform':'alt-platform','taxi-suspended':'taxi-west','taxi-moving':'taxi-sakura','caught':'caught-press','press':'caught-press'});
 export const resolveCrowdState=key=>CROWD_STATES[key]?key:CROWD_STATE_ALIASES[key]||null;
 // Convenience: setup + advance in one (stateless callers; setup is cached per params JSON).
 const setupCache=new Map();

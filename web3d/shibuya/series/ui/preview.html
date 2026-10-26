@@ -25,6 +25,8 @@ const CONFIG={
   note:'混雑は「シミュレーション」、徒歩時間は「OSMから概算」'},
 };
 const SOURCES=[{label:'JR東日本 プレスリリース',date:'2024-10',url:'https://www.jreast.co.jp/press/'},{label:'渋谷区 ハロウィン対策',date:'2025-10',url:'https://www.city.shibuya.tokyo.jp/'},{label:'警視庁 交通規制のお知らせ',date:'2025-10',url:'https://www.keishicho.metro.tokyo.lg.jp/'},{label:'シブヤ経済新聞',date:'2025-10-31',url:'https://www.shibuyakeizai.jp/'},{label:'MATCHA 渋谷駅ガイド',date:'2025-07-25',url:'https://matcha-jp.com/'},{label:'© OpenStreetMap contributors（ODbL）',url:'https://www.openstreetmap.org/copyright'},{label:'3D都市モデル PLATEAU（国土交通省）',url:'https://www.mlit.go.jp/plateau/'}];
+// union of an over + clear run's resolved rows (alt pair: 12 rows before merging)
+const UNION=[['© OpenStreetMap contributors','2026-10-25'],['Wikipedia「渋谷駅」','2026-10-25'],['MATCHA','2025-07-25'],['JR東日本 時刻表','2026-10-25'],['シブヤ経済新聞','2026-09-30'],['シブヤ経済新聞','2025-01-27'],['シブヤ経済新聞','2025-01-15'],['シブヤ経済新聞','2024-10-30'],['FASHIONSNAP','2023-10-31'],['ライブドアニュース','2023-10-30'],['JR東日本 プレスリリース','2024-04-23'],['警視庁渋谷警察署','2026-10-05'],['東京タクシーセンター','2025-03-12']].map(([label,date])=>({label,date}));
 const FOOT='出典：JR東日本 プレスリリース 2024・シブヤ経済新聞 2025・3D：PLATEAU／© OpenStreetMap contributors';
 const CLOCK={start:'22:10',rate:.5};
 const S=(bg,items,o={})=>({bg,items,header:true,clock:CLOCK,footnote:FOOT,...o});
@@ -41,11 +43,18 @@ const SCENES={
  lesson:t=>S('eye',[{c:'lesson',t,dur:5}],{config:CONFIG,dim:.7,footnote:'出典：JR東日本 プレスリリース 2024・シブヤ経済新聞 2025'}),
  cheat:t=>S('topdown',[{c:'cheat',t,dur:4}],{config:CONFIG,dim:.7,header:false,footnote:'出典：JR東日本 時刻表 2026・シブヤ経済新聞 2025・渋谷区 2025'}),
  sources:t=>S('aerial',[{c:'sources',rows:SOURCES,note:'人の流れ・待ち時間＝シミュレーション（予測ではない）／徒歩時間＝OSMから概算',t,dur:4}],{dim:.7,clock:null,footnote:null}),
+ // combined episodes (2026-10-26): stamp on black, CONTINUE?, gag (kaiju beat), end card, compact sources (union)
+ 'stamp-black':t=>S('black',[{c:'stamp',kind:'GAME_OVER',onBlack:true,ja:'人波に囲まれて動けない…',sub:'（シミュレーション）',safety:'混雑の中で立ち止まるのは危険',t,dur:2}],{header:false,clock:null,footnote:null}),
+ continue:t=>S('aerial',[{c:'continue',ja:'別のルートでやり直す',count:3,t,dur:3}],{header:false,clock:null,footnote:null,dim:.85}),
+ gag2:t=>S('aerial',[{c:'gag',ja:'渋谷、\nまだ終わらない！？',t,dur:4}],{header:false,clock:null,footnote:null,dim:.2}),
+ gag:t=>S('aerial',[{c:'gag',ja:'え、そっち！？',sub:'※ゲームのルールにはありません',t,dur:4}],{header:false,clock:null,footnote:null,dim:.2}),
+ endcard:t=>S('aerial',[{c:'endcard',ja:'あなたなら、\nどう帰る？',sub:'コメントで教えてね',t,dur:2.5}],{header:false,clock:null,footnote:null,dim:.8}),
+ 'sources-union':t=>S('aerial',[{c:'sources',compact:true,rows:UNION,note:'人の流れ・待ち時間＝シミュレーション（予測ではない）／徒歩時間＝OSMから概算',t,dur:3}],{header:false,dim:.75,clock:null,footnote:null}),
  map:t=>S('routemap',[{c:'mission',label:'ROUTE',labelJa:'ルート例',ja:'となりの駅まで歩く？（ルート例）',t,dur:5},{c:'pin',x:300,y:830,ja:'渋谷（スタート）',color:'#FFFFFF',t},{c:'pin',x:420,y:560,ja:'原宿駅',color:'#FF8A1F',t},{c:'pin',x:470,y:300,ja:'代々木駅',color:'#5AB8FF',t},{c:'caption',tone:'note',ja:'徒歩時間＝OSMから概算・位置は概略',t,dur:5}],{dim:0}),
 };
 let lastBg='';
-async function setBg(name){const src=`./preview-bg/${name}.jpg`;if(src===lastBg)return;lastBg=src;bgEl.src=src;await bgEl.decode();}
-window.__preview={scenes:Object.keys(SCENES),async render(scene,t){const s=SCENES[scene](t);await setBg(s.bg);dim.style.opacity=s.dim??0;ph.hidden=!s.logo;
+async function setBg(name){if(name==='black'){lastBg='';bgEl.hidden=true;return;}bgEl.hidden=false;const src=`./preview-bg/${name}.jpg`;if(src===lastBg)return;lastBg=src;bgEl.src=src;await bgEl.decode();}
+window.__preview={scenes:Object.keys(SCENES),async render(scene,t){const s=SCENES[scene](t);await setBg(s.bg);dim.style.opacity=s.bg==='black'?0:(s.dim??0);ph.hidden=!s.logo;
  const a=performance.now();const rec=hud.frame({T:t,...s});await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));return {ms:performance.now()-a,rec};}};
 await hud.ready;
 const q=new URLSearchParams(location.search);

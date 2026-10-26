@@ -5,6 +5,10 @@ BS.1770 meter agrees with ffmpeg ebur128; every required SFX exists; BGM loops a
 stereo 24-bit at ≈ -14 LUFS integrated with true peak ≤ -1 dBTP (ffmpeg); a shared opening is sample-identical
 across two different bodies; output is deterministic; BGM is ducked under stamp cues; unknown names warn (strict:
 error); mux.sh yields AAC 48 kHz stereo with the video's duration.
+Combined episodes (2026-10-26): the new SFX + retry bed exist (with aliases), the caught sounds hard-duck the BGM,
+cut_black gives true silence on the BGM/ambience buses (and chops earlier tails), the BGM returns after the window,
+the kaiju beat has no BGM, the kaiju roar is a tonal bellow (no screech energy above 3 kHz), track switches inside a
+segment don't dip, and the ~70 s demo-combined cue sheet is well-formed (16 beats, 69.7 s, only known names).
 """
 import json
 import os
@@ -49,7 +53,7 @@ def test_meter_matches_ffmpeg(st):
 
 def test_registry(st):
     assert st['sfx_missing'] == []
-    assert set(st['bgm_tracks']) == {'tension', 'calm', 'victory'}
+    assert set(st['bgm_tracks']) == {'tension', 'calm', 'victory', 'retry'}
 
 
 def test_loop_seamless(st):
@@ -86,3 +90,57 @@ def test_mux(st):
     # true peak of the *encoded* AAC stays ≤ -1 dBTP (mix.py's AAC guard), loudness survives encoding
     assert st['mux_ebur128']['tp_dbtp'] <= -1.0
     assert abs(st['mux_ebur128']['I_lufs'] - (-14.0)) <= 0.6
+
+
+# ------------------------------------------------------------------ combined episodes
+def test_combined_registry(st):
+    assert st['sfx_missing_combined'] == []
+    assert st['aliases'] == {'zombie-groan': 'zombie_groan', 'roar': 'kaiju_roar', 'black': 'cut_black',
+                             'smash': 'smash_cut', 'yes': 'continue_yes'}
+    assert st['bgm_alias_continue'] == 'retry'
+
+
+def test_combined_bgm_off_in_caught_and_kaiju(st):
+    assert st['caught_bgm_duck_db'] <= -18.0       # BGM kept in the cue sheet, still effectively off
+    assert st['kaiju_bgm_dbfs'] < -100              # bgm: null in the kaiju beat
+
+
+def test_combined_black_cut_silence(st):
+    assert st['n_hard_cuts'] == 2                    # cut_black + smash_cut
+    assert st['black_bgm_amb_dbfs'] < -100           # buses hard-muted right on the cut
+    assert st['black_silence_dbfs'] < -60            # whole mix silent after the thunk (tails chopped)
+    assert st['after_cut_bgm_dbfs'] > -45            # and the BGM comes back for the stamp beat
+
+
+def test_combined_continue_auto_bed(st):
+    # countdown without BGM -> light retry bed up to the next run; opt-out and already-covered cases add nothing
+    assert st['auto_bed'] == [[4.0, 7.0, 'retry']]
+    assert st['auto_bed_off'] == 0 and st['auto_bed_covered'] == 0
+
+
+def test_combined_roar_is_original_bellow(st):
+    assert st['roar_gt3k_pct'] < 1.0 and st['roar_centroid_hz'] < 600
+
+
+def test_combined_switch_and_master(st):
+    assert st['switch_dip_lu'] < 6.0
+    lufs, tp = st['combined_ffmpeg']
+    assert abs(lufs - (-14.0)) <= 0.5 and tp <= -1.0
+
+
+def test_demo_combined_cue_sheet():
+    import sys
+    sys.path.insert(0, str(AUDIO))
+    c = json.loads((AUDIO / 'demo' / 'demo-combined.json').read_text())
+    assert abs(c['duration'] - 69.7) < 1e-6 and len(c['meta']['beats']) == 16
+    assert abs(sum(d for _, d in c['meta']['beats']) + 14.2 - c['duration']) < 1e-6
+    names = {e['sfx'] for e in c['events']}
+    for n in ('crowd_press', 'zombie_groan', 'caught_hit', 'red_flash', 'cut_black', 'continue_tick', 'continue_yes',
+              'kaiju_rumble', 'kaiju_roar', 'smash_cut'):
+        assert n in names, n
+    known = set(json.loads(subprocess.run(
+        ['python3', '-c', 'import ast,sys;src=open(sys.argv[1]).read();t=ast.parse(src);'
+         'r=[n for n in t.body if isinstance(n,ast.Assign) and getattr(n.targets[0],"id","")=="REGISTRY"][0];'
+         'print(__import__("json").dumps([k.value for k in r.value.keys]))', str(AUDIO / 'sfx.py')],
+        capture_output=True, text=True, check=True).stdout))
+    assert names <= known, names - known
