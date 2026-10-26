@@ -444,11 +444,11 @@ def main(argv=None):
     ap.add_argument('--duration', type=float)
     ap.add_argument('--split', help='comma-separated master-segment boundaries in seconds (e.g. the opening end)')
     ap.add_argument('--lufs', type=float, default=-14.0)
-    ap.add_argument('--tp', type=float, default=-1.5, help='true-peak ceiling dBTP (internal meter; ffmpeg ≤ -1)')
+    ap.add_argument('--tp', type=float, default=-2.0, help='true-peak ceiling dBTP (internal meter; ffmpeg ≤ -1)')
     ap.add_argument('--report', help='write a JSON report (internal + ffmpeg ebur128 measurements)')
     ap.add_argument('--stems', help='also write bgm/amb/sfx stems (pre-master) into this directory')
     ap.add_argument('--strict', action='store_true', help='unknown sfx/track/bed names are errors')
-    ap.add_argument('--aac-tp', type=float, default=-1.2,
+    ap.add_argument('--aac-tp', type=float, default=-1.8,
                     help='AAC guard: keep the decoded AAC-192k true peak under this (dBTP); --no-aac-guard to skip')
     ap.add_argument('--no-aac-guard', action='store_true')
     a = ap.parse_args(argv)
