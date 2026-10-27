@@ -24,6 +24,11 @@
 //                             videoDuration, openingDuration}
 //   await window.__warmup(t) solver to the segment start, shaders compiled, two warm-up renders at t (no black first frame)
 //   await window.__frame(t)  part time t → state;  window.__variantOverlay = per-frame record (checked by the recorder)
+// v7 HUD-only layer (&hudonly=1): the WebGL view is hidden and the page background is transparent; the shot env is still
+//   applied (camera → pin projection, caught/kaiju flags) and crowd states are still evaluated (their HUD text), but nothing
+//   3D is stepped or rendered. The recorder screenshots with omit_background → RGBA HUD frames that tools/v7_composite.py
+//   lays over the photoreal plates. On such beats the 「位置・構造は概略」 tag becomes the beat's `plateTag` (config; e.g.
+//   「AI生成画像を加工」), since the background is no longer the approximate 3D set.
 import * as THREE from '../../vendor/three.module.min.js';
 import {shared} from '../shaders.mjs';
 import * as VS from './variant-system.mjs';
@@ -45,7 +50,7 @@ export async function loadConfigs(ep,id,openingId=null){const dir=new URL(`./var
 
 export async function start(params){
  window.__ready=false;
- const recording=params.get('record')==='1',lang=params.get('lang')||'ja',ep=params.get('ep')||'jr',id=params.get('variant'),part=params.get('part')||'body';
+ const recording=params.get('record')==='1',hudOnly=params.get('hudonly')==='1',lang=params.get('lang')||'ja',ep=params.get('ep')||'jr',id=params.get('variant'),part=params.get('part')||'body';
  if(ep!=='jr')throw Error('only ep=jr has variants');
  if(!VS.PARTS.includes(part))throw Error('part must be opening|body');
  document.title='ハロウィンの渋谷を脱出せよ！ JR編';
@@ -53,6 +58,7 @@ export async function start(params){
  style.textContent=`#hud,#brand,#caption,#controls,#disclaimer,footer{display:none!important}html,body{margin:0;background:#000;overflow:hidden}#view{position:fixed;inset:0}#view canvas{width:100%!important;height:100%!important;display:block}#loading{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);color:#fff;font:600 16px "Noto Sans CJK JP";z-index:50}
  #vs-plain{position:fixed;left:28px;right:92px;top:84px;bottom:240px;z-index:30;color:#fff;font:700 22px/1.4 "Noto Sans CJK JP",sans-serif;text-shadow:0 2px 6px #000;white-space:pre-line}
  #vs-plain .p{display:inline-block;background:#FFD23F;color:#160A14;padding:2px 8px;font-size:16px}#vs-plain .f{position:fixed;left:28px;right:112px;bottom:246px;font-size:12px}`;
+ if(hudOnly)style.textContent+=`html,body{background:transparent!important}#view{visibility:hidden!important}`;
  document.head.append(style);document.body.classList.add('series','variant',`lang-${lang}`);if(recording)document.body.classList.add('recording');
  const $=i=>document.getElementById(i);const status=m=>{if($('loading')){$('loading').hidden=false;$('loading').textContent=m;}};
  status('JR編（分岐）を準備中…');
@@ -139,11 +145,12 @@ export async function start(params){
   const cpt=e.focus?{x:e.focus[0],z:e.focus[1]}:{x:shot.look.x,z:shot.look.z};
   // the solver only advances while its crowd is on screen (cards / flat maps skip it: ≈1–2 s/frame saved); the next crowd
   // frame catches up deterministically (stepTo is chunk-independent), exactly like a segment start
-  if(res.crowdVisible)await S.stepTo(S.eStart+BG_SIM0+vt,cpt);const simMs=performance.now()-T0;
+  if(res.crowdVisible&&!hudOnly)await S.stepTo(S.eStart+BG_SIM0+vt,cpt);const simMs=performance.now()-T0;
   const dtSim=lastT==null?0:Math.max(0,vt-lastT);lastT=vt;
+  let drawn=0,nInterior=0,fxOn={caught:!!e.caught,kaiju:!!e.kaiju};const frAll=crowdState(spec,e),fr=camera.position.y>80||res.blank?null:frAll;
+  if(!hudOnly){
   S.updateCrowd(dtSim);
-  // crowd-state people are invisible from high aerials (>80 m): skip them (and their solver mask) there
-  const frAll=crowdState(spec,e),fr=camera.position.y>80||res.blank?null:frAll;
+  // crowd-state people are invisible from high aerials (>80 m): skip them (and their solver mask) there (fr above)
   if(S.crowd){if(fr?.regions?.length)crowdM.maskCrowdRegions(S.crowd,fr.regions);S.crowd.uniforms.uNearDim.value=e.eye?LOOK.nearDim:0;}
   // near people: crowd-state people + solver agents close to an eye-level camera (replaces the low-poly figures)
   let nearList=[];if(fr&&!flat)nearList=fr.people.slice();
@@ -153,18 +160,19 @@ export async function start(params){
   // eye-level / interior shots: a little fill on the near people (queue shots under the viaduct read as dark blobs otherwise)
   if(near)near.uniforms.uFill.value=e.nearFill??(e.eye||e.interior||camera.position.y<12?.1:0);
   if(near){near.visible=!flat&&nearList.length>0;if(near.visible)near.set(nearList,{animTime:vt,camera});else near.clear();}
-  const nInterior=S.interior(!!e.interior&&!flat,S.eStart+BG_SIM0+vt,shot);
-  const drawn=S.crowd&&S.crowd.visible?S.cullCrowd(e.eye?220:4000,camera.position.y<40):0;
+  nInterior=S.interior(!!e.interior&&!flat,S.eStart+BG_SIM0+vt,shot);
+  drawn=S.crowd&&S.crowd.visible?S.cullCrowd(e.eye?220:4000,camera.position.y<40):0;
   shared.uTime.value=vt;S.R.update(vt,camera);
-  const fxOn=updateFx(e,vt,spec.fallbacks);
-  S.render(flat);S.finish();
+  fxOn=updateFx(e,vt,spec.fallbacks);
+  S.render(flat);S.finish();}
   const renderMs=performance.now()-T0-simMs;
   // HUD
   let items=spec.items.filter(it=>it.c!=='parody');
   items=items.map(it=>{if(it.c==='pin'&&Array.isArray(it.world)){const q=S.project(it.world[0],it.world[1]??0,it.world[2]??0);return q.inFrame?{...it,x:q.x,y:q.y}:null;}if(typeof it.crowd==='string'){const f=frAll?.hud?.items?.find(x=>x.id===it.crowd);return f?{...it,c:it.c==='sim'?'sim':it.c,ja:f.text}:null;}return it;}).filter(Boolean);
   // 「位置・構造は概略」 for approximate sets / the station interior: a design-system corner tag (ui/components.mjs tag)
   // (not on the caught POV: the creature hands own the frame edges there)
-  const approx=(e.approx||e.interior)&&!flat&&!e.caught?(shotsM.APPROX_LABEL?.[lang]??'位置・構造は概略'):null;
+  const plateTag=hudOnly?(cfg.beats||[]).find(b=>b.id===spec.beat.id)?.plateTag??null:null;
+  const approx=hudOnly?(plateTag&&!res.blank?plateTag:null):(e.approx||e.interior)&&!flat&&!e.caught?(shotsM.APPROX_LABEL?.[lang]??'位置・構造は概略'):null;
   // beat.factIds cover the 3D content (e.g. the departure board): not on screen on blank frames (black / after the caught cut);
   // beat.footnote:false (end card: its own credit line) → no page footnote; a blank frame without claims → none either
   // kaiju gag: the footnote sits over the bright street-light row → dark backing plate (ui footnote plate:true)
@@ -179,7 +187,7 @@ export async function start(params){
    caught:e.caught?{t:+e.caught.t.toFixed(3),intensity:+e.caught.intensity.toFixed(3),press:+e.caught.press.toFixed(3),flash:+e.caught.flash.toFixed(3),black:e.caught.black,vfx:!!fxOn.caught}:null,
    kaiju:e.kaiju?{rise:+e.kaiju.rise.toFixed(3),eyes:+e.kaiju.eyes.toFixed(3),roar:+e.kaiju.roar.toFixed(3),model:!!fxOn.kaiju}:null,blank:!!res.blank,
    cont:rec.cont??null,endcard:rec.endcard??null,gag:rec.gag??null,credit:rec.credit??null,goodbye:rec.goodbye??null,guide:rec.guide??null,mission:rec.mission??null,
-   ms:{sim:Math.round(simMs),render:Math.round(renderMs)},peopleDrawn:drawn,near:near?.last?.drawn??0,interior:nInterior,fade:+(post.settings.uFade.value).toFixed(3),cutFade:+(+spec.fade).toFixed(3)};
+   ms:{sim:Math.round(simMs),render:Math.round(renderMs)},hudOnly,plateTag:approx&&hudOnly?approx:null,peopleDrawn:drawn,near:near?.last?.drawn??0,interior:nInterior,fade:+(post.settings.uFade.value).toFixed(3),cutFade:+(+spec.fade).toFixed(3)};
   window.__variantOverlay=out;
   return {t,frame:Math.round(t*VS.FPS),beat:spec.beat.id,shot:spec.shot.key,ms:out.ms,drawCalls:S.renderer.info.render.calls,triangles:S.renderer.info.render.triangles,agents:S.nAgents};}
 

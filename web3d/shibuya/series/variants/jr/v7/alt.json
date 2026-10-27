@@ -1,0 +1,1169 @@
+{
+  "id": "v7-alt",
+  "episode": "jr",
+  "pair": "alt",
+  "kind": "v6",
+  "outcome": "V6",
+  "edition": "v6",
+  "parts": {
+    "over": "alt-over",
+    "clear": "alt-clear",
+    "combined": "combined/alt"
+  },
+  "title": {
+    "ja": "原宿駅で GAME OVER → 恵比寿駅で再挑戦"
+  },
+  "start": {
+    "place": "hachiko-square",
+    "ja": "スタート：ハチ公前広場",
+    "factIds": []
+  },
+  "clock": {
+    "start": "00:20",
+    "ja": "ゲーム内時刻（架空）",
+    "rate": 0.5
+  },
+  "choice": {
+    "prompt": {
+      "ja": "渋谷を避けて隣の駅へ。\nどっちへ歩く？"
+    },
+    "options": [
+      {
+        "key": "A",
+        "ja": "原宿駅（北へ）",
+        "sub": "約20分・OSMから概算",
+        "factIds": [
+          "ALT-HARA-H"
+        ]
+      },
+      {
+        "key": "B",
+        "ja": "恵比寿駅（南へ）",
+        "sub": "約25分・OSMから概算",
+        "factIds": [
+          "ALT-EBI-H"
+        ]
+      }
+    ],
+    "picked": "A"
+  },
+  "firstChoice": {
+    "prompt": {
+      "ja": "まず、どうする？"
+    },
+    "options": [
+      {
+        "key": "A",
+        "ja": "そもそも渋谷に行かない",
+        "factIds": []
+      },
+      {
+        "key": "B",
+        "ja": "もう渋谷にいる",
+        "sub": "仕事・住まい・うっかり来てしまった",
+        "factIds": []
+      }
+    ],
+    "picked": "A"
+  },
+  "beats": [
+    {
+      "id": "first-choice",
+      "dur": 4.5,
+      "shot": {
+        "key": "card-bg",
+        "params": {
+          "yaw0": 0.3
+        }
+      },
+      "hud": [
+        {
+          "c": "choice",
+          "card": true,
+          "prompt": {
+            "ja": "まず、どうする？"
+          },
+          "en": "First, what will you do?",
+          "options": [
+            {
+              "key": "A",
+              "ja": "そもそも渋谷に行かない",
+              "factIds": []
+            },
+            {
+              "key": "B",
+              "ja": "もう渋谷にいる",
+              "sub": "仕事・住まい・うっかり来てしまった",
+              "factIds": []
+            }
+          ],
+          "picked": "A",
+          "pickAt": 3.5,
+          "factIds": []
+        }
+      ],
+      "header": {
+        "sub": "10/31 渋谷ハロウィンには近づくな"
+      },
+      "clock": false,
+      "bgm": "calm",
+      "amb": null,
+      "plateTag": "AI生成画像を加工"
+    },
+    {
+      "id": "true-end",
+      "dur": 4,
+      "shot": {
+        "key": "true-end-bg"
+      },
+      "hud": [
+        {
+          "c": "stamp",
+          "kind": "TRUE_END",
+          "ja": "今年の渋谷ハロウィンには行かない",
+          "kicker": "いちばん安全なクリア",
+          "en": "TRUE END — the safest clear: don't go.",
+          "factIds": []
+        }
+      ],
+      "header": {
+        "sub": "10/31 渋谷ハロウィンには近づくな"
+      },
+      "clock": false,
+      "bgm": "calm",
+      "amb": null
+    },
+    {
+      "id": "guide",
+      "dur": 3,
+      "shot": {
+        "key": "card-bg",
+        "params": {
+          "yaw0": 0.9
+        }
+      },
+      "hud": [
+        {
+          "c": "guide",
+          "ja": "ここからは“もしも”の脱出ガイド",
+          "sub": "もう渋谷にいる人（仕事・住まい・うっかり来た人）へ",
+          "en": "From here: a just-in-case escape guide",
+          "options": [
+            {
+              "key": "A",
+              "ja": "そもそも渋谷に行かない",
+              "factIds": []
+            },
+            {
+              "key": "B",
+              "ja": "もう渋谷にいる",
+              "sub": "仕事・住まい・うっかり来てしまった",
+              "factIds": []
+            }
+          ],
+          "hot": "B",
+          "doneKey": "A",
+          "doneLabel": "TRUE END",
+          "factIds": []
+        }
+      ],
+      "header": {
+        "sub": "10/31 渋谷ハロウィンには近づくな"
+      },
+      "clock": false,
+      "bgm": "tension",
+      "amb": null,
+      "plateTag": "AI生成画像を加工"
+    },
+    {
+      "id": "over-start",
+      "dur": 2.5,
+      "shot": {
+        "key": "topdown",
+        "params": {
+          "center": [
+            16,
+            0,
+            26
+          ]
+        },
+        "t0": 0
+      },
+      "crowd": {
+        "key": "hachiko-peak",
+        "t0": 0,
+        "restart": true
+      },
+      "hud": [
+        {
+          "c": "mission",
+          "ja": "山手線の内回りで\n品川方面へ帰れ",
+          "factIds": [
+            "JR-PLAT-01"
+          ]
+        },
+        {
+          "c": "caption",
+          "ja": "渋谷の内回り終電は0:48\n（通常の土休日ダイヤ）",
+          "factIds": [
+            "JR-LAST-02"
+          ],
+          "until": 1.2
+        },
+        {
+          "c": "caption",
+          "ja": "混雑で駅の出入口が\n変わる可能性も（2026年）",
+          "factIds": [
+            "MEAS-12"
+          ],
+          "at": 1.2
+        },
+        {
+          "c": "sim",
+          "ja": "人の流れ＝シミュレーション",
+          "factIds": []
+        }
+      ],
+      "clock": {
+        "set": "00:20:00",
+        "rate": 0.5
+      },
+      "vt0": 14.2,
+      "bgm": "tension",
+      "amb": "crowd-night",
+      "reuse": {
+        "variant": "alt-over",
+        "beat": "start"
+      }
+    },
+    {
+      "id": "over-choice",
+      "dur": 4,
+      "shot": {
+        "key": "routemap",
+        "params": {
+          "routes": [
+            "ALT-HARA-H",
+            "ALT-EBI-H"
+          ],
+          "routeWidth": 30,
+          "highlight": null,
+          "colors": {
+            "ALT-HARA-H": "#FF9A3D",
+            "ALT-EBI-H": "#4FE3C1"
+          },
+          "points": [
+            [
+              209.8,
+              -1211.2
+            ],
+            [
+              768.8,
+              1406
+            ],
+            [
+              22,
+              34
+            ]
+          ],
+          "azimuth": -8,
+          "rect": {
+            "x0": 0.14,
+            "x1": 0.86,
+            "y0": 0.2,
+            "y1": 0.86
+          },
+          "span": true,
+          "redZone": 0,
+          "drawOn": [
+            0.1,
+            1.4
+          ]
+        },
+        "t0": 0
+      },
+      "hud": [
+        {
+          "c": "choice",
+          "picked": "A"
+        },
+        {
+          "c": "pin",
+          "world": [
+            209.8,
+            0,
+            -1211.2
+          ],
+          "ja": "A 原宿駅",
+          "color": "#FF9A3D",
+          "factIds": []
+        },
+        {
+          "c": "pin",
+          "world": [
+            768.8,
+            0,
+            1406
+          ],
+          "ja": "B 恵比寿駅",
+          "color": "#4FE3C1",
+          "factIds": []
+        }
+      ],
+      "clock": {
+        "set": "00:21:15",
+        "rate": 0.5
+      },
+      "vt0": 16.7,
+      "bgm": "tension",
+      "amb": "crowd-night",
+      "reuse": {
+        "variant": "alt-over",
+        "beat": "choice"
+      }
+    },
+    {
+      "id": "over-move",
+      "dur": 4.5,
+      "shot": {
+        "key": "detour",
+        "params": {
+          "route": "ALT-HARA-H",
+          "mode": "chase",
+          "s0": 120,
+          "speed": 9,
+          "height": 30,
+          "back": 34,
+          "color": "#FF9A3D"
+        },
+        "t0": 0
+      },
+      "hud": [
+        {
+          "c": "caption",
+          "ja": "原宿へ 約1572m・約20分\n（OSMから概算）",
+          "factIds": [
+            "ALT-HARA-H"
+          ]
+        },
+        {
+          "c": "sim",
+          "ja": "人混みで遅れ（シミュレーション）",
+          "factIds": []
+        }
+      ],
+      "transition": "dip",
+      "clock": {
+        "set": "00:23:15",
+        "rate": 0.5
+      },
+      "vt0": 20.7,
+      "bgm": "tension",
+      "amb": "crowd-night",
+      "reuse": {
+        "variant": "alt-over",
+        "beat": "move"
+      },
+      "plateTag": "AI生成画像を加工"
+    },
+    {
+      "id": "over-result",
+      "dur": 4,
+      "clock": {
+        "set": "00:45:00",
+        "rate": 0.5
+      },
+      "shot": {
+        "key": "alt-platform",
+        "params": {
+          "station": "harajuku",
+          "mode": "train",
+          "trainLeaveAt": 0.4
+        },
+        "t0": 0
+      },
+      "crowd": {
+        "key": "alt-platform",
+        "t0": 0,
+        "restart": true
+      },
+      "board": {
+        "title": "原宿 山手線 内回り",
+        "rows": [
+          {
+            "note": "終電",
+            "time": "0:45",
+            "dest": "大崎"
+          }
+        ],
+        "foot": "通常の土休日ダイヤ（10/25確認）",
+        "status": "発車"
+      },
+      "factIds": [
+        "JR-LAST-08"
+      ],
+      "amb": "street-quiet",
+      "hud": [
+        {
+          "c": "caption",
+          "ja": "原宿の内回り終電は0:45\n渋谷0:48より早い！\n（通常の土休日ダイヤ）",
+          "factIds": [
+            "JR-LAST-08",
+            "JR-LAST-02",
+            "ALT-LAST-CMP"
+          ],
+          "tone": "warn"
+        },
+        {
+          "c": "sim",
+          "ja": "原宿着0:45（シミュレーション）",
+          "factIds": [],
+          "at": 0.4
+        }
+      ],
+      "vt0": 25.2,
+      "bgm": "tension",
+      "reuse": {
+        "variant": "alt-over",
+        "beat": "result"
+      },
+      "plateTag": "AI生成画像を加工"
+    },
+    {
+      "id": "caught",
+      "dur": 2.5,
+      "shot": {
+        "key": "caught-pov",
+        "params": {
+          "base": "alt-platform",
+          "baseParams": {
+            "station": "harajuku",
+            "mode": "train",
+            "trainLeaveAt": 0.4,
+            "board": {
+              "title": "原宿 山手線 内回り",
+              "rows": [
+                {
+                  "note": "終電",
+                  "time": "0:45",
+                  "dest": "大崎"
+                }
+              ],
+              "foot": "通常の土休日ダイヤ（10/25確認）",
+              "status": "発車"
+            }
+          },
+          "baseT0": 4,
+          "eyeY": 1.55,
+          "push": 0.6,
+          "flashAt": 1.75,
+          "blackAt": 2.15,
+          "hands": {
+            "scale": 0.75,
+            "reach": 0.6
+          },
+          "seed": 23
+        },
+        "t0": 0
+      },
+      "crowd": {
+        "key": "caught-press",
+        "params": {
+          "seed": 23,
+          "base": {
+            "key": "alt-platform",
+            "params": {},
+            "t0": 4
+          }
+        }
+      },
+      "hud": [
+        {
+          "c": "sim",
+          "ja": "ホームで囲まれた（シミュレーション）",
+          "factIds": [],
+          "until": 1.75
+        }
+      ],
+      "cues": [
+        {
+          "at": 0,
+          "sfx": "crowd_press"
+        },
+        {
+          "at": 0.35,
+          "sfx": "zombie_groan"
+        },
+        {
+          "at": 1.15,
+          "sfx": "zombie_groan_b",
+          "gain_db": -3,
+          "pan": 0.4
+        },
+        {
+          "at": 1.75,
+          "sfx": "red_flash"
+        },
+        {
+          "at": 1.75,
+          "sfx": "caught_hit",
+          "duck": 0.6,
+          "duck_db": -12
+        },
+        {
+          "at": 2.15,
+          "sfx": "cut_black"
+        }
+      ],
+      "header": false,
+      "clock": false,
+      "vt0": 29.2,
+      "factIds": [
+        "JR-LAST-08"
+      ],
+      "bgm": null,
+      "amb": "street-quiet",
+      "reuse": {
+        "variant": "combined/alt",
+        "beat": "caught"
+      },
+      "plateTag": "AI生成画像を加工"
+    },
+    {
+      "id": "over-stamp",
+      "dur": 2,
+      "shot": {
+        "key": "black",
+        "t0": 0
+      },
+      "hud": [
+        {
+          "c": "stamp",
+          "kind": "GAME_OVER",
+          "ja": "ホームの人波で乗れない…\n（シミュレーション）",
+          "factIds": [],
+          "onBlack": true,
+          "safety": {
+            "ja": "混雑したホームで立ち止まると危険",
+            "factIds": []
+          }
+        }
+      ],
+      "header": false,
+      "clock": false,
+      "bgm": null,
+      "amb": null,
+      "vt0": 31.7,
+      "reuse": {
+        "variant": "combined/alt",
+        "beat": "over-stamp"
+      }
+    },
+    {
+      "id": "over-lesson",
+      "dur": 5,
+      "shot": {
+        "key": "card-bg",
+        "t0": 0
+      },
+      "hud": [
+        {
+          "c": "lesson"
+        }
+      ],
+      "clock": false,
+      "header": true,
+      "bgm": "calm",
+      "transition": "dip",
+      "vt0": 31.7,
+      "amb": "crowd-night",
+      "reuse": {
+        "variant": "alt-over",
+        "beat": "lesson"
+      },
+      "plateTag": "AI生成画像を加工"
+    },
+    {
+      "id": "continue",
+      "dur": 3,
+      "shot": {
+        "key": "continue-bg",
+        "t0": 0
+      },
+      "hud": [
+        {
+          "c": "continue",
+          "ja": "反対側の駅でやり直す",
+          "count": 3,
+          "yesAt": 1.6,
+          "factIds": []
+        }
+      ],
+      "clock": false,
+      "bgm": "retry",
+      "amb": null,
+      "vt0": 38.7,
+      "reuse": {
+        "variant": "combined/alt",
+        "beat": "continue"
+      },
+      "plateTag": "AI生成画像を加工"
+    },
+    {
+      "id": "clear-choice",
+      "dur": 4,
+      "shot": {
+        "key": "routemap",
+        "params": {
+          "routes": [
+            "ALT-HARA-H",
+            "ALT-EBI-H"
+          ],
+          "routeWidth": 30,
+          "highlight": null,
+          "colors": {
+            "ALT-HARA-H": "#FF9A3D",
+            "ALT-EBI-H": "#4FE3C1"
+          },
+          "points": [
+            [
+              209.8,
+              -1211.2
+            ],
+            [
+              768.8,
+              1406
+            ],
+            [
+              22,
+              34
+            ]
+          ],
+          "azimuth": -8,
+          "rect": {
+            "x0": 0.14,
+            "x1": 0.86,
+            "y0": 0.2,
+            "y1": 0.86
+          },
+          "span": true,
+          "redZone": 0,
+          "drawOn": [
+            0.1,
+            1.4
+          ]
+        },
+        "t0": 0
+      },
+      "hud": [
+        {
+          "c": "choice",
+          "picked": "B"
+        },
+        {
+          "c": "pin",
+          "world": [
+            209.8,
+            0,
+            -1211.2
+          ],
+          "ja": "A 原宿駅",
+          "color": "#FF9A3D",
+          "factIds": []
+        },
+        {
+          "c": "pin",
+          "world": [
+            768.8,
+            0,
+            1406
+          ],
+          "ja": "B 恵比寿駅",
+          "color": "#4FE3C1",
+          "factIds": []
+        }
+      ],
+      "clock": {
+        "set": "00:21:15",
+        "rate": 0.5
+      },
+      "vt0": 16.7,
+      "bgm": "tension",
+      "amb": "crowd-night",
+      "reuse": {
+        "variant": "alt-clear",
+        "beat": "choice"
+      }
+    },
+    {
+      "id": "clear-move",
+      "dur": 4.5,
+      "shot": {
+        "key": "routemap",
+        "params": {
+          "routes": [
+            "ALT-EBI-H",
+            "ALT-HARA-H"
+          ],
+          "routeWidth": 30,
+          "highlight": "ALT-EBI-H",
+          "colors": {
+            "ALT-HARA-H": "#FF9A3D",
+            "ALT-EBI-H": "#4FE3C1"
+          },
+          "points": [
+            [
+              768.8,
+              1406
+            ],
+            [
+              22,
+              34
+            ],
+            [
+              209.8,
+              -1211.2
+            ]
+          ],
+          "rect": {
+            "x0": 0.12,
+            "x1": 0.88,
+            "y0": 0.2,
+            "y1": 0.74
+          },
+          "span": true,
+          "redZone": 0
+        },
+        "t0": 0
+      },
+      "hud": [
+        {
+          "c": "caption",
+          "ja": "恵比寿の内回り終電は0:50\n渋谷0:48より遅い\n（通常の土休日ダイヤ）",
+          "factIds": [
+            "JR-LAST-14",
+            "JR-LAST-02"
+          ],
+          "until": 2.3
+        },
+        {
+          "c": "caption",
+          "ja": "恵比寿へ 約1932m・約25分\n（OSMから概算）",
+          "factIds": [
+            "ALT-EBI-H"
+          ],
+          "at": 2.3
+        },
+        {
+          "c": "pin",
+          "world": [
+            768.8,
+            0,
+            1406
+          ],
+          "ja": "恵比寿駅",
+          "color": "#4FE3C1",
+          "factIds": []
+        }
+      ],
+      "transition": "dip",
+      "clock": {
+        "set": "00:23:15",
+        "rate": 0.5
+      },
+      "vt0": 20.7,
+      "bgm": "tension",
+      "amb": "crowd-night",
+      "reuse": {
+        "variant": "alt-clear",
+        "beat": "move"
+      }
+    },
+    {
+      "id": "clear-result",
+      "dur": 4,
+      "clock": {
+        "set": "00:46:00",
+        "rate": 0.5
+      },
+      "shot": {
+        "key": "alt-platform",
+        "params": {
+          "station": "ebisu",
+          "mode": "board",
+          "trainLeaveAt": 9,
+          "pan": 0,
+          "side": 3,
+          "dist": 7.5,
+          "push": 0.05,
+          "fov": 56,
+          "lookDy": -0.6
+        },
+        "t0": 0
+      },
+      "crowd": {
+        "key": "alt-platform",
+        "t0": 0,
+        "restart": true
+      },
+      "board": {
+        "title": "恵比寿 山手線 内回り",
+        "rows": [
+          {
+            "note": "終電",
+            "time": "0:50",
+            "dest": "大崎"
+          }
+        ],
+        "foot": "通常の土休日ダイヤ（10/25確認）",
+        "status": ""
+      },
+      "factIds": [
+        "JR-LAST-14"
+      ],
+      "amb": "street-quiet",
+      "hud": [
+        {
+          "c": "caption",
+          "ja": "恵比寿に0:46ごろ到着\n（シミュレーション）",
+          "factIds": [],
+          "sim": true
+        },
+        {
+          "c": "sim",
+          "ja": "到着時刻＝シミュレーション",
+          "factIds": [],
+          "at": 0.4
+        }
+      ],
+      "vt0": 25.2,
+      "bgm": "tension",
+      "reuse": {
+        "variant": "combined/alt",
+        "beat": "clear-result"
+      },
+      "plateTag": "AI生成画像を加工"
+    },
+    {
+      "id": "clear-stamp",
+      "dur": 2.5,
+      "shot": {
+        "key": "alt-platform",
+        "params": {
+          "station": "ebisu",
+          "mode": "board",
+          "trainLeaveAt": 9,
+          "pan": 0,
+          "side": 3,
+          "dist": 7.5,
+          "push": 0.05,
+          "fov": 56,
+          "lookDy": -0.6
+        },
+        "t0": 4
+      },
+      "crowd": {
+        "key": "alt-platform",
+        "t0": 4,
+        "restart": true
+      },
+      "board": {
+        "title": "恵比寿 山手線 内回り",
+        "rows": [
+          {
+            "note": "終電",
+            "time": "0:50",
+            "dest": "大崎"
+          }
+        ],
+        "foot": "通常の土休日ダイヤ（10/25確認）",
+        "status": ""
+      },
+      "factIds": [
+        "JR-LAST-14"
+      ],
+      "amb": "street-quiet",
+      "hud": [
+        {
+          "c": "stamp",
+          "kind": "GAME_CLEAR",
+          "ja": "終電に間に合った！\n（シミュレーション）",
+          "factIds": []
+        }
+      ],
+      "bgm": "victory",
+      "clock": {
+        "set": "00:48:00",
+        "rate": 0.5
+      },
+      "vt0": 29.2,
+      "reuse": {
+        "variant": "combined/alt",
+        "beat": "clear-stamp"
+      },
+      "plateTag": "AI生成画像を加工"
+    },
+    {
+      "id": "clear-cheat",
+      "dur": 3.5,
+      "shot": {
+        "key": "card-bg",
+        "params": {
+          "yaw0": 1.1
+        },
+        "t0": 0
+      },
+      "hud": [
+        {
+          "c": "cheat"
+        }
+      ],
+      "clock": false,
+      "bgm": "victory",
+      "vt0": 36.7,
+      "amb": "crowd-night",
+      "reuse": {
+        "variant": "alt-clear",
+        "beat": "cheat"
+      },
+      "plateTag": "AI生成画像を加工"
+    },
+    {
+      "id": "kaiju",
+      "dur": 4,
+      "shot": {
+        "key": "kaiju-skyline",
+        "params": {
+          "rise": [
+            0.15,
+            1.7
+          ],
+          "roarAt": 1.85,
+          "roarDur": 1.35,
+          "kaiju": {
+            "scale": 480,
+            "ground": 500,
+            "pos": [
+              10,
+              1000
+            ]
+          }
+        },
+        "t0": 0
+      },
+      "hud": [
+        {
+          "c": "gag",
+          "ja": "終電より\nデカいの来た",
+          "factIds": [],
+          "at": 2.5
+        }
+      ],
+      "cues": [
+        {
+          "at": 0.1,
+          "sfx": "kaiju_rumble"
+        },
+        {
+          "at": 1.85,
+          "sfx": "kaiju_roar",
+          "duck": 1.2,
+          "duck_db": -10
+        }
+      ],
+      "header": false,
+      "clock": false,
+      "bgm": null,
+      "amb": "crowd-night",
+      "vt0": 60.2,
+      "reuse": {
+        "variant": "combined/alt",
+        "beat": "kaiju"
+      }
+    },
+    {
+      "id": "goodbye",
+      "dur": 8,
+      "shot": {
+        "key": "card-bg",
+        "params": {
+          "yaw0": 2.2,
+          "tone": "dark"
+        }
+      },
+      "hud": [
+        {
+          "c": "goodbye",
+          "quote": {
+            "title": "GOODBYE BAD HALLOWEEN",
+            "ja": "渋谷駅周辺では、条例で飲酒・喫煙、\nごみのポイ捨ては禁止されています。",
+            "attr": "（渋谷区）",
+            "en": "Drinking, smoking and littering on the streets around Shibuya Station are banned by ordinance.",
+            "enAttr": "(Shibuya City)",
+            "label": "引用"
+          },
+          "facts": [
+            {
+              "ja": "10/30(金)早朝〜11/1(日)朝方　ハチ公像は囲いで観覧不可",
+              "en": "Oct 30 early AM – Nov 1 morning: Hachiko statue fenced off"
+            },
+            {
+              "ja": "10/30夕方〜11/1早朝　駅周辺で交通規制",
+              "en": "Oct 30 evening – Nov 1 early AM: traffic restrictions around the station"
+            }
+          ],
+          "ours": {
+            "label": "制作チームより",
+            "ja": "いちばんのCLEARは、\n今年の渋谷に「行かない」こと。",
+            "en": "The best CLEAR this year: don't go to Shibuya."
+          },
+          "foot": {
+            "ja": "出典：渋谷区公式X（2026/10/22）・渋谷区・警視庁渋谷警察署　※本編はフィクションです",
+            "en": "Sources: Shibuya City (X, Oct 22, 2026), Shibuya City, MPD Shibuya Police Station. *Story is fiction."
+          },
+          "factIds": []
+        }
+      ],
+      "header": false,
+      "clock": false,
+      "footnote": false,
+      "bgm": "farewell",
+      "amb": null
+    },
+    {
+      "id": "sources",
+      "dur": 3.5,
+      "shot": {
+        "key": "card-bg",
+        "params": {
+          "yaw0": 1.5
+        }
+      },
+      "hud": [
+        {
+          "c": "sources",
+          "compact": true,
+          "note": "徒歩はOSMから概算（混雑・信号は含まず）",
+          "parodyNote": {
+            "ja": "※本編（ゲーム部分）はフィクションです。引用・日付は各出典の公表内容です",
+            "en": "*The game story is fiction; quotes and dates are as published by each source."
+          },
+          "factIds": [],
+          "credit": "出典：国土交通省 PLATEAU（3D都市モデル）／© OpenStreetMap contributors\n写真：Syced（CC0・Wikimedia Commons）／一部背景はAI生成画像を加工"
+        }
+      ],
+      "header": {
+        "sub": "10/31 渋谷ハロウィンには近づくな"
+      },
+      "clock": false,
+      "footnote": false,
+      "bgm": "farewell",
+      "amb": null,
+      "fadeOut": 0.4
+    }
+  ],
+  "lesson": {
+    "title": "終電は駅ごとに違う",
+    "ja": "終電は駅ごとに違う\n内回りの終電は\n原宿0:45・代々木0:43\n渋谷0:48より早い\n恵比寿の内回りは0:50\n渋谷0:48より遅い\n通常の土休日ダイヤ（10/25確認）\n2026年の臨時ダイヤは未発表\n別の駅へ歩くなら\nその駅の終電と歩く時間を\n先に確認",
+    "points": [
+      "内回りの終電は\n原宿0:45・代々木0:43\n渋谷0:48より早い",
+      "恵比寿の内回りは0:50\n渋谷0:48より遅い",
+      "通常の土休日ダイヤ（10/25確認）\n2026年の臨時ダイヤは未発表",
+      "別の駅へ歩くなら\nその駅の終電と歩く時間を\n先に確認"
+    ],
+    "factIds": [
+      "JR-LAST-08",
+      "JR-LAST-10",
+      "JR-LAST-02",
+      "JR-LAST-14",
+      "ALT-LAST-CMP",
+      "NA-JR-2026"
+    ],
+    "summary": "同じ山手線でも終電は駅ごとに違う。内回り（品川方面）の終電は原宿0:45・代々木0:43で渋谷0:48より早く、恵比寿は0:50（通常の土休日ダイヤ・10/25確認、2026年の臨時ダイヤは未発表）。別の駅へ歩くなら、その駅の終電と歩く時間を先に確認。"
+  },
+  "cheat": {
+    "title": "保存版 山手線の終電",
+    "sub": "通常の土休日ダイヤ（10/25確認）",
+    "asOf": "10/25時点",
+    "note": "当日は駅・警察の案内を確認",
+    "rows": [
+      {
+        "sec": "駅 外回り（新宿方面）・内回り（品川方面）",
+        "ja": "渋谷 外回り0:33・内回り0:48",
+        "sub": "通常の土休日・内回りは大崎行",
+        "factIds": [
+          "JR-LAST-01",
+          "JR-LAST-02"
+        ]
+      },
+      {
+        "ja": "原宿 外回り0:36・内回り0:45",
+        "sub": "土休日・内回りは渋谷より早い",
+        "tone": "ng",
+        "factIds": [
+          "JR-LAST-07",
+          "JR-LAST-08"
+        ]
+      },
+      {
+        "ja": "代々木 外回り0:38・内回り0:43",
+        "sub": "土休日・内回りは渋谷より早い",
+        "tone": "ng",
+        "factIds": [
+          "JR-LAST-09",
+          "JR-LAST-10"
+        ]
+      },
+      {
+        "ja": "恵比寿 外回り0:30・内回り0:50",
+        "sub": "土休日・内回りは渋谷より遅い",
+        "tone": "ok",
+        "factIds": [
+          "JR-LAST-13",
+          "JR-LAST-14"
+        ]
+      },
+      {
+        "sec": "歩く時間",
+        "ja": "原宿 約20分・恵比寿 約25分",
+        "sub": "ハチ公前から（OSMから概算）",
+        "factIds": [
+          "ALT-HARA-H",
+          "ALT-EBI-H"
+        ]
+      },
+      {
+        "ja": "2026年の臨時ダイヤ：未発表",
+        "sub": "10/25時点",
+        "factIds": [
+          "NA-JR-2026"
+        ]
+      }
+    ]
+  },
+  "sources": [
+    "ALT-HARA-H",
+    "ALT-EBI-H",
+    "JR-PLAT-01",
+    "JR-LAST-02",
+    "MEAS-12",
+    "JR-LAST-08",
+    "ALT-LAST-CMP",
+    "JR-LAST-10",
+    "JR-LAST-14",
+    "NA-JR-2026",
+    "JR-LAST-01",
+    "JR-LAST-07",
+    "JR-LAST-09",
+    "JR-LAST-13",
+    "MEAS-09",
+    "END-01",
+    "END-02",
+    "END-03"
+  ],
+  "bgm": "tension",
+  "amb": "crowd-night",
+  "routes": {},
+  "generated": "tools/v7_configs.mjs (do not edit by hand: edit the generator / tools/v7_plan.json and re-run --write)",
+  "release": "v7"
+}

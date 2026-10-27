@@ -61,7 +61,8 @@ V6_RANGE = (75, 95)  # series/variant-system.mjs V6_VIDEO (v6 opening + v6 body;
 
 
 def is_v6(plan):
-    return str(plan.get('variant') or '').startswith('v6/') or plan.get('kind') == 'v6'
+    """v6 and v7 editions (v7 configs are v6-kind configs: same beats, validator and video length)."""
+    return str(plan.get('variant') or '').startswith(('v6/', 'v7/')) or plan.get('kind') == 'v6'
 
 
 def is_combined(plan):
@@ -107,6 +108,7 @@ def check_frame(rec, plan=None, facts=None, soft=None):
     if fb:
         assert fb['scrollH'] <= fb['clientH']+1, ('footnote clipped', t, fb)
         assert fb['bottom'] <= fb['limit'], ('footnote inside the bottom unsafe area', t, fb)
+        if 'rlimit' in fb: assert fb['right'] <= fb['rlimit'], ('footnote inside the right unsafe area (v7: TikTok/Reels buttons)', t, fb)
     if plan:
         beat = next(b for b in plan['beats'] if b['id'] == rec['beat'])
         if 'cheat' in beat['hud']: assert rec.get('cheat'), ('cheat sheet missing', t)
@@ -149,15 +151,18 @@ def encoder_cmd(path, title=TITLE):
             '-metadata', 'title='+title, '-metadata', 'comment='+CREDITS, str(path)]
 
 
-def page_query(variant, part, agents=None, pr=1.0, opening=None):
+def page_query(variant, part, agents=None, pr=1.0, opening=None, hud_only=False):
     q = f'mode=series&ep=jr&variant={variant}&part={part}&lang=ja&aspect=v&record=1&jrrun=/__series/jr-run.json&pr={pr}'
+    if hud_only: q += '&hudonly=1'
     if agents: q += f'&agents={int(agents)}'
     if opening: q += f'&opening={opening}'
     return q
 
 
 def record(variant, part, output=None, log=None, start_frame=0, end_frame=None, stills=None, stills_at=None, agents=None, pr=1.0,
-           run_cache=RUN_CACHE, opening=None, summary_path=None):
+           run_cache=RUN_CACHE, opening=None, summary_path=None, hud_only=False):
+    """hud_only (v7): transparent HUD layer only (app-variant.mjs &hudonly=1); `output` is a DIRECTORY that gets one RGBA
+    PNG per frame (f<frame:05d>.png, 1080x1920) — resumable: frames already on disk are skipped."""
     t_entry = time.monotonic()
     from playwright.sync_api import sync_playwright
     run_file = ensure_run(run_cache, agents)
@@ -173,7 +178,7 @@ def record(variant, part, output=None, log=None, start_frame=0, end_frame=None, 
             page.on('console', lambda m: print('console:', m.text, flush=True) if m.type == 'error' or (m.type == 'warning' and 'toNonIndexed' not in m.text) else None)
             page.on('response', lambda r: print('http', r.status, r.url, flush=True) if r.status >= 400 else None)
             page.set_default_timeout(1800000)
-            page.goto(f'http://127.0.0.1:{server.server_address[1]}/web3d/shibuya/?{page_query(variant, part, agents, pr, opening)}')
+            page.goto(f'http://127.0.0.1:{server.server_address[1]}/web3d/shibuya/?{page_query(variant, part, agents, pr, opening, hud_only)}')
             for _ in range(2400):
                 if errors: raise RuntimeError('; '.join(errors))
                 if page.evaluate('window.__ready===true'): break
@@ -187,7 +192,7 @@ def record(variant, part, output=None, log=None, start_frame=0, end_frame=None, 
             first = (min(stills_at) if stills_at else start_frame/FPS)
             t0 = time.monotonic(); warm = page.evaluate(f'window.__warmup({round(first*FPS)/FPS})')
             print(f"warm-up {time.monotonic()-t0:.0f} s · {warm['agents']:,} agents · {variant}/{part} {plan['duration']:.2f} s ({plan['frames']} frames)", flush=True)
-            shot = lambda: page.screenshot(type='png', animations='disabled', timeout=900000)
+            shot = lambda: page.screenshot(type='png', animations='disabled', timeout=900000, omit_background=hud_only)
             if stills_at:
                 stills.mkdir(parents=True, exist_ok=True)
                 with (stills/'frames.jsonl').open('w', encoding='utf-8') as fl:
@@ -204,6 +209,28 @@ def record(variant, part, output=None, log=None, start_frame=0, end_frame=None, 
                         if errors: raise RuntimeError('; '.join(errors))
                 (stills/'timing.json').write_text(json.dumps({'variant': variant, 'part': part, 'viewport': VIEWPORT, 'scale': SCALE, 'pr': pr, 'warmup_s': round(time.monotonic()-t0), 'soft': soft, 'stills': timing}, indent=1), encoding='utf-8')
                 return timing
+            if hud_only:
+                output.mkdir(parents=True, exist_ok=True)
+                todo = [f for f in range(start_frame, end_frame) if not (output/f'f{f:05d}.png').exists()]
+                fl = log.open('a', encoding='utf-8') if log else None
+                ms = []
+                for frame in todo:
+                    a = time.monotonic()
+                    state = page.evaluate(f'window.__frame({frame/FPS})')
+                    png = shot()
+                    rec = check_frame(page.evaluate('window.__variantOverlay'), plan, facts, soft)
+                    tmp = output/f'.f{frame:05d}.png'; tmp.write_bytes(png); tmp.rename(output/f'f{frame:05d}.png')
+                    ms.append((time.monotonic()-a)*1000)
+                    if fl: fl.write(json.dumps({**frame_line(frame, state, rec), 'plateTag': rec.get('plateTag')}, ensure_ascii=False)+'\n'); fl.flush()
+                    if frame % FPS == 0: print(f"hud {frame/FPS:5.1f}/{plan['duration']:.1f}s · {rec['beat']} · {ms[-1]:.0f} ms/frame", flush=True)
+                    if errors: raise RuntimeError('; '.join(errors))
+                if fl: fl.close()
+                ms.sort()
+                summary = {'output': str(output), 'variant': variant, 'part': part, 'hud_only': True, 'frames': [start_frame, end_frame], 'rendered': len(todo),
+                           'wall_s': round(time.monotonic()-started), 'ms_per_frame': {'median': round(ms[len(ms)//2]) if ms else 0}, 'soft': soft}
+                print(json.dumps(summary, ensure_ascii=False), flush=True)
+                if summary_path: Path(summary_path).write_text(json.dumps(summary, ensure_ascii=False, indent=1), encoding='utf-8')
+                return summary
             output.parent.mkdir(parents=True, exist_ok=True)
             encoder = subprocess.Popen(encoder_cmd(output), stdin=subprocess.PIPE)
             fl = log.open('a', encoding='utf-8') if log else None
@@ -330,9 +357,10 @@ def main(argv=None):
     ap.add_argument('--stills-at', type=lambda v: [float(x) for x in v.split(',')], help='only write preview PNGs at these part seconds')
     ap.add_argument('--agents', type=int, help='smaller crowd (preview only)')
     ap.add_argument('--pr', type=float, default=1.0)
+    ap.add_argument('--hud-only', action='store_true', help='v7: transparent HUD layer → RGBA PNGs in the --output directory')
     ap.add_argument('--run-cache', type=Path, default=RUN_CACHE)
     a = ap.parse_args(argv)
-    kw = dict(agents=a.agents, pr=a.pr, run_cache=a.run_cache, opening=a.opening)
+    kw = dict(agents=a.agents, pr=a.pr, run_cache=a.run_cache, opening=a.opening, hud_only=a.hud_only)
     if a.stills_at: return record(a.variant, a.part, stills=a.stills, stills_at=a.stills_at, **kw)
     if not a.output: ap.error('--output is required (or --stills-at)')
     return record(a.variant, a.part, a.output, a.log, a.start_frame, a.end_frame, summary_path=a.summary, **kw)

@@ -37,6 +37,8 @@ BASE_DB = {
     # v6 (「渋谷Halloweenには近づくな」): mission card, first choice, TRUE END, guide, GOODBYE end card
     'mission_in': -8.0, 'choice_pick': -10.0, 'seal_stamp': -7.0, 'true_end_jingle': -7.5, 'guide_in': -13.0,
     'goodbye_in': -9.0,
+    # v7: CG↔photoreal switch (RGB glitch cut)
+    'glitch': -9.0,
 }
 
 _IR = {}
@@ -647,6 +649,25 @@ def goodbye_in() -> np.ndarray:
     return _rev(dsp.fade(out, 0.002, 0.8), 'hall', 0.35)
 
 
+def glitch() -> np.ndarray:
+    """v7 CG↔photoreal switch: a short digital stutter — bit-crushed noise bursts gated in 3 jittered slices + a falling
+    sine blip, ≈ 0.3 s (synthesised; the video's RGB-glitch cut lasts 8 frames)."""
+    r = rng('glitch')
+    d = 0.32
+    n = ns(d)
+    t = tvec(d)
+    nz = r.standard_normal((2, n))
+    crush = np.round(nz * 3) / 3                                     # bit-crush
+    held = np.repeat(crush[:, ::24], 24, axis=1)[:, :n]              # sample-and-hold → digital grit
+    gate = np.zeros(n)
+    for a, b in ((0.0, 0.05), (0.075, 0.11), (0.14, 0.24)):
+        gate[ns(a):ns(b)] = 1
+    gate = dsp.lp(gate, 400)
+    blip = dsp.sine(2400 * np.exp(-t * 9), d) * dsp.env_perc(d, 0.002, 0.12)
+    y = (0.55 * dsp.bp(held, 600, 7000) + 0.35 * dsp.hp(crush, 2500)) * gate + 0.4 * dsp.stereo(blip)
+    return _rev(y, 'room', 0.12)
+
+
 REGISTRY = {
     'logo_slam': logo_slam, 'whoosh': whoosh, 'ui_blip': ui_blip, 'ui_select': ui_select, 'tick': tick, 'tock': tock,
     'escaped': escaped, 'clear_jingle': clear_jingle, 'gameover_jingle': gameover_jingle, 'red_alert': red_alert,
@@ -658,6 +679,7 @@ REGISTRY = {
     'smash_cut': smash_cut, 'end_sting': end_sting,
     'mission_in': mission_in, 'choice_pick': choice_pick, 'seal_stamp': seal_stamp,
     'true_end_jingle': true_end_jingle, 'guide_in': guide_in, 'goodbye_in': goodbye_in,
+    'glitch': glitch,
 }
 REQUIRED = ('logo_slam', 'whoosh', 'ui_blip', 'ui_select', 'tick', 'escaped', 'clear_jingle', 'gameover_jingle',
             'red_alert', 'stamp_hit')
@@ -679,7 +701,9 @@ ALIASES = {'slam': 'logo_slam', 'blip': 'ui_blip', 'select': 'ui_select', 'alert
            'choice_select': 'choice_pick', 'seal': 'seal_stamp', 'stamp_true': 'seal_stamp',
            'true_end_stamp': 'seal_stamp', 'true_end': 'true_end_jingle', 'trueend': 'true_end_jingle',
            'guide': 'guide_in', 'guide_card': 'guide_in',
-           'goodbye': 'goodbye_in', 'goodbye_card': 'goodbye_in', 'farewell_in': 'goodbye_in'}
+           'goodbye': 'goodbye_in', 'goodbye_card': 'goodbye_in', 'farewell_in': 'goodbye_in',
+           # v7
+           'rgb_glitch': 'glitch', 'switch': 'glitch', 'whip': 'whoosh', 'whip_pan': 'whoosh'}
 # v6 contract (next/CONTRACT.md "sound"): selftest / tests check these exist
 REQUIRED_V6 = ('mission_in', 'choice_pick', 'seal_stamp', 'true_end_jingle', 'guide_in', 'goodbye_in')
 # gag / scare sounds that must never sound over the GOODBYE end card's quoted block (mix.lint_v6 checks this)

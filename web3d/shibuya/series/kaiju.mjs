@@ -1,126 +1,179 @@
-// ORIGINAL giant kaiju for the JR編 combined episodes' ending gag (beat `kaiju`, shot `kaiju-skyline`):
-// 「おばけモチ」(working name, never shown on screen unless the director writes it) — a colossal, round, rubbery
-// GUMDROP / MOCHI BLOB in saturated Halloween purple with a lavender belly patch and bright pink polka dots, TWO big
-// glowing lime eyes of UNEVEN size side by side (left bigger + a bit higher, cartoon pupils looking down at the street,
-// slightly cross-eyed), a wide goofy mouth (closed: a thin smile; roar: a big round "O" with a pink tongue and one buck
-// tooth hanging from the upper rim INSIDE the dark disc), two STUBBY little arms (round nubs) and a BIG orange/purple
-// striped party hat with a pompom, tilted jauntily to one side so it reads from the low street camera. No tail, no
-// spines, no dorsal plates, no scales, no claws, no reptile snout, no breath beam — the silhouette is a dome + a big
-// tilted party hat, i.e. it must not read as any real film monster, and no antenna / three-eyes-in-a-triangle look
-// either (QA 2026-10-26: that read like a famous animated toy alien). Goofy, not scary.
+// ORIGINAL giant kaiju for the JR編 ending gag (beat `kaiju`, shot `kaiju-skyline`) — v7 (HAGINO steering 2026-10-27:
+// "original Showa-style giant kaiju: black, taller than buildings, dorsal plates, glowing beam from mouth — clearly NOT
+// the famous one"). Working name 「ショウワ・クリスタル」 (never shown on screen).
+//
+// Silhouette, deliberately unlike the famous upright lizard:
+//   * HUNCHED, QUADRUPED-ISH: a low, humped torso on four thick, splayed legs (the forelegs plant like a bulldog/turtle),
+//     never standing upright; no tail drawn (the hindquarters sit behind the towers anyway).
+//   * LONG, CURVED NECK rising from the front of the hump (sauropod/turtle-dragon), carrying a small BEAKED head (hooked
+//     upper beak + lower beak = the mouth) with TWO swept-back HORNS and a thin bony CREST — no reptile snout, no teeth row.
+//   * DORSAL CRYSTALS: hexagonal crystal PRISMS (pointed, glassy, glowing violet→cyan from inside) in two staggered rows
+//     along the hump and up the neck — spiky shards, not leaf-shaped plates.
+//   * BEAM: a straight glowing violet/cyan beam from the open beak, aimed up into the empty night sky (it never hits the
+//     city: absurd, harmless). Eyes: small amber slits.
+// Rendered stylised in CG (own ShaderMaterial, flat-ish toon light + strong two-tone rim so the black body reads against
+// the night sky), so the gag reads as fiction. Roar sound is the project's own synth (tools/audio sfx kaiju_roar).
 //
 // Animation (pure function of env.kaiju + time; deterministic):
-//   rise 0..1  → the blob comes up from below the ground behind the buildings (depth-tested: the skyline occludes it),
-//                with a jelly wobble that settles; eyes 0..1 → eyes light up (HDR → bloom) with a blink cue;
-//   roar 0..1  → mouth opens to an "O", arms go up, body stretches + leans back, hat hops; idle → slow bob / sway.
-// Night lighting (own ShaderMaterial, cheap on SwiftShader: ~9k tris, 11 draws): dark sky ambient, warm city uplight
-// from below, a soft (low, slightly violet) moon key from upper left — kept low so the purple / spots / belly stay
-// saturated instead of washing to lavender — a two-tone rim (cyan / magenta fresnel, narrower) so the silhouette reads
-// against the sky glow, eye-glow spill on the face, reduced scene fog (shared uFog* of shaders.mjs × fog).
+//   rise 0..1 → it heaves up from behind the skyline (depth-tested: the towers occlude it), neck uncurling last;
+//   eyes 0..1 → eyes light; the crystals glow up with them;
+//   roar 0..1 → neck rears up and back, beak opens, the crystals charge base→tip, then the beam fires (beam 0..1);
+//   idle → slow breathing, small head sway.
 //
-// API
-//   createKaiju({scene, options?}) → {group, update(kaijuEnvOrNull, {camera, time}) → pose|null, dispose()}
+// API (unchanged since the combined episodes)
+//   createKaiju({scene, options?}) → {group, update(kaijuEnvOrNull, {camera, time}) → pose|null, parts, dispose()}
 //     kaijuEnv (shots-variants.mjs 'kaiju-skyline' env.kaiju) = {t, rise 0..1, eyes 0..1, roar 0..1, shake, pos:[x,z],
-//       scale (height of the body in m, default 150), seed, ground? (y of the base, default 0), yaw? (rad; default:
-//       face the camera), fog? (scene-fog factor, default .35), colors? {body, belly, spot, hat, eye} (hex)}
-//     null → hidden. camera: yaw-to-camera + eye pupils aim; time: idle bob / jelly (default env.t).
-//   kaijuPose(kaijuEnv, time) → pure pose (node-testable): {y (base offset, × scale), squash, stretch, lean, armUp,
-//     mouth 0..1, eyeGlow, blink 0..1, hatHop, bob, sway}
-//   KAIJU_PARTS  part list (name → description), KAIJU_DEFAULTS.
+//       scale (height of the beast in m: ground → head top, default 150), seed, ground? (y of the base, default 0),
+//       yaw? (rad; default: 3/4 view — side-on to the camera, head turned a little toward it), fog?, colors?}
+//     null → hidden.
+//   kaijuPose(kaijuEnv, time) → pure pose (node-testable): {y, breathe, neckUp, lean, mouth 0..1, beam 0..1, charge 0..1,
+//     eyeGlow, crystalGlow, sway, legLift, rise}
+//   KAIJU_PARTS part list (name → description), KAIJU_DEFAULTS.
 import * as THREE from '../../vendor/three.module.min.js';
 import {shared,common} from '../shaders.mjs';
 
 const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
 const smooth=(a,b,x)=>{const t=clamp((x-a)/(b-a));return t*t*(3-2*t);};
 
-export const KAIJU_DEFAULTS=Object.freeze({scale:150,fog:.35,colors:{body:0x7a22d6,belly:0xd9a8ff,spot:0xff8fd8,hat:0xff8a1f,stripe:0x5a1fa8,eye:0xd8ff4a,pupil:0x120818,mouth:0x2a0a22,tongue:0xff6fa8,tooth:0xfff6e8,pom:0xfff2a0}});
-export const KAIJU_PARTS=Object.freeze({body:'round gumdrop blob (sphere, wider bottom, jelly wobble)',belly:'lavender belly patch (shader)',spots:'polka dots (shader)',
- eyes:'2 glowing lime eyes side by side, uneven sizes + pupils',mouth:'wide smile → round O (dark), pink tongue, one buck tooth',arms:'2 stubby round arms',hat:'big striped party hat + pompom, tilted'});
+export const KAIJU_DEFAULTS=Object.freeze({scale:150,fog:.12,yawOffset:Math.PI+.45,
+ colors:{body:0x0d0e12,belly:0x1b1a22,horn:0x2a2630,beak:0x24212a,crystal:0x8a5cff,crystalCore:0x6ff2ff,eye:0xffa22a,beam:0xb48cff,beamCore:0xe8fbff,mouth:0x050307}});
+export const KAIJU_PARTS=Object.freeze({
+ torso:'low humped torso, black (hunched, quadruped stance)',
+ legs:'4 thick splayed legs, forelegs planted',
+ neck:'long curved neck rising from the front of the hump',
+ head:'small head with a hooked upper beak',
+ mouth:'lower beak = jaw (opens on the roar)',
+ horns:'2 swept-back horns + a thin bony crest',
+ crystals:'dorsal crystal prisms (hexagonal, glowing violet→cyan), 2 staggered rows on the hump + up the neck',
+ eyes:'2 small amber slit eyes',
+ beam:'glowing violet/cyan beam from the open beak, up into the empty sky'});
 
-// pure pose: base y offset and deformations (all in units of the body height)
+// pure pose (units: beast height)
 export function kaijuPose(k,time){if(!k)return null;const t=time??k.t??0,seed=k.seed??3,rise=clamp(k.rise??1),roar=clamp(k.roar??0),eyes=clamp(k.eyes??1);
- const r=rise*rise*(3-2*rise)+.06*Math.sin(Math.PI*smooth(.72,1,rise));// eased, small overshoot near the top = comedic "boing"
- const settle=Math.sin(t*9+seed)*.05*Math.exp(-3*Math.max(0,t-(k.riseEnd??0)))*smooth(.6,1,rise)*(1-smooth(.98,1,rise)*.5);
- const bob=Math.sin(t*1.6+seed)*.012*rise,sway=Math.sin(t*.9+seed*2)*.04*rise;
- const y=-1.15*(1-r)+bob;// fully below ground at rise 0
- const blinkPh=((t*.43+seed*.17)%1+1)%1,blink=roar>.2?0:smooth(.0,.04,blinkPh)*(1-smooth(.06,.1,blinkPh));
- return {y,squash:1+settle-.04*roar,stretch:1-settle*.6+.07*roar,lean:-.12*roar+.02*Math.sin(t*1.1+seed),armUp:smooth(0,.7,roar),
-  mouth:smooth(0,.8,roar),eyeGlow:eyes*(1+.35*roar),blink,hatHop:roar*(.04+.03*Math.abs(Math.sin(t*11))),bob,sway,rise};}
+ const r=rise*rise*(3-2*rise);
+ const y=-1.1*(1-r)+.008*Math.sin(t*1.3+seed)*rise;// fully below the skyline at rise 0
+ const breathe=1+.018*Math.sin(t*1.7+seed);
+ const uncurl=smooth(.55,1,rise);// the neck uncurls as it finishes rising
+ const charge=smooth(0,.35,roar),beam=smooth(.3,.55,roar);// crystals charge, then the beam fires
+ return {y,breathe,neckUp:-.5*(1-uncurl)+.32*smooth(0,.4,roar),lean:-.06*smooth(0,.4,roar)+.015*Math.sin(t*.9+seed),
+  mouth:smooth(.05,.35,roar),beam,charge,eyeGlow:eyes*(1+.6*roar),crystalGlow:.25*eyes+.75*charge,
+  sway:.05*Math.sin(t*.7+seed*2)*rise,legLift:.04*smooth(0,.3,roar),rise};}
 
-const VERT=/* glsl */`varying vec3 vN,vW,vL;varying vec2 vUv;uniform float uJelly,uTime;
-void main(){vUv=uv;vec3 p=position;p+=normal*uJelly*sin(p.y*9.+uTime*3.)*.012;vL=p;vec4 w=modelMatrix*vec4(p,1.);vW=w.xyz;vN=normalize(mat3(modelMatrix)*normal);gl_Position=projectionMatrix*viewMatrix*w;}`;
+const VERT=/* glsl */`varying vec3 vN,vW,vL;varying vec2 vUv;
+void main(){vUv=uv;vL=position;vec4 w=modelMatrix*vec4(position,1.);vW=w.xyz;vN=normalize(mat3(modelMatrix)*normal);gl_Position=projectionMatrix*viewMatrix*w;}`;
 const FRAG=/* glsl */`${common}
-uniform vec3 uColor,uColor2,uColor3,uEyePos;uniform float uMode,uEmis,uFog,uRimK,uEyeGlow,uSpill;varying vec3 vN,vW,vL;varying vec2 vUv;
+uniform vec3 uColor,uColor2;uniform float uMode,uEmis,uFog,uRimK,uGlow,uAlpha;varying vec3 vN,vW,vL;varying vec2 vUv;
+float h3(vec3 p){return fract(sin(dot(p,vec3(12.9,78.2,37.7)))*43758.5);}
 void main(){vec3 n=normalize(vN),v=normalize(cameraPosition-vW);vec3 base=uColor;
- if(uMode>.5&&uMode<1.5){// body: belly patch (front, lower) + polka dots
-  float belly=smoothstep(.62,.5,length((vL.xy-vec2(0.,-.12))*vec2(1.25,.95)))*smoothstep(-.05,.25,vL.z);base=mix(base,uColor2,belly);
-  vec2 sp=vec2(atan(vL.x,vL.z)*2.6,vL.y*7.5);vec2 c=fract(sp)-.5;float dot_=smoothstep(.24,.19,length(c))*step(.45,fract(sin(dot(floor(sp),vec2(12.9,78.2)))*43758.5))*(1.-belly);base=mix(base,uColor3,dot_);}
- if(uMode>1.5&&uMode<2.5){// hat stripes
-  base=mix(uColor,uColor2,step(.5,fract(vUv.y*4.+vUv.x*1.)));}// diagonal candy stripes
- // night lighting: sky ambient, warm city uplight, cool moon key, two-tone rim
- vec3 col=base*(vec3(.08,.06,.12)+vec3(.62,.36,.24)*clamp(-n.y*.6+.3,0.,1.)*1.25);
- col+=base*vec3(.36,.3,.46)*clamp(dot(n,normalize(vec3(-.5,.65,.35))),0.,1.)*.5;
- col+=base*.22*clamp(dot(n,v),0.,1.);// soft camera-side fill: the base colour (purple, spots, belly) reads from the street
- float fr=pow(1.-clamp(dot(n,v),0.,1.),3.2);col+=mix(vec3(.25,.9,1.3),vec3(1.2,.35,1.1),clamp(n.x*.5+.5,0.,1.))*fr*uRimK;
- // eye-glow spill on the face
- col+=vec3(.5,.7,.1)*uEyeGlow*.25*clamp(1.-length(vW-uEyePos)/max(uSpill,1e-3),0.,1.)*base;
+ if(uMode>.5&&uMode<1.5){// hide: hard, pebbly black (cell noise darkening) + a slightly lighter underside
+  vec3 q=floor(vL*38.);base*=.75+.5*h3(q);base=mix(base,uColor2,smoothstep(.1,-.4,n.y));}
+ if(uMode>1.5&&uMode<2.5){// crystal: core colour toward the tip, faceted flicker, glow
+  float tip=clamp(vUv.y,0.,1.);vec3 c=mix(uColor,uColor2,tip);float facet=.65+.35*abs(dot(n,normalize(vec3(.3,.8,.5))));
+  vec3 col=c*(.18+facet*.35)+c*uGlow*(1.2+1.6*tip);float fr=pow(1.-clamp(dot(n,v),0.,1.),2.);col+=uColor2*fr*(.4+uGlow);
+  vec3 fc=applyFog(col,vW,cameraPosition);gl_FragColor=vec4(mix(col,fc,uFog*.5),1.);return;}
+ if(uMode>2.5){// beam: additive glow, bright core
+  float ax=abs(vUv.x-.5)*2.;float core=pow(1.-ax,3.);vec3 col=mix(uColor,uColor2,core)*(1.+3.*core)*uGlow;
+  float fl=.85+.15*sin(vUv.y*60.-uGlow*40.);gl_FragColor=vec4(col*fl,uAlpha*uGlow);return;}
+ // toon-ish night light: dark sky ambient, warm city uplight from below, cool moon key, strong violet/cyan rim
+ vec3 col=base*(vec3(.10,.10,.14)+vec3(.55,.34,.22)*clamp(-n.y*.6+.25,0.,1.));
+ col+=base*vec3(.6,.55,.6)*smoothstep(.1,.4,dot(n,normalize(vec3(-.5,.7,.3))));
+ float fr=pow(1.-clamp(dot(n,v),0.,1.),3.2);col+=mix(vec3(.45,.25,.9),vec3(.3,.8,1.),clamp(n.y*.5+.5,0.,1.))*fr*uRimK*(.8+.6*uGlow);
  col+=uColor*uEmis;
  vec3 fc=applyFog(col,vW,cameraPosition);col=mix(col,fc,uFog);
  gl_FragColor=vec4(col,1.);}`;
 
+// a tube along a 3D curve (Catmull-Rom), radius r(u)
+function tube(points,radius,seg=28,radial=14){const curve=new THREE.CatmullRomCurve3(points.map(p=>new THREE.Vector3(...p)));
+ const g=new THREE.TubeGeometry(curve,seg,1,radial,false);const P=g.attributes.position,N=g.attributes.normal,uv=g.attributes.uv;
+ for(let i=0;i<P.count;i++){const u=uv.getX(i),c=curve.getPointAt(Math.min(1,u)),rr=radius(u);P.setXYZ(i,c.x+N.getX(i)*rr,c.y+N.getY(i)*rr,c.z+N.getZ(i)*rr);}
+ g.computeVertexNormals();return {geo:g,curve};}
+
 export function createKaiju({scene,options={}}={}){
  const C={...KAIJU_DEFAULTS.colors,...(options.colors||{})};const group=new THREE.Group();group.name='kaiju';group.visible=false;
  const mats=[];
- const mk=(color,{mode=0,color2=0x000000,color3=0x000000,emis=0,rim=1}={})=>{const m=new THREE.ShaderMaterial({uniforms:{...shared,uColor:{value:new THREE.Color(color)},uColor2:{value:new THREE.Color(color2)},uColor3:{value:new THREE.Color(color3)},
-  uMode:{value:mode},uEmis:{value:emis},uFog:{value:.35},uRimK:{value:rim},uEyeGlow:{value:1},uEyePos:{value:new THREE.Vector3()},uSpill:{value:40},uJelly:{value:0},uTime:shared.uTime},vertexShader:VERT,fragmentShader:FRAG});mats.push(m);return m;};
- // pivot: base of the body at the origin; everything in units of the body height (group.scale = height in m)
+ const mk=(color,{mode=0,color2=0x000000,emis=0,rim=1,beam=false}={})=>{const m=new THREE.ShaderMaterial({uniforms:{...shared,uColor:{value:new THREE.Color(color)},uColor2:{value:new THREE.Color(color2)},
+  uMode:{value:mode},uEmis:{value:emis},uFog:{value:.3},uRimK:{value:rim},uGlow:{value:0},uAlpha:{value:.9}},vertexShader:VERT,fragmentShader:FRAG,
+  ...(beam?{transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,side:THREE.DoubleSide}:{})});m.userData.rim=rim;mats.push(m);return m;};
+ // pivot = ground under the torso centre; local +x = forward (head side), +y up; group.scale = height in m
  const pivot=new THREE.Group();group.add(pivot);
- const bodyGeo=new THREE.SphereGeometry(.5,48,32);{const p=bodyGeo.attributes.position;for(let i=0;i<p.count;i++){let x=p.getX(i),y=p.getY(i),z=p.getZ(i);
-  const w=1+.16*clamp(-y*2)-.06*clamp(y*2);// wider bottom (gumdrop)
-  if(y<-.38)y=-.38+(y+.38)*.35;// flattened base
-  p.setXYZ(i,x*w*1.02,y+.5,z*w*.92);}bodyGeo.computeVertexNormals();}
- const bodyMat=mk(C.body,{mode:1,color2:C.belly,color3:C.spot,rim:.75});bodyMat.uniforms.uJelly.value=1;
- const body=new THREE.Mesh(bodyGeo,bodyMat);pivot.add(body);
- // eyes: TWO, side by side, uneven (left bigger + higher: goofy), on the front surface (+z), slightly protruding;
- // pupils a little cross-eyed (each nudged toward the nose) and looking down at the street
- const eyeMat=mk(C.eye,{emis:2.4,rim:.3}),pupilMat=mk(C.pupil,{rim:.2}),hiMat=mk(0xffffff,{emis:3,rim:0});
- const eyes=[[-.17,.66,.37,.13,1],[.18,.62,.385,.1,-1]].map(([x,y,z,r,px])=>{const g=new THREE.Group();g.position.set(x,y,z);
-  const ball=new THREE.Mesh(new THREE.SphereGeometry(r,24,16),eyeMat);const pupil=new THREE.Mesh(new THREE.SphereGeometry(r*.48,16,12),pupilMat);pupil.position.set(px*r*.2,-r*.2,r*.6);
-  const hi=new THREE.Mesh(new THREE.SphereGeometry(r*.14,8,6),hiMat);hi.position.set(r*.28,r*.25,r*.9);g.add(ball,pupil,hi);g.userData={r,pupil,hi,x,y};pivot.add(g);return g;});
- // mouth: dark disc (scaled open), tongue + one buck tooth inside
- const mouth=new THREE.Group();mouth.position.set(0,.4,.47);pivot.add(mouth);
- const mouthMesh=new THREE.Mesh(new THREE.SphereGeometry(.15,32,16),mk(C.mouth,{rim:0}));mouthMesh.scale.z=.42;mouth.add(mouthMesh);// flattened ellipsoid: protrudes from the curved body at any opening (upper rim too)
- const tongue=new THREE.Mesh(new THREE.SphereGeometry(.075,16,10),mk(C.tongue,{rim:.2,emis:.15}));tongue.scale.set(1.2,.55,.3);tongue.position.set(0,-.07,.05);mouth.add(tongue);
- // buck tooth: hangs from the upper rim, fully inside the dark disc (mouth-local, scales with the opening; QA 2026-10-26:
- // at y .085 it sat above the visible part of the disc and read as a nose)
- const tooth=new THREE.Mesh(new THREE.BoxGeometry(.045,.04,.02),mk(C.tooth,{rim:.2,emis:.25}));tooth.position.set(.03,.045,.062);mouth.add(tooth);
- mouth.rotation.x=-.2;
- // stubby arms (round nubs), pivot at the shoulder
- const armMat=mk(C.body,{mode:0,rim:.75});
- const arms=[-1,1].map(s=>{const g=new THREE.Group();g.position.set(s*.47,.42,.05);const a=new THREE.Mesh(new THREE.CapsuleGeometry(.07,.12,6,12),armMat);a.position.set(s*.08,-.01,0);a.rotation.z=-s*Math.PI/2;g.add(a);g.userData.s=s;pivot.add(g);return g;});
- // party hat: BIG striped cone tilted well to the right (reads beside/above the head from the low street camera and
- // stays inside the 9:16 frame at the combined kaiju framing) + pompom
- const HAT={x:.22,y:.9,z:-.05,tilt:-.62,r:.2,h:.4};
- const hat=new THREE.Group();hat.position.set(HAT.x,HAT.y,HAT.z);hat.rotation.z=HAT.tilt;pivot.add(hat);
- const cone=new THREE.Mesh(new THREE.ConeGeometry(HAT.r,HAT.h,28,6,true),mk(C.hat,{mode:2,color2:C.stripe,rim:.6,emis:.12}));cone.position.y=HAT.h/2;hat.add(cone);
- const pom=new THREE.Mesh(new THREE.SphereGeometry(.06,14,10),mk(C.pom,{rim:.8,emis:.5}));pom.position.y=HAT.h+.02;hat.add(pom);
+ const hide=mk(C.body,{mode:1,color2:C.belly,rim:.3});
+ // torso: humped ellipsoid (higher at the shoulders), low to the ground
+ const torsoGeo=new THREE.SphereGeometry(.5,40,24);{const p=torsoGeo.attributes.position;for(let i=0;i<p.count;i++){const x=p.getX(i),y=p.getY(i),z=p.getZ(i);
+  const hump=1+.35*Math.exp(-((x-.12)**2)/.05)*clamp(y*2+.4);// shoulder hump
+  p.setXYZ(i,x*.86,y*.56*hump,z*.5);}torsoGeo.computeVertexNormals();}
+ const torso=new THREE.Mesh(torsoGeo,hide);torso.position.set(0,.38,0);pivot.add(torso);
+ // legs: thick, splayed, slightly bent tubes; forelegs planted forward
+ const legs=[[.24,.16],[.24,-.16],[-.26,.15],[-.26,-.15]].map(([x,z],i)=>{const g=new THREE.Group();g.position.set(x,.36,z);
+  const s=Math.sign(z),fore=x>0;const {geo}=tube([[0,0,0],[fore?.06:-.02,-.14,s*.06],[fore?.1:-.04,-.36,s*.1]],u=>.085-.02*u+.02*Math.exp(-((u-.95)**2)/.004),10,10);
+  const m=new THREE.Mesh(geo,hide);g.add(m);g.userData={x,z,fore};pivot.add(g);return g;});
+ // neck + head group: rotates up/down at the base of the neck (neckUp)
+ const neckBase=new THREE.Group();neckBase.position.set(.3,.5,0);pivot.add(neckBase);
+ const NECK=[[0,0,0],[.12,.14,0],[.2,.32,0],[.24,.5,0]];
+ const {geo:neckGeo,curve:neckCurve}=tube(NECK,u=>.13-.075*u,32,14);const neck=new THREE.Mesh(neckGeo,hide);neckBase.add(neck);
+ const head=new THREE.Group();head.position.set(...NECK[3]);neckBase.add(head);
+ const skull=new THREE.Mesh(new THREE.SphereGeometry(.075,24,16),hide);skull.scale.set(1.35,.85,.8);head.add(skull);
+ const beakMat=mk(C.beak,{rim:.5});
+ // upper beak: hooked cone pointing forward (+x), tip curling down
+ const upper=new THREE.Mesh(new THREE.ConeGeometry(.045,.13,14),beakMat);upper.rotation.z=-Math.PI/2-.25;upper.position.set(.11,-.005,0);head.add(upper);
+ const hook=new THREE.Mesh(new THREE.ConeGeometry(.018,.04,10),beakMat);hook.rotation.z=Math.PI;hook.position.set(.165,-.03,0);head.add(hook);
+ // jaw (lower beak) pivots at the back of the beak
+ const jaw=new THREE.Group();jaw.position.set(.05,-.03,0);head.add(jaw);
+ const lower=new THREE.Mesh(new THREE.ConeGeometry(.032,.1,12),beakMat);lower.rotation.z=-Math.PI/2+.12;lower.position.set(.05,-.005,0);jaw.add(lower);
+ const mouthDisc=new THREE.Mesh(new THREE.SphereGeometry(.03,12,8),mk(C.mouth,{rim:0}));mouthDisc.position.set(.06,-.015,0);mouthDisc.scale.set(1.4,.4,.7);head.add(mouthDisc);
+ // horns: two swept-back cones + a thin crest fin between them
+ const hornMat=mk(C.horn,{rim:.6});
+ const horns=[-1,1].map(s=>{const h=new THREE.Mesh(new THREE.ConeGeometry(.022,.17,10),hornMat);h.position.set(-.07,.06,s*.04);h.rotation.set(s*.25,0,Math.PI/2+.55);head.add(h);return h;});
+ const crestShape=new THREE.Shape();crestShape.moveTo(.04,.04);crestShape.lineTo(-.02,.12);crestShape.lineTo(-.12,.07);crestShape.lineTo(-.06,.03);crestShape.lineTo(.04,.04);
+ const crest=new THREE.Mesh(new THREE.ExtrudeGeometry(crestShape,{depth:.008,bevelEnabled:false}),hornMat);crest.position.z=-.004;head.add(crest);
+ // eyes: small amber slits on both sides of the skull
+ const eyeMat=mk(C.eye,{emis:2,rim:0});
+ const eyes=[-1,1].map(s=>{const e=new THREE.Mesh(new THREE.SphereGeometry(.014,10,8),eyeMat);e.scale.set(1.8,.55,.6);e.position.set(.035,.02,s*.055);head.add(e);return e;});
+ // crystals: hexagonal prisms with a pointed tip (6-sided cone + cylinder base), along the hump + up the neck
+ const crystalMat=mk(C.crystal,{mode:2,color2:C.crystalCore,rim:0});
+ const prism=(()=>{const a=new THREE.CylinderGeometry(.5,.55,.55,6,1);a.translate(0,.275,0);const b=new THREE.ConeGeometry(.5,.45,6,1);b.translate(0,.55+.225,0);
+  const g=mergeSimple([a,b]);// uv.y = height fraction (tip glow)
+  const P=g.attributes.position,uv=g.attributes.uv;for(let i=0;i<P.count;i++)uv.setY(i,clamp(P.getY(i)/1));return g;})();
+ const crystals=[];
+ const addCrystal=(parent,pos,h,tiltZ,tiltX,order)=>{const m=new THREE.Mesh(prism,crystalMat);m.position.set(...pos);m.scale.set(h*.32,h,h*.32);m.rotation.set(tiltX,0,tiltZ);m.userData.order=order;parent.add(m);crystals.push(m);};
+ // hump rows (staggered left/right), tallest over the shoulders, raked back
+ const HUMP=[[-.3,.06],[-.2,.1],[-.1,.14],[0,.18],[.1,.2],[.18,.17],[.26,.12]];
+ HUMP.forEach(([x,h],i)=>{const yTop=.38+.28*(1+.35*Math.exp(-((x/.86-.12)**2)/.05))*.98;
+  addCrystal(pivot,[x,yTop-.02,(i%2?.045:-.045)],h,.45,(i%2?.18:-.18),i/(HUMP.length+5));
+  if(i%2===0)addCrystal(pivot,[x+.04,yTop-.04,(i%2?-.08:.08)],h*.6,.5,(i%2?-.3:.3),i/(HUMP.length+5)+.02);});
+ // neck row (smaller, following the curve)
+ [.2,.42,.62,.8].forEach((u,j)=>{const p=neckCurve.getPointAt(u),tan=neckCurve.getTangentAt(u);const rad=.13-.075*u;
+  const ang=Math.atan2(tan.y,tan.x);addCrystal(neckBase,[p.x-Math.sin(ang)*-rad*.0-rad*.7*Math.sin(ang),p.y+rad*.7*Math.cos(ang),0],.09-.05*u,ang+.4,0,(HUMP.length+j)/(HUMP.length+5));});
+ // beam: a long open cylinder from the beak, pointing forward-up out of the mouth (head-local), length animated
+ const beamMat=mk(C.beam,{mode:3,color2:C.beamCore,rim:0,beam:true});
+ const beamGeo=new THREE.CylinderGeometry(.03,.05,1,16,1,true);beamGeo.translate(0,.5,0);{const uv=beamGeo.attributes.uv;for(let i=0;i<uv.count;i++)uv.setX(i,(uv.getX(i)*2)%1);}
+ const beam=new THREE.Group();beam.position.set(.16,-.02,0);beam.rotation.z=-Math.PI/2+.05;head.add(beam);
+ const beamMesh=new THREE.Mesh(beamGeo,beamMat);beamMesh.frustumCulled=false;beam.add(beamMesh);
+ const glow=new THREE.Mesh(new THREE.CylinderGeometry(.09,.14,1,16,1,true).translate(0,.5,0),beamMat);glow.frustumCulled=false;beam.add(glow);
+ beam.visible=false;
  scene?.add(group);
- const tmpV=new THREE.Vector3();
  function update(k,{camera=null,time}={}){if(!k){group.visible=false;return null;}
   const t=time??k.t??0,P=kaijuPose(k,t);const S=k.scale??KAIJU_DEFAULTS.scale,pos=k.pos||[0,0];
   group.visible=P.rise>0;group.scale.setScalar(S);group.position.set(pos[0],(k.ground??0)+P.y*S,pos[1]);
-  let yaw=k.yaw;if(yaw==null&&camera)yaw=Math.atan2(camera.position.x-pos[0],camera.position.z-pos[1]);group.rotation.set(0,(yaw??0)+P.sway*.5,0);
-  pivot.scale.set(P.squash,P.stretch,P.squash);pivot.rotation.x=P.lean;
-  // arms: idle droop down-out with a little flap; roar → both up ("ta-da!")
-  arms.forEach(a=>{const s=a.userData.s;a.rotation.z=s*(-.55+P.armUp*1.75+Math.sin(t*3+s)*.1*(1-P.armUp));a.rotation.x=-P.armUp*.35;});
-  mouth.scale.set(1+.15*P.mouth,.12+P.mouth*1.05,1);tongue.visible=P.mouth>.3;tooth.visible=P.mouth>.55;
-  hat.position.y=HAT.y+P.hatHop;hat.rotation.z=HAT.tilt+Math.sin(t*7)*.12*P.mouth;
-  // eyes: glow, blink (squash y), pupils aim down toward the camera (it looks at the street)
-  for(const e of eyes){e.scale.set(1,1-.9*P.blink+.1*P.mouth,1);}
-  const fog=k.fog??KAIJU_DEFAULTS.fog;for(const m of mats){m.uniforms.uFog.value=fog;m.uniforms.uEyeGlow.value=P.eyeGlow;}
-  eyeMat.uniforms.uEmis.value=.25+2.6*P.eyeGlow;hiMat.uniforms.uEmis.value=.4+2.6*P.eyeGlow;eyeMat.uniforms.uColor.value.set(C.eye).multiplyScalar(.35+.65*clamp(P.eyeGlow));
-  group.updateMatrixWorld(true);eyes[0].getWorldPosition(tmpV);for(const m of mats){m.uniforms.uEyePos.value.copy(tmpV);m.uniforms.uSpill.value=.32*S;}
-  for(const m of mats)m.uniforms.uRimK.value=m.userData.rim??m.uniforms.uRimK.value;
+  // default yaw: side-on to the camera (local +x across the screen), head turned a little toward it
+  let yaw=k.yaw;if(yaw==null&&camera)yaw=Math.atan2(camera.position.x-pos[0],camera.position.z-pos[1])+KAIJU_DEFAULTS.yawOffset;
+  group.rotation.set(0,(yaw??0)+P.sway*.4,0);
+  torso.scale.set(1,P.breathe,1);pivot.rotation.z=P.lean;
+  legs.forEach(l=>{l.rotation.z=l.userData.fore?P.legLift*(l.userData.z>0?1:.4):0;});
+  neckBase.rotation.z=P.neckUp;head.rotation.z=-P.neckUp*.55+.08*Math.sin(t*1.1+(k.seed??3))*(1-P.mouth)+.35*P.mouth;
+  jaw.rotation.z=-.65*P.mouth;
+  // glow: eyes, crystals charge from the hump base toward the neck (order 0..1), beam
+  eyeMat.uniforms.uEmis.value=.2+2.4*P.eyeGlow;
+  const cg=P.crystalGlow;crystals.forEach(c=>{c.userData.g=clamp(cg*1.4-c.userData.order*.6*(1-P.beam));});
+  crystalMat.uniforms.uGlow.value=cg;// shared material: the per-crystal stagger reads through the scale pulse below
+  crystals.forEach(c=>{const s=1+.06*c.userData.g*Math.sin(t*14+c.userData.order*9);c.scale.x=c.scale.z=c.userData.base??(c.userData.base=c.scale.x);c.scale.x*=s;c.scale.z*=s;});
+  beam.visible=P.beam>0;beamMat.uniforms.uGlow.value=P.beam;beam.scale.set(1+.15*Math.sin(t*30),14*P.beam,1+.15*Math.sin(t*30));
+  const fog=k.fog??KAIJU_DEFAULTS.fog;for(const m of mats){m.uniforms.uFog.value=fog;if(m!==crystalMat&&m!==beamMat)m.uniforms.uGlow.value=cg;}
+  group.updateMatrixWorld(true);
   return P;}
- for(const m of mats)m.userData.rim=m.uniforms.uRimK.value;
- return {group,update,parts:{body,eyes,mouth,arms,hat},dispose(){scene?.remove(group);group.traverse(o=>{if(o.geometry)o.geometry.dispose();});for(const m of mats)m.dispose();}};}
+ return {group,update,parts:{torso,legs,neck,head,jaw,mouth:jaw,horns,crest,eyes,crystals,beam},dispose(){scene?.remove(group);group.traverse(o=>{if(o.geometry)o.geometry.dispose();});for(const m of mats)m.dispose();}};}
+
+// merge non-indexed copies of BufferGeometries (position/normal/uv) — avoids the BufferGeometryUtils addon
+function mergeSimple(geos){const parts=geos.map(g=>g.index?g.toNonIndexed():g);let n=0;for(const g of parts)n+=g.attributes.position.count;
+ const pos=new Float32Array(n*3),nor=new Float32Array(n*3),uv=new Float32Array(n*2);let o=0;
+ for(const g of parts){pos.set(g.attributes.position.array,o*3);nor.set(g.attributes.normal.array,o*3);uv.set(g.attributes.uv.array,o*2);o+=g.attributes.position.count;}
+ const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(pos,3));g.setAttribute('normal',new THREE.BufferAttribute(nor,3));g.setAttribute('uv',new THREE.BufferAttribute(uv,2));return g;}

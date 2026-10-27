@@ -1,0 +1,74 @@
+{
+  "about": "JR v7 CG→photoreal switch plan (HAGINO steering 2026-10-27, logs/ssl-claude-halloween/v7/STEERING-photoreal-switch.md). Read by tools/v7_configs.mjs (plateTag on photo beats, sources-card credit) and tools/v7_composite.py (plates, camera moves, silhouettes, transitions). Beats not listed are CG (re-rendered for the v7 footnote position) except `reuseV6` beats (frame-exact v6 frames: no footnote on screen).",
+  "plateRoot": "/workspace/demos/halloween-escape-series",
+  "plates": {
+    "hachikomae": {"src": "grounded-refs/v2/05-scramble.png", "kind": "ai", "what": "Hachiko-mae side of the Scramble crossing at night (Halloween)"},
+    "hachiko":    {"src": "grounded-refs/v2/01-hachiko.png", "kind": "ai", "what": "Hachiko gate passage (2025 layout, keep-left queue)"},
+    "south":      {"src": "grounded-refs/v2/02-south.png", "kind": "ai", "what": "South gate (1F)"},
+    "newsouth":   {"src": "grounded-refs/v2/03-newsouth.png", "kind": "ai", "what": "New South gate (3F) — used as a generic gate line (station name + JR mark blanked)"},
+    "concourse":  {"src": "grounded-refs/v2/04-scramble-square.png", "kind": "ai", "what": "station concourse / escalators (signage blanked) — generic crowded station"},
+    "dogenzaka":  {"src": "grounded-refs/v2/06-dogenzaka.png", "kind": "ai", "what": "west-side street with taxis at night"},
+    "taxi":       {"src": "grounded-refs/v2/07-taxi.png", "kind": "ai", "what": "Sakura Stage side street with taxis (the AI-made road sign is blanked)"},
+    "meiji":      {"src": "grounded-refs/v2/08-meiji-ebisu.png", "kind": "ai", "what": "Meiji-dori from the deck at night"},
+    "sakura":     {"src": "real-refs/sakura-terrace-taxi/10_Shibuya_Sakura_Stage__day_after_official_open_9.jpg", "kind": "photo",
+                   "author": "Syced", "license": "CC0 1.0", "url": "https://commons.wikimedia.org/wiki/File:Shibuya_Sakura_Stage,_day_after_official_open_9.jpg",
+                   "what": "Shibuya Sakura Stage passage at night (real photo, 2023-12-01)"}
+  },
+  "tags": {"ai": "AI生成画像を加工", "photo": "写真 Syced／CC0"},
+  "credit": "出典：国土交通省 PLATEAU（3D都市モデル）／© OpenStreetMap contributors\n写真：Syced（CC0・Wikimedia Commons）／一部背景はAI生成画像を加工",
+  "opening": {
+    "rules": {"plate": "hachikomae", "mode": "reveal"}
+  },
+  "pairs": {
+    "gate": {
+      "first-choice": {"plate": "hachikomae", "mode": "card"},
+      "guide":        {"plate": "hachikomae", "mode": "card"},
+      "over-move":    {"plate": "hachiko", "mode": "walk"},
+      "over-result":  {"plate": "hachiko", "mode": "queue"},
+      "caught":       {"plate": "hachiko", "mode": "caught"},
+      "over-lesson":  {"plate": "hachiko", "mode": "card"},
+      "continue":     {"plate": "hachiko", "mode": "dark"},
+      "clear-result": {"plate": "south", "mode": "flow"},
+      "clear-stamp":  {"plate": "south", "mode": "stamp"},
+      "clear-cheat":  {"plate": "south", "mode": "card"}
+    },
+    "taxi": {
+      "first-choice": {"plate": "hachikomae", "mode": "card"},
+      "guide":        {"plate": "hachikomae", "mode": "card"},
+      "over-move":    {"plate": "dogenzaka", "mode": "walk"},
+      "over-result":  {"plate": "dogenzaka", "mode": "queue"},
+      "caught":       {"plate": "dogenzaka", "mode": "caught"},
+      "over-lesson":  {"plate": "dogenzaka", "mode": "card"},
+      "continue":     {"plate": "dogenzaka", "mode": "dark"},
+      "clear-move":   {"plate": "sakura", "mode": "walk"},
+      "clear-result": {"plate": "taxi", "mode": "flow"},
+      "clear-stamp":  {"plate": "taxi", "mode": "stamp"},
+      "clear-cheat":  {"plate": "taxi", "mode": "card"}
+    },
+    "zone": {
+      "first-choice": {"plate": "hachikomae", "mode": "card"},
+      "guide":        {"plate": "hachikomae", "mode": "card"},
+      "over-result":  {"plate": "hachikomae", "mode": "queue", "crop": "right"},
+      "caught":       {"plate": "hachikomae", "mode": "caught", "crop": "right"},
+      "over-lesson":  {"plate": "hachikomae", "mode": "card", "crop": "right"},
+      "continue":     {"plate": "hachikomae", "mode": "dark", "crop": "right"},
+      "clear-result": {"plate": "meiji", "mode": "flow"},
+      "clear-stamp":  {"plate": "meiji", "mode": "stamp"},
+      "clear-cheat":  {"plate": "meiji", "mode": "card"}
+    },
+    "alt": {
+      "first-choice": {"plate": "hachikomae", "mode": "card"},
+      "guide":        {"plate": "hachikomae", "mode": "card"},
+      "over-move":    {"plate": "meiji", "mode": "walk"},
+      "over-result":  {"plate": "concourse", "mode": "queue"},
+      "caught":       {"plate": "concourse", "mode": "caught"},
+      "over-lesson":  {"plate": "concourse", "mode": "card"},
+      "continue":     {"plate": "concourse", "mode": "dark"},
+      "clear-result": {"plate": "newsouth", "mode": "flow"},
+      "clear-stamp":  {"plate": "newsouth", "mode": "stamp"},
+      "clear-cheat":  {"plate": "newsouth", "mode": "card"}
+    }
+  },
+  "reuseV6": ["over-stamp", "goodbye"],
+  "transition": {"frames": 8, "whipInto": ["over-move", "clear-move", "clear-result", "over-result"], "default": "glitch"}
+}

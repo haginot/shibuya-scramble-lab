@@ -1,5 +1,5 @@
 """Combined-episode VFX + crowd (crowd/VFX role): web3d/shibuya/series/vfx-caught.mjs (caught hands), kaiju.mjs (the
-original kaiju), crowd-variants.mjs state 'caught-press' and the zone-clear clear cone (detour-light params.clear).
+original kaiju; v7: Showa-style crystal-spined beast), crowd-variants.mjs state 'caught-press' and the zone-clear clear cone (detour-light params.clear).
 
 The caught layout is a pure function of the caught env (deterministic, resumable); hands only enter from the frame
 edges and stay near them; black / flash pass through. The kaiju is round (no tall upright-lizard silhouette, no tail
@@ -39,26 +39,35 @@ console.log(JSON.stringify({pure:a.every((x,i)=>x===b[i]),nul:m.caughtLayout(nul
     assert got['black'] == 1 and got['flash'] == 1 and not got['words'], got
 
 
-def test_kaiju_is_original_round_and_animates():
+def test_kaiju_is_original_showa_beast_and_animates():
+    """v7 (HAGINO steering 2026-10-27): an ORIGINAL Showa-style giant — black, hunched on four legs, long neck, beaked +
+    horned head, dorsal CRYSTAL prisms, a beam from the mouth — and clearly not the famous upright lizard: no tail, not
+    upright (longer than tall in its own frame), crystal shards rather than leaf plates, its own synth roar."""
     got = _node("""const T=await import('./web3d/vendor/three.module.min.js');const m=await import('./web3d/shibuya/series/kaiju.mjs');
 const k=m.createKaiju({});const cam={position:new T.Vector3(0,2,-1000)};const box=()=>{k.group.updateMatrixWorld(true);return new T.Box3().setFromObject(k.group);};
-const base={pos:[0,0],scale:150,seed:3,eyes:1};
+const base={pos:[0,0],scale:150,seed:3,eyes:1,yaw:0};
 k.update({...base,rise:0,roar:0,t:0},{camera:cam});const b0=box();const vis0=k.group.visible;
-k.update({...base,rise:1,roar:0,t:3},{camera:cam});const b1=box();const armIdle=new T.Vector3();k.parts.arms[1].children[0].getWorldPosition(armIdle);const mouthIdle=k.parts.mouth.scale.y;
-k.update({...base,rise:1,roar:1,t:3},{camera:cam});const armRoar=new T.Vector3();k.parts.arms[1].children[0].getWorldPosition(armRoar);const mouthRoar=k.parts.mouth.scale.y;
+k.update({...base,rise:1,roar:0,t:3},{camera:cam});const b1=box();const head0=new T.Vector3();k.parts.head.getWorldPosition(head0);const jaw0=k.parts.jaw.rotation.z;const beam0=k.parts.beam.visible;
+k.update({...base,rise:1,roar:1,t:3},{camera:cam});const head1=new T.Vector3();k.parts.head.getWorldPosition(head1);const jaw1=k.parts.jaw.rotation.z;const beam1=k.parts.beam.visible;
+const tb=new T.Box3().setFromObject(k.parts.torso);const ts=new T.Vector3();tb.getSize(ts);
 let tris=0,draws=0;k.group.traverse(o=>{if(o.isMesh){draws++;const g=o.geometry;tris+=(g.index?g.index.count:g.attributes.position.count)/3;}});
-const s1=new T.Vector3();b1.getSize(s1);const names=[];k.group.traverse(o=>names.push((o.name||'').toLowerCase()));
+const s1=new T.Vector3();b1.getSize(s1);
 const p1=JSON.stringify(m.kaijuPose({...base,rise:.6,roar:.3,t:1.2},1.2)),p2=JSON.stringify(m.kaijuPose({...base,rise:.6,roar:.3,t:1.2},1.2));
-console.log(JSON.stringify({vis0,top0:b0.max.y,bottom1:b1.min.y,top1:b1.max.y,w:s1.x,h:s1.y,d:s1.z,armIdle:armIdle.y,armRoar:armRoar.y,mouthIdle,mouthRoar,tris,draws,pure:p1===p2,
+console.log(JSON.stringify({vis0,top0:b0.max.y,bottom1:b1.min.y,top1:b1.max.y,torso:[ts.x,ts.y],head0:head0.y,head1:head1.y,jaw0,jaw1,beam0,beam1,
+ legs:k.parts.legs.length,crystals:k.parts.crystals.length,horns:k.parts.horns.length,tris,draws,pure:p1===p2,
  parts:Object.keys(m.KAIJU_PARTS),desc:JSON.stringify(m.KAIJU_PARTS).toLowerCase()}));""")
-    assert (not got['vis0']) or got['top0'] < 0, got              # below ground before the rise
-    assert got['top1'] > 140 and got['bottom1'] > -40, got          # risen: ~150 m body + hat
-    assert got['w'] / got['h'] > .7, got                            # round blob, not a tall upright lizard
-    assert got['d'] <= got['w'] * 1.05, got                         # nothing trailing behind it (no tail)
-    assert got['armRoar'] > got['armIdle'] + 10 and got['mouthRoar'] > got['mouthIdle'] * 4, got
-    assert got['tris'] < 15000 and got['draws'] <= 18 and got['pure'], got
-    assert not any(w in got['desc'] for w in ['spine', 'plate', 'tail', 'breath', 'scale', 'claw']), got
-    assert {'eyes', 'arms', 'hat', 'mouth'} <= set(got['parts']), got
+    assert (not got['vis0']) or got['top0'] < 0, got              # below the skyline before the rise
+    assert 140 < got['top1'] < 190 and got['bottom1'] > -10, got    # risen: ~150 m to the head top
+    assert got['torso'][0] > got['torso'][1] * 1.2, got             # hunched: the torso is long and low, never upright
+    assert got['legs'] == 4 and got['horns'] == 2 and got['crystals'] >= 10, got
+    assert got['head1'] > got['head0'] and got['jaw1'] < got['jaw0'] - .4, got   # roar: rears up, beak opens
+    assert not got['beam0'] and got['beam1'], got                   # the beam fires only on the roar
+    assert got['tris'] < 15000 and got['draws'] <= 40 and got['pure'], got
+    assert {'torso', 'legs', 'neck', 'head', 'mouth', 'horns', 'crystals', 'beam'} <= set(got['parts']), got
+    assert 'tail' not in got['parts'] and 'beak' in got['desc'] and 'crystal' in got['desc'], got
+    assert not any(w in got['desc'] for w in ['godzilla', 'gojira', 'maple', 'upright', 'leaf-shaped plate']) or 'not' in got['desc'], got
+    src = (ROOT/'web3d/shibuya/series/kaiju.mjs').read_text(encoding='utf-8')
+    assert 'ゴジラ' not in src and 'Godzilla' not in src
 
 
 def test_caught_press_packs_in_without_facing_or_entering_the_camera():

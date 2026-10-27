@@ -21,7 +21,7 @@
 // Combined episodes (2026-10-26): continue (「CONTINUE?」 retry beat), endcard (closing question), gag (kaiju caption),
 //   stamp {onBlack:true, safety} (GAME OVER on the hard cut to black), sources {compact:true} (over+clear union).
 // Item fields per component: see the JSDoc line above each function below. Texts: item[lang] ?? item.ja.
-import {SAFE,ZONE,COLOR,MOTION,EASE,clamp,seg,mix,hash,cssVars,fontFaceCSS,FONT_LOADS} from './tokens.mjs';
+import {SAFE,ZONE,FOOT_CLEAR,COLOR,MOTION,EASE,clamp,seg,mix,hash,cssVars,fontFaceCSS,FONT_LOADS} from './tokens.mjs';
 
 export const HUD_TEXT=Object.freeze({   // game-framing strings (no facts)
  parody:'※パロディ', parodySub:'架空のゲーム演出', fiction:'フィクション',
@@ -30,7 +30,7 @@ export const HUD_TEXT=Object.freeze({   // game-framing strings (no facts)
  clockLabel:'ゲーム内時刻（架空）',
  noticeIssuer:'渋谷脱出ゲーム運営（架空）', noticeFoot:'',
  cheatTitle:'保存版 渋谷脱出メモ', cheatSnap:'スクショして保存', cheatParody:'※パロディ',
- cheatFoot:'※パロディ動画の要約です。当日は駅係員・警察の案内と公式発表を確認してください。',
+ cheatFoot:'当日は駅係員・警察の案内と公式発表を確認してください。',
  sourcesHead:'出典', lessonTab:'LESSON', lessonTabJa:'本当の教訓',
  press:'PRESS START', pressSub:'渋谷から脱出せよ', pressGo:'はじめる',
  pick:'決定',
@@ -554,7 +554,7 @@ export class GameHUD{
    if(+getComputedStyle(e).opacity<.99)continue;// entering/leaving (slide/overshoot): checked once settled
    if(box.y0<SAFE.top-tol||box.y1>SAFE.H-SAFE.bottom+tol||box.x0<0||box.x1>xr+tol)viol.push(box);}
   rec.safe={ok:viol.length===0,violations:viol};
-  const fe=this.root.querySelector('.gh-foot');if(fe){const b=fe.getBoundingClientRect();rec.footBox={top:Math.round(b.top),bottom:Math.round(b.bottom),scrollH:fe.scrollHeight,clientH:fe.clientHeight,limit:SAFE.H-SAFE.bottom};}
+  const fe=this.root.querySelector('.gh-foot');if(fe){const b=fe.getBoundingClientRect();rec.footBox={top:Math.round(b.top),bottom:Math.round(b.bottom),right:Math.round(b.right),scrollH:fe.scrollHeight,clientH:fe.clientHeight,limit:Math.min(SAFE.H-SAFE.bottom,Math.round(SAFE.H*(1-FOOT_CLEAR.bottomFrac))),rlimit:Math.round(SAFE.W*(1-FOOT_CLEAR.rightFrac))};}
   rec.parody=rec.parody&&!!this.root.querySelector('.gh-parody');rec.fiction=rec.fiction&&!!this.root.querySelector('.gh-fiction');
   return rec;}
 }

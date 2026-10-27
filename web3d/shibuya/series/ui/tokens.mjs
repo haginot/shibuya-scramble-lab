@@ -18,10 +18,15 @@ export const ZONE=Object.freeze({
  clock:{right:SAFE.right+4,top:SAFE.top+4},              // game clock, right of the sticker
  header:{left:SAFE.left,top:SAFE.top+51},                // logotype lockup (2 lines, ≈ 74 px), below the clock row (fixer: +9 px, title no longer touches the clock box)
  top:{left:SAFE.left,right:SAFE.right,top:SAFE.top+130}, // mission / objective band
- center:{left:SAFE.left,right:SAFE.right,top:SAFE.top+200,bottom:SAFE.bottom+70}, // cards / choice / stamp
- low:{left:SAFE.left,right:SAFE.right-8,bottom:SAFE.bottom+64}, // captions, direction, sim chips (stack upward)
- foot:{left:SAFE.left,right:SAFE.right-20,bottom:SAFE.bottom+6,maxH:52}, // 出典 footnote (≤ 3 lines)
+ center:{left:SAFE.left,right:SAFE.right,top:SAFE.top+200,bottom:SAFE.bottom+84}, // cards / choice / stamp (v7: +14 → clear of the raised footnote)
+ low:{left:SAFE.left,right:SAFE.right-8,bottom:SAFE.bottom+84}, // captions, direction, sim chips (stack upward; v7: +20 above the raised footnote)
+ // 出典 footnote (≤ 3 lines). v7 (QA): fully outside the TikTok/Reels caption + button zones — bottom edge 266 px ≥ 20.8 %
+ // of 1280 (zone = bottom ~20 %), right edge 112 px ≥ 15.5 % of 720 (zone = right ~15 %). FOOT_CLEAR is the rule the recorder checks.
+ foot:{left:SAFE.left,right:112,bottom:266,maxH:52},
+
 });
+
+export const FOOT_CLEAR=Object.freeze({bottomFrac:.20,rightFrac:.15});
 
 export const COLOR=Object.freeze({
  ink:'#0A0610',            // near-black violet
