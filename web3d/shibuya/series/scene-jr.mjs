@@ -72,7 +72,11 @@ export async function buildJRScene(params,{recording=false,status=()=>{},routes=
   state=await request({type:'init',config,osm,plateau,traffic});simAbs=state.time;
   nAgents=state.positions.length/2;
   crowd=new CostumeCrowd(scene,nAgents,{ordinary:true});crowd.uniforms.uStride.value=LOOK.stride;crowd.uniforms.uKey.value=LOOK.key;
-  hs=params.get('hs')==='0'?null:new HalloweenScene({scene,layout:state.layout,city});if(hs?.bubble)hs.bubble.visible=false;}
+  // QA v6: the street layout's cones / police gate bars that fall inside the (enclosed) Hachiko paid concourse footprint
+  // showed through the gate line as 「tape and cones」 in the void behind the gates — keep them out of the station
+  const HB=st.anchors.hachikoConcourseBox,outHB=o=>!HB||!(o.x>HB.x0&&o.x<HB.x1&&o.z>HB.z0&&o.z<HB.z1);
+  const hsLayout=HB?{...state.layout,cones:(state.layout.cones||[]).filter(outHB),barriers:(state.layout.barriers||[]).filter(outHB)}:state.layout;
+  hs=params.get('hs')==='0'?null:new HalloweenScene({scene,layout:hsLayout,city});if(hs?.bubble)hs.bubble.visible=false;}
  const style0=crowd?crowd.body.geometry.getAttribute('aStyle').array.slice():null,layer0=crowd?crowd.layers.map(L=>L.mesh.geometry.getAttribute('aStyle').array.slice()):[];
  const frustum=new THREE.Frustum(),pm=new THREE.Matrix4(),sph=new THREE.Sphere(new THREE.Vector3(),1.3),keep=new Uint8Array(Math.max(1,nAgents));
  function cullCrowd(maxDist,layersOn){if(!crowd)return 0;pm.multiplyMatrices(camera.projectionMatrix,camera.matrixWorldInverse);frustum.setFromProjectionMatrix(pm);

@@ -9,6 +9,9 @@ Combined episodes (2026-10-26): the new SFX + retry bed exist (with aliases), th
 cut_black gives true silence on the BGM/ambience buses (and chops earlier tails), the BGM returns after the window,
 the kaiju beat has no BGM, the kaiju roar is a tonal bellow (no screech energy above 3 kHz), track switches inside a
 segment don't dip, and the ~70 s demo-combined cue sheet is well-formed (16 beats, 69.7 s, only known names).
+v6 (2026-10-27, 「渋谷Halloweenには近づくな」): mission / first-choice / TRUE END / guide / GOODBYE cues exist, the farewell bed
+loops and sits low, the TRUE END jingle is distinct from the CLEAR jingle, goodbye_in soft-cuts the kaiju tail, lint_v6
+catches gag SFX on the end card and crowd beds under the TRUE END, and the ~88 s demo-v6 sheet is well-formed.
 """
 import json
 import os
@@ -53,7 +56,7 @@ def test_meter_matches_ffmpeg(st):
 
 def test_registry(st):
     assert st['sfx_missing'] == []
-    assert set(st['bgm_tracks']) == {'tension', 'calm', 'victory', 'retry'}
+    assert set(st['bgm_tracks']) == {'tension', 'calm', 'victory', 'retry', 'farewell'}
 
 
 def test_loop_seamless(st):
@@ -144,3 +147,57 @@ def test_demo_combined_cue_sheet():
          'print(__import__("json").dumps([k.value for k in r.value.keys]))', str(AUDIO / 'sfx.py')],
         capture_output=True, text=True, check=True).stdout))
     assert names <= known, names - known
+
+
+# ------------------------------------------------------------------ v6 (「渋谷Halloweenには近づくな」)
+V6_SFX = ('mission_in', 'choice_pick', 'seal_stamp', 'true_end_jingle', 'guide_in', 'goodbye_in')
+
+
+def test_v6_registry(st):
+    assert st['sfx_missing_v6'] == []
+    assert st['aliases_v6'] == {'mission': 'mission_in', 'true-end': 'true_end_jingle', 'seal': 'seal_stamp',
+                                'guide': 'guide_in', 'goodbye': 'goodbye_in', 'pick': 'choice_pick'}
+    assert st['bgm_alias_goodbye'] == 'farewell'
+
+
+def test_v6_farewell_bed(st):
+    seam, p999 = st['farewell_seam']
+    assert seam <= p999
+    assert -24.0 <= st['farewell_lufs'] <= -21.0          # house trim: calm, under the long end-card read
+
+
+def test_v6_true_end_jingle_distinct_and_warm(st):
+    assert st['true_end_vs_clear_chroma'] < 0.6            # different key / harmony from the CLEAR jingle
+    assert st['true_end_lt60_pct'] < 5.0                    # no drum / boom
+    assert st['true_end_dur'] <= 6.0                        # short (incl. reverb tail)
+
+
+def test_v6_goodbye_soft_cut_and_calm(st):
+    assert st['goodbye_residual_db'] < -80                  # kaiju tail chopped by goodbye_in
+    assert st['goodbye_uncut_tail_db'] > -40                # (and it would be audible without the cut)
+    b = st['v6_beats_lufs']
+    assert b['goodbye'] <= b['kaiju'] - 1.0
+    lufs, tp = st['v6_ffmpeg']
+    assert abs(lufs - (-14.0)) <= 0.5 and tp <= -1.0
+
+
+def test_v6_lint(st):
+    assert st['v6_lint'] == [] and st['demo_v6_lint'] == []
+    assert st['lint_uncut'] >= 1 and st['lint_gag'] == 1 and st['lint_crowd'] == 1
+
+
+def test_demo_v6_cue_sheet():
+    c = json.loads((AUDIO / 'demo' / 'demo-v6.json').read_text())
+    assert 75.0 <= c['duration'] <= 95.0
+    seg = {s['name']: (s['t0'], s['t1']) for s in c['segments']}
+    assert abs(seg['opening'][1] - 15.2) < 1e-6                     # mission beat 3.5 s (was notice 2.5 s)
+    ids = [b['id'] for b in c['meta']['beats']]
+    assert ids[:3] == ['first-choice', 'true-end', 'guide'] and ids[-2:] == ['goodbye', 'sources']
+    assert 'endcard' not in ids and len(ids) == 19
+    assert abs(c['meta']['beats'][-1]['t1'] - c['duration']) < 1e-6
+    names = {e['sfx'] for e in c['events']}
+    assert set(V6_SFX) <= names and 'smash_cut' not in names
+    gb = next(b for b in c['meta']['beats'] if b['id'] == 'goodbye')
+    late = [e for e in c['events'] if gb['t0'] <= e['t'] < c['duration']]
+    assert {e['sfx'] for e in late} <= {'goodbye_in', 'card_in'}     # no gag / sting on the GOODBYE + sources cards
+    assert any(r['track'] == 'farewell' and r['t0'] <= gb['t0'] + 1e-6 for r in c['bgm'])

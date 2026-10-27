@@ -265,7 +265,7 @@ export const LINES_EN=S({
  items:A([
   T('山手線 JY（黄緑・色は概略）\n渋谷 JY20','JY Yamanote Line · JY20\n(yellow-green, colour approx.)',['JR-LINE-01','JR-LINE-02']),
   T('埼京線 JA（緑・色は概略）\n渋谷 JA10','JA Saikyo Line\n(green, colour approx.) · JA10',['JR-LINE-01','JR-LINE-02']),
-  T('湘南新宿ライン JS\n（橙＋青・色は概略）渋谷 JS19','JS Shonan-Shinjuku Line\n(orange + blue, approx.) · JS19',['JR-LINE-01','JR-LINE-02']),
+  T('湘南新宿ライン JS\n（赤・色は概略）渋谷 JS19','JS Shonan-Shinjuku Line\n(red, colour approx.) · JS19',['JR-LINE-01','JR-LINE-02']),
   T('中央・総武線各停 JB（代々木）','JB Chuo-Sobu local (at Yoyogi)',['ALT-YOYO-H']),
   T('銀座線 G・半蔵門線 Z（表参道）','G Ginza · Z Hanzomon (Omotesando)',['ALT-OMOTE-HK']),
   T('副都心線 F（明治神宮前）','F Fukutoshin (Meiji-jingumae)',['ALT-MJM-H']),

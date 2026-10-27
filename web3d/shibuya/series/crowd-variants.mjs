@@ -27,7 +27,8 @@
 //         'alt-platform' (sparse platform at an alternative station, the last train has left),
 //         'taxi-west'    (suspended stand: a waiting line, no taxi comes),
 //         'taxi-sakura'  (working stand: the line moves as taxis arrive),
-//         'gate-newsouth'(moderate flow into 新南 / 南改札: short queue, steady admission),
+//         'gate-newsouth'(moderate flow into 新南 / 南改札: short queue, steady admission; params.hall {gate,dir,rot?} = a path through the
+//                        station-jr gate hall in the shot's frame, on the hall floor — v6 New South hall faces south, see gateHallPath),
 //         'caught-press' (combined episodes: ordinary people pack in around the stopped POV player; neutral, backs/sides).
 // detour-light params.clear: clear cone in front of the eye camera (zone-clear fix, see the state).
 // CrowdStateView(scene, {state, params?, ctx?, near?: NearPeople, capacity=1600, includePlayer=false}) renders a state's people
@@ -36,6 +37,9 @@
 import * as THREE from '../../vendor/three.module.min.js';
 import {JR_GATES,JR_CROWD} from './crowd-jr.mjs';
 import {NearPeople} from './people-close.mjs';
+import {ORDINARY} from '../costume.mjs';
+import * as STJR from './station-jr.mjs';
+const HALL_GATES=STJR.JR_GATES;
 import {makeShot} from './camera.mjs';
 
 const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
@@ -113,17 +117,27 @@ const hachikoPeak={key:'hachiko-peak',label:{ja:'ハチ公改札前の列（ピ�
     items:[item('queue','改札前の列','Queue at the gate',inQueue,U.people),item('ahead','自分より前','Ahead of you',ahead,U.people),item('wait','改札まで','To the gate',Math.max(1,Math.round(wait)),U.min),item('density','まわりの混雑','Density around you',dens,U.dens,1)]},
    previewShot:pl?eyeShot(pl,9,'hachiko-peak'):null};}};
 
+// v6: crowd path THROUGH a station-jr.mjs gate hall (shots-variants 'gate-newsouth' mode 'hall'), same local frame as
+// that shot: P(lx,ly,lz) = [G.x + lx·cos r + lz·sin r, G.y, G.z − lx·sin r + lz·cos r], local −z = free side, +z = paid side.
+// env3d v6: New South hall rot = .4 + π (free side faces SOUTH: right Sakura Stage / left Stream, facts.md), South −.35.
+// dir 'in' = free → paid (entering, the clear run), 'out' = paid → free (leaving). y = the hall floor (New South 3F).
+// HALL_ROT: station-jr.mjs's (env3d single source) when exported, else the v6 values.
+export const HALL_ROT=STJR.HALL_ROT||Object.freeze({central:-.35,south:-.35,newSouth:.4+Math.PI});
+export function gateHallPath({gate='newSouth',rot=null,dir='in',aisle=-.3,from=16,to=6}={}){const G=HALL_GATES[gate]||HALL_GATES.newSouth,r=rot??HALL_ROT[gate]??HALL_ROT.newSouth,c=Math.cos(r),s=Math.sin(r);
+ const P=(lx,lz)=>[+(G.x+lx*c+lz*s).toFixed(2),+(G.z-lx*s+lz*c).toFixed(2)];
+ const pts=[P(aisle+1.2,-from),P(aisle+.4,-from*.45),P(aisle,-1.2),P(aisle,to)];return {path:dir==='out'?pts.reverse():pts,y:G.y||0,gate:G};}
 const gateNewSouth={key:'gate-newsouth',label:{ja:'新南改札・南改札へ（流れている）',en:'New South / South gate (moving)'},
  assumptions:{ja:'シミュレーション（仮定）：改札前の入場 毎秒約1.4人、列に加わる人 毎秒約1.1人。実際の人数・規制ではありません',en:'Simulation (assumptions): ~1.4 people/s admitted, ~1.1 people/s join. Not real counts.'},
- defaults:{gate:'shinminami',path:null,width:3,density:1.2,lambda:1.1,fill:.5,playerAt:.25,phoneShare:.25,approach:20},
+ defaults:{gate:'shinminami',path:null,hall:null,y:null,width:3,density:1.2,lambda:1.1,fill:.5,playerAt:.25,phoneShare:.25,approach:20},
  setup(ctx={},params={}){const o={...this.defaults,...params};const g=G[o.gate]||G.shinminami;
+  const hall=o.hall?gateHallPath(o.hall):null;if(hall&&!o.path)o.path=hall.path;if(hall&&o.y==null)o.y=hall.y;
   const path=o.path||[[g.front[0]-34*.6,g.front[1]-34*.8],[g.front[0]-14*.6,g.front[1]-14*.8],[g.front[0],g.front[1]]];const P=polyline(path);
   const perM=o.density*o.width,lanes=Math.max(2,Math.round(o.width/.6)),n0=Math.round(P.L*o.fill*perM),cap=g.capacity;
   const served=t=>cap*t;// steady admission (no metering hold)
-  const Q=queueModel({path,width:o.width,lanes,perM,lambda:o.lambda,n0,served,idBase:210000,exitRun:4,approach:o.approach,phoneShare:o.phoneShare,lag:.15});
+  const Q=queueModel({path,y:o.y||0,width:o.width,lanes,perM,lambda:o.lambda,n0,served,idBase:210000,exitRun:4,approach:o.approach,phoneShare:o.phoneShare,lag:.15});
   return {o,P,Q,perM,n0,cap,playerK:Math.round(n0*(1-o.playerAt)),gate:g};},
  advance(h,t){const people=h.Q.frame(t);let pl=people.find(p=>p.id===210000+h.playerK)||null;const others=people.filter(p=>p!==pl);
-  if(!pl&&h.Q.rankOf(h.playerK,t)<0){const f=h.P.frame(h.P.L);pl={x:f.x,z:f.z,y:0,heading:Math.atan2(f.dx,f.dz),speed:0,rank:-1,done:true};}
+  if(!pl&&h.Q.rankOf(h.playerK,t)<0){const f=h.P.frame(h.P.L);pl={x:f.x,z:f.z,y:h.o.y||0,heading:Math.atan2(f.dx,f.dz),speed:0,rank:-1,done:true};}
   const inQueue=people.filter(p=>p.rank>=0).length,ahead=pl?Math.max(0,Math.round(pl.rank)):0,wait=ahead/h.cap/60,dens=pl?densityAround(others,pl.x,pl.z,2,h.o.width):0;
   return {key:this.key,t,label:'simulation',people:others,player:pl,focus:pl?{x:pl.x,z:pl.z}:{x:h.gate.front[0],z:h.gate.front[1]},regions:circlesAlong(h.P,h.o.width/2+2.5),
    hud:{label:'シミュレーション',numbers:{queue:inQueue,ahead,waitMin:wait,density:dens},
@@ -238,12 +252,13 @@ const taxiSakura=taxiState({key:'taxi-sakura',label:{ja:'渋谷SAKURAテラス�
 //          minus those within clearBase m, at time base.t0 + t), n=26, inner=8 (people on the inner ring), front=7 (extra backs ahead, 1.5–3.4 m),
 //          rFrom:[1.7,3.6] / rTo:[.7,1.5] (start / packed ring radii, m), closeIn:[0,1.8] (s; match the shot's
 //          press ramp), frontMin=1.3 (m: nobody closer straight ahead — the frame is not one back, the caught-pov push is ≈.6 m), frontCone=.5 (rad),
-//          clearBase=3.4, phoneShare=.15, seed=0 (per pair: other people / jitter in the ring; ids 270000 + seed·64 + k)}
+//          clearBase=3.4, phoneShare=.15, seed=0 (per pair: other people / jitter in the ring; ids 270000 + seed·64 + k),
+//          plain=false (v6 opt-in: press people in plain everyday clothes, no small cat ears / hat — type ORDINARY; off = byte-identical)}
 // Pair params (camera at the caught-pov base pose): pass at/heading = the camera's x,z / yaw (pressFromShot(shot)).
 export const pressFromShot=shot=>{const p=shot.pos,l=shot.look;return {at:[+p.x.toFixed(2),+p.z.toFixed(2)],heading:+Math.atan2(l.x-p.x,l.z-p.z).toFixed(4)};};
 const caughtPress={key:'caught-press',label:{ja:'人混みに囲まれて止まる',en:'Pressed in by the crowd'},
  assumptions:{ja:'シミュレーション（演出）：立ち止まった人のまわりに人が詰まってくる様子。実際の人数ではありません',en:'Simulation (staging): people pack in around someone who stopped. Not real counts.'},
- defaults:{at:null,heading:null,y:0,base:null,n:26,inner:8,front:7,rFrom:[1.7,3.6],rTo:[.7,1.5],closeIn:[0,1.8],frontMin:1.3,frontCone:.5,clearBase:3.4,phoneShare:.15,seed:0},
+ defaults:{at:null,heading:null,y:0,base:null,n:26,inner:8,front:7,rFrom:[1.7,3.6],rTo:[.7,1.5],closeIn:[0,1.8],frontMin:1.3,frontCone:.5,clearBase:3.4,phoneShare:.15,seed:0,plain:false},
  setup(ctx={},params={}){const o={...this.defaults,...params};let base=null,bp=null;
   if(o.base?.key){const bk=resolveCrowdState(o.base.key);if(bk&&bk!=='caught-press'){const def=CROWD_STATES[bk];
    const bpar={...(o._anchors&&bk!=='taxi-west'?paramsFromSets(bk,o._anchors):{}),...(o.base.params||{})};base={def,h:def.setup(ctx,bpar),t0:o.base.t0??0};bp=def.advance(base.h,base.t0).player;}}
@@ -270,7 +285,7 @@ const caughtPress={key:'caught-press',label:{ja:'人混みに囲まれて止ま�
    const side=Math.sign(Math.sin(s.a))||1,abs=Math.abs(s.a);let face=hd+(H(s.k,15)-.5)*.6;
    if(abs>1.0&&abs<2.4)face=hd+side*(.25+.9*H(s.k,16));
    const tx=ax-q.x,tz=az-q.z,tl=Math.hypot(tx,tz)||1;if((Math.sin(face)*tx+Math.cos(face)*tz)/tl>.2)face=hd;
-   people.push({x:q.x,z:q.z,y:h.y,heading:face,speed,id:270000+s.k,anim:speed>.25?'queue':H(s.k,17)<o.phoneShare?'phone':'idle',role:'press'});}
+   people.push({x:q.x,z:q.z,y:h.y,heading:face,speed,id:270000+s.k,anim:speed>.25?'queue':H(s.k,17)<o.phoneShare?'phone':'idle',role:'press',...(o.plain?{type:ORDINARY}:{})});}
   let regions=[{x:ax,z:az,r:Math.max(...o.rFrom)+1.5}],baseN=0;
   if(h.base){const bf=h.base.def.advance(h.base.h,h.base.t0+t);for(const p of bf.people){if(Math.hypot(p.x-ax,p.z-az)<o.clearBase)continue;people.push(p);baseN++;}regions=regions.concat(bf.regions||[]);}
   const around=people.filter(p=>Math.hypot(p.x-ax,p.z-az)<2).length,dens=densityAround(people,ax,az,1.5);

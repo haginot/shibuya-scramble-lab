@@ -95,3 +95,31 @@ console.log(JSON.stringify({orig:worst(null),fixed:worst(clear),defaultUnchanged
     assert got['orig']['d'] < 2, got                 # the reported problem: somebody walks into the camera
     assert got['fixed']['d'] >= 4 and got['fixed']['frac'] < .15, got
     assert got['defaultUnchanged'], got
+
+
+def test_v6_people_audit_press_plain_and_no_text_or_monsters():
+    """v6 crowd/VFX audit: caught-press `plain` puts every press person in plain everyday clothes (type ORDINARY, no
+    cat ears / hat) and is off by default (identical frames); the near-people shader / outfits carry no text, logo or
+    monster body; the series crowd is ordinary-mode only."""
+    got = _node("""const cv=await import('./web3d/shibuya/series/crowd-variants.mjs');const C=await import('./web3d/shibuya/costume.mjs');
+const pc=await import('./web3d/shibuya/series/people-close.mjs');const fs=await import('node:fs');
+const a=cv.crowdFrame('caught-press',1,{params:{seed:7}}),b=cv.crowdFrame('caught-press',1,{params:{seed:7,plain:false}}),p=cv.crowdFrame('caught-press',1,{params:{seed:7,plain:true}});
+const press=p.people.filter(x=>x.role==='press');
+const src=fs.readFileSync('web3d/shibuya/series/people-close.mjs','utf8');
+const types=new Set();for(let i=0;i<5000;i++){types.add(pc.outfitOf(270000+i).type);}
+console.log(JSON.stringify({same:JSON.stringify(a)===JSON.stringify(b),noType:a.people.every(x=>x.type===undefined),
+ plain:press.length>0&&press.every(x=>x.type===C.ORDINARY),pos:JSON.stringify(p.people.map(x=>[x.x,x.z,x.heading]))===JSON.stringify(a.people.map(x=>[x.x,x.z,x.heading])),
+ monster:[...types].filter(t=>C.MONSTER_TYPES.includes(t)),text:/fillText|CanvasTexture|logo|brand/i.test(src)}));""")
+    assert got['same'] and got['noType'] and got['plain'] and got['pos'], got
+    assert got['monster'] == [] and not got['text'], got
+
+
+def test_v6_gate_hall_path_follows_env3d_new_south_orientation():
+    """env3d v6: the New South (3F) hall's free side faces SOUTH (+z); a crowd entering runs south → north on the 3F
+    floor, leaving runs the other way; without params.hall the state is unchanged (gate clear path)."""
+    got = _node("""const cv=await import('./web3d/shibuya/series/crowd-variants.mjs');
+const i=cv.gateHallPath({gate:'newSouth',dir:'in'}),o=cv.gateHallPath({gate:'newSouth',dir:'out'});
+const f=cv.crowdFrame('gate-newsouth',3,{params:{hall:{gate:'newSouth'}}});
+console.log(JSON.stringify({inZ:[i.path[0][1],i.path.at(-1)[1]],outZ:[o.path[0][1],o.path.at(-1)[1]],y:i.y,ys:[...new Set(f.people.map(p=>p.y))],py:f.player?.y}));""")
+    assert got['inZ'][0] > got['inZ'][1] and got['outZ'][0] < got['outZ'][1], got
+    assert got['y'] > 10 and got['ys'] == [got['y']] and got['py'] == got['y'], got

@@ -37,6 +37,7 @@ export const COLOR=Object.freeze({
  sim:'#7FE3FF', simDeep:'#0E3B4C',                                // simulation chips
  clear:'#4DF2A0', clearGold:'#FFE07A',                            // GAME CLEAR / ESCAPED
  over:'#9DB2CF', overDeep:'#1B2636', overInk:'#C7D6EA',           // GAME OVER = cold slate "caught in crowd" (not blood)
+ gold:'#FFD35A', goldHi:'#FFF0B8', goldDeep:'#7A4E00',                       // TRUE END (v6): warm gold, distinct from CLEAR green
  warn:'#FF6FB1',           // in-game zone warning (magenta, deliberately NOT emergency red/yellow)
  line:'rgba(255,255,255,.14)',
 });

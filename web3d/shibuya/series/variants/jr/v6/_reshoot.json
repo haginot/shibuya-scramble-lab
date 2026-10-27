@@ -1,0 +1,68 @@
+{
+ "note": "imported from notes-env3d.md by tools/v6_configs.mjs --import-reshoot; edit here or re-import",
+ "items": [
+  {
+   "pair": "gate",
+   "beat": "over-result",
+   "why": "Hachiko gate front changed: JR-East-style green gate band (渋谷駅/ハチ公改札/JY JA JS), white hoarding + striped post wraps, covered frontage (ceiling/floor, no open sky), green/stainless gates"
+  },
+  {
+   "pair": "gate",
+   "beat": "caught",
+   "why": "caught-pov base = gate-queue: the same Hachiko fix is visible until the cut; QA v6: right creature hand lower + shallower (it overlapped a bystander's back and could read as their arm)",
+   "shot": {
+    "hands": {
+     "scale": 0.75,
+     "reach": 0.45,
+     "slots": [
+      {
+       "edge": "left",
+       "at": 0.3
+      },
+      {
+       "edge": "right",
+       "at": 0.2
+      },
+      {
+       "edge": "corner-bl",
+       "at": 0
+      },
+      {
+       "edge": "right",
+       "at": 0.08
+      },
+      {
+       "edge": "left",
+       "at": 0.68
+      },
+      {
+       "edge": "corner-tr",
+       "at": 0
+      }
+     ]
+    }
+   }
+  },
+  {
+   "pair": "gate",
+   "beat": "clear-result",
+   "why": "South gate hall dressed from the photo: green band 南改札, exits 西口 left / 東口 right, green gates, office, LED boards, deeper hall. Framing patch puts the band below the HUD header (it is cropped under it with the old framing); QA v6: dark header plate while the 南改札 band passes behind the HUD header (body ≈49.2–50.0 s)",
+   "shot": {
+    "start": -10,
+    "lookY0": 2.3
+   },
+   "header": {
+    "scrim": true
+   }
+  },
+  {
+   "pair": "gate",
+   "beat": "clear-stamp",
+   "why": "same South hall (t0 4: the patched dolly is identical to the old one after 3.6 s)",
+   "shot": {
+    "start": -10,
+    "lookY0": 2.3
+   }
+  }
+ ]
+}

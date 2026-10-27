@@ -292,20 +292,15 @@ function buildGateQueue(shared,opt){const o={...SET_DEFAULTS['gate-queue'],...op
  const X=o.uTurnX;for(let z=-8.5;z<=11;z+=2.05){if(Math.abs(z-1.5)<1.4)continue;barrier(b,[X+1.5,z],Math.PI/2,2);}
  for(const z of [0,3])cone(b,[X-.5,z]);
  const arrow=(x,z,dir)=>{// arrow on the floor pointing +x (dir=1) or -x (dir=-1)
-  const s=dir;b.box(x,.025,z,2.2,.01,.36,[.9,.9,.86],0,{top:[.15,.15,.14]});b.quad([x+s*1.1,.03,z-.75],[x+s*2.0,.03,z],[x+s*2.0,.03,z],[x+s*1.1,.03,z+.75],[0,1,0],[.9,.9,.86],[.15,.15,.14]);};
+  const s=dir,y=x>80&&x<118&&z>4?.085:.03;// QA v6: above the covered Hachiko frontage floor (station-jr, y .07)
+  b.box(x,y-.005,z,2.2,.01,.36,[.9,.9,.86],0,{top:[.15,.15,.14]});b.quad([x+s*1.1,y,z-.75],[x+s*2.0,y,z],[x+s*2.0,y,z],[x+s*1.1,y,z+.75],[0,1,0],[.9,.9,.86],[.15,.15,.14]);};
  for(let x=62;x<X-4;x+=12){arrow(x,-4.5,1);arrow(x+6,8.5,-1);}
  // staff-held signboard stands (blank amber faces: words are DOM) at the U-turn
  for(const z of [-6,9]){b.box(X-1,1.1,z,.05,2.2,.05,COL.steel);b.box(X-1,2.1,z,.04,.6,.9,[.95,.6,.1],0,{all:[.45,.25,.02]});}
  const lights=[{p:[X-1,2.5,1.5],c:[1,.8,.5],r:4},{p:[85.9,3.4,17.6],c:[.9,.9,1],r:4}];
  const mesh=new THREE.Mesh(b.geometry(),setMaterial(shared,lights));mesh.frustumCulled=false;g.add(mesh);
- // fixer 2026-10-26: generic lit gate sign on the passage face of the Hachiko gate sign box (station-jr: x 85.9, y 2.95,
- // z ≈ 18.4) so the queue shot reads as 「ハチ公改札」 (plain words + arrow, no operator logo / corporate colours)
- {const t=signTexture(1024,96,(x,w,h)=>{x.fillStyle='#0d1726';x.fillRect(0,0,w,h);x.fillStyle='#f4f4f0';x.textAlign='center';x.textBaseline='middle';
-   x.font=`900 62px ${FONT}`;x.fillText('ハチ公改札',w/2-90,h/2+2);x.font=`700 34px ${FONT}`;x.fillStyle='#c9d3e0';x.fillText('Hachiko Gate',w/2+190,h/2+4);
-   x.fillStyle='#ffd23f';x.beginPath();x.moveTo(70,h/2);x.lineTo(110,h/2-26);x.lineTo(110,h/2+26);x.fill();x.fillRect(110,h/2-9,40,18);});
-  const sp=signPlane(5.6,.52,t.tex,{emissive:1.25});sp.position.set(85.9,2.95,18.33);sp.rotation.y=Math.PI;g.add(sp);
-  const sp2=signPlane(7.2,.68,t.tex,{emissive:1.35});sp2.position.set(85.9,3.55,18.3);sp2.rotation.y=Math.PI;g.add(sp2);// larger band above the gate box (readable from the queue)
-  b2:{const q=new B();q.box(85.9,3.55,18.42,7.4,.8,.12,[.05,.06,.08]);const m2=new THREE.Mesh(q.geometry(),setMaterial(shared,[]));m2.frustumCulled=false;g.add(m2);}}
+ // v6 (env3d): the gate name sign moved into station-jr.mjs (JR-East-style green band 「渋谷駅 / ハチ公改札 / JY JA JS」 on the
+ // transom, always on with the station); the fixer's navy plane here would double it.
  Object.assign(A,{uTurn:{x:X,y:0,z:1.5},northLane:{x:(62+X)/2,y:0,z:-4.5},southLane:{x:(62+X)/2,y:0,z:8.5},gate:{x:85.9,y:0,z:18.9}});
  return {group:g,anchors:A,tris:b.i.length/3};}
 

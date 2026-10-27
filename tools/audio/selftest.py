@@ -5,6 +5,9 @@
 Includes the combined-episode checks (combined_checks): new SFX registered, aliases, auto hard-duck under the
 caught sounds, true silence after cut_black, BGM back after the window, BGM off in the kaiju beat, the roar is tonal
 (almost nothing above 3 kHz), no level dip at an in-segment track switch, -14 LUFS / TP <= -1 dBTP.
+v6 checks (v6_checks): new SFX + farewell bed registered (aliases), farewell loops seamlessly, the TRUE END jingle is
+tonally distinct from clear_jingle (pitch-class profile) and has no drum, goodbye_in soft-cuts the kaiju tails, the
+goodbye card is calmer than the gag, lint_v6 flags gag SFX / crowd beds where they don't belong and passes demo-v6.json.
 """
 from __future__ import annotations
 
@@ -106,6 +109,76 @@ def combined_checks(tmp: str) -> dict:
     return R
 
 
+def v6_cues(goodbye_cut: bool = True, gag_on_card: bool = False, crowd_in_true_end: bool = False) -> dict:
+    """Mini v6 timeline (beats as buildCues emits them): first-choice 0-3, true-end 3-6.5, kaiju 6.5-10, goodbye
+    10-14.5.  The kaiju roar's tail runs into the goodbye card unless goodbye_in (soft cut) chops it."""
+    ev = [{'t': 0.05, 'sfx': 'card_in'}, {'t': 1.2, 'sfx': 'choice_move'}, {'t': 2.2, 'sfx': 'choice_pick'},
+          {'t': 3.16, 'sfx': 'seal_stamp', 'duck': 3.0, 'duck_db': -12}, {'t': 3.21, 'sfx': 'true_end_jingle'},
+          {'t': 6.6, 'sfx': 'kaiju_rumble'}, {'t': 9.45, 'sfx': 'kaiju_roar', 'align': 'hit'}]
+    if goodbye_cut:
+        ev.append({'t': 10.0, 'sfx': 'goodbye_in'})
+    if gag_on_card:
+        ev.append({'t': 11.0, 'sfx': 'boing'})
+    beats = [('first-choice', 0, 3), ('true-end', 3, 6.5), ('kaiju', 6.5, 10), ('goodbye', 10, 14.5)]
+    return {'duration': 14.5, 'fps': 30, 'segments': [{'name': 'body', 't0': 0, 't1': 14.5}], 'events': ev,
+            'bgm': [{'t0': 0, 't1': 6.5, 'track': 'calm'}, {'t0': 10, 't1': 14.5, 'track': 'goodbye'}],
+            'amb': [{'t0': 0, 't1': 6.5, 'bed': 'crowd-night'}] if crowd_in_true_end else [],
+            'duck': [{'t0': 0, 't1': 3, 'depth_db': -4}],
+            'meta': {'beats': [{'id': i, 't0': a, 't1': b} for i, a, b in beats]}}
+
+
+def _chroma(y: np.ndarray) -> np.ndarray:
+    m = y.mean(0)
+    F = np.abs(np.fft.rfft(m)) ** 2
+    f = np.fft.rfftfreq(m.size, 1 / dsp.SR)
+    k = (f > 100) & (f < 2000)
+    pc = np.round(12 * np.log2(f[k] / 440.0)).astype(int) % 12
+    c = np.bincount(pc, weights=F[k], minlength=12)
+    return c / (np.linalg.norm(c) + 1e-20)
+
+
+def v6_checks(tmp: str) -> dict:
+    R = {}
+    R['sfx_missing_v6'] = [n for n in sfx.REQUIRED_V6 if sfx.canonical(n) is None]
+    R['aliases_v6'] = {a: sfx.canonical(a) for a in ('mission', 'true-end', 'seal', 'guide', 'goodbye', 'pick')}
+    R['bgm_alias_goodbye'] = music.canonical('goodbye')
+    fw = music.loop('farewell')
+    R['farewell_seam'] = [float(np.abs(fw[:, 0] - fw[:, -1]).max()),
+                          float(np.percentile(np.abs(np.diff(fw, axis=-1)), 99.9))]
+    R['farewell_lufs'] = round(dsp.lufs_integrated(np.tile(fw, 2)), 1)
+    te, cj = sfx.get('true_end_jingle'), sfx.get('clear_jingle')
+    R['true_end_vs_clear_chroma'] = round(float(_chroma(te) @ _chroma(cj)), 3)
+    m = te.mean(0)
+    F = np.abs(np.fft.rfft(m)) ** 2
+    f = np.fft.rfftfreq(m.size, 1 / dsp.SR)
+    R['true_end_lt60_pct'] = round(float(F[f < 60].sum() / F.sum() * 100), 2)        # no drum/boom
+    R['true_end_dur'] = round(te.shape[-1] / dsp.SR, 2)
+    y, stems, info = mix.mix(v6_cues(), warn=lambda m_: None, strict=True)
+    wp = os.path.join(tmp, 'mix-v6.wav')
+    mix.write_wav24(wp, y)
+    ff = analyze.ebur128(wp)
+    R['v6_ffmpeg'] = [ff['I_lufs'], ff['tp_dbtp']]
+    R['v6_lint'] = info['lint']
+    bl = {b['beat']: b['lufs'] for b in info['beats']}
+    R['v6_beats_lufs'] = bl
+    # goodbye_in chops the roar tail: sfx stem right after the cut ≈ goodbye_in alone
+    y2, st2, _ = mix.mix(v6_cues(goodbye_cut=False), warn=lambda m_: None, aac_tp=None)
+    def lv(a, t0, t1):
+        s_ = a[:, dsp.ns(t0):dsp.ns(t1)]
+        return float(20 * np.log10(np.sqrt((s_ ** 2).mean()) + 1e-12))
+    gi = sfx.get('goodbye_in')
+    only = np.zeros_like(stems['sfx'])
+    dsp.place(only, gi, 10.0)
+    R['goodbye_residual_db'] = round(lv(stems['sfx'] - only, 10.05, 11.0), 1)            # kaiju tail after the cut
+    R['goodbye_uncut_tail_db'] = round(lv(st2['sfx'], 10.05, 11.0), 1)
+    R['lint_uncut'] = len(mix.lint_v6(v6_cues(goodbye_cut=False)))
+    R['lint_gag'] = len(mix.lint_v6(v6_cues(gag_on_card=True)))
+    R['lint_crowd'] = len(mix.lint_v6(v6_cues(crowd_in_true_end=True)))
+    with open(os.path.join(HERE, 'demo', 'demo-v6.json'), encoding='utf-8') as fh:
+        R['demo_v6_lint'] = mix.lint_v6(json.load(fh))
+    return R
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser()
     ap.add_argument('--tmp')
@@ -191,6 +264,7 @@ def main(argv=None):
                 'duration': round(float(j['format']['duration']), 2)}
     R['mux_ebur128'] = analyze.ebur128(mo)
     R.update(combined_checks(tmp))
+    R.update(v6_checks(tmp))
     print(json.dumps(R))
 
 

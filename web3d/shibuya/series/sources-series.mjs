@@ -62,6 +62,22 @@ export const SOURCES=Object.freeze({
  jrTokyuMetro2025:{ja:'東急・JR東日本・東京メトロ',en:'Tokyu / JR East / Tokyo Metro',date:'2025-09-17',
   url:'https://web.archive.org/web/20251014135937/https://www.jreast.co.jp/info/2025/20250917_ho01.pdf',
   note:'live URL https://www.jreast.co.jp/info/2025/20250917_ho01.pdf returned 403; Wayback copy read with pdftotext'},
+ // ---- JR編 v6 (GOODBYE end card, mission, sources card), $LOGS/next/facts-v6.json (fact-check, 2026-10-27) ----
+ // The end-card footer names these as 「渋谷区公式X（2026/10/22）・渋谷区・警視庁渋谷警察署」; the MPD traffic page is the
+ // existing `police` key (same URL, 更新 2026-10-05). Shibuya City pages are quoted as plain attributed text only.
+ shibuyaX20261022:{ja:'渋谷区公式X',en:'Shibuya City (X)',date:'2026-10-22',url:'https://x.com/city_shibuya/status/2113103051389010200',
+  note:'@city_shibuya 2026-10-22 12:00 JST 【GOODBYE BAD HALLOWEEN】; text re-checked 2026-10-27 (api.fxtwitter.com mirror of the post)'},
+ shibuyaPress20261021:{ja:'渋谷区',en:'Shibuya City',date:'2026-10-21',
+  url:'https://www.city.shibuya.tokyo.jp/kusei/hodo/hodo-2026/hodo_20261021.html',note:'報道発表 ハチ公像周辺の仮囲い（10/30 6時〜11/1朝 予定）'},
+ shibuyaOrdinance:{ja:'渋谷区',en:'Shibuya City',date:'2025-08-22',
+  url:'https://www.city.shibuya.tokyo.jp/kusei/shisaku/jorei-toshin/sbykankyo.html',
+  note:'渋谷駅周辺地域の安全で安心な環境の確保に関する条例 (路上飲酒 通年18時〜翌5時禁止, 2024-10-01〜); page updated 2025-08-22, accessed 2026-10-27'},
+ shibuyaKirei:{ja:'渋谷区',en:'Shibuya City',date:'2026-10-27',noYear:true,
+  url:'https://www.city.shibuya.tokyo.jp/kusei/shisaku/jorei-toshin/1001_jourei_kirei.html',
+  note:'きれいなまち渋谷をみんなでつくる条例 (ポイ捨て・路上喫煙禁止, 過料2,000円 2026-06-01〜); accessed 2026-10-27'},
+ jrPmoX20260221:{ja:'JR東日本 東京建設PMO（公式X）',en:'JR East Tokyo Construction PMO (X)',date:'2026-02-21',
+  url:'https://x.com/JREast_TokyoPMO/status/2025133399657033903',note:'3/1(日)初電よりハチ公口の通路切替とハチ公改札内の山手線ホーム階段の移設'},
+ shibukei19736:{ja:'シブヤ経済新聞',en:'Shibuya Keizai Shimbun',date:'2026-02-17',url:SK+'19736/'},
 });
 
 const F=(src,v='verified',extra={})=>Object.freeze({src:Object.freeze(src),v,...extra});
@@ -168,6 +184,20 @@ export const FACTS=Object.freeze({
  'TAXI-03':F(['shibukichi'],'needs-label',{say:[['2025年']],sayEn:[['2025']]}),
  'TAXI-08':F(['jrTokyuMetro2025'],'verified',{say:[['2025年']],sayEn:[['2025']]}),
  'TAXI-09':F(['ttcNews'],'verified',{say:[['10/25']],sayEn:[['Oct 25']]}),// absence of a notice, not a certainty
+ // ---- JR編 v6 (2026-10-27, $LOGS/next/facts-v6.json) ----
+ // GOODBYE card block 1: the city's own words (X post), quoted verbatim with 「（渋谷区）」 attribution.
+ 'END-01':F(['shibuyaX20261022','shibuyaOrdinance','shibuyaKirei'],'verified',{say:[['渋谷区']],sayEn:[['Shibuya City']]}),
+ // block 2 rows: Hachiko statue fenced 10/30 early AM (6:00) – 11/1 morning (planned; may change)
+ 'END-02':F(['shibuyaX20261022','shibuyaPress20261021'],'verified',{say:[['ハチ公']],sayEn:[['Hachiko']]}),
+ // traffic restrictions around the station 10/30 evening – 11/1 early AM (MPD Shibuya, updated 2026-10-05)
+ 'END-03':F(['police'],'verified',{say:[['交通規制']],sayEn:[['traffic']]}),
+ // the city's visit request is ONLY about viewing the Hachiko statue: always say ハチ公 (never a general "don't come")
+ 'END-04':F(['shibuyaX20261022','shibuyaPress20261021'],'verified',{say:[['ハチ公']],sayEn:[['Hachiko']]}),
+ // our own message (mission 「渋谷ハロウィンには、近づくな。」, TRUE END, 「いちばんのCLEARは…行かない」): no outlet, never
+ // attributed to the city; na → no footnote/sources row.
+ 'OWN-MSG':F([],'verified',{na:true,own:true}),
+ // Hachiko gate: passage switched + Yamanote-platform stairs inside the gate moved (temporary) from 2026-03-01 first train
+ 'JR-GATE-18':F(['jrPmoX20260221','shibukei19736'],'verified',{say:[['2026年3月','3/1','3月']],sayEn:[['2026','Mar']]}),
 });
 // Never on screen (fact-check verdict 'dropped'); MEAS-14 was dropped in v4.
 // UNOFF-01 (variants research): unofficial "exits toward Hachiko close" claim, no official source.

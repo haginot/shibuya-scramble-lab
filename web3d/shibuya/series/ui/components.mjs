@@ -38,13 +38,31 @@ export const HUD_TEXT=Object.freeze({   // game-framing strings (no facts)
  cont:'CONTINUE?', contSub:'別のルートでやり直す', yes:'YES', no:'NO', contTab:'RETRY',
  credit:'出典：国土交通省 PLATEAU（3D都市モデル）／© OpenStreetMap contributors',
  endTab:'THANKS FOR PLAYING',
+ // v6 (2026-10-27): opening mission card, first choice, TRUE END, guide card, GOODBYE end card
+ missionIssuer:'脱出ゲーム運営（架空）', guideDone:'TRUE END', quoteLabel:'引用', oursLabel:'制作チームより', oursTab:'FROM THE TEAM',
+});
+// GOODBYE BAD HALLOWEEN end card — exact text from CONTRACT/STEERING (HAGINO-approved, endcard-facts.md 2026-10-27).
+// Must not be altered (only line breaks). Block 1 = quoted city text (attributed), block 2 = facts, block 3 = OUR message
+// (never attributed to the city), foot = sources + fiction note. `\n` marks allowed visual line breaks only.
+export const GOODBYE_TEXT=Object.freeze({
+ quote:Object.freeze({title:'GOODBYE BAD HALLOWEEN',ja:'渋谷駅周辺では、条例で飲酒・喫煙、\nごみのポイ捨ては禁止されています。',attr:'（渋谷区）',
+  en:'Drinking, smoking and littering on the streets around Shibuya Station are banned by ordinance.',enAttr:'(Shibuya City)'}),
+ facts:Object.freeze([
+  Object.freeze({ja:'10/30(金)早朝〜11/1(日)朝方　ハチ公像は囲いで観覧不可',en:'Oct 30 early AM – Nov 1 morning: Hachiko statue fenced off'}),
+  Object.freeze({ja:'10/30夕方〜11/1早朝　駅周辺で交通規制',en:'Oct 30 evening – Nov 1 early AM: traffic restrictions around the station'})]),
+ ours:Object.freeze({ja:'いちばんのCLEARは、\n今年の渋谷に「行かない」こと。',en:"The best CLEAR this year: don't go to Shibuya."}),
+ foot:Object.freeze({ja:'出典：渋谷区公式X（2026/10/22）・渋谷区・警視庁渋谷警察署　※本編はフィクションです',
+  en:'Sources: Shibuya City (X, Oct 22, 2026), Shibuya City, MPD Shibuya Police Station. *Story is fiction.'}),
 });
 const STAMP_KIND={
  GAME_OVER:{cls:'over',word:'GAME OVER',w2:'MISSION FAILED',tint:'over'},
  GAME_CLEAR:{cls:'clear',word:'GAME CLEAR',w2:'MISSION COMPLETE',tint:'clear'},
  CLEAR:{cls:'clear',word:'GAME CLEAR',w2:'MISSION COMPLETE',tint:'clear'},
  ESCAPED:{cls:'esc',word:'ESCAPED!',w2:'YOU MADE IT OUT',tint:'esc'},
+ TRUE_END:{cls:'true',word:'TRUE END',w2:'THE SAFEST CLEAR',tint:'true'},   // v6: 「そもそも渋谷に行かない」 → gold, warm
 };
+const STAMP_ID={over:'gameover',clear:'clear',esc:'escaped',true:'trueend'};
+const inkOf=K=>K.cls==='over'?COLOR.overInk:K.cls==='clear'?COLOR.clear:K.cls==='true'?COLOR.gold:COLOR.pumpkinHi;
 
 // ---------- text helpers ----------
 const esc=v=>String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -137,9 +155,10 @@ function tag(item,env){const r=R('parody',env.lang);
  r.html=`<div class="gh-fiction gh-tag" data-c="tag" style="right:${ZONE.clock.right}px;top:${item.top??ZONE.clock.top}px">${r.txt(item)}</div>`;
  return r;}
 
-// header: {title?, jr?, sub?} — small logotype lockup (every frame except while the big 3D logo is up)
+// header: {title?, jr?, sub?, scrim?} — small logotype lockup (every frame except while the big 3D logo is up). scrim:true
+//   (v6 QA) puts a soft dark plate behind the lockup for shots where big scene lettering passes behind the header.
 function header(item,env){const r=R('header',env.lang),st=enterStyle(item.anim??'fade',item.t??9,0,{exitOn:false});
- r.html=`<div class="gh-head" data-c="header" style="left:${ZONE.header.left}px;top:${ZONE.header.top}px;${st.style}"><div class="l1">${icon('pumpkin')}<span>${r.txt(item.title??HUD_TEXT.title)}</span></div><div class="l2"><span class="gh-jr">${r.txt(item.jr??HUD_TEXT.jr)}</span><span class="sub">${r.txt(item.sub??HUD_TEXT.sub)}</span></div></div>`;
+ r.html=`<div class="gh-head${item.scrim?' scrim':''}" data-c="header" style="left:${ZONE.header.left}px;top:${ZONE.header.top}px;${st.style}"><div class="l1">${icon('pumpkin')}<span>${r.txt(item.title??HUD_TEXT.title)}</span></div><div class="l2"><span class="gh-jr">${r.txt(item.jr??HUD_TEXT.jr)}</span><span class="sub">${r.txt(item.sub??HUD_TEXT.sub)}</span></div></div>`;
  r.header=true;return r;}
 
 // clock: {time:'22:14'} | {start:'22:10', rate:min-per-s, (uses env.T)} , label?, progress? (0..1 bar) — parody game clock
@@ -151,7 +170,7 @@ function clock(item,env){const r=R('clock',env.lang),T=env.T??0,tm=clockText(ite
  return r;}
 
 // mission: {ja, label?='MISSION', factIds} — objective band under the header (glitch-in)
-function mission(item,env){const r=R('top',env.lang),st=enterStyle(item.anim??'glitch',item.t??0,item.dur??0,{seed:3});
+function mission(item,env){if(item.card)return missionCard(item,env);const r=R('top',env.lang),st=enterStyle(item.anim??'glitch',item.t??0,item.dur??0,{seed:3});
  r.html=panel('gh-mission'+(st.glitch?' gh-glitch':''),`<div class="ic">${icon('target')}</div><div><div>${tab(item.label??'MISSION',{jp:item.labelJa??'ミッション'})}</div><div class="tx">${r.txt(item)}</div></div>`,{style:st.style,attrs:'data-c="mission"'});
  return r;}
 
@@ -181,7 +200,7 @@ function footnote(item,env){const r=R('foot',env.lang);let s=L(item,env.lang);r.
  r.html=`<div class="gh-foot${item.plate?' pl':''}" data-c="footnote" style="left:${ZONE.foot.left}px;right:${ZONE.foot.right}px;bottom:${ZONE.foot.bottom}px;max-height:${ZONE.foot.maxH}px"><b>${env.lang==='en'?'SOURCES':'出典'}</b>${html(s)}</div>`;r.ids(item.factIds);return r;}
 
 // choice: {prompt?, options?:[{key,ja,sub?}], picked?, pickAt?, label?} (defaults: env.config.choice); t,dur
-function choice(item,env){const r=R('center',env.lang),C=env.config?.choice||{},t=item.t??0,dur=item.dur??4;
+function choice(item,env){if(item.card)return choiceCard(item,env);const r=R('center',env.lang),C=env.config?.choice||{},t=item.t??0,dur=item.dur??4;
  const prompt=item.prompt??C.prompt,opts=item.options??C.options??[],picked=item.picked??C.picked??opts[0]?.key,pickAt=item.pickAt??Math.max(1.2,dur-1.0);
  const pi=Math.max(0,opts.findIndex(o=>o.key===picked));
  const q=enterStyle('glitch',t,dur,{seed:11});
@@ -215,20 +234,29 @@ function stamp(item,env){const r=R('center',env.lang),K=STAMP_KIND[item.kind]||S
  const out=life(t,dur,{exit:.3}).kout,op=(hit?1:clamp(k*1.6))*(1-out);
  const shockK=seg(t,D,D+.45),flash=hit?clamp(1-(t-D)/.12)*.32:0;
  const subK=EASE.outCubic(seg(t,.55,.9));
- r.strings.push(K.word);r.stamps.push(K.cls==='over'?'gameover':K.cls==='clear'?'clear':'escaped');
+ r.strings.push(K.word);r.stamps.push(STAMP_ID[K.cls]);
  const sub=item.ja||item.sub?panel(`gh-stampsub ${K.cls==='over'?'':K.cls}`,`${r.txt(item)}${item.sub?`<small>${r.txt(item.sub)}</small>`:''}`,{style:`opacity:${f3(subK*(1-out))};transform:translateY(${f3((1-subK)*24)}px)`,brackets:false}):'';
+ // v6 TRUE END extras (only when given): kicker ribbon above the sub line, small EN line under it
+ const sub2=item.kicker||item.en?panel(`gh-stampsub ${K.cls==='over'?'':K.cls} x2`,`${item.kicker?`<div class="kk">${r.txt(item.kicker)}</div>`:''}${item.ja?`<div class="jl">${r.txt(item)}</div>`:''}${item.sub?`<small>${r.txt(item.sub)}</small>`:''}${item.en?`<div class="en">${r.txt(item.en)}</div>`:''}`,{style:`opacity:${f3(subK*(1-out))};transform:translateY(${f3((1-subK)*24)}px)`,brackets:false}):'';
  if(item.ja&&SIM_RE.test(L(item,env.lang)))r.sims.push({text:L(item,env.lang),label:true});
  if(item.onBlack){// black-frame mood: glow + scanlines + static (deterministic per frame) instead of the backdrop tint
   const gk=EASE.outCubic(seg(t,D*.5,D+.5))*(1-out),st=.05+.05*hash(Math.floor(t*MOTION.fps),71)+.25*(hit?Math.exp(-(t-D)*10):0);
   r.fx=`<div class="gh-tint ob ${K.tint}" style="opacity:${f3(gk)}"></div><div class="gh-static" style="opacity:${f3(st*(1-out))};background-position:${Math.floor(hash(Math.floor(t*MOTION.fps),73)*128)}px ${Math.floor(hash(Math.floor(t*MOTION.fps),79)*128)}px"></div>${flash>0?`<div class="gh-flash" style="opacity:${f3(flash*.8)};background:${K.cls==='over'?COLOR.over:K.cls==='clear'?'#D8FFE9':'#FFE6C2'}"></div>`:''}`;}
  else r.fx=`<div class="gh-tint ${K.tint}" style="opacity:${f3(EASE.outCubic(seg(t,D*.5,D+.4))*(1-out))}"></div>${flash>0?`<div class="gh-flash" style="opacity:${f3(flash)};background:${K.cls==='over'?COLOR.overInk:K.cls==='clear'?'#D8FFE9':'#FFE6C2'}"></div>`:''}`;
+ if(K.cls==='true')r.fx+=trueFx(t,D,out);
  let safety='';if(item.onBlack&&item.safety){const S=typeof item.safety==='string'?{ja:item.safety}:item.safety,sk=EASE.outCubic(seg(t,item.safetyAt??.8,(item.safetyAt??.8)+.3));
   // below the stamp text: hud.css top 478 fits a 2-line text; each further line (\n) pushes it down one line (32 px) so a
   // 3-line text's 「（シミュレーション）」 line is never covered (fixer 2026-10-26: gate's over-stamp lost it)
   const extra=Math.max(0,(item.ja||'').split('\n').length-2)*32;
   safety=`<div class="gh-sh gh-safety" data-c="stamp-safety" style="${extra?`top:${478+extra}px;`:''}opacity:${f3(sk*(1-out))};transform:translateY(${f3((1-sk)*18)}px)"><div class="gh-panel"><div class="in"><span class="ic">${icon('info')}</span><span class="tx">${r.txt(S)}</span></div></div></div>`;}
- r.html=`<div class="gh-stampwrap${item.onBlack?' ob':''}" data-c="stamp" style="transform:translate(${f3(sx)}px,${f3(sy)}px)">${hit&&shockK<1?`<div class="gh-shock" style="--sc:${K.cls==='over'?COLOR.overInk:K.cls==='clear'?COLOR.clear:COLOR.pumpkinHi};opacity:${f3((1-shockK)*.8)};transform:scale(${f3(mix(.5,1.7,EASE.outCubic(shockK)))})"></div>`:''}<div class="gh-stamp ${K.cls}" style="opacity:${f3(op)};transform:translateX(-50%) rotate(${f3(rot)}deg) scale(${f3(sc)})"><svg class="ink" viewBox="0 0 640 320" style="opacity:${f3(.8*spread)}"><g fill="${K.cls==='over'?COLOR.overInk:K.cls==='clear'?COLOR.clear:COLOR.pumpkinHi}">${hit?inkBlots(spread):''}</g></svg><div class="plate" style="box-shadow:0 0 ${f3(2+22*spread)}px ${f3(6*spread)}px color-mix(in srgb,var(--sc) ${Math.round(28*(1-.6*spread))}%,transparent),inset 0 0 ${f3(10+30*spread)}px color-mix(in srgb,var(--sc) 30%,transparent)"><div class="w" style="--fs:${Math.round(Math.min(84,500/((item.word??K.word).length*.86)))}px">${esc(item.word??K.word)}</div><div class="w2">${esc(item.w2??K.w2)}</div></div></div>${sub}${safety}</div>`;
+ r.html=`<div class="gh-stampwrap${item.onBlack?' ob':''}" data-c="stamp" style="transform:translate(${f3(sx)}px,${f3(sy)}px)">${hit&&shockK<1?`<div class="gh-shock" style="--sc:${inkOf(K)};opacity:${f3((1-shockK)*.8)};transform:scale(${f3(mix(.5,1.7,EASE.outCubic(shockK)))})"></div>`:''}<div class="gh-stamp ${K.cls}" style="opacity:${f3(op)};transform:translateX(-50%) rotate(${f3(rot)}deg) scale(${f3(sc)})"><svg class="ink" viewBox="0 0 640 320" style="opacity:${f3(.8*spread)}"><g fill="${inkOf(K)}">${hit?inkBlots(spread):''}</g></svg><div class="plate" style="box-shadow:0 0 ${f3(2+22*spread)}px ${f3(6*spread)}px color-mix(in srgb,var(--sc) ${Math.round(28*(1-.6*spread))}%,transparent),inset 0 0 ${f3(10+30*spread)}px color-mix(in srgb,var(--sc) 30%,transparent)"><div class="w" style="--fs:${Math.round(Math.min(84,500/((item.word??K.word).length*.86)))}px">${esc(item.word??K.word)}</div><div class="w2">${esc(item.w2??K.w2)}</div></div></div>${sub2||sub}${safety}</div>`;
  return r;}
+// TRUE END backdrop: warm gold glow, slowly turning light rays, twinkling sparkles around the plate (deterministic)
+function trueFx(t,D,out){const gk=EASE.outCubic(seg(t,D*.5,D+.5))*(1-out);let sp='';
+ for(let i=0;i<18;i++){const a=hash(i,131)*Math.PI*2,rx=200+130*hash(i,137),ry=120+150*hash(i,139),x=360+Math.cos(a)*rx,y=650+Math.sin(a)*ry;
+  const tw=clamp(.5+.5*Math.sin(2*Math.PI*(.7+.6*hash(i,149))*t+hash(i,151)*6.28)),k=seg(t,D+.04*i,D+.04*i+.3),sz=8+14*hash(i,157);
+  sp+=`<i style="left:${f3(x-sz/2)}px;top:${f3(y-sz/2)}px;width:${f3(sz)}px;height:${f3(sz)}px;opacity:${f3(k*tw*(1-out))};transform:rotate(${f3(t*40*(hash(i,163)-.5))}deg)"></i>`;}
+ return `<div class="gh-tint true" style="opacity:${f3(gk)}"></div><div class="gh-rays" style="opacity:${f3(gk*.9)};background:repeating-conic-gradient(from ${f3(t*9)}deg at 50% 51%,rgba(255,211,90,.17) 0deg 5deg,transparent 5deg 15deg)"></div><div class="gh-spk">${sp}</div>`;}
 
 // lesson: {title?, ja (body; lines after the first become points), points?, head?, factIds} (defaults env.config.lesson)
 function lesson(item,env){const r=R('center',env.lang),src={...(env.config?.lesson||{}),...item},t=item.t??0,dur=item.dur??0;
@@ -265,7 +293,8 @@ export function mergeSourceRows(rows){const out=[];
  return out;}
 function sourcesCompact(item,env){const r=R('center',env.lang),t=item.t??0,raw=item.rows??env.sources??[],rows=mergeSourceRows(raw),st=enterStyle('slide-up',t,item.dur??0);
  const cols=item.cols??(rows.length>6?2:1),credit=item.credit===false?'':(item.credit??HUD_TEXT.credit);
- r.html=panel('gh-card gh-sources cmp',`${tab('SOURCES',{jp:item.headJa??''})}<div class="h">${r.txt(item.head??HUD_TEXT.sourcesHead)}</div><ol style="--cols:${cols}">${rows.map((s,i)=>{if(s.label)r.strings.push(s.label);return `<li style="${rowIn(t,i*.5,.2,'y')}">${html(s.label)}${s.date?`<span class="d">${esc(s.date)}</span>`:''}</li>`;}).join('')}</ol>${credit?`<div class="cr">${r.txt(credit)}</div>`:''}${item.note?`<div class="sm">${r.txt(item.note)}</div>`:''}${item.parodyNote===false?'':`<div class="sm pn">${r.txt(item.parodyNote??HUD_TEXT.sourcesNote)}</div>`}`,{style:st.style,attrs:'data-c="sources"'});
+ const dense=item.dense??rows.length>12;// v6: the larger union (+ end-card city/MPD sources) → tighter rows, dates inline
+ r.html=panel('gh-card gh-sources cmp'+(dense?' dn':''),`${tab('SOURCES',{jp:item.headJa??''})}<div class="h">${r.txt(item.head??HUD_TEXT.sourcesHead)}</div><ol style="--cols:${cols}">${rows.map((s,i)=>{if(s.label)r.strings.push(s.label);return `<li style="${rowIn(t,i*.5,.2,'y')}">${html(s.label)}${s.date?`<span class="d">${esc(s.date)}</span>`:''}</li>`;}).join('')}</ol>${credit?`<div class="cr">${r.txt(credit)}</div>`:''}${item.note?`<div class="sm">${r.txt(item.note)}</div>`:''}${item.parodyNote===false?'':`<div class="sm pn">${r.txt(item.parodyNote??HUD_TEXT.sourcesNote)}</div>`}`,{style:st.style,attrs:'data-c="sources"'});
  r.parodyNote=item.parodyNote!==false;r.credit=!!credit;
  r.ids(item.factIds);for(const s of rows)r.ids(s.factIds);return r;}
 function sources(item,env){if(item.compact)return sourcesCompact(item,env);
@@ -365,7 +394,96 @@ function gag(item,env){const r=R('gag',env.lang),t=item.t??0,dur=item.dur??0,a=l
  r.html=`<div class="gh-gag" data-c="gag" style="left:${SAFE.left}px;width:${W}px;top:${y-H/2}px;height:${H}px;opacity:${f3(a.alpha)}"><div class="gw" style="transform:translate(${f3(jx)}px,${f3(jy)}px) rotate(${f3(rot)}deg) scale(${f3(mix(.3,1,bk))})"><svg class="bu" viewBox="0 0 ${W} ${H}" style="width:${W}px;height:${H}px"><polygon points="${pts.trim()}" fill="${item.burst??COLOR.candle}" stroke="#1A0838" stroke-width="7" stroke-linejoin="round"/><polygon points="${pts.trim()}" fill="none" stroke="${COLOR.pumpkin}" stroke-width="3" transform="translate(${W*.04} ${H*.04}) scale(.92)"/></svg><div class="gt" style="font-size:${fs}px">${txt}</div></div>${item.sub?`<div class="gs" style="opacity:${f3(clamp(sk))};transform:translateX(-50%) rotate(${f3(-(item.rot??-6)*.6)}deg) scale(${f3(sk)})">${r.txt(item.sub)}</div>`:''}</div>`;
  r.gag=true;return r;}
 
-export const COMPONENTS=Object.freeze({parody,fiction,tag,header,clock,mission,choice,caption,direction,sim,footnote,stamp,lesson,rules,notice,'press-start':pressStart,pressStart,sources,cheat,pin,legend,continue:cont,endcard,gag});
+// ---------- v6 「渋谷Halloweenには近づくな」 (2026-10-27): mission card, first-choice card, guide card, GOODBYE end card ----------
+// split a JA line for display only (line breaks are the only allowed change): after 「、」 when the line is long
+const brk=(s,max=16)=>s.split('\n').flatMap(l=>[...l].length>max&&l.includes('、')?l.replace(/、(?!$)/,'、\n').split('\n'):[l]);
+const fitFs=(line,base,avail)=>Math.round(Math.min(base,avail/Math.max(1,[...line].length)));
+
+// mission card: {card:true, ja (2 lines, \n), en?, issuer?, label?, labelJa?, fiction?:false, factIds} — opening mission beat.
+//   Centre card: fictional issuer line, MISSION tab, JA line 1 hero size, line 2 (auto-wrapped after 「、」) a bit smaller,
+//   a rule, EN translation small. GameHUD adds the 「フィクション」 tag while it is up (it replaces the fictional notice).
+function missionCard(item,env){const r=R('center',env.lang),t=item.t??0,dur=item.dur??0,st=enterStyle('scale',t,dur,{enter:.34});
+ const s=L(item,env.lang);r.strings.push(s);r.ids(item.factIds);const [l1,...rest]=s.split('\n');
+ const l2=brk(rest.join('\n'),13),fs1=fitFs(l1,44,548),fs2=Math.min(fs1-4,...l2.map(l=>fitFs(l,38,548)));
+ const issuer=item.issuer??HUD_TEXT.missionIssuer,en=item.en&&env.lang!=='en'?item.en:'';
+ const lk=EASE.outCubic(seg(t,.25,.55)),ek=EASE.outCubic(seg(t,.5,.85));
+ r.html=panel('gh-card gh-mcard',`<div class="is">${r.txt(issuer)}</div>${tab(item.label??'MISSION',{jp:item.labelJa??'ミッション'})}`+
+  `<div class="m1" style="font-size:${fs1}px">${html(l1)}</div><div class="m2" style="font-size:${fs2}px;opacity:${f3(lk)};transform:translateY(${f3((1-lk)*12)}px)">${l2.map(html).join('<br>')}</div>`+
+  `${en?`<div class="rule"></div><div class="en" style="opacity:${f3(ek)}">${r.txt(en)}</div>`:''}`,{style:st.style,attrs:'data-c="mission"'});
+ r.fx=`<div class="gh-tint card" style="opacity:${f3(life(t,dur,{enter:.2}).alpha)}"></div>`;
+ r.missionCard={lines:[l1,...l2],en:!!en};return r;}
+
+// choiceTiming({dur, pickAt?}) → cursor hop times (s, beat-local) + pick time; same numbers as choice/choiceCard (sound cues)
+export function choiceTiming({dur=4,pickAt=null}={}){const pa=pickAt??Math.max(1.2,dur-1.0),c0=.5;
+ return {hops:[c0,c0+(pa-c0)*.38,c0+(pa-c0)*.72].map(x=>+x.toFixed(3)),pickAt:+pa.toFixed(3)};}
+
+// choice card (card:true): {prompt, en?, options:[{key, ja, sub?}], picked, pickAt?, ring?:false, label?, labelJa?} — the
+//   first choice without a map: big prompt card, tall option cards with sub lines, cursor hops 0 → 1 → picked, picked gets
+//   決定 + glow, the other dims. Own dark tint (card-bg). record r.choice={hot, picked, pickAt}.
+function choiceCard(item,env){const r=R('center',env.lang),C=env.config?.choice||{},t=item.t??0,dur=item.dur??4.5;
+ const prompt=item.prompt??C.prompt,opts=item.options??C.options??[],picked=item.picked??C.picked??opts[0]?.key,T=choiceTiming({dur,pickAt:item.pickAt}),pickAt=T.pickAt;
+ const pi=Math.max(0,opts.findIndex(o=>o.key===picked)),q=enterStyle('scale',t,dur,{enter:.3}),kout=life(t,dur).kout;
+ const hops=[[T.hops[0],0],[T.hops[1],opts.length>1?1:0],[T.hops[2],pi]];
+ let cy=0;for(let i=0;i<hops.length;i++){const [at,idx]=hops[i],prev=i?hops[i-1][1]:idx;if(t>=at)cy=mix(prev,idx,EASE.outBack(seg(t,at,at+MOTION.cursorMove)));}
+ const hot=Math.round(cy),done=t>=pickAt,pk=seg(t,pickAt,pickAt+.32),pulse=done?1+.05*Math.sin(Math.PI*pk):1;
+ const OPT_H=126,GAP=18,cursorA=seg(t,T.hops[0]-.15,T.hops[0])*(1-kout),bob=3*Math.sin(t*2*Math.PI*2.2)*(done?0:1);
+ let ring='';if(item.ring){const remain=Math.max(0,pickAt-t),ringK=clamp(remain/Math.max(.1,pickAt-.2)),circ=2*Math.PI*26;
+  ring=`<div class="ring"><svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="26" fill="rgba(0,0,0,.35)" stroke="rgba(255,255,255,.15)" stroke-width="6"/><circle cx="32" cy="32" r="26" fill="none" stroke="${done?COLOR.candle:COLOR.pumpkin}" stroke-width="6" stroke-dasharray="${f3(circ)}" stroke-dashoffset="${f3(circ*(1-ringK))}" transform="rotate(-90 32 32)"/></svg><b class="num">${done?'!':Math.ceil(remain)}</b></div>`;}
+ const P=typeof prompt==='string'?{ja:prompt}:(prompt||{}),en=item.en??P.en;
+ const ops=opts.map((o,i)=>{const cls=done?(i===pi?'pick hot':'dim'):(i===hot&&t>=T.hops[0]?'hot':'');const sc=done&&i===pi?pulse:1;
+  return `<div class="gh-sh gh-opt big ${cls}" style="${rowIn(t,i,.3)};${sc!==1?`transform:scale(${f3(sc)});`:''}"><div class="gh-panel"><div class="in"><div class="key">${esc(o.key)}</div><div class="tx">${r.txt(o)}${o.sub?`<small>${r.txt(o.sub)}</small>`:''}</div>${done&&i===pi?`<span class="ok">${esc(env.lang==='en'?'SELECT':HUD_TEXT.pick)}</span>`:''}</div></div></div>`;}).join('');
+ r.html=`<div class="gh-choice card" data-c="choice"><div class="q gh-sh" style="${q.style}"><div class="gh-panel"><div class="in"><div style="flex:1">${tab(item.label??'CHOICE',{jp:item.labelJa??'さいしょの選択'})}<div class="qt">${r.txt(P)}</div>${en&&env.lang!=='en'?`<div class="en">${r.txt(en)}</div>`:''}</div>${ring}<i class="gh-br tr"></i><i class="gh-br bl"></i></div></div></div>`+
+  `<div class="opts" style="opacity:${f3(1-kout)}"><div class="gh-cursor" style="top:${f3(cy*(OPT_H+GAP)+OPT_H/2-20)}px;opacity:${f3(cursorA)};transform:translateX(${f3(bob)}px)">${icon('cursor')}</div>${ops}</div></div>`;
+ r.fx=`<div class="gh-tint card" style="opacity:${f3(life(t,dur,{enter:.2}).alpha)}"></div>`;
+ r.choice={hot:done?pi:hot,picked:done?picked:null,pickAt};return r;}
+
+// guide: {ja (title), sub?, en?, options?:[{key, ja, sub?}] (default env.config.choice.options), hot?='B', doneKey?='A',
+//   doneLabel?='TRUE END', label?, labelJa?, factIds} — 「ここからは“もしも”の脱出ガイド」 bridge card after the TRUE END: the
+//   first choice again, compact — A carries a gold TRUE END check badge, the cursor moves to B (highlighted, ▶) = into the run.
+function guide(item,env){const r=R('center',env.lang),t=item.t??0,dur=item.dur??3,st=enterStyle('scale',t,dur);
+ const opts=item.options??env.config?.choice?.options??[],hotKey=item.hot??'B',doneKey=item.doneKey??'A',hi=Math.max(0,opts.findIndex(o=>o.key===hotKey)),di=opts.findIndex(o=>o.key===doneKey);
+ const ma=item.moveAt??.55,mk=EASE.outBack(seg(t,ma,ma+MOTION.cursorMove)),from=di>=0?di:0,cy=mix(from,hi,mk),on=t>=ma+.1,kout=life(t,dur).kout;
+ const pl=on?.5+.5*Math.cos(2*Math.PI*(t-ma)/.7):0,OPT_H=96,GAP=12;r.ids(item.factIds);
+ const ttl=L(item,env.lang);r.strings.push(ttl);const tl=brk(ttl,18),gfs=Math.min(...tl.map(l=>fitFs(l,36,600)));
+ const ops=opts.map((o,i)=>{const cls=i===hi&&on?'hot gd':i===di?'done':'';const badge=i===di?`<span class="tb2">${icon('check')}${r.txt(item.doneLabel??HUD_TEXT.guideDone)}</span>`:i===hi&&on?`<span class="go" style="opacity:${f3(.55+.45*pl)}">${icon('arrow')}</span>`:'';
+  return `<div class="gh-sh gh-opt gopt ${cls}" style="${rowIn(t,i,.25)}"><div class="gh-panel"><div class="in"><div class="key">${esc(o.key)}</div><div class="tx">${r.txt(o)}${o.sub?`<small>${r.txt(o.sub)}</small>`:''}</div>${badge}</div></div></div>`;}).join('');
+ r.html=panel('gh-card gh-guide',`${tab(item.label??'GUIDE',{ic:'pin',jp:item.labelJa??'もしものガイド'})}<div class="gt" style="font-size:${gfs}px">${tl.map(html).join('<br>')}</div>${item.sub?`<div class="gs">${r.txt(item.sub)}</div>`:''}${item.en&&env.lang!=='en'?`<div class="en">${r.txt(item.en)}</div>`:''}`+
+  `${opts.length?`<div class="opts" style="opacity:${f3(1-kout)}"><div class="gh-cursor" style="top:${f3(cy*(OPT_H+GAP)+OPT_H/2-20)}px;opacity:${f3(seg(t,.3,.45)*(1-kout))}">${icon('cursor')}</div>${ops}</div>`:''}`,{style:st.style,attrs:'data-c="guide"'});
+ r.fx=`<div class="gh-tint card" style="opacity:${f3(life(t,dur,{enter:.2}).alpha)}"></div>`;
+ r.guide={hot:on?hotKey:null,done:di>=0?doneKey:null};return r;}
+
+// goodbyeTiming({dur=8}) → block entry times (beat-local s), when everything is fully visible, exit start (sound cues)
+export function goodbyeTiming({dur=8}={}){const e=.32;
+ return {quote:.15,facts:.45,ours:.85,foot:1.05,fullFrom:+(1.05+e).toFixed(3),exit:+(dur-.3).toFixed(3)};}
+// goodbye: {quote?, facts?, ours?, foot?, factIds} (defaults GOODBYE_TEXT, the CONTRACT text) — GOODBYE BAD HALLOWEEN end card.
+//   Three visually separate blocks + footer: (1) quoted city text: plain neutral panel, left quote bar, 「引用」 chip, our body
+//   font only, attribution 「（渋谷区）」; (2) facts rows (when | what) neutral; (3) OUR message in the game's own panel style
+//   (pumpkin bevel, pumpkin icon, 「制作チームより」 tab) — never inside the quote, never attributed to the city; footer sources +
+//   fiction note. EN small under each JA block. record r.goodbye={blocks, lines:[…verbatim, line breaks removed]}.
+function goodbye(item,env){const r=R('press',env.lang),t=item.t??0,dur=item.dur??8,G=GOODBYE_TEXT,T=goodbyeTiming({dur});
+ const Q={...G.quote,...(item.quote||{})},F=item.facts??G.facts,O={...G.ours,...(item.ours||{})},FT={...G.foot,...(item.foot||{})};
+ const out=life(t,dur,{exit:.3}).kout,bin=at=>{const k=EASE.outCubic(seg(t,at,at+.32));return `opacity:${f3(k*(1-out))};transform:translateY(${f3((1-k)*16)}px)`;};
+ const one=s=>String(s).replace(/\n/g,''),ln=s=>{const v=one(s);r.strings.push(v);return v;};r.ids(item.factIds);
+ const H=s=>html(s);// \n → <br>
+ // block 1 — quote (neutral, attributed)
+ ln(Q.title);ln(one(Q.ja)+Q.attr);ln(Q.en+' '+Q.enAttr);
+ const b1=`<div class="gb-q" data-c="goodbye-quote" style="${bin(T.quote)}">${Q.label===false?'':`<span class="ql">${esc(Q.label??HUD_TEXT.quoteLabel)}</span>`}<div class="qt">${H(Q.title)}</div><div class="qj">${H(Q.ja)}<span class="qa">${esc(Q.attr)}</span></div><div class="qe">${esc(Q.en)} <span class="qa">${esc(Q.enAttr)}</span></div></div>`;
+ // block 2 — facts (neutral rows: when | what)
+ const b2=`<div class="gb-f" data-c="goodbye-facts" style="${bin(T.facts)}">${F.map(f=>{const v=ln(f.ja),m=/^(.*?)[　 ]+(.*)$/.exec(v),en=f.en?ln(f.en):'';
+  return `<div class="fr"><span class="fi">${icon('clock')}</span><div class="fb"><div class="fj">${m?`<b>${esc(m[1])}</b><br><span>${esc(m[2])}</span>`:esc(v)}</div>${en?`<div class="fe">${esc(en)}</div>`:''}</div></div>`;}).join('')}</div>`;
+ // block 3 — OUR message (game panel, own label)
+ ln(O.ja);if(O.en)ln(O.en);const oj=H(O.ja).replace(/「行かない」/g,'<em>「行かない」</em>');
+ const lab=O.label??HUD_TEXT.oursLabel,tabEn=O.tab??HUD_TEXT.oursTab;
+ const b3=panel('gb-o',`<div class="oh">${icon('pumpkin')}${tab(tabEn,{jp:lab})}</div><div class="oj">${oj}</div>${O.en?`<div class="oe">${esc(O.en)}</div>`:''}`,{style:bin(T.ours),attrs:'data-c="goodbye-ours"'});
+ r.strings.push(lab);
+ // footer — sources + fiction note
+ ln(FT.ja);if(FT.en)ln(FT.en);
+ const b4=`<div class="gb-ft" data-c="goodbye-foot" style="${bin(T.foot)}"><div>${FT.ja.split(/(?<=　)(?=※)/).map(esc).join('<br>')}</div>${FT.en?`<div class="fe">${esc(FT.en)}</div>`:''}</div>`;
+ r.html=`<div class="gh-goodbye" data-c="goodbye" style="left:${SAFE.left}px;right:${SAFE.right}px;top:${SAFE.top+12}px;bottom:${SAFE.bottom+12}px">${b1}${b2}${b3}${b4}</div>`;
+ r.fx=`<div class="gh-tint gb" style="opacity:${f3(seg(t,0,.25)*(1-out))}"></div>`;
+ r.goodbye={blocks:4,quoteAttr:Q.attr,full:t>=T.fullFrom&&t<=T.exit};r.parodyNote=/フィクション/.test(FT.ja);return r;}
+
+export const COMPONENTS=Object.freeze({parody,fiction,tag,header,clock,mission,choice,caption,direction,sim,footnote,stamp,lesson,rules,notice,'press-start':pressStart,pressStart,sources,cheat,pin,legend,continue:cont,endcard,gag,guide,goodbye});
 export const COMPONENT_KEYS=Object.freeze(Object.keys(COMPONENTS));
 export const EXTERNAL_KEYS=Object.freeze(['logo']);   // rendered by other modules (3D logotype)
 
@@ -415,11 +533,11 @@ export class GameHUD{
  frame(state={}){
   const lang=state.lang??this.lang,T=state.T??0,env={lang,T,config:state.config,sources:state.sources};
   const out={fx:'',pins:'',center:'',top:'',press:'',low:'',gag:'',chips:'',foot:'',clock:'',header:'',parody:''};
-  const rec={T,parody:false,fiction:false,notice:false,parodyNote:false,header:false,items:[],strings:[],factIds:[],sims:[],stamps:[],cheat:false,choice:null,labels:[],cont:null,endcard:null,gag:false,credit:false};
+  const rec={T,parody:false,fiction:false,notice:false,parodyNote:false,header:false,items:[],strings:[],factIds:[],sims:[],stamps:[],cheat:false,choice:null,labels:[],cont:null,endcard:null,gag:false,credit:false,goodbye:null,guide:null,mission:null};
   const add=res=>{if(!res)return;out[res.slot]+=res.html;if(res.fx)out.fx+=res.fx;rec.strings.push(...res.strings);for(const id of res.factIds)if(!rec.factIds.includes(id))rec.factIds.push(id);
-   rec.sims.push(...res.sims);rec.stamps.push(...res.stamps);if(res.cheat)rec.cheat=true;if(res.choice)rec.choice=res.choice;if(res.label)rec.labels.push(res.label);if(res.header)rec.header=true;if(res.parody&&res.slot==='parody')rec.parody=true;if(res.fiction)rec.fiction=true;if(res.notice)rec.notice=true;if(res.parodyNote)rec.parodyNote=true;if(res.cont)rec.cont=res.cont;if(res.endcard)rec.endcard=res.endcard;if(res.gag)rec.gag=true;if(res.credit)rec.credit=true;};
+   rec.sims.push(...res.sims);rec.stamps.push(...res.stamps);if(res.cheat)rec.cheat=true;if(res.choice)rec.choice=res.choice;if(res.label)rec.labels.push(res.label);if(res.header)rec.header=true;if(res.parody&&res.slot==='parody')rec.parody=true;if(res.fiction)rec.fiction=true;if(res.notice)rec.notice=true;if(res.parodyNote)rec.parodyNote=true;if(res.cont)rec.cont=res.cont;if(res.endcard)rec.endcard=res.endcard;if(res.gag)rec.gag=true;if(res.credit)rec.credit=true;if(res.goodbye)rec.goodbye=res.goodbye;if(res.guide)rec.guide=res.guide;if(res.missionCard)rec.mission=res.missionCard;};
   if(state.parody)add(render({c:'parody',...(state.parody===true?{}:state.parody)},env));   // opt-in (steering: no persistent label)
-  if(state.fiction||(state.items||[]).some(it=>it.c==='notice'))add(render({c:'fiction',...(isObjS(state.fiction)?state.fiction:{})},env));
+  if(state.fiction||(state.items||[]).some(it=>it.c==='notice'||(it.c==='mission'&&it.card&&it.fiction!==false)))add(render({c:'fiction',...(isObjS(state.fiction)?state.fiction:{})},env));
   if(state.header)add(render({c:'header',...(state.header===true?{}:state.header)},env));
   if(state.clock)add(render({c:'clock',...state.clock},env));
   {let y=ZONE.clock.top+(state.clock?50:rec.fiction?30:0);for(const tg of state.tags||[]){add(render({c:'tag',...(typeof tg==='string'?{ja:tg}:tg),top:y},env));y+=28;}}

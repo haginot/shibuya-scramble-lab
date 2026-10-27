@@ -27,11 +27,13 @@ const CONFIG={
 const SOURCES=[{label:'JR東日本 プレスリリース',date:'2024-10',url:'https://www.jreast.co.jp/press/'},{label:'渋谷区 ハロウィン対策',date:'2025-10',url:'https://www.city.shibuya.tokyo.jp/'},{label:'警視庁 交通規制のお知らせ',date:'2025-10',url:'https://www.keishicho.metro.tokyo.lg.jp/'},{label:'シブヤ経済新聞',date:'2025-10-31',url:'https://www.shibuyakeizai.jp/'},{label:'MATCHA 渋谷駅ガイド',date:'2025-07-25',url:'https://matcha-jp.com/'},{label:'© OpenStreetMap contributors（ODbL）',url:'https://www.openstreetmap.org/copyright'},{label:'3D都市モデル PLATEAU（国土交通省）',url:'https://www.mlit.go.jp/plateau/'}];
 // union of an over + clear run's resolved rows (alt pair: 12 rows before merging)
 const UNION=[['© OpenStreetMap contributors','2026-10-25'],['Wikipedia「渋谷駅」','2026-10-25'],['MATCHA','2025-07-25'],['JR東日本 時刻表','2026-10-25'],['シブヤ経済新聞','2026-09-30'],['シブヤ経済新聞','2025-01-27'],['シブヤ経済新聞','2025-01-15'],['シブヤ経済新聞','2024-10-30'],['FASHIONSNAP','2023-10-31'],['ライブドアニュース','2023-10-30'],['JR東日本 プレスリリース','2024-04-23'],['警視庁渋谷警察署','2026-10-05'],['東京タクシーセンター','2025-03-12']].map(([label,date])=>({label,date}));
+// v6: union of an over + clear run + the end-card / mission sources (worst case ≈ 20 merged rows)
+const UNION_V6=[...UNION,...[['渋谷区公式X','2026-10-22'],['渋谷区 報道発表','2026-10-21'],['渋谷区 安全で安心な環境の確保に関する条例','2024-10-01'],['毎日新聞','2026-09-30'],['産経新聞','2026-09-30'],['JR東日本 駅構内図','2026-10-27'],['JR東日本 ニュースリリース','2025-01-10'],['東急 渋谷駅構内図','2026-10-27'],['渋谷区 ハロウィン対策','2026-10-21']].map(([label,date])=>({label,date}))];
 const FOOT='出典：JR東日本 プレスリリース 2024・シブヤ経済新聞 2025・3D：PLATEAU／© OpenStreetMap contributors';
 const CLOCK={start:'22:10',rate:.5};
 const S=(bg,items,o={})=>({bg,items,header:true,clock:CLOCK,footnote:FOOT,...o});
 const SCENES={
- notice:t=>S('aerial',[{c:'notice',head:'運営からのお知らせ',when:'10/31（土）夜・渋谷',ja:'今夜の渋谷は\n巨大な脱出ゲーム会場です',order:'参加者は全員、\nJRの改札をめざせ',t,dur:5}],{clock:null,dim:.6}),
+ notice:t=>S('aerial',[{c:'notice',head:'運営からのお知らせ',when:'10/31（土）夜・渋谷',ja:'今夜の渋谷は\n脱出ゲームのステージです',order:'参加者は全員、\nJRの改札をめざせ',t,dur:5}],{clock:null,dim:.6}),
  rules:t=>S('aerial',[{c:'rules',head:'ゲームのルール＝本物の注意',items:[{title:'警察・係員の指示が最優先',tip:'出入口は混雑で変わることも'},{title:'路上飲酒は18時〜翌5時禁止',tip:'渋谷区の条例（期間中）'},{title:'ハチ公前で待ち合わせない',tip:'銅像は囲いで見られない例あり'},{title:'終電の前に動く',tip:'駅ごとに時刻が違う'}],t,dur:5}],{clock:null,dim:.6}),
  press:t=>S('aerial',[{c:'logo'},{c:'press-start',t,dur:3}],{header:false,clock:null,footnote:'3D：PLATEAU／© OpenStreetMap contributors',logo:true,dim:.25}),
  start:t=>S('topdown',[{c:'mission',ja:'JRの改札までたどり着け',t,dur:6},{c:'direction',ja:'正面：ハチ公改札',sub:'スクランブル交差点の先',dir:'up',t:t-.4,dur:6},{c:'caption',ja:'スタート：ハチ公前広場',t:t-.2,dur:6},{c:'sim',ja:'人の流れ＝シミュレーション',t:t-.6,dur:6},{c:'pin',x:330,y:640,ja:'あなた',t,color:'#FF8A1F'}]),
@@ -50,6 +52,14 @@ const SCENES={
  gag:t=>S('aerial',[{c:'gag',ja:'え、そっち！？',sub:'※ゲームのルールにはありません',t,dur:4}],{header:false,clock:null,footnote:null,dim:.2}),
  endcard:t=>S('aerial',[{c:'endcard',ja:'あなたなら、\nどう帰る？',sub:'コメントで教えてね',t,dur:2.5}],{header:false,clock:null,footnote:null,dim:.8}),
  'sources-union':t=>S('aerial',[{c:'sources',compact:true,rows:UNION,note:'人の流れ・待ち時間＝シミュレーション（予測ではない）／徒歩時間＝OSMから概算',t,dur:3}],{header:false,dim:.75,clock:null,footnote:null}),
+ // v6 (2026-10-27): opening mission card, first choice (no map), TRUE END, guide card, GOODBYE end card, dense sources
+ 'mission-card':t=>S('aerial',[{c:'mission',card:true,ja:'渋谷ハロウィンには、近づくな。\nもう来てしまったなら、安全に脱出せよ。',en:"Stay away from Shibuya Halloween. If you're already there, escape safely.",t,dur:3.5}],{clock:null,footnote:null,dim:.6}),
+ 'first-choice':t=>S('aerial',[{c:'choice',card:true,prompt:{ja:'まず、どうする？'},en:'First, what will you do?',options:[{key:'A',ja:'そもそも渋谷に行かない'},{key:'B',ja:'もう渋谷にいる',sub:'仕事・住まい・うっかり来てしまった'}],picked:'A',t,dur:4.5}],{clock:null,footnote:null,dim:.6}),
+ 'true-end':t=>S('aerial',[{c:'stamp',kind:'TRUE_END',kicker:'いちばん安全なクリア',ja:'今年の渋谷ハロウィンには行かない',en:"TRUE END — the safest clear: don't go.",t,dur:4}],{clock:null,footnote:null,dim:.45}),
+ guide:t=>S('aerial',[{c:'guide',ja:'ここからは“もしも”の脱出ガイド',sub:'もう渋谷にいる人（仕事・住まい・うっかり来た人）へ',en:'From here on: a just-in-case escape guide',options:[{key:'A',ja:'そもそも渋谷に行かない'},{key:'B',ja:'もう渋谷にいる',sub:'仕事・住まい・うっかり来てしまった'}],t,dur:3}],{clock:null,footnote:null,dim:.6}),
+ goodbye:t=>S('aerial',[{c:'goodbye',t,dur:8}],{header:false,clock:null,footnote:null,dim:.8}),
+ 'goodbye-black':t=>S('black',[{c:'goodbye',t,dur:8}],{header:false,clock:null,footnote:null}),
+ 'sources-v6':t=>S('aerial',[{c:'sources',compact:true,rows:UNION_V6,note:'人の流れ・待ち時間＝シミュレーション（予測ではない）／徒歩時間＝OSMから概算',t,dur:3.5}],{header:false,dim:.75,clock:null,footnote:null}),
  map:t=>S('routemap',[{c:'mission',label:'ROUTE',labelJa:'ルート例',ja:'となりの駅まで歩く？（ルート例）',t,dur:5},{c:'pin',x:300,y:830,ja:'渋谷（スタート）',color:'#FFFFFF',t},{c:'pin',x:420,y:560,ja:'原宿駅',color:'#FF8A1F',t},{c:'pin',x:470,y:300,ja:'代々木駅',color:'#5AB8FF',t},{c:'caption',tone:'note',ja:'徒歩時間＝OSMから概算・位置は概略',t,dur:5}],{dim:0}),
 };
 let lastBg='';

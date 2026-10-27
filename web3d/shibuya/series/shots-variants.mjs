@@ -35,7 +35,9 @@
 //                    gate, looking at the gate line from the start), speed=.45, stopGo=.7 (0 smooth … 1 strong stop-and-go),
 //                    fov=60, lookGate=.35, eyeY=1.58 (camera height; ≈2.3 = phone held up over the heads), nearHide=1.1,
 //                    back=30, lookY=1.6}
-//  'gate-newsouth'  calm passage through the New South (3F) or South (1F) gate hall (generic hall, 概略).
+//  'gate-newsouth'  calm passage through the New South (3F) or South (1F) gate hall (概略; v6: dressed from the photos, hall
+//                   orientation from station-jr HALL_ROT — New South free side = south since v6). v6 framing params:
+//                   start=-6.2 (local z of the first camera key), lookY0=1.25 (first look height); v6 re-shoot {start:-10,lookY0:2.3}.
 //                   {gate='newSouth'|'south', mode='hall'|'approach' (low drone chase on the pilot route, `approachM` m ending
 //                    `stopShort` m before its end, ribbon on), approachM=60, stopShort=14, dur=5, fov=56}
 //  'zone-edge'      eye level at the police vehicle-closure line (sets 'closure') in the crowd, handheld drift.
@@ -69,7 +71,10 @@
 //                   waiting cab: lit lamp, door open), dur=4, fov=52}
 //  'interior'       Hachiko concourse dolly (station-jr dolly keys): {part='gates'|'stairs'|'platform'|'all' or
 //                   from/to (dolly key time, s), dur (beat length the move is stretched over, default = to-from)}
-//  'card-bg'        dim slow orbit behind cards. {center=[40,0,70], radius=430, height=300, yaw0=.6, yawSpeed=.03, dim=.3, fov=40}
+//  'card-bg'        dim slow orbit behind cards. {center=[40,0,70], radius=430, height=300, yaw0=.6, yawSpeed=.03, dim=.3, fov=40,
+//                   tone=null|'warm'|'dark' (v6 CARD_TONES: grade + dim preset)}
+//  'true-end-bg'    v6 TRUE END bg: calm, warm, no crowd — distant Shibuya skyline from ~1 km west, slow drift.
+//                   {from=[-700,40,-300], look=[60,90,60], drift=[-.3,0,.6], fov=36, dim=.72, tone='warm'}
 // Combined episodes (GAME OVER → CONTINUE? → CLEAR → kaiju gag):
 //  'caught-pov'     movie-style caught POV (beat `caught`, 2.5 s): the pair's over-result base shot frozen at baseT0, forced to
 //                   eye level, the crowd presses in, a decelerating push, violent handheld shake ramping up, red flash, hard
@@ -108,7 +113,7 @@
 //          CAUGHT_DEFAULT, CAUGHT_BASES, caughtPovAnchor, KAIJU_DEFAULT.
 import * as THREE from '../../vendor/three.module.min.js';
 import {aerialOrbit,closeTopDown,eyeLevel,interiorDolly,routeMap,makeShot,applyShot,jrWalkPath,walkRoute,smoothPath,JR_WALKS} from './camera.mjs';
-import {JR_GATES,APPROX_LABEL} from './station-jr.mjs';
+import {JR_GATES,APPROX_LABEL,HALL_ROT} from './station-jr.mjs';
 
 const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
 const smooth=t=>t*t*(3-2*t),ease=t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2,easeOut=t=>1-Math.pow(1-t,3),easeInOut3=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
@@ -204,17 +209,20 @@ function gateQueue(ctx,p={}){const o={mode:'lane',speed:.45,stopGo:.7,fov:60,loo
   // mode 'approach' (fixer): raised phone-height view over the heads, gate line + its sign in view from the start
   const gk=o.mode==='approach'?o.lookGate:o.lookGate*smooth(clamp((s-(total-30))/16));const look=V3(fwd).lerp(V3([g.x,o.lookY,g.z+2]),gk);
   const sh=makeShot(pos,look,{fov:o.fov,name:'gate-queue'});sh.at=[q[0],q[1]];sh.s=s;sh.total=total;
-  return tag(sh,{eye:true,nearHide:o.nearHide,sets:['gate-queue'],vehicles:false,focus:[q[0],q[1]],approx:true},'gate-queue');};}
+  return tag(sh,{eye:true,nearHide:o.nearHide,sets:['gate-queue'],vehicles:false,focus:[q[0],q[1]],approx:true,hideShell:true},'gate-queue');};}// hideShell (QA v6): the PLATEAU station-shell mass sat inside the paid concourse → a black void behind the gates
 
 // ---------- New South / South gate hall ----------
 function gateNewSouth(ctx,p={}){const o={gate:'newSouth',mode:'hall',approachM:60,stopShort:14,dur:5,fov:56,...p};const G=JR_GATES[o.gate]||JR_GATES.newSouth;
  if(o.mode==='approach'){const id=o.gate==='south'?'JR-B-south':'JR-C-newsouth-west';const path=cachedPath(ctx,{route:id});const total=cum(path.points).at(-1);
   // low chase (the 1F/3F approaches run under the viaduct / through buildings: an eye walk would be black)
   return detour(ctx,{route:id,s0:Math.max(0,total-o.approachM-o.stopShort),speed:o.approachM/Math.max(1,o.dur),height:48,back:30,fov:o.fov,color:'#FFD23F'});}
- const rot=o.gate==='newSouth'?.4:-.35,c=Math.cos(rot),s=Math.sin(rot);const P=(lx,ly,lz)=>[G.x+lx*c+lz*s,G.y+ly,G.z-lx*s+lz*c];
+ const rot=HALL_ROT[o.gate]??HALL_ROT.newSouth,c=Math.cos(rot),s=Math.sin(rot);const P=(lx,ly,lz)=>[G.x+lx*c+lz*s,G.y+ly,G.z-lx*s+lz*c];
  // dolly through the middle aisle: from the free side (local −z) through the gates into the paid side
  const ax=-.3;// middle aisle centre (between the cabinets at local x −0.72 and +0.12)
- const keys=[{t:0,pos:P(ax+1.4,1.6,-6.2),look:P(ax,1.25,2),fov:o.fov},{t:o.dur*.55,pos:P(ax,1.6,-1.8),look:P(ax,1.4,5),fov:o.fov},{t:o.dur,pos:P(ax,1.6,2.6),look:P(ax-1,1.6,8),fov:o.fov+2}];
+ // v6: start (local z of the first key, default −6.2) and lookY0 (first look height, default 1.25) — the v6 re-shoot uses
+ // {start:-10,lookY0:2.3} so the JR-style gate band sits below the HUD header with the gates under it
+ const st0=o.start??-6.2,ly0=o.lookY0??1.25;
+ const keys=[{t:0,pos:P(ax+1.4,1.6,st0),look:P(ax,ly0,2),fov:o.fov},{t:o.dur*.55,pos:P(ax,1.6,-1.8),look:P(ax,1.4,5),fov:o.fov},{t:o.dur,pos:P(ax,1.6,2.6),look:P(ax-1,1.6,8),fov:o.fov+2}];
  const d=interiorDolly(keys);
  return t=>tag(d(t),{interior:true,keepCity:false,eye:true,crowd:false,vehicles:false,landmarks:false,nearHide:1.2,focus:[G.x,G.z],exposure:.8,approx:true},'gate-newsouth');}
 
@@ -299,8 +307,21 @@ function interiorShot(ctx,p={}){const r=INTERIOR_PARTS[p.part]||null;const from=
  return t=>{const sh=d(from+(to-from)*clamp(t/Math.max(.01,dur)));const y=sh.pos.y;return tag(sh,{interior:true,eye:true,vehicles:false,landmarks:false,nearHide:2.4,exposure:.85-.25*clamp((y-3)/5),focus:[sh.pos.x,sh.pos.z],approx:true},'interior');};}
 
 // ---------- card background ----------
-function cardBg(ctx,p={}){const o={center:[40,0,70],radius:430,height:300,yaw0:.6,yawSpeed:.03,dim:.3,fov:40,...p};const orb=aerialOrbit(o);
- return t=>tag(orb(t),{aerial:true,detail:'aerial',dim:o.dim,exposure:1.1,crowd:o.crowd??false,focus:[o.center[0],o.center[2]]},'card-bg');}// integrator: crowd off by default (invisible at 300 m under a .3 dim, ≈3 s/frame)
+// v6 tone presets (env.grade; shadowTint/highTint = fx.mjs split-tone uniforms): 'warm' (TRUE END: calm, golden) | 'dark'
+// (GOODBYE end card: deeper, desaturated). The dim is the preset's unless params.dim is given.
+export const CARD_TONES=Object.freeze({
+ warm:{dim:.45,grade:{saturation:.95,vignette:.5,shadowTint:[.012,.004,-.012],highTint:[.12,.055,-.05]}},
+ dark:{dim:.18,grade:{saturation:.6,vignette:.7}}});
+function cardBg(ctx,p={}){const T=CARD_TONES[p.tone]||null;const o={center:[40,0,70],radius:430,height:300,yaw0:.6,yawSpeed:.03,dim:T?.dim??.3,fov:40,...p};const orb=aerialOrbit(o);
+ return t=>tag(orb(t),{aerial:true,detail:'aerial',dim:o.dim,exposure:1.1,crowd:o.crowd??false,focus:[o.center[0],o.center[2]],...(T?{grade:T.grade}:{})},'card-bg');}
+
+// ---------- v6 TRUE END background: calm, warm, no crowd — Shibuya seen from far away (you stayed away) ----------
+// Camera on the quiet north-west side (~840 m out, 40 m up over the low-rise) looking at the distant Shibuya tower cluster;
+// slow lateral drift, warm grade, no crowd / vehicles / sets. {from=[-700,40,-300], look=[60,90,60], drift=[-.3,0,.6]
+// (m/s), fov=36, dim=.72, tone='warm'}
+function trueEndBg(ctx,p={}){const o={from:[-700,40,-300],look:[60,90,60],drift:[-.3,0,.6],fov:36,dim:.72,tone:'warm',...p};const T=CARD_TONES[o.tone]||CARD_TONES.warm;
+ return t=>{const pos=[o.from[0]+o.drift[0]*t,o.from[1]+o.drift[1]*t,o.from[2]+o.drift[2]*t];const sh=makeShot(pos,o.look,{fov:o.fov,name:'true-end-bg'});
+  return tag(sh,{aerial:true,detail:'aerial',dim:o.dim,exposure:1.05,crowd:false,vehicles:false,landmarks:false,focus:[o.look[0],o.look[2]],grade:T.grade},'true-end-bg');};}// integrator: crowd off by default (invisible at 300 m under a .3 dim, ≈3 s/frame)
 
 
 // ---------- combined episodes: caught POV / kaiju gag / black / continue ----------
@@ -379,6 +400,7 @@ export const SHOTS=Object.freeze({
  'taxi-sakura':taxiShot('taxi-sakura'),
  interior:interiorShot,
  'card-bg':cardBg,
+ 'true-end-bg':trueEndBg,
  'caught-pov':caughtPov,
  'kaiju-skyline':kaijuSkyline,
  black:blackShot,
@@ -396,7 +418,7 @@ export function applyEnv(shot,P,tLocal=0){const e=shot.env||env({});const k=e.ma
   const W=e.wideRoutes;P.wide.showRoutes(W?W.ids:null,{highlight:W?.highlight??null});if(W)for(const id of W.ids){P.wide.drawOn(id,typeof W.progress==='object'?(W.progress[id]??1):(W.progress??1));if(P.wide.setRouteStyle&&(W.colors?.[id]||W.width))P.wide.setRouteStyle(id,{color:W.colors?.[id]??null,width:W.width?W.width*(id===W.highlight?1.4:1):null});}
   P.wide.showRedZone(e.redZone||0);}
  const blank=!!e.blank;// 'black' / caught-pov after the cut: nothing drawn (the page treats it like a flat frame → fast)
- if(P.sky)P.sky.visible=!flat&&!blank;if(P.R){if(P.R.glow)P.R.glow.visible=!flat;if(P.R.skyline)P.R.skyline.visible=!flat;P.R.group.visible=!flat&&!blank;P.R.setInterior(!!e.interior,{keepCity:e.keepCity!==false});P.R.setDetail(e.aerial||flat?'aerial':(e.detail||'street'));}
+ if(P.sky)P.sky.visible=!flat&&!blank;if(P.R){if(P.R.glow)P.R.glow.visible=!flat;if(P.R.skyline)P.R.skyline.visible=!flat;P.R.group.visible=!flat&&!blank;P.R.setInterior(!!e.interior,{keepCity:e.keepCity!==false});if(P.R.shell)P.R.shell.visible=!e.interior&&!e.hideShell;P.R.setDetail(e.aerial||flat?'aerial':(e.detail||'street'));}
  if(P.st)P.st.group.visible=!flat&&!blank&&e.station!==false;
  if(P.LM)P.LM.visible=!flat&&!blank&&!e.interior&&e.landmarks!==false;
  if(P.hs)P.hs.visible=!flat&&!blank&&!e.interior;
@@ -406,7 +428,10 @@ export function applyEnv(shot,P,tLocal=0){const e=shot.env||env({});const k=e.ma
  if(P.sets){P.sets.show(flat||blank?[]:e.sets||[]);P.sets.update(tLocal);const R=e.routes;P.sets.showRoutes(R?R.ids:null,{progress:R?.progress??1,highlight:R?.highlight??null});}
  if(P.post){const U=P.post.settings;U.uExposure.value=e.exposure??(e.aerial&&!flat?1.22:e.interior?.85:1);U.uFade.value=(shot.fade??1)*(e.dim??1);
   // env.grade {saturation, alertVig, vignette}: per frame from the page's first-seen defaults (stateless: other shots get them back)
-  const G=P.post.__gradeDefaults??=({saturation:U.uSaturation?.value??1.08,alertVig:U.uAlertVig?.value??0,vignette:U.uVignette?.value??.55});const g=e.grade||{};
-  if(U.uSaturation)U.uSaturation.value=g.saturation??G.saturation;if(U.uAlertVig)U.uAlertVig.value=g.alertVig??G.alertVig;if(U.uVignette)U.uVignette.value=g.vignette??G.vignette;}
+  const G=P.post.__gradeDefaults??=({saturation:U.uSaturation?.value??1.08,alertVig:U.uAlertVig?.value??0,vignette:U.uVignette?.value??.55,
+   shadowTint:U.uShadowTint?.value?.toArray?.()??null,highTint:U.uHighTint?.value?.toArray?.()??null});const g=e.grade||{};
+  if(U.uSaturation)U.uSaturation.value=g.saturation??G.saturation;if(U.uAlertVig)U.uAlertVig.value=g.alertVig??G.alertVig;if(U.uVignette)U.uVignette.value=g.vignette??G.vignette;
+  // v6: split-tone tints (warm TRUE END); stateless like the rest — other shots get the page defaults back
+  for(const k of ['shadowTint','highTint']){const u=U['u'+k[0].toUpperCase()+k.slice(1)];const v=g[k]??G[k];if(u?.value?.set&&v)u.value.set(...v);}}
  if(P.camera){P.camera.far=shot.far||9000;applyShot(P.camera,shot);}
  return {flat,crowdVisible,blank};}

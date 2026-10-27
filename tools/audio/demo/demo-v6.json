@@ -1,0 +1,599 @@
+{
+ "duration": 88.2,
+ "fps": 30,
+ "segments": [
+  {
+   "name": "opening",
+   "t0": 0,
+   "t1": 15.2
+  },
+  {
+   "name": "body",
+   "t0": 15.2,
+   "t1": 88.2
+  }
+ ],
+ "events": [
+  {
+   "t": 0,
+   "sfx": "whoosh",
+   "gain_db": -4
+  },
+  {
+   "t": 1.2,
+   "sfx": "whoosh",
+   "gain_db": -6
+  },
+  {
+   "t": 3.6,
+   "sfx": "whoosh",
+   "gain_db": -3
+  },
+  {
+   "t": 4.5,
+   "sfx": "riser",
+   "gain_db": 0,
+   "align": "hit"
+  },
+  {
+   "t": 4.5,
+   "sfx": "logo_slam",
+   "gain_db": 0,
+   "duck": 1.6,
+   "duck_db": -14
+  },
+  {
+   "t": 7.1,
+   "sfx": "ui_select",
+   "gain_db": 0
+  },
+  {
+   "t": 7.2667,
+   "sfx": "whoosh",
+   "gain_db": -6
+  },
+  {
+   "t": 7.84,
+   "sfx": "mission_in",
+   "gain_db": 0,
+   "align": "hit"
+  },
+  {
+   "t": 11.22,
+   "sfx": "card_in",
+   "gain_db": 0
+  },
+  {
+   "t": 15.25,
+   "sfx": "card_in",
+   "gain_db": 0
+  },
+  {
+   "t": 16.85,
+   "sfx": "choice_move",
+   "gain_db": -2
+  },
+  {
+   "t": 17.7,
+   "sfx": "choice_move",
+   "gain_db": -2
+  },
+  {
+   "t": 18.7,
+   "sfx": "choice_pick",
+   "gain_db": 0
+  },
+  {
+   "t": 19.86,
+   "sfx": "seal_stamp",
+   "gain_db": 0,
+   "duck": 3.2,
+   "duck_db": -12
+  },
+  {
+   "t": 19.91,
+   "sfx": "true_end_jingle",
+   "gain_db": 0
+  },
+  {
+   "t": 23.72,
+   "sfx": "guide_in",
+   "gain_db": 0
+  },
+  {
+   "t": 26.72,
+   "sfx": "ui_blip",
+   "gain_db": -4
+  },
+  {
+   "t": 27.92,
+   "sfx": "ui_blip",
+   "gain_db": -4
+  },
+  {
+   "t": 29.25,
+   "sfx": "card_in",
+   "gain_db": 0
+  },
+  {
+   "t": 29.5,
+   "sfx": "tick",
+   "gain_db": 0,
+   "repeat": 0.5,
+   "until": 32.2
+  },
+  {
+   "t": 30.65,
+   "sfx": "choice_move",
+   "gain_db": 0
+  },
+  {
+   "t": 31.5,
+   "sfx": "choice_move",
+   "gain_db": 0
+  },
+  {
+   "t": 32.2,
+   "sfx": "ui_select",
+   "gain_db": 0
+  },
+  {
+   "t": 33.22,
+   "sfx": "ui_blip",
+   "gain_db": -4
+  },
+  {
+   "t": 37.7,
+   "sfx": "crowd_swell",
+   "gain_db": 0
+  },
+  {
+   "t": 37.72,
+   "sfx": "ui_blip",
+   "gain_db": -4
+  },
+  {
+   "t": 38.3,
+   "sfx": "red_alert",
+   "gain_db": 0,
+   "duck": 1
+  },
+  {
+   "t": 41.7,
+   "sfx": "crowd_press",
+   "gain_db": 0
+  },
+  {
+   "t": 42.05,
+   "sfx": "zombie_groan",
+   "gain_db": 0
+  },
+  {
+   "t": 42.85,
+   "sfx": "zombie_groan_b",
+   "gain_db": -3,
+   "pan": 0.4
+  },
+  {
+   "t": 43.45,
+   "sfx": "red_flash",
+   "gain_db": 0
+  },
+  {
+   "t": 43.45,
+   "sfx": "caught_hit",
+   "gain_db": 0,
+   "duck": 0.6,
+   "duck_db": -12
+  },
+  {
+   "t": 43.85,
+   "sfx": "cut_black",
+   "gain_db": 0
+  },
+  {
+   "t": 44.36,
+   "sfx": "stamp_hit",
+   "gain_db": 0,
+   "duck": 2.4,
+   "duck_db": -12
+  },
+  {
+   "t": 44.41,
+   "sfx": "gameover_jingle",
+   "gain_db": 0
+  },
+  {
+   "t": 46.22,
+   "sfx": "card_in",
+   "gain_db": 0
+  },
+  {
+   "t": 51.22,
+   "sfx": "card_in",
+   "gain_db": 0
+  },
+  {
+   "t": 51.54,
+   "sfx": "continue_tick",
+   "gain_db": 0
+  },
+  {
+   "t": 51.96,
+   "sfx": "continue_tick",
+   "gain_db": 0
+  },
+  {
+   "t": 52.38,
+   "sfx": "continue_tick",
+   "gain_db": 0
+  },
+  {
+   "t": 52.8,
+   "sfx": "continue_yes",
+   "gain_db": 0,
+   "duck": 0.8,
+   "duck_db": -5
+  },
+  {
+   "t": 54.25,
+   "sfx": "card_in",
+   "gain_db": 0
+  },
+  {
+   "t": 54.5,
+   "sfx": "tick",
+   "gain_db": 0,
+   "repeat": 0.5,
+   "until": 57.2
+  },
+  {
+   "t": 55.65,
+   "sfx": "choice_move",
+   "gain_db": 0
+  },
+  {
+   "t": 56.5,
+   "sfx": "choice_move",
+   "gain_db": 0
+  },
+  {
+   "t": 57.2,
+   "sfx": "ui_select",
+   "gain_db": 0
+  },
+  {
+   "t": 58.22,
+   "sfx": "ui_blip",
+   "gain_db": -4
+  },
+  {
+   "t": 60.52,
+   "sfx": "ui_blip",
+   "gain_db": -4
+  },
+  {
+   "t": 62.72,
+   "sfx": "ui_blip",
+   "gain_db": -4
+  },
+  {
+   "t": 64.72,
+   "sfx": "ui_blip",
+   "gain_db": -4
+  },
+  {
+   "t": 66.86,
+   "sfx": "stamp_hit",
+   "gain_db": 0,
+   "duck": 2.4,
+   "duck_db": -12
+  },
+  {
+   "t": 66.91,
+   "sfx": "clear_jingle",
+   "gain_db": 0
+  },
+  {
+   "t": 69.22,
+   "sfx": "card_in",
+   "gain_db": 0
+  },
+  {
+   "t": 72.8,
+   "sfx": "kaiju_rumble",
+   "gain_db": 0
+  },
+  {
+   "t": 74.55,
+   "sfx": "kaiju_roar",
+   "gain_db": 0,
+   "duck": 1.2,
+   "duck_db": -10
+  },
+  {
+   "t": 76.7,
+   "sfx": "goodbye_in",
+   "gain_db": 0
+  },
+  {
+   "t": 84.72,
+   "sfx": "card_in",
+   "gain_db": -3
+  }
+ ],
+ "bgm": [
+  {
+   "t0": 0,
+   "t1": 15.2,
+   "track": "tension",
+   "gain_db": 0
+  },
+  {
+   "t0": 15.2,
+   "t1": 26.7,
+   "track": "calm",
+   "gain_db": -1
+  },
+  {
+   "t0": 26.7,
+   "t1": 41.7,
+   "track": "tension",
+   "gain_db": 0
+  },
+  {
+   "t0": 46.2,
+   "t1": 51.2,
+   "track": "calm",
+   "gain_db": 0
+  },
+  {
+   "t0": 51.2,
+   "t1": 54.2,
+   "track": "retry",
+   "gain_db": 0
+  },
+  {
+   "t0": 54.2,
+   "t1": 66.7,
+   "track": "tension",
+   "gain_db": 0
+  },
+  {
+   "t0": 66.7,
+   "t1": 72.7,
+   "track": "victory",
+   "gain_db": 0
+  },
+  {
+   "t0": 76.7,
+   "t1": 88.2,
+   "track": "farewell",
+   "gain_db": 0
+  }
+ ],
+ "amb": [
+  {
+   "t0": 0,
+   "t1": 15.2,
+   "bed": "crowd-night",
+   "gain_db": 0
+  },
+  {
+   "t0": 26.7,
+   "t1": 44.2,
+   "bed": "crowd-night",
+   "gain_db": 0
+  },
+  {
+   "t0": 46.2,
+   "t1": 51.2,
+   "bed": "crowd-night",
+   "gain_db": 0
+  },
+  {
+   "t0": 54.2,
+   "t1": 76.7,
+   "bed": "crowd-night",
+   "gain_db": 0
+  }
+ ],
+ "duck": [
+  {
+   "t0": 7.7,
+   "t1": 11.2,
+   "depth_db": -6
+  },
+  {
+   "t0": 11.2,
+   "t1": 15.2,
+   "depth_db": -6
+  },
+  {
+   "t0": 15.2,
+   "t1": 19.7,
+   "depth_db": -4
+  },
+  {
+   "t0": 23.7,
+   "t1": 26.7,
+   "depth_db": -5
+  },
+  {
+   "t0": 26.7,
+   "t1": 29.2,
+   "depth_db": -4
+  },
+  {
+   "t0": 29.2,
+   "t1": 33.2,
+   "depth_db": -4
+  },
+  {
+   "t0": 46.2,
+   "t1": 51.2,
+   "depth_db": -7
+  },
+  {
+   "t0": 54.2,
+   "t1": 58.2,
+   "depth_db": -4
+  },
+  {
+   "t0": 69.2,
+   "t1": 72.7,
+   "depth_db": -6
+  },
+  {
+   "t0": 84.7,
+   "t1": 88.2,
+   "depth_db": -3
+  }
+ ],
+ "meta": {
+  "mock": "v6 gate (sound role demo; built from the combined gate sheet by next/work-sound/mock_v6.py)",
+  "opening_beats": [
+   [
+    "op-fly",
+    0,
+    3.6
+   ],
+   [
+    "op-logo",
+    3.6,
+    6.1
+   ],
+   [
+    "op-press",
+    6.1,
+    7.7
+   ],
+   [
+    "mission",
+    7.7,
+    11.2
+   ],
+   [
+    "rules",
+    11.2,
+    15.2
+   ]
+  ],
+  "beats": [
+   {
+    "id": "first-choice",
+    "t0": 15.2,
+    "t1": 19.7,
+    "reuse": null
+   },
+   {
+    "id": "true-end",
+    "t0": 19.7,
+    "t1": 23.7,
+    "reuse": null
+   },
+   {
+    "id": "guide",
+    "t0": 23.7,
+    "t1": 26.7,
+    "reuse": null
+   },
+   {
+    "id": "over-start",
+    "t0": 26.7,
+    "t1": 29.2,
+    "reuse": "gate-over/start"
+   },
+   {
+    "id": "over-choice",
+    "t0": 29.2,
+    "t1": 33.2,
+    "reuse": "gate-over/choice"
+   },
+   {
+    "id": "over-move",
+    "t0": 33.2,
+    "t1": 37.7,
+    "reuse": "gate-over/move"
+   },
+   {
+    "id": "over-result",
+    "t0": 37.7,
+    "t1": 41.7,
+    "reuse": "gate-over/result"
+   },
+   {
+    "id": "caught",
+    "t0": 41.7,
+    "t1": 44.2,
+    "reuse": null
+   },
+   {
+    "id": "over-stamp",
+    "t0": 44.2,
+    "t1": 46.2,
+    "reuse": null
+   },
+   {
+    "id": "over-lesson",
+    "t0": 46.2,
+    "t1": 51.2,
+    "reuse": "gate-over/lesson"
+   },
+   {
+    "id": "continue",
+    "t0": 51.2,
+    "t1": 54.2,
+    "reuse": null
+   },
+   {
+    "id": "clear-choice",
+    "t0": 54.2,
+    "t1": 58.2,
+    "reuse": "gate-clear/choice"
+   },
+   {
+    "id": "clear-move",
+    "t0": 58.2,
+    "t1": 62.7,
+    "reuse": "gate-clear/move"
+   },
+   {
+    "id": "clear-result",
+    "t0": 62.7,
+    "t1": 66.7,
+    "reuse": "gate-clear/result"
+   },
+   {
+    "id": "clear-stamp",
+    "t0": 66.7,
+    "t1": 69.2,
+    "reuse": "gate-clear/stamp"
+   },
+   {
+    "id": "clear-cheat",
+    "t0": 69.2,
+    "t1": 72.7,
+    "reuse": "gate-clear/cheat"
+   },
+   {
+    "id": "kaiju",
+    "t0": 72.7,
+    "t1": 76.7,
+    "reuse": null
+   },
+   {
+    "id": "goodbye",
+    "t0": 76.7,
+    "t1": 84.7,
+    "reuse": null
+   },
+   {
+    "id": "sources",
+    "t0": 84.7,
+    "t1": 88.2,
+    "reuse": null
+   }
+  ]
+ }
+}

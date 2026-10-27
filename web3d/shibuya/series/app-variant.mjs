@@ -178,8 +178,8 @@ export async function start(params){
    claims,footnote:rec.footnote?{ids:claims,text:rec.footnote.text}:{ids:[],text:''},footBox:rec.footBox||null,safe:rec.safe,cheat:!!rec.cheat,choice:rec.choice,items:rec.items,fallbacks:spec.fallbacks,
    caught:e.caught?{t:+e.caught.t.toFixed(3),intensity:+e.caught.intensity.toFixed(3),press:+e.caught.press.toFixed(3),flash:+e.caught.flash.toFixed(3),black:e.caught.black,vfx:!!fxOn.caught}:null,
    kaiju:e.kaiju?{rise:+e.kaiju.rise.toFixed(3),eyes:+e.kaiju.eyes.toFixed(3),roar:+e.kaiju.roar.toFixed(3),model:!!fxOn.kaiju}:null,blank:!!res.blank,
-   cont:rec.cont??null,endcard:rec.endcard??null,gag:rec.gag??null,credit:rec.credit??null,
-   ms:{sim:Math.round(simMs),render:Math.round(renderMs)},peopleDrawn:drawn,near:near?.last?.drawn??0,interior:nInterior,fade:+(post.settings.uFade.value).toFixed(3)};
+   cont:rec.cont??null,endcard:rec.endcard??null,gag:rec.gag??null,credit:rec.credit??null,goodbye:rec.goodbye??null,guide:rec.guide??null,mission:rec.mission??null,
+   ms:{sim:Math.round(simMs),render:Math.round(renderMs)},peopleDrawn:drawn,near:near?.last?.drawn??0,interior:nInterior,fade:+(post.settings.uFade.value).toFixed(3),cutFade:+(+spec.fade).toFixed(3)};
   window.__variantOverlay=out;
   return {t,frame:Math.round(t*VS.FPS),beat:spec.beat.id,shot:spec.shot.key,ms:out.ms,drawCalls:S.renderer.info.render.calls,triangles:S.renderer.info.render.triangles,agents:S.nAgents};}
 

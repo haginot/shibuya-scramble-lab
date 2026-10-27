@@ -31,6 +31,10 @@ Combined-episode rules (no extra cue fields needed, all overridable per event):
   * auto_continue_bed: a CONTINUE? countdown (continue_tick … continue_yes) with no BGM run over it gets the light
     `retry` bed (-2 dB) from just before the first tick to ~1 s after YES / the next run; "auto_bgm": false = off.
   * Track switches inside a segment crossfade across the boundary (resolve_runs, XFADE_*).
+v6 (2026-10-27, 「渋谷Halloweenには近づくな」): goodbye_in is a *soft cut* (CUT_DEFAULTS, 0 s silence): the kaiju gag's
+tails are chopped where the GOODBYE end card starts and the beds dip/recover into the `farewell` bed.  lint_v6() checks
+a sheet that carries meta.beats: no gag/scare SFX sounding over the goodbye/sources cards, no crowd bed or tension
+under the TRUE END, a calm bed (farewell|calm) under goodbye; the report gets per-beat loudness (beat_stats).
 Runs: abutting runs of the same track/bed continue the loop seamlessly (no fades at the junction); a run that ends
 on a segment boundary without continuation fades out over 0.8 s *after* the boundary (see resolve_runs).
 Ducking applies to the BGM bus (and ~35 % of the depth to the ambience bus); ramps are causal (start at t0, 60 ms
@@ -66,7 +70,7 @@ AUTO_DUCK = {'crowd_press': -20.0, 'zombie_groan': -20.0, 'zombie_groan_b': -20.
              'red_flash': -24.0, 'kaiju_rumble': -22.0, 'kaiju_roar': -26.0}
 AUTO_DUCK_MAX = 4.5
 # hard cuts: sfx -> silence (s) on the BGM + ambience buses after the cut; earlier SFX tails are chopped at the cut
-CUT_DEFAULTS = {'cut_black': 0.4, 'smash_cut': 0.0}
+CUT_DEFAULTS = {'cut_black': 0.4, 'smash_cut': 0.0, 'goodbye_in': 0.0}   # goodbye_in: v6 soft cut into the end card
 CUT_RECOVER = {'bgm': 0.35, 'amb': 0.6}       # ramp back after a silence window (s); 0.25 s after a 0 s cut
 CHOP_FADE = 0.006
 
@@ -318,6 +322,91 @@ def render_stems(cues: dict, duration: float, strict: bool = False, warn=print, 
     return {'bgm': bgm, 'amb': amb, 'sfx': fx}, ducks, runs
 
 
+def _beats(cues: dict) -> list:
+    """meta.beats as [{id, t0, t1}] (buildCues emits dicts with t0/t1; the sound demos use [id, dur] pairs that
+    start at the body segment)."""
+    raw = (cues.get('meta') or {}).get('beats') or []
+    out = []
+    t = next((float(s['t0']) for s in cues.get('segments') or [] if s.get('name') == 'body'), 0.0)
+    for b in raw:
+        if isinstance(b, dict) and 't0' in b:
+            out.append({'id': str(b.get('id')), 't0': float(b['t0']), 't1': float(b['t1'])})
+        elif isinstance(b, (list, tuple)) and len(b) >= 2:
+            out.append({'id': str(b[0]), 't0': t, 't1': t + float(b[1])})
+            t += float(b[1])
+    return out
+
+
+V6_GOODBYE = ('goodbye', 'sources')       # cards where no gag/scare SFX may sound (the quoted city text + sources)
+V6_CALM_BEDS = ('farewell', 'calm')
+
+
+def lint_v6(cues: dict, duration: float | None = None) -> list:
+    """Content rules of the v6 timeline (needs meta.beats; returns warning strings, [] when fine or no beats):
+    * goodbye / sources: no SFX from sfx.COMEDIC starts inside, and none started earlier still sounds into it
+      (unless a hard/soft cut — goodbye_in, smash_cut, cut_black — chops it before the card);
+    * goodbye: the BGM under it is farewell or calm (or none);
+    * true-end: no ambience bed (no crowd) and no tension BGM past the first 0.8 s."""
+    beats = {b['id']: b for b in _beats(cues)}
+    duration = float(duration if duration is not None else cues.get('duration', 0))
+    W = []
+    evs = []
+    for e in expand_events(cues.get('events', []) or [], duration):
+        nm = sfx.canonical(e['sfx'])
+        if nm is None:
+            continue
+        st = e['t'] - (sfx.HIT_AT.get(nm, 0.0) if e.get('align') == 'hit' else 0.0)
+        evs.append((nm, st, e['t']))
+    cuts = sorted(t for nm, _st, t in evs if nm in CUT_DEFAULTS)
+    for bid in (V6_GOODBYE if 'goodbye' in beats else ()):     # only v6 timelines (older endcard sheets differ)
+        b = beats.get(bid)
+        if not b:
+            continue
+        a = b['t0'] + 0.05
+        for nm, st, t in evs:
+            if nm not in sfx.COMEDIC:
+                continue
+            end = st + sfx.get(nm).shape[-1] / SR
+            chop = next((c for c in cuts if st + 1e-4 < c <= a), None)
+            if a <= st < b['t1'] or (st < a < end and chop is None):
+                W.append(f'v6 lint: {nm}@{t:.2f} sounds over the {bid} card ({b["t0"]:.2f}-{b["t1"]:.2f})')
+    g = beats.get('goodbye')
+    if g:
+        for r in cues.get('bgm') or []:
+            tr = music.canonical(r.get('track') or r.get('bgm') or 'none')
+            if tr and tr not in V6_CALM_BEDS and _f(r, 't0', 0) < g['t1'] - 1e-3 and _f(r, 't1', duration) > g['t0'] + 0.9:
+                W.append(f'v6 lint: bgm {tr} under goodbye (want farewell|calm)')
+    te = beats.get('true-end')
+    if te:
+        for r in cues.get('amb') or []:
+            bed = ambience.canonical(r.get('bed') or r.get('amb') or 'none') if (r.get('bed') or r.get('amb')) else None
+            if bed and _f(r, 't0', 0) < te['t1'] - 1e-3 and _f(r, 't1', duration) > te['t0'] + 0.8:
+                W.append(f'v6 lint: ambience {bed} under true-end (no crowd there)')
+        for r in cues.get('bgm') or []:
+            tr = music.canonical(r.get('track') or r.get('bgm') or 'none')
+            if tr == 'tension' and _f(r, 't0', 0) < te['t1'] - 1e-3 and _f(r, 't1', duration) > te['t0'] + 0.8:
+                W.append('v6 lint: tension bgm under true-end (want calm|farewell|none)')
+    return W
+
+
+def beat_stats(x: np.ndarray, stems: dict, cues: dict) -> list:
+    """Per beat (meta.beats): integrated LUFS of the mastered mix, peak dBFS, BGM/amb/sfx stem RMS (pre-master)."""
+    def lv(a, t0, t1):
+        s_ = a[:, ns(t0):ns(t1)]
+        return round(float(20 * np.log10(np.sqrt((s_ ** 2).mean()) + 1e-12)), 1) if s_.size else None
+    rows = []
+    for b in _beats(cues):
+        seg = x[:, ns(b['t0']):ns(b['t1'])]
+        if not seg.size:
+            continue
+        L = dsp.lufs_integrated(seg) if seg.shape[-1] > ns(0.4) else float('nan')
+        rows.append({'beat': b['id'], 't0': round(b['t0'], 3), 't1': round(b['t1'], 3),
+                     'lufs': round(float(L), 1) if np.isfinite(L) else None,
+                     'peak_dbfs': round(float(20 * np.log10(np.abs(seg).max() + 1e-12)), 1),
+                     **{k: lv(v, b['t0'], b['t1']) for k, v in stems.items()}})
+    return rows
+
+
 def segments_from(cues: dict, duration: float, split=None):
     cuts = []
     if split:
@@ -425,15 +514,21 @@ def read_wav(path: str) -> np.ndarray:
 
 
 def mix(cues: dict, duration: float | None = None, split=None, lufs: float = -14.0, tp: float = -1.5,
-        strict: bool = False, warn=print, aac_tp: float | None = -1.2):
+        strict: bool = False, warn=print, aac_tp: float | None = -1.2, lint_strict: bool = False):
     duration = float(duration if duration is not None else cues['duration'])
     segs = segments_from(cues, duration, split)
     stems, ducks, runs = render_stems(cues, duration, strict, warn, cuts=[t0 for t0, _ in segs[1:]])
     bus = stems['bgm'] + stems['amb'] + stems['sfx']
     bus = dsp.hp(bus, 25, 2)
     out, infos = master_segments(bus, segs, lufs, tp, aac_tp)
+    lint = lint_v6(cues, duration)
+    for w in lint:
+        warn(w)
+    if lint_strict and lint:
+        raise SystemExit('; '.join(lint))
     info = {'duration': duration, 'sr': SR, 'segments': infos, 'lufs': round(float(dsp.lufs_integrated(out)), 2),
-            'tp_db': round(float(dsp.true_peak_db(out)), 2), 'ducks': [[round(a, 3), round(b, 3), d] for a, b, d in ducks], 'runs': runs}
+            'lint': lint, 'beats': beat_stats(out, stems, cues), 'tp_db': round(float(dsp.true_peak_db(out)), 2),
+            'ducks': [[round(a, 3), round(b, 3), d] for a, b, d in ducks], 'runs': runs}
     return out, stems, info
 
 
@@ -448,6 +543,7 @@ def main(argv=None):
     ap.add_argument('--report', help='write a JSON report (internal + ffmpeg ebur128 measurements)')
     ap.add_argument('--stems', help='also write bgm/amb/sfx stems (pre-master) into this directory')
     ap.add_argument('--strict', action='store_true', help='unknown sfx/track/bed names are errors')
+    ap.add_argument('--strict-lint', action='store_true', help='v6 content lint warnings (lint_v6) are errors')
     ap.add_argument('--aac-tp', type=float, default=-1.8,
                     help='AAC guard: keep the decoded AAC-192k true peak under this (dBTP); --no-aac-guard to skip')
     ap.add_argument('--no-aac-guard', action='store_true')
@@ -456,7 +552,7 @@ def main(argv=None):
         cues = json.load(fh)
     split = [float(s) for s in a.split.split(',')] if a.split else None
     out, stems, info = mix(cues, a.duration, split, a.lufs, a.tp, a.strict, warn=lambda m: print(m, file=sys.stderr),
-                           aac_tp=None if a.no_aac_guard else a.aac_tp)
+                           aac_tp=None if a.no_aac_guard else a.aac_tp, lint_strict=a.strict_lint)
     os.makedirs(os.path.dirname(os.path.abspath(a.out)), exist_ok=True)
     write_wav24(a.out, out)
     if a.stems:

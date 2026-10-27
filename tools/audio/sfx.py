@@ -34,6 +34,9 @@ BASE_DB = {
     'crowd_press': -8.0, 'zombie_groan': -6.0, 'zombie_groan_b': -7.0, 'caught_hit': -3.0, 'red_flash': -7.0,
     'cut_black': -4.0, 'continue_tick': -12.0, 'continue_yes': -8.0, 'kaiju_rumble': -6.0, 'kaiju_roar': -2.5,
     'boing': -9.0, 'smash_cut': -4.0, 'end_sting': -7.0,
+    # v6 (「渋谷Halloweenには近づくな」): mission card, first choice, TRUE END, guide, GOODBYE end card
+    'mission_in': -8.0, 'choice_pick': -10.0, 'seal_stamp': -7.0, 'true_end_jingle': -7.5, 'guide_in': -13.0,
+    'goodbye_in': -9.0,
 }
 
 _IR = {}
@@ -522,6 +525,128 @@ def end_sting() -> np.ndarray:
     return _rev(out, 'hall', 0.3)
 
 
+# ------------------------------------------------------------------ v6 (2026-10-27): 「渋谷Halloweenには近づくな」
+# mission card (opening), first choice (A 「そもそも渋谷に行かない」 picked), TRUE END (gold seal + warm jingle), guide
+# card, GOODBYE end card.  Tone: sincere and warm, not comic.  The TRUE END jingle is deliberately unlike the game's
+# victory cues (clear_jingle / escaped / victory are D major, bright, plucked, with drums): Eb major, slow, no drums, a
+# plagal (IV -> I) "amen" resolution with a soft celesta line and a warm low horn-like pad.  goodbye_in opens the end
+# card quietly (a low felt-piano chord) and acts as a *soft cut* in mix.py (CUT_DEFAULTS: earlier SFX tails — the kaiju
+# gag — are chopped, beds dip and recover), so no comedic tail ever plays over the quoted city text.
+
+def _felt(f: float, dur: float, vel: float, seed: str) -> np.ndarray:
+    """Soft felt-piano-like note: a dark pluck + a quiet bell partial + a tiny hammer thump; slow, warm decay."""
+    y = ins.pluck(f, dur, vel, f'felt{seed}', bright=0.7) + 0.25 * ins.bell(f, dur, vel * 0.6, f'feltb{seed}')
+    y = dsp.lp(y, 2600)
+    th = dsp.lp(rng('felt', seed).standard_normal(ns(0.03)), 900) * dsp.env_perc(0.03, 0.001, 0.008) * 0.15 * vel
+    y[:th.size] += th
+    return dsp.fade(y, 0.002, 0.3)
+
+
+def mission_in() -> np.ndarray:
+    """~2.4 s mission-card hit for the opening 「渋谷ハロウィンには、近づくな。」: a short air swell into a soft low
+    'dum' (felt mallet, not a slam), an open-fifth bell dyad D4/A4 (serious, neither scary nor cheerful), and a low
+    pad tail so the card reads as an instruction, not an alert.  Hit at 0.12 s (HIT_AT, align:'hit')."""
+    r = rng('mission_in')
+    pre = 0.12
+    out = np.zeros((2, ns(2.6)))
+    k = ns(pre)
+    uu = np.arange(k) / k
+    out[:, :k] += dsp.sweep_filter(r.standard_normal((2, k)), 'lowpass', 600 + 3500 * uu ** 2) * uu ** 2 * 0.25
+    dsp.place(out, dsp.stereo(ins.thump(62, 0.5, 0.7, 'mi')), pre, 0.55)
+    for i, nm in enumerate(['D4', 'A4']):
+        dsp.place(out, dsp.pan(ins.bell(note(nm), 2.2, 0.6, f'mib{i}'), -0.25 + 0.5 * i), pre + 0.01 * i, 0.75)
+        dsp.place(out, dsp.pan(_felt(note(nm) / 2, 2.2, 0.7, f'mi{i}'), 0.2 - 0.4 * i), pre, 0.6)
+    for i, nm in enumerate(['D3', 'A3']):
+        dsp.place(out, dsp.pan(ins.pad_voice(note(nm), 2.2, 0.2, f'mip{i}', bright=900, attack=0.08, release=1.2,
+                                             kind='tri'), -0.4 + 0.8 * i), pre, 0.7)
+    return _rev(dsp.fade(out, 0.002, 0.4), 'hall', 0.3)
+
+
+def choice_pick() -> np.ndarray:
+    """~0.9 s warm confirm for the first choice's pick (A 「そもそも渋谷に行かない」): two soft mallet notes G5 -> C6
+    and a quiet bell E6 — lower and rounder than ui_select (E6 -> B6, bright): the right answer sounds calm, not
+    flashy."""
+    out = np.zeros((2, ns(1.1)))
+    for i, (nm, at) in enumerate([('G5', 0.0), ('C6', 0.07)]):
+        dsp.place(out, dsp.pan(_felt(note(nm), 0.9, 0.8, f'cp{i}'), -0.15 + 0.3 * i), at, 0.7)
+        dsp.place(out, dsp.pan(ins.music_box(note(nm), 0.9, 0.5, f'cpm{i}'), -0.15 + 0.3 * i), at, 0.25)
+    dsp.place(out, dsp.haas(ins.bell(note('E6'), 0.9, 0.4, 'cpb'), 6), 0.08, 0.25)
+    return _rev(out, 'room', 0.3)
+
+
+def seal_stamp() -> np.ndarray:
+    """~0.9 s TRUE END seal: a soft wooden/wax 'thock' (no rubber slam, no crack) + a short gold shimmer.  Place it
+    where the stamp lands (variant-system STAMP_DROP), then true_end_jingle ~0.05 s later."""
+    r = rng('seal_stamp')
+    d = 0.9
+    t = tvec(d)
+    n = t.size
+    body = np.sin(2 * np.pi * dsp.phase_of(120 + 80 * np.exp(-t / 0.015), n)) * np.exp(-t / 0.07)
+    wood = dsp.resonator(r.standard_normal(n) * np.exp(-t / 0.004), 520, 18) * 0.5
+    tap = dsp.bp(r.standard_normal(n), 300, 2200) * np.exp(-t / 0.008) * 0.35
+    y = dsp.lp(dsp.soft_clip((body + wood + tap) * np.clip(t / 0.001, 0, 1), 1.2), 3000)
+    out = dsp.stereo(dsp.fade(y, 0, 0.2))
+    sh = dsp.bp(r.standard_normal(ns(0.7)), 5000, 11000) * dsp.env_adsr(0.7, 0.04, 0.1, 0.5, 0.45) * 0.05
+    dsp.place(out, dsp.haas(sh, 8), 0.03)
+    dsp.place(out, dsp.pan(ins.bell(note('Bb6'), 0.8, 0.35, 'ssb'), 0.2), 0.03, 0.18)
+    return _rev(out, 'room', 0.25)
+
+
+def true_end_jingle() -> np.ndarray:
+    """~3.6 s TRUE END: original, warm and short.  Eb major, slow, no drums: a soft rolled harp-like chord (Ab/Eb, the
+    IV), a celesta line C6 - Bb5 - G5 resolving onto Eb maj9 (the I) with a warm low horn-like pad and a quiet bell on
+    Eb6 — a plagal 'amen' cadence, the opposite of the bright D-major victory/clear cues.  Light, kind, not
+    triumphant."""
+    out = np.zeros((2, ns(4.0)))
+    for i, nm in enumerate(['Eb3', 'Ab3', 'C4', 'Eb4', 'Ab4']):            # IV over the tonic pedal, rolled
+        dsp.place(out, dsp.pan(ins.pluck(note(nm), 1.4, 0.6, f'te{i}', bright=0.8), -0.5 + 0.25 * i), i * 0.06, 0.5)
+    for i, nm in enumerate(['Ab3', 'C4', 'Eb4']):
+        dsp.place(out, dsp.pan(ins.pad_voice(note(nm), 1.4, 0.18, f'tep{i}', bright=1100, attack=0.15, release=0.6,
+                                             kind='tri'), -0.3 + 0.3 * i), 0.0, 0.6)
+    for i, (nm, at) in enumerate([('C6', 0.32), ('Bb5', 0.62), ('G5', 1.02)]):   # celesta line
+        dsp.place(out, dsp.pan(ins.music_box(note(nm), 2.2, 0.7, f'tem{i}'), 0.25 - 0.1 * i), at, 0.5)
+    t1 = 1.0                                                                  # I: Eb maj9
+    for i, nm in enumerate(['Eb3', 'Bb3', 'G4', 'D5', 'F5']):
+        dsp.place(out, dsp.pan(ins.pluck(note(nm), 2.6, 0.55, f'tei{i}', bright=0.9), -0.4 + 0.2 * i), t1 + i * 0.05,
+                  0.45)
+        dsp.place(out, dsp.pan(ins.pad_voice(note(nm), 2.8, 0.2, f'teip{i}', bright=1500, attack=0.25, release=1.6,
+                                             kind='tri'), 0.4 - 0.2 * i), t1, 0.55)
+    horn = ins.pad_voice(note('Eb3'), 2.6, 0.35, 'tehorn', bright=700, attack=0.2, release=1.3, voices=2, kind='saw')
+    dsp.place(out, dsp.haas(dsp.lp(horn, 900), 5), t1, 0.45)
+    dsp.place(out, dsp.haas(ins.bell(note('Eb6'), 2.6, 0.45, 'tebell'), 9), t1 + 0.3, 0.3)
+    dsp.place(out, dsp.stereo(ins.thump(52, 0.6, 0.5, 'tet')), t1, 0.35)    # soft floor, not a drum hit
+    return _rev(dsp.fade(out, 0.002, 0.6), 'hall', 0.35)
+
+
+def guide_in() -> np.ndarray:
+    """~0.5 s guide card in (「ここからは“もしも”の脱出ガイド」): a soft page/map unfold — two quick paper swipes and a
+    low-mid 'tuck', calmer than ui_blip, distinct from card_in (a single air swipe)."""
+    r = rng('guide_in')
+    out = np.zeros((2, ns(0.6)))
+    for k, (at, lo, hi) in enumerate([(0.0, 1200, 6000), (0.11, 900, 4500)]):
+        d = 0.18
+        u = np.arange(ns(d)) / ns(d)
+        y = dsp.bp(r.standard_normal(ns(d)), lo, hi) * np.sin(np.pi * u) ** 2
+        dsp.place(out, dsp.pan(y, -0.3 + 0.6 * k), at, 0.8 - 0.2 * k)
+    dsp.place(out, dsp.stereo(dsp.lp(ins.thump(140, 0.12, 0.5, 'gi'), 900)), 0.25, 0.4)
+    return _rev(out, 'room', 0.18)
+
+
+def goodbye_in() -> np.ndarray:
+    """~3 s end-card open (GOODBYE BAD HALLOWEEN): one low felt-piano chord Bb2 F3 D4 (+ C5 add9) with a soft air
+    breath — sincere, no sting, no gag.  mix.py treats it as a soft cut (CUT_DEFAULTS): the kaiju gag's tails are
+    chopped at its cue time and the beds dip then recover into the `farewell` bed."""
+    r = rng('goodbye_in')
+    out = np.zeros((2, ns(3.2)))
+    for i, nm in enumerate(['Bb2', 'F3', 'D4', 'C5']):
+        dsp.place(out, dsp.pan(_felt(note(nm), 3.0, 0.75 - 0.1 * i, f'gb{i}'), -0.3 + 0.2 * i), 0.02 * i, 0.6)
+    n = ns(1.2)
+    u = np.arange(n) / n
+    air = dsp.bp(r.standard_normal((2, n)), 400, 3000) * np.sin(np.pi * u) ** 2 * 0.05
+    dsp.place(out, air, 0.0)
+    return _rev(dsp.fade(out, 0.002, 0.8), 'hall', 0.35)
+
+
 REGISTRY = {
     'logo_slam': logo_slam, 'whoosh': whoosh, 'ui_blip': ui_blip, 'ui_select': ui_select, 'tick': tick, 'tock': tock,
     'escaped': escaped, 'clear_jingle': clear_jingle, 'gameover_jingle': gameover_jingle, 'red_alert': red_alert,
@@ -531,6 +656,8 @@ REGISTRY = {
     'caught_hit': caught_hit, 'red_flash': red_flash, 'cut_black': cut_black, 'continue_tick': continue_tick,
     'continue_yes': continue_yes, 'kaiju_rumble': kaiju_rumble, 'kaiju_roar': kaiju_roar, 'boing': boing,
     'smash_cut': smash_cut, 'end_sting': end_sting,
+    'mission_in': mission_in, 'choice_pick': choice_pick, 'seal_stamp': seal_stamp,
+    'true_end_jingle': true_end_jingle, 'guide_in': guide_in, 'goodbye_in': goodbye_in,
 }
 REQUIRED = ('logo_slam', 'whoosh', 'ui_blip', 'ui_select', 'tick', 'escaped', 'clear_jingle', 'gameover_jingle',
             'red_alert', 'stamp_hit')
@@ -546,7 +673,19 @@ ALIASES = {'slam': 'logo_slam', 'blip': 'ui_blip', 'select': 'ui_select', 'alert
            'cut_to_black': 'cut_black', 'tick_continue': 'continue_tick', 'countdown': 'continue_tick',
            'yes': 'continue_yes', 'continue_select': 'continue_yes', 'rumble': 'kaiju_rumble',
            'roar': 'kaiju_roar', 'kaiju': 'kaiju_roar', 'spring': 'boing', 'gag': 'boing', 'smash': 'smash_cut',
-           'endcard': 'end_sting', 'end_card': 'end_sting', 'sting': 'end_sting'}
+           'endcard': 'end_sting', 'end_card': 'end_sting', 'sting': 'end_sting',
+           # v6
+           'mission': 'mission_in', 'mission_card': 'mission_in', 'pick': 'choice_pick', 'first_pick': 'choice_pick',
+           'choice_select': 'choice_pick', 'seal': 'seal_stamp', 'stamp_true': 'seal_stamp',
+           'true_end_stamp': 'seal_stamp', 'true_end': 'true_end_jingle', 'trueend': 'true_end_jingle',
+           'guide': 'guide_in', 'guide_card': 'guide_in',
+           'goodbye': 'goodbye_in', 'goodbye_card': 'goodbye_in', 'farewell_in': 'goodbye_in'}
+# v6 contract (next/CONTRACT.md "sound"): selftest / tests check these exist
+REQUIRED_V6 = ('mission_in', 'choice_pick', 'seal_stamp', 'true_end_jingle', 'guide_in', 'goodbye_in')
+# gag / scare sounds that must never sound over the GOODBYE end card's quoted block (mix.lint_v6 checks this)
+COMEDIC = ('boing', 'smash_cut', 'kaiju_roar', 'kaiju_rumble', 'zombie_groan', 'zombie_groan_b', 'red_flash',
+           'caught_hit', 'red_alert', 'crowd_swell', 'crowd_press', 'end_sting', 'gameover_jingle', 'stamp_hit',
+           'logo_slam')
 
 
 def canonical(name: str) -> str | None:
@@ -575,4 +714,5 @@ def get(name: str) -> np.ndarray:
 # Offsets for cues whose musical "hit" is not at sample 0 (e.g. riser ends at its length).  mix.py uses
 # 'align': 'end' to place by the hit point.
 HIT_AT = {'riser': 1.8, 'escaped': 0.32, 'clear_jingle': 7 * 0.07 + 0.05, 'gameover_jingle': 0.0,
-          'smash_cut': 0.1, 'kaiju_roar': 0.3, 'continue_yes': 0.0, 'end_sting': 0.26}
+          'smash_cut': 0.1, 'kaiju_roar': 0.3, 'continue_yes': 0.0, 'end_sting': 0.26,
+          'mission_in': 0.12, 'true_end_jingle': 1.0, 'seal_stamp': 0.0, 'goodbye_in': 0.0}

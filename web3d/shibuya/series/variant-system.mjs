@@ -52,13 +52,13 @@
 export const FPS=30;
 export const PARTS=Object.freeze(['opening','body']);
 export const OUTCOMES=Object.freeze(['GAME_OVER','CLEAR']);
-export const STAMP_FOR=Object.freeze({GAME_OVER:['GAME_OVER'],CLEAR:['GAME_CLEAR','CLEAR','ESCAPED'],COMBINED:['GAME_OVER','GAME_CLEAR','CLEAR','ESCAPED']});
+export const STAMP_FOR=Object.freeze({GAME_OVER:['GAME_OVER'],CLEAR:['GAME_CLEAR','CLEAR','ESCAPED'],COMBINED:['GAME_OVER','GAME_CLEAR','CLEAR','ESCAPED'],V6:['GAME_OVER','GAME_CLEAR','CLEAR','ESCAPED','TRUE_END']});
 export const SIM_RE=/シミュレーション|simulation/i;
 export const FALLBACK_SHOT='aerial';
 const STAMP_DROP=.16;            // ui/tokens.mjs MOTION.stampDrop (impact frame of the stamp component)
 const LOGO_SLAM=.9;              // ui/logo3d.mjs LOGO_TIMELINE.slam
 const CARD_COMPONENTS=['notice','rules','mission','lesson','cheat','sources','caption','direction'];
-const DUCK_COMPONENTS={notice:-6,rules:-6,lesson:-7,cheat:-6,sources:-5,mission:-4,choice:-4};
+const DUCK_COMPONENTS={notice:-6,rules:-6,lesson:-7,cheat:-6,sources:-5,mission:-4,choice:-4,guide:-4,goodbye:-3};
 const cc=(...c)=>String.fromCharCode(...c);
 // banned names (never on screen / in configs) and real-alert styling words (must not look like a real emergency alert)
 export const TEXT_RULES=Object.freeze({
@@ -71,7 +71,8 @@ const isObj=v=>v&&typeof v==='object'&&!Array.isArray(v);
 const txt=(v,lang='ja')=>typeof v==='string'?v:isObj(v)?(v[lang]??v.ja??''):'';
 
 // ---------------------------------------------------------------- strings / fact ids
-const TEXT_KEYS=new Set(['ja','sub','title','tip','head','issuer','when','order','foot','note','label','labelJa','word','w2','go','snap','asOf','prompt','sec','dest','status','time']);
+const TEXT_KEYS=new Set(['ja','sub','title','tip','head','issuer','when','order','foot','note','label','labelJa','word','w2','go','snap','asOf','prompt','sec','dest','status','time',
+ 'en','kicker','attr','enAttr','doneLabel']);   // + v6 (mission/choice card/TRUE END/guide/goodbye: EN lines and labels are checked too)
 // every displayable string of a value: [{text, path, factIds (nearest enclosing factIds)}]
 export function collectStrings(v,path='',ids=[],out=[]){
  if(typeof v==='string'){out.push({text:v,path,factIds:ids});return out;}
@@ -128,11 +129,13 @@ export function validateConfig(cfg,{part=null,facts=null,dropped=[],shotKeys=nul
  if(part==='opening'){
   if(!has('logo'))warn('opening has no logo item');
   if(!has('press-start')&&!has('pressStart')&&!cfg.beats.some(b=>(b.hud||[]).some(h=>h.c==='logo'&&h.press)))warn('opening has no PRESS START beat (press-start item or logo {press:true})');
-  if(dur<8||dur>14.5)W.push(`opening is ${dur.toFixed(2)} s (target 9–14.5 s)`);
+  if(isV6Opening(cfg)){if(dur<12||dur>16.5)W.push(`v6 opening is ${dur.toFixed(2)} s (target 14–16 s)`);}
+  else if(dur<8||dur>14.5)W.push(`opening is ${dur.toFixed(2)} s (target 9–14.5 s)`);
   if(cfg.beats[0]?.shot?.key!=='op-flythrough')W.push('opening should start on the op-flythrough shot');
-  if(isCombined(cfg))err('a combined config is a body (part=body)');}
+  if(isCombined(cfg)||isV6(cfg))err('a combined / v6 config is a body (part=body)');
+  if(isV6Opening(cfg)){const c=validateV6Opening(cfg);E.push(...c.errors);W.push(...c.warnings);}}
  else{
-  if(!OUTCOMES.includes(cfg.outcome)&&!(isCombined(cfg)&&cfg.outcome==='COMBINED'))err(`outcome must be GAME_OVER|CLEAR${isCombined(cfg)?'|COMBINED':''} (${cfg.outcome})`);
+  if(!OUTCOMES.includes(cfg.outcome)&&!(isCombined(cfg)&&cfg.outcome==='COMBINED')&&!(isV6(cfg)&&cfg.outcome==='V6'))err(`outcome must be GAME_OVER|CLEAR${isCombined(cfg)?'|COMBINED':isV6(cfg)?'|V6':''} (${cfg.outcome})`);
   if(typeof cfg.pair!=='string'||!cfg.pair)err('pair missing');
   if(!txt(cfg.title))err('title.ja missing');
   const C=cfg.choice;
@@ -148,11 +151,13 @@ export function validateConfig(cfg,{part=null,facts=null,dropped=[],shotKeys=nul
   if(!isObj(cfg.cheat)||!Array.isArray(cfg.cheat.rows)||!cfg.cheat.rows.length)err('cheat.rows missing');
   if(!Array.isArray(cfg.sources)||!cfg.sources.length)err('sources[] missing');
   if(isObj(cfg.clock)&&cfg.clock.start!=null&&!/^\d{1,2}:\d{2}$/.test(cfg.clock.start))err('clock.start must be HH:MM');
-  if(isCombined(cfg)){if(dur<48||dur>64)W.push(`combined body is ${dur.toFixed(2)} s (target 50–62 s)`);}
+  if(isV6(cfg)){if(dur<62||dur>80)W.push(`v6 body is ${dur.toFixed(2)} s (target 70–76 s)`);}
+  else if(isCombined(cfg)){if(dur<48||dur>64)W.push(`combined body is ${dur.toFixed(2)} s (target 50–62 s)`);}
   else if(dur<20||dur>34)W.push(`body is ${dur.toFixed(2)} s (target 24–32 s)`);
   // the stamp shown must come after the choice is made
   const ci=cfg.beats.indexOf(beatWith('choice')),si=cfg.beats.indexOf(beatWith('stamp'));if(ci>=0&&si>=0&&si<ci)err('stamp before the choice');
-  if(isCombined(cfg)){const c=validateCombined(cfg,{configs});E.push(...c.errors);W.push(...c.warnings);}}
+  if(isCombined(cfg)){const c=validateCombined(cfg,{configs});E.push(...c.errors);W.push(...c.warnings);}
+  if(isV6(cfg)){const c=validateV6(cfg,{configs});E.push(...c.errors);W.push(...c.warnings);}}
  // text rules
  for(const s of collectStrings(cfg)){
   for(const re of TEXT_RULES.banned)if(re.test(s.text))err(`banned name in ${s.path}`);
@@ -251,7 +256,8 @@ export function frameSpec(plan,cfg,t,{shotKeys=null,crowdKeys=null,componentKeys
  if(beat.fadeOut!=null&&local>beat.dur-beat.fadeOut)fade=Math.min(fade,(beat.dur-local)/beat.fadeOut);
  const stamps=(beat.hud||[]).filter(h=>h.c==='stamp').map(h=>h.kind);
  return {t,part:plan.part,beat:{id:beat.id,index,local,u,dur:beat.dur},shot:{key:shotKey,requested:key,params,local:local+beat.shotOffset},
-  crowd,items,logo,header:beat.header!==false&&!logo,clock:plan.part==='body'?clockAt(plan,cfg,t):null,fade,stamps,factIds:[...ids],fallbacks:fb,
+  crowd,items,logo,header:beat.header===false||logo?false:beat.header&&typeof beat.header==='object'?{...beat.header}:true,// header:{sub?,scrim?} (v6) → the HUD header props
+  clock:plan.part==='body'?clockAt(plan,cfg,t):null,fade,stamps,factIds:[...ids],fallbacks:fb,
   vt:beat.vt0!=null?beat.vt0+local:(plan.offset||0)+t,footnote:beat.footnote!==false};}
 
 // ---------------------------------------------------------------- audio cue sheet
@@ -264,6 +270,12 @@ function autoCues(b){const out=[];
  for(const h of b.hud||[]){const a=h.at??0,dur=(h.until??b.dur)-a;
   if(h.c==='logo'){if(b.logoRun===b.t0&&!h.seq){out.push({at:a,sfx:'whoosh',gain_db:-3},{at:a+LOGO_SLAM,sfx:'riser',align:'hit'},{at:a+LOGO_SLAM,sfx:'logo_slam',duck:1.6,duck_db:-14});}}
   else if(h.c==='press-start'||h.c==='pressStart')out.push({at:a+.05,sfx:'press_start'},{at:a+Math.min(dur-.2,.55),sfx:'ui_select'});
+  else if(h.c==='choice'&&h.card){const pick=h.pickAt??Math.max(1.2,dur-1);   // v6 first choice (card mode, no countdown ring → no ticks)
+   out.push({at:a+.05,sfx:'card_in'},{at:a+.5+(pick-.5)*.38,sfx:'choice_move'},{at:a+.5+(pick-.5)*.72,sfx:'choice_move'},{at:a+pick,sfx:'choice_pick'});}
+  else if(h.c==='mission'&&h.card)out.push({at:a+.02,sfx:'mission_in'});
+  else if(h.c==='guide')out.push({at:a+.02,sfx:'guide_in'});
+  else if(h.c==='goodbye')out.push({at:a,sfx:'goodbye_in'});
+  else if(h.c==='stamp'&&h.kind==='TRUE_END')out.push({at:a+STAMP_DROP,sfx:'seal_stamp',duck:3.2,duck_db:-10},{at:a+STAMP_DROP+.05,sfx:'true_end_jingle'});
   else if(h.c==='choice'){const pick=h.pickAt??Math.max(1.2,dur-1);out.push({at:a+.05,sfx:'card_in'},{at:a+.3,sfx:'tick',repeat:.5,until:a+pick},{at:a+.5+(pick-.5)*.38,sfx:'choice_move'},{at:a+.5+(pick-.5)*.72,sfx:'choice_move'},{at:a+pick,sfx:'ui_select'});}
   else if(h.c==='stamp'){const k=h.kind==='GAME_OVER'?'gameover_jingle':h.kind==='ESCAPED'?'escaped':'clear_jingle';out.push({at:a+STAMP_DROP,sfx:'stamp_hit',duck:2.4,duck_db:-12},{at:a+STAMP_DROP+.05,sfx:k});}
   else if(['notice','rules','lesson','cheat','sources'].includes(h.c))out.push({at:a+.02,sfx:'card_in'});
@@ -291,8 +303,8 @@ export function buildCues(opening,body,{fps=FPS}={}){const V=videoPlan(opening,b
  // one hit per (time, sfx): several HUD items entering together give one blip, not a stacked (louder) one
  for(let i=ev.length-1;i>0;i--)if(ev.slice(0,i).some(e=>Math.abs(e.t-ev[i].t)<1e-3&&e.sfx===ev[i].sfx&&!e.repeat&&!ev[i].repeat))ev.splice(i,1);
  return {duration:+V.duration.toFixed(4),fps,segments:V.segments.map(s=>({...s,t0:+s.t0.toFixed(4),t1:+s.t1.toFixed(4)})),events:ev,bgm,amb,duck,
-  meta:{opening:opening.id,body:body.id,outcome:body.outcome,frames:V.frames,...(isCombined(body)?{kind:'combined',parts:body.parts,
-   beats:V.body.beats.map(b=>({id:b.id,t0:+(V.body.offset+b.t0).toFixed(4),t1:+(V.body.offset+b.t1).toFixed(4),reuse:b.reuse?`${b.reuse.variant}/${b.reuse.beat}`:null}))}:{})}};}
+  meta:{opening:opening.id,body:body.id,outcome:body.outcome,frames:V.frames,...(isCombined(body)||isV6(body)?{kind:body.kind,parts:body.parts,
+   beats:V.body.beats.map(b=>({id:b.id,t0:+(V.body.offset+b.t0).toFixed(4),t1:+(V.body.offset+b.t1).toFixed(4),reuse:b.reuse?`${b.reuse.variant}/${b.reuse.beat}`:null,...(b.origin?{origin:`${b.origin.variant}/${b.origin.beat}`}:{})}))}:{})}};}
 
 // ---------------------------------------------------------------- combined episodes (2026-10-26)
 // Binding beat order (combined/CONTRACT.md table). COMBINED_REUSE: copied beat → [part, source beat id]; clear-result /
@@ -362,9 +374,9 @@ export function validateCombined(cfg,{configs=null}={}){const E=[],W=[];const er
 // reuse map of a combined body: per beat {id, f0, f1, frames, mode:'reuse'|'new', src:{variant, beat, f0, f1}|null, origin,
 // shot} + pieces (maximal runs: consecutive new beats, or consecutive reused beats that continue the same source body
 // contiguously) + the source timelines used. Throws when a source config / beat is missing or a duration differs.
-export function reuseMap(cfg,configs={}){const P=buildPart(cfg,'body'),src={};
+export function reuseMap(cfg,configs={}){const P=buildPart(cfg),src={};
  const beats=P.beats.map(b=>{const r=b.reuse;let s=null;
-  if(isObj(r)){const c=configs[r.variant];if(!c)throw Error(`reuseMap: no config ${r.variant}`);const sp=src[r.variant]??=buildPart(c,'body');
+  if(isObj(r)){const c=configs[r.variant];if(!c)throw Error(`reuseMap: no config ${r.variant}`);const sp=src[r.variant]??=buildPart(c);
    const sb=sp.beats.find(x=>x.id===r.beat);if(!sb)throw Error(`reuseMap: ${r.variant} has no beat ${r.beat}`);
    if(sb.f1-sb.f0!==b.f1-b.f0)throw Error(`reuseMap: ${b.id} ${b.f1-b.f0} frames ≠ ${r.variant}/${r.beat} ${sb.f1-sb.f0}`);s={variant:r.variant,beat:r.beat,f0:sb.f0,f1:sb.f1};}
   return {id:b.id,f0:b.f0,f1:b.f1,frames:b.f1-b.f0,mode:s?'reuse':'new',src:s,origin:isObj(b.origin)?`${b.origin.variant}/${b.origin.beat}`:null,shot:b.shot?.key??null};});
@@ -373,6 +385,158 @@ export function reuseMap(cfg,configs={}){const P=buildPart(cfg,'body'),src={};
   else pieces.push({mode:b.mode,f0:b.f0,f1:b.f1,frames:b.frames,beats:[b.id],src:b.src?{variant:b.src.variant,f0:b.src.f0,f1:b.src.f1}:null});}
  return {id:cfg.id,pair:cfg.pair,fps:FPS,frames:P.frames,duration:P.duration,beats,pieces,
   sources:Object.fromEntries(Object.entries(src).map(([k,p])=>[k,{frames:p.frames,beats:p.beats.map(b=>({id:b.id,f0:b.f0,f1:b.f1}))}]))};}
+
+// ---------------------------------------------------------------- v6 edition 「渋谷Halloweenには近づくな」 (2026-10-27)
+// next/CONTRACT.md; docs/V6.md. One video per pair = v6 OPENING (variants/<ep>/v6/_opening.json: the pinned opening's
+// op-fly/op-logo/op-press + rules frames reused, the notice beat replaced by a NEW `mission` beat) + v6 BODY
+// (variants/<ep>/v6/<pair>.json, page variant=v6/<pair>): first-choice (A 「そもそも渋谷に行かない」 picked) → TRUE END →
+// guide → the 14 combined beats (over run … kaiju; reused or re-shot) → GOODBYE end card → union sources.
+//  body {…combined schema, kind:'v6', outcome:'V6', parts:{over, clear, combined:'combined/<pair>'}, beats:[19 beats in
+//   V6_BEATS order]}; a copied beat carries reuse:{variant, beat} (frames copied from that source's render: a variant body
+//   '<pair>-over'/'<pair>-clear' or the combined episode 'combined/<pair>') or origin:{variant, beat} (re-shot: a NEW
+//   render of the same self-contained beat, e.g. after an accuracy fix) — ANY copied beat may be re-shot.
+//  opening {id:'_opening-v6', part:'opening', edition:'v6', beats:[op-fly, op-logo, op-press, mission, rules]}: copied
+//   beats carry reuse:{variant:'_opening', beat} (= the pinned opening render).
+// Stamps: TRUE_END only in true-end, GAME_OVER only in over-stamp, the CLEAR kinds only in clear-stamp. The GOODBYE text
+// is fixed verbatim (V6_GOODBYE; only line breaks may differ); the city's quoted block never carries our 「行かない」 line.
+export const V6_COPIED=Object.freeze(COMBINED_BEATS.slice(0,14));   // over-start … kaiju
+export const V6_BEATS=Object.freeze(['first-choice','true-end','guide',...V6_COPIED,'goodbye','sources']);
+export const V6_NEW=Object.freeze({'first-choice':{shot:['card-bg'],dur:4.5},'true-end':{shot:['card-bg','true-end-bg'],dur:4},guide:{shot:['card-bg'],dur:3},
+ goodbye:{shot:['card-bg','black'],dur:8},sources:{shot:['card-bg'],dur:3.5}});
+export const V6_VIDEO=Object.freeze([75,95]);   // v6 opening + v6 body, s (tools/variant_cues.mjs validateVideo)
+export const V6_OPENING_BEATS=Object.freeze(['op-fly','op-logo','op-press','mission','rules']);
+export const V6_OPENING_REUSE=Object.freeze(['op-fly','op-logo','op-press','rules']);
+// the source of a copied beat by default: combined new beats → the combined render; the rest → the variant bodies
+// (the generator switches zone/alt clear-result/stamp to the combined render: those were re-shot with the fixes there)
+export const V6_COMBINED_NEW=Object.freeze(['caught','over-stamp','continue','kaiju']);
+export const isV6=cfg=>isObj(cfg)&&cfg.kind==='v6';
+export const isV6Opening=cfg=>isObj(cfg)&&cfg.edition==='v6'&&(cfg.part==='opening'||String(cfg.id).startsWith('_opening'));
+// fixed copy (CONTRACT.md; HAGINO-approved, STEERING-concept-dont-go.md / endcard-facts.md) — compare without line breaks
+export const V6_MISSION=Object.freeze({ja:['渋谷ハロウィンには、近づくな。','もう来てしまったなら、安全に脱出せよ。'],en:"Stay away from Shibuya Halloween. If you're already there, escape safely."});
+export const V6_FIRST=Object.freeze({prompt:'まず、どうする？',A:'そもそも渋谷に行かない',B:'もう渋谷にいる',Bsub:'仕事・住まい・うっかり来てしまった'});
+export const V6_GOODBYE=Object.freeze({
+ quote:Object.freeze({title:'GOODBYE BAD HALLOWEEN',ja:'渋谷駅周辺では、条例で飲酒・喫煙、ごみのポイ捨ては禁止されています。',attr:'（渋谷区）',
+  en:'Drinking, smoking and littering on the streets around Shibuya Station are banned by ordinance.',enAttr:'(Shibuya City)'}),
+ facts:Object.freeze([Object.freeze({ja:'10/30(金)早朝〜11/1(日)朝方　ハチ公像は囲いで観覧不可',en:'Oct 30 early AM – Nov 1 morning: Hachiko statue fenced off'}),
+  Object.freeze({ja:'10/30夕方〜11/1早朝　駅周辺で交通規制',en:'Oct 30 evening – Nov 1 early AM: traffic restrictions around the station'})]),
+ ours:Object.freeze({ja:'いちばんのCLEARは、今年の渋谷に「行かない」こと。',en:"The best CLEAR this year: don't go to Shibuya."}),
+ foot:Object.freeze({ja:'出典：渋谷区公式X（2026/10/22）・渋谷区・警視庁渋谷警察署　※本編はフィクションです',
+  en:'Sources: Shibuya City (X, Oct 22, 2026), Shibuya City, MPD Shibuya Police Station. *Story is fiction.'})});
+// "don't come / don't go" wording: ours only, never next to the city's name (the city does not say 「来るな」)
+export const STAYAWAY_RE=/来るな|来ないで|行かない|近づくな|stay away|don'?t (go|come)/i;
+export const CITY_RE=/渋谷区|Shibuya City/i;
+export const INVITE_RE=/会場|楽しも|楽しんで|遊びに来|盛り上が/;   // wording that reads as an invitation (QA flags reused captions)
+const flat=s=>String(s??'').replace(/\n/g,'');
+// a copied v6 beat's default source: [part key of cfg.parts, source beat id]
+export function v6Source(id){const i=V6_COPIED.indexOf(id);if(i<0)return null;
+ if(V6_COMBINED_NEW.includes(id))return ['combined',id];return [id.startsWith('over-')?'over':'clear',id.replace(/^(over|clear)-/,'')];}
+// allowed sources of a copied beat: the default + (clear-*/over-*) the combined render's copy of it
+function v6Allowed(id,P){const s=v6Source(id);if(!s)return [];const out=[{variant:P[s[0]],beat:s[1]}];if(s[0]!=='combined')out.push({variant:P.combined,beat:id});return out;}
+
+export function validateV6Opening(cfg){const E=[],W=[];const err=m=>E.push(m);
+ const ids=(cfg.beats||[]).map(b=>b?.id);
+ if(JSON.stringify(ids)!==JSON.stringify(V6_OPENING_BEATS))err(`v6 opening: beats must be ${V6_OPENING_BEATS.join(' → ')} (got ${ids.join(' → ')})`);
+ for(const b of cfg.beats||[]){if(!isObj(b))continue;const at=`v6 opening ${b.id}`;
+  if(V6_OPENING_REUSE.includes(b.id)){if(!isObj(b.reuse)||b.reuse.variant!=='_opening'||b.reuse.beat!==b.id)err(`${at}: reuse:{variant:'_opening', beat:'${b.id}'} (pinned opening frames)`);}
+  else if(b.reuse)err(`${at}: a new beat cannot have reuse`);
+  if((b.hud||[]).some(h=>h?.c==='notice'))err(`${at}: the notice beat is replaced by the mission beat (no notice in v6)`);}
+ const m=(cfg.beats||[]).find(b=>b?.id==='mission');
+ if(m){const it=(m.hud||[]).find(h=>h?.c==='mission');
+  if(!it)err('v6 opening mission: needs a {c:"mission", card:true} item');
+  else{if(!it.card)err('v6 opening mission: card:true (the big mission card)');
+   if(flat(it.ja)!==V6_MISSION.ja.join(''))err(`v6 opening mission: ja must be 「${V6_MISSION.ja.join('／')}」`);
+   if(flat(it.en)!==V6_MISSION.en)err('v6 opening mission: en must be the CONTRACT line');
+   if(it.issuer!=null&&!/架空/.test(txt(it.issuer)))err('v6 opening mission: the issuer must be fictional (…（架空）)');}
+  if(Math.abs(m.dur-3.5)>1e-9)W.push(`v6 opening mission: ${m.dur} s (contract 3.5 s)`);}
+ for(const s of collectStrings(cfg))if(/脱出ゲーム会場/.test(s.text)||((m?.hud||[]).some(h=>collectStrings(h).some(x=>x.text===s.text))&&INVITE_RE.test(s.text)))err(`v6 opening: invitation wording in ${s.path}: ${s.text}`);
+ return {errors:E,warnings:W};}
+
+// v6 body rules on top of the body rules of validateConfig. configs = {id: config} of the sources (variant bodies + the
+// combined config under its page id 'combined/<pair>'; optional: the page validates without them)
+export function validateV6(cfg,{configs=null}={}){const E=[],W=[];const err=m=>E.push(m);
+ const P=cfg.parts;if(!isObj(P)||typeof P.over!=='string'||typeof P.clear!=='string'||typeof P.combined!=='string'){err('v6: parts:{over, clear, combined} missing');return {errors:E,warnings:W};}
+ if(cfg.outcome!=='V6')err(`v6: outcome must be 'V6' (${cfg.outcome})`);
+ if(P.over!==`${cfg.pair}-over`||P.clear!==`${cfg.pair}-clear`||P.combined!==`combined/${cfg.pair}`)W.push(`v6: parts ${P.over}/${P.clear}/${P.combined} do not match pair ${cfg.pair}`);
+ const ids=(cfg.beats||[]).map(b=>b?.id);
+ if(JSON.stringify(ids)!==JSON.stringify(V6_BEATS))err(`v6: beats must be ${V6_BEATS.join(' → ')} (got ${ids.join(' → ')})`);
+ const by=Object.fromEntries((cfg.beats||[]).filter(isObj).map(b=>[b.id,b]));
+ const items=(b,c)=>(b?.hud||[]).filter(h=>isObj(h)&&h.c===c);
+ for(const b of cfg.beats||[]){if(!isObj(b))continue;const at=`v6 ${b.id}`,ok=v6Allowed(b.id,P);
+  if(!ok.length){for(const k of ['reuse','origin'])if(b[k]!=null)err(`${at}: a new beat cannot have ${k}`);}
+  else{if(b.reuse&&b.origin)err(`${at}: reuse and origin are exclusive`);
+   else if(!b.reuse&&!b.origin)err(`${at}: copied beat needs reuse (or origin to re-shoot it)`);
+   else{const r=b.reuse??b.origin;if(!isObj(r)||!ok.some(o=>o.variant===r.variant&&o.beat===r.beat))err(`${at}.${b.reuse?'reuse':'origin'} must be one of ${ok.map(o=>`${o.variant}/${o.beat}`).join(' | ')}`);}
+   if(b.origin&&b.vt0==null)W.push(`${at}: re-shot without vt0 (the background crowd differs from the original)`);}
+  const nw=V6_NEW[b.id];
+  if(nw){if(!nw.shot.includes(b.shot?.key))W.push(`${at}: shot ${b.shot?.key} (contract: ${nw.shot.join('|')})`);
+   if(Math.abs(b.dur-nw.dur)>1e-9)W.push(`${at}: ${b.dur} s (contract: ${nw.dur} s)`);}
+  // stamps live only in their beat
+  for(const h of items(b,'stamp')){if(h.kind==='TRUE_END'&&b.id!=='true-end')err(`${at}: TRUE_END stamp only in true-end`);
+   if(h.kind==='GAME_OVER'&&b.id!=='over-stamp')err(`${at}: GAME_OVER stamp only in over-stamp`);
+   if(CLEAR_KINDS.includes(h.kind)&&b.id!=='clear-stamp')err(`${at}: ${h.kind} stamp only in clear-stamp`);}
+  // never invite: new beats must not carry invitation wording; copied (reused) captions are warnings for QA
+  for(const s of collectStrings(b.hud||[],`${b.id}.hud`))if(INVITE_RE.test(s.text)){if(nw)err(`${at}: invitation wording ${s.path}: ${s.text}`);else W.push(`${at}: reused caption reads as an invitation? ${s.path}: ${s.text} (QA)`);}}
+ // first choice: A 「そもそも渋谷に行かない」 picked, B = already in Shibuya (+ sub)
+ const fc=items(by['first-choice'],'choice')[0];
+ if(by['first-choice']){if(!fc)err('v6 first-choice: needs a {c:"choice", card:true} item');
+  else{const o=fc.options||[],A=o.find(x=>x.key==='A'),B=o.find(x=>x.key==='B');
+   if(!fc.card)err('v6 first-choice: card:true (no map)');
+   if(flat(txt(fc.prompt))!==V6_FIRST.prompt)err(`v6 first-choice: prompt must be 「${V6_FIRST.prompt}」`);
+   if(o.length!==2||!A||!B)err('v6 first-choice: options A + B');
+   else{if(txt(A)!==V6_FIRST.A)err(`v6 first-choice: A must be 「${V6_FIRST.A}」`);if(txt(B)!==V6_FIRST.B)err(`v6 first-choice: B must be 「${V6_FIRST.B}」`);
+    if(flat(txt(B.sub))!==V6_FIRST.Bsub)err(`v6 first-choice: B.sub must be 「${V6_FIRST.Bsub}」`);}
+   if(fc.picked!=='A')err('v6 first-choice: A (「そもそも渋谷に行かない」) must be picked → TRUE END');
+   if(fc.pickAt!=null&&!(fc.pickAt>0&&fc.pickAt<by['first-choice'].dur-.3))err('v6 first-choice: pickAt must leave ≥ 0.3 s after the pick');}}
+ // TRUE END: right after the first choice, exactly one TRUE_END stamp
+ const te=by['true-end'];
+ if(te){const st=items(te,'stamp');if(st.length!==1||st[0].kind!=='TRUE_END')err('v6 true-end: exactly one stamp, kind TRUE_END');
+  if(ids.indexOf('true-end')!==ids.indexOf('first-choice')+1)err('v6 true-end must follow first-choice directly');
+  if(te.crowd)err('v6 true-end: no crowd (calm, nobody goes)');}
+ const g=items(by.guide,'guide')[0];if(by.guide){if(!g)err('v6 guide: needs a {c:"guide"} item');else if((g.hot??'B')!=='B')err('v6 guide: B (already in Shibuya) is highlighted');
+  if(items(by.guide,'sim').length)err('v6 guide: no sim item (fiction-free card)');}
+ for(const id of ['over-stamp','caught','kaiju','goodbye'])if(by[id]&&by[id].header!==false)err(`v6 ${id}: header:false`);
+ for(const id of ['caught','kaiju','goodbye','first-choice','true-end','guide'])if(by[id]&&by[id].clock!==false)err(`v6 ${id}: clock:false`);
+ if(by.kaiju&&by.kaiju.bgm!==null)err('v6 kaiju: bgm:null (BGM off for the gag)');
+ for(const [id,c] of [['over-stamp','stamp'],['clear-stamp','stamp'],['continue','continue'],['over-lesson','lesson'],['clear-cheat','cheat'],['over-choice','choice'],['clear-choice','choice'],['sources','sources']])
+  if(by[id]&&!items(by[id],c).length)err(`v6 ${id}: needs a '${c}' item`);
+ if(by['over-stamp']&&!items(by['over-stamp'],'stamp').some(h=>h.kind==='GAME_OVER'))err('v6 over-stamp: needs a GAME_OVER stamp');
+ if(by['clear-stamp']&&!items(by['clear-stamp'],'stamp').some(h=>CLEAR_KINDS.includes(h.kind)))err('v6 clear-stamp: needs a GAME_CLEAR/CLEAR/ESCAPED stamp');
+ const pk=id=>items(by[id],'choice')[0]?.picked??cfg.choice?.picked;
+ if(by['over-choice']&&by['clear-choice']&&pk('over-choice')===pk('clear-choice'))err('v6: over-choice and clear-choice pick the same option');
+ if(items(by.endcard,'endcard').length||cfg.beats?.some(b=>items(b,'endcard').length))err('v6: the old endcard is replaced by the goodbye card');
+ // GOODBYE: verbatim text, 3 separate blocks; the city's block never carries our message
+ const gb=by.goodbye;
+ if(gb){const it=items(gb,'goodbye')[0];if(!it)err('v6 goodbye: needs a {c:"goodbye"} item');
+  else for(const e of goodbyeErrors(it))err('v6 goodbye: '+e);
+  if(gb.footnote!==false)err('v6 goodbye: footnote:false (the card carries its own source line)');
+  if(gb.dur<8-1e-9)err(`v6 goodbye: ${gb.dur} s (≥ 8 s: ≥ 6 s fully legible)`);}
+ // 「来るな」-type wording is ours: never in a string that names the city
+ for(const s of collectStrings(cfg))if(STAYAWAY_RE.test(s.text)&&CITY_RE.test(s.text))err(`v6: stay-away wording next to the city's name (${s.path}: ${s.text})`);
+ if(cfg.beats?.[0]&&cfg.beats[0].transition==='dip')W.push('v6: first body beat with a dip');
+ // with the source configs: picks, source beats + durations, sources union
+ if(configs){const O=configs[P.over],C=configs[P.clear],K=configs[P.combined];
+  if(!O||!C||!K)err(`v6: source configs ${[!O&&P.over,!C&&P.clear,!K&&P.combined].filter(Boolean).join(' ')} missing`);
+  else{if(pk('over-choice')!==O.choice?.picked)err(`v6 over-choice picks ${pk('over-choice')} (${P.over} picks ${O.choice?.picked})`);
+   if(pk('clear-choice')!==C.choice?.picked)err(`v6 clear-choice picks ${pk('clear-choice')} (${P.clear} picks ${C.choice?.picked})`);
+   for(const b of cfg.beats||[]){const r=b?.reuse??b?.origin;if(!isObj(r))continue;const sc=configs[r.variant];const sb=sc?.beats?.find(x=>x.id===r.beat);
+    if(!sb){err(`v6 ${b.id}: source beat ${r.variant}/${r.beat} missing`);continue;}
+    if(Math.round(sb.dur*FPS)!==Math.round(b.dur*FPS))err(`v6 ${b.id}: ${b.dur} s ≠ source ${r.variant}/${r.beat} ${sb.dur} s`);
+    if(b.reuse&&sb.origin==null&&sb.reuse==null&&r.variant===P.combined&&!V6_COMBINED_NEW.includes(b.id))err(`v6 ${b.id}: ${r.variant}/${r.beat} is not a rendered (new/re-shot) beat of the combined episode`);
+    if(b.reuse&&r.variant===P.combined&&sb.reuse)err(`v6 ${b.id}: reuse the original ${sb.reuse.variant}/${sb.reuse.beat}, not the combined copy of it`);}
+   const have=new Set(cfg.sources||[]);const miss=[...new Set([...(O.sources||[]),...(C.sources||[])])].filter(id=>!have.has(id));
+   if(miss.length)err(`v6: sources[] must include the union of both runs (missing ${miss.join(', ')})`);}}
+ return {errors:E,warnings:W};}
+// the goodbye item against the fixed text (only line breaks may differ). The props are optional (the HUD defaults to the
+// same text); when given they must match.
+export function goodbyeErrors(it){const E=[],G=V6_GOODBYE;const eq=(a,b,lab)=>{if(a!=null&&flat(txt(a))!==b)E.push(`${lab} must be 「${b}」 (got 「${flat(txt(a))}」)`);};
+ const q=it.quote||{};eq(q.title,G.quote.title,'quote.title');eq(q.ja,G.quote.ja,'quote.ja');eq(q.attr,G.quote.attr,'quote.attr');eq(q.en,G.quote.en,'quote.en');eq(q.enAttr,G.quote.enAttr,'quote.enAttr');
+ if(it.facts!=null){if(!Array.isArray(it.facts)||it.facts.length!==G.facts.length)E.push('facts: exactly the 2 fact rows');else it.facts.forEach((f,i)=>{eq(f.ja,G.facts[i].ja,`facts[${i}].ja`);eq(f.en,G.facts[i].en,`facts[${i}].en`);});}
+ const o=it.ours||{};eq(o.ja,G.ours.ja,'ours.ja');eq(o.en,G.ours.en,'ours.en');
+ if(o.attr!=null||CITY_RE.test(txt(o.label)||''))E.push('ours: our message has no attribution to the city');
+ const f=it.foot||{};eq(f.ja,G.foot.ja,'foot.ja');eq(f.en,G.foot.en,'foot.en');
+ for(const s of collectStrings(it.quote||{}))if(STAYAWAY_RE.test(s.text))E.push(`quote: the city's block cannot carry 「${s.text}」`);
+ for(const s of collectStrings(it.facts||[]))if(STAYAWAY_RE.test(s.text))E.push(`facts: the fact rows cannot carry 「${s.text}」`);
+ return E;}
 
 // ---------------------------------------------------------------- cache keys
 // stable JSON (sorted keys) + FNV-1a 64 → hex; the opening cache key also covers `extra` (file hashes of the code)

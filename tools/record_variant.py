@@ -51,12 +51,17 @@ from record_series import (FPS, VIEWPORT, SCALE, OUT_SIZE, RUN_CACHE, PARODY, SI
 TITLE = 'ハロウィンの渋谷を脱出せよ！ JR編'
 FICTION = 'フィクション'
 STAMP_WORDS = {'gameover': re.compile(r'GAME\s*OVER|ゲームオーバー', re.I), 'clear': re.compile(r'GAME\s*CLEAR', re.I), 'escaped': re.compile(r'ESCAPED', re.I)}
-STAMP_OF = {'GAME_OVER': 'gameover', 'GAME_CLEAR': 'clear', 'CLEAR': 'clear', 'ESCAPED': 'escaped'}
+STAMP_OF = {'GAME_OVER': 'gameover', 'GAME_CLEAR': 'clear', 'CLEAR': 'clear', 'ESCAPED': 'escaped', 'TRUE_END': 'trueend'}  # TRUE_END: v6 (HUD stamp id 'trueend')
 ALERT_RE = re.compile(r'J-?ALERT|Jアラート|緊急速報|国民保護|NHK|エリアメール', re.I)
 CHEAT_MIN_SECONDS = 3
 CONTACT_FONT = '/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc'
 VIDEO_RANGE = (30, 45)
 COMBINED_RANGE = (60, 80)  # series/variant-system.mjs COMBINED_VIDEO
+V6_RANGE = (75, 95)  # series/variant-system.mjs V6_VIDEO (v6 opening + v6 body; next/CONTRACT.md)
+
+
+def is_v6(plan):
+    return str(plan.get('variant') or '').startswith('v6/') or plan.get('kind') == 'v6'
 
 
 def is_combined(plan):
@@ -74,8 +79,11 @@ def check_frame(rec, plan=None, facts=None, soft=None):
     items = rec.get('items') or []
     if rec.get('notice') or 'notice' in items:
         assert rec.get('fiction') and any(FICTION in v for v in strings), ('「フィクション」 tag missing on the fictional notice', t)
+    if rec.get('mission'):   # v6: the mission card replaces the notice beat → same fiction-tag rule (HUD request 3)
+        assert rec.get('fiction') and any(FICTION in v for v in strings), ('「フィクション」 tag missing on the mission card', t)
     if 'sources' in items:
-        assert rec.get('parodyNote') and any('パロディ' in v for v in strings), ('sources card without the parody/fiction note', t)
+        # v6 (QA): the note may say 「フィクション」 instead of 「パロディ」 (it follows a real, quoted city text)
+        assert rec.get('parodyNote') and any('パロディ' in v or FICTION in v for v in strings), ('sources card without the parody/fiction note', t)
     for s in rec.get('sims') or []:
         assert s.get('label') and (SIM_JA in s['text'] or 'simulation' in s['text'].lower()), ('sim number without label', t, s)
     allowed = {STAMP_OF.get(k, k) for k in rec.get('allowedStamps') or []}
@@ -87,6 +95,8 @@ def check_frame(rec, plan=None, facts=None, soft=None):
         assert not BANNED_RE.search(v), ('banned name on screen', t)
         assert not ALERT_RE.search(v), ('real-alert wording on screen', t, v)
     claims, foot = set(rec.get('claims') or []), set((rec.get('footnote') or {}).get('ids') or [])
+    if 'sources' in items and rec.get('credit') and not foot:
+        claims = set()   # v6 sources card with the page footnote off: the card itself lists every source + the data credit
     assert claims <= foot, ('claims without a footnote', t, sorted(claims-foot))
     assert foot <= set(known), ('unknown fact ids', t, sorted(foot-set(known)))
     assert not (claims | foot) & dropped, ('dropped fact on screen', t, sorted((claims | foot) & dropped))
@@ -101,7 +111,8 @@ def check_frame(rec, plan=None, facts=None, soft=None):
         beat = next(b for b in plan['beats'] if b['id'] == rec['beat'])
         if 'cheat' in beat['hud']: assert rec.get('cheat'), ('cheat sheet missing', t)
         assert sorted(beat['stamps']) == sorted(rec.get('allowedStamps') or []), ('stamp plan mismatch', t)
-    if round(t*FPS) == 0: assert rec.get('fade', 1) >= .99, ('first frame of the part is faded (black first frame)', t, rec.get('fade'))
+    # cutFade = the cut/fadeOut dip only (a dimmed card background such as card-bg is not a fade to black)
+    if round(t*FPS) == 0: assert rec.get('cutFade', rec.get('fade', 1)) >= .99, ('first frame of the part is faded (black first frame)', t, rec.get('cutFade', rec.get('fade')))
     # soft
     if rec.get('safe') and not rec['safe'].get('ok', True): soft['safe'] = soft.get('safe', 0)+1
     if not (rec.get('title') or {}).get('header') and not (rec.get('title') or {}).get('logo'): soft['no-title'] = soft.get('no-title', 0)+1
@@ -115,7 +126,7 @@ def check_plan(plan):
     edges = [(b['f0'], b['f1']) for b in plan['beats']]
     assert edges[0][0] == 0 and edges[-1][1] == plan['frames'] and all(a[1] == b[0] for a, b in zip(edges, edges[1:])), 'beats must tile the part'
     if plan['part'] == 'body':
-        lo, hi = COMBINED_RANGE if is_combined(plan) else VIDEO_RANGE
+        lo, hi = V6_RANGE if is_v6(plan) else COMBINED_RANGE if is_combined(plan) else VIDEO_RANGE
         assert lo-1e-6 <= plan['videoDuration'] <= hi+1e-6 or str(plan['id']).startswith('_'), (f'video must be {lo}–{hi} s', plan['videoDuration'])
         cheat = [b for b in plan['beats'] if 'cheat' in b['hud']]
         assert cheat and max(b['t1']-b['t0'] for b in cheat) >= CHEAT_MIN_SECONDS-1e-6, 'cheat sheet beat ≥ 3 s'

@@ -15,6 +15,7 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 FACTS_JSON = ROOT.parent / 'logs/ssl-claude-halloween/series/facts-series.json'
 FACTS_VARIANTS_JSON = ROOT.parent / 'logs/ssl-claude-halloween/variants/facts-variants.json'
+FACTS_V6_JSON = ROOT.parent / 'logs/ssl-claude-halloween/next/facts-v6.json'  # JR編 v6 end card / mission
 MOD = './web3d/shibuya/series/copy-jr.mjs'
 SRC = './web3d/shibuya/series/sources-series.mjs'
 
@@ -132,9 +133,10 @@ def _facts_json():
     out = {f['id']: f for f in json.loads(FACTS_JSON.read_text())}
     # JR編 variants: new fact ids appended to sources-series.mjs come from the variants fact-check
     # (same claim format; its verdict field is `status`). Series entries win for reused ids.
-    if FACTS_VARIANTS_JSON.exists():
-        for f in json.loads(FACTS_VARIANTS_JSON.read_text()):
-            out.setdefault(f['id'], {**f, 'verdict': f.get('verdict', f.get('status'))})
+    for extra in (FACTS_VARIANTS_JSON, FACTS_V6_JSON):
+        if extra.exists():
+            for f in json.loads(extra.read_text()):
+                out.setdefault(f['id'], {**f, 'verdict': f.get('verdict', f.get('status'))})
     return out
 
 

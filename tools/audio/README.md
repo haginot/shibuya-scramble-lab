@@ -130,3 +130,20 @@ without it, ffmpeg's AAC overshot by up to +2 dB on the logo slam. You can skip 
     0.02 % of its energy above 3 kHz and a centroid around 320 Hz. It has no noise screech or resonant scrape, so
     it is nothing like any famous film-monster roar (selftest checks the spectrum).
   * `kaiju_rumble` is a low swell with gravel trickles and two weight shifts.
+
+## v6 「渋谷Halloweenには近づくな」 (2026-10-27, ~88 s: opening with mission card + first choice → TRUE END → guide → combined body → GOODBYE end card)
+New SFX (all original, procedural; `sfx.REQUIRED_V6`) and what `variant-system.mjs autoCues` emits for them:
+| sfx | component / beat | what it is |
+|---|---|---|
+| `mission_in` | `mission` card (opening, 3.5 s) at +.02 | air swell into a soft felt "dum" + open-fifth bell D4/A4 + low pad: an instruction, not an alert (hit at .12 s) |
+| `choice_pick` | `choice` card mode (first-choice) at pickAt | warm low mallet G5→C6 + bell: the calm "right answer" confirm (card mode has no countdown ticks) |
+| `seal_stamp` | `stamp` kind `TRUE_END` at STAMP_DROP | soft wooden/wax "thock" + gold shimmer (no rubber slam) |
+| `true_end_jingle` | `stamp` kind `TRUE_END` at STAMP_DROP+.05 | Eb major plagal "amen" (IV→I), celesta C6–Bb5–G5, warm low pad, no drums; ≈3.6 s + tail. Distinct from clear_jingle (D major, plucks, taiko): selftest checks the pitch-class profiles |
+| `guide_in` | `guide` card at +.02 | soft page/map unfold |
+| `goodbye_in` | `goodbye` end card at its t0 | one low felt-piano chord, no sting. **Soft cut** (`mix.CUT_DEFAULTS`): earlier SFX tails (the kaiju gag) are chopped at the card, beds dip/recover |
+New BGM `farewell` (aliases goodbye/outro/ending): Bb major 66 BPM 4-bar loop (14.5 s), no drums, house trim -4.5 dB
+(`music.TRACK_TRIM`) so the long end-card read stays calm. Beds: first-choice / true-end `calm`, amb none (no crowd under
+the TRUE END); goodbye + sources `farewell`, amb none.
+`mix.lint_v6(cues)` (runs in every mix, warnings in the report's `lint`; `--strict-lint` makes them errors): no gag/scare
+SFX (`sfx.COMEDIC`) sounding over the goodbye/sources cards, a calm bed under goodbye, no crowd bed / tension under
+true-end. The report also has per-beat loudness (`beats`, from `meta.beats`). Demo sheet: `demo/demo-v6.json` (88.2 s).

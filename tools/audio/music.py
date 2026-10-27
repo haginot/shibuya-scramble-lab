@@ -8,10 +8,14 @@
   retry    F major, 120 BPM, 4 bars (8 s): the light CONTINUE? bed (combined episodes) — soft pulse-wave arpeggio,
            round triangle bass, offbeat shaker, a little toy-piano answer line; quiet and bouncy, leaves room for the
            countdown ticks (beats land on whole seconds when a run starts on a beat).  Aliases: continue, light.
+  farewell Bb major, 66 BPM, 4 bars (14.5 s): the v6 GOODBYE end card / sources bed — sincere and calm, no drums, no
+           gag: rolled felt-piano chords (Bbmaj9 - Gm9 - Ebmaj7 - Fsus/F), warm low pad, sub root, a few sparse celesta
+           notes and air.  Aliases: goodbye, outro, ending.
 
 Loops are exact: note events are rendered into an over-long buffer and wrap-added onto the loop length, continuous
 layers are periodic by construction (frequencies quantized to whole cycles per loop, FFT-made noise), and the reverb
-is a circular convolution.  ``loop(name)`` returns a (2, n) array normalized to BGM_LUFS.
+is a circular convolution.  ``loop(name)`` returns a (2, n) array normalized to BGM_LUFS (+ TRACK_TRIM: farewell
+-4.5 dB).
 """
 from __future__ import annotations
 
@@ -24,8 +28,12 @@ import instruments as ins
 from dsp import SR, note, ns
 
 BGM_LUFS = -18.0
-TRACKS = ('tension', 'calm', 'victory', 'retry')
-ALIASES = {'continue': 'retry', 'light': 'retry', 'retry_bgm': 'retry', 'relief': 'calm', 'win': 'victory'}
+# per-track house trim (dB) on top of BGM_LUFS: the v6 GOODBYE bed sits under a long read (quoted city text, ≥ 6 s),
+# so it stays clearly below the action beds even when a cue sheet plays it at gain_db 0
+TRACK_TRIM = {'farewell': -4.5}
+TRACKS = ('tension', 'calm', 'victory', 'retry', 'farewell')
+ALIASES = {'continue': 'retry', 'light': 'retry', 'retry_bgm': 'retry', 'relief': 'calm', 'win': 'victory',
+           'goodbye': 'farewell', 'outro': 'farewell', 'ending': 'farewell', 'end': 'farewell'}
 
 
 class Seq:
@@ -122,6 +130,9 @@ CH = {  # chord tones (note names, low to high)
     'A': ['A2', 'C#3', 'E3', 'A3'], 'F': ['F3', 'A3', 'C4', 'E4'], 'Dm9': ['D3', 'F3', 'A3', 'C4', 'E4'],
     'Bbmaj7': ['Bb2', 'D3', 'F3', 'A3'], 'Csus': ['C3', 'F3', 'G3', 'C4'], 'C': ['C3', 'E3', 'G3', 'C4'],
     'D': ['D3', 'F#3', 'A3', 'D4'], 'G': ['G2', 'B2', 'D3', 'G3'], 'Cmaj': ['C3', 'E3', 'G3', 'C4'],
+    # farewell (v6)
+    'Bbmaj9': ['Bb2', 'F3', 'A3', 'C4', 'D4'], 'Gm9': ['G2', 'D3', 'F3', 'A3', 'Bb3'],
+    'Ebmaj7': ['Eb3', 'G3', 'Bb3', 'D4'], 'Fsus': ['F2', 'C3', 'Eb3', 'Bb3'], 'F7': ['F2', 'C3', 'Eb3', 'A3'],
 }
 
 
@@ -275,22 +286,51 @@ def retry() -> np.ndarray:
     return s.render(ir, 0.6)
 
 
+def farewell() -> np.ndarray:
+    """v6 GOODBYE bed (original): Bb major, 66 BPM, 4 bars.  Calm and sincere — rolled soft piano-like chords on
+    beats 1 and 3, a warm triangle pad, sub root, three sparse celesta notes per loop, air.  No percussion."""
+    s = Seq('farewell', 66, 4)
+    L = s.L
+    prog = ['Bbmaj9', 'Gm9', 'Ebmaj7', 'Fsus']
+    s.add_cont(_periodic_noise(L, 'farewell-air', 300, 5000, 0.6, am_rate=0.1, am_depth=0.4) * 0.006, send=0.4)
+    for b in range(4):
+        names = CH[prog[b]]
+        for i, nm in enumerate(names[1:]):                      # warm pad (chord tones above the root)
+            s.add(ins.pad_voice(note(nm), s.t(1) + 1.2, 0.11, f'fp{b}{i}', bright=1000, attack=0.9, release=1.4,
+                                voices=3, kind='tri'), b, 0, 1.0, p=-0.5 + 1.0 * i / max(1, len(names) - 2), send=0.45)
+        s.add(ins.pad_voice(note(names[0]), s.t(1) + 0.3, 0.09, f'fs{b}', bright=280, attack=0.25, release=0.8,
+                            voices=1, kind='tri'), b, 0, 1.0, send=0.0)
+        for beat, vel in ((0, 0.55), (2, 0.4)):                 # rolled felt-piano chord (soft, dark)
+            for i, nm in enumerate(names[1:]):
+                f = note(nm)
+                y = ins.pluck(f, 2.4, vel, f'fk{b}{beat}{i}', bright=0.6) + 0.2 * ins.bell(f, 2.4, vel * 0.5,
+                                                                                           f'fkb{b}{beat}{i}')
+                s.add(dsp.lp(y, 2400), b, beat + 0.045 * i, 0.32, p=-0.35 + 0.18 * i, send=0.45, human=0.004)
+        if b == 3:                                              # Fsus resolves to F on beat 3 (A natural)
+            s.add(ins.pluck(note('A3'), 1.8, 0.35, 'fres', bright=0.6), b, 2.0, 0.3, p=0.2, send=0.45)
+    mel = [(0, 1.5, 'F5'), (1, 3.0, 'D5'), (2, 1.5, 'G5'), (3, 3.0, 'C5')]   # sparse celesta (original)
+    for i, (b, beat, nm) in enumerate(mel):
+        s.add(ins.music_box(note(nm), 2.6, 0.45, f'fm{i}'), b, beat, 0.2, p=0.25, send=0.6)
+    ir = dsp.reverb_ir(3.2, 'farewell', predelay=0.03, bright=4200)
+    return s.render(ir, 0.9)
+
+
 def canonical(name) -> str | None:
     n = str(name).strip().lower().replace('-', '_')
     n = ALIASES.get(n, n)
     return n if n in TRACKS else None
 
 
-_BUILDERS = {'tension': tension, 'calm': calm, 'victory': victory, 'retry': retry}
+_BUILDERS = {'tension': tension, 'calm': calm, 'victory': victory, 'retry': retry, 'farewell': farewell}
 
 
 @lru_cache(maxsize=None)
 def loop(name: str) -> np.ndarray:
-    """(2, n) seamless loop, normalized to BGM_LUFS integrated (measured over three repetitions)."""
+    """(2, n) seamless loop, normalized to BGM_LUFS (+ TRACK_TRIM) integrated (measured over three repetitions)."""
     y = _BUILDERS[canonical(name) or name]()
     y = _make_periodic_hp(y)
     L = dsp.lufs_integrated(np.tile(y, 3))
-    return y * dsp.db(BGM_LUFS - L)
+    return y * dsp.db(BGM_LUFS + TRACK_TRIM.get(canonical(name) or name, 0.0) - L)
 
 
 def _make_periodic_hp(y: np.ndarray) -> np.ndarray:

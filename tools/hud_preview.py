@@ -11,11 +11,15 @@ import argparse, functools, http.server, json, threading, time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+V6 = ('mission-card@0.1,mission-card@1.5,first-choice@0.6,first-choice@1.6,first-choice@3.8,true-end@0.1,true-end@0.3,true-end@2.0,'
+      'guide@0.3,guide@1.5,goodbye@0.4,goodbye@3.0,goodbye-black@3.0,sources-v6@2.0')
 DEFAULT = ('notice@0.12,notice@2.0,rules@0.15,rules@2.5,press@0.3,press@1.6,start@0.1,start@2.0,choice@0.12,choice@1.2,choice@2.4,choice@3.35,choice@3.9,'
            'consequence@1.5,stamp-over@0.08,stamp-over@0.2,stamp-over@0.45,stamp-over@1.4,stamp-clear@0.22,stamp-clear@1.4,stamp-esc@1.4,'
            'lesson@0.2,lesson@2.0,cheat@0.3,cheat@2.0,sources@2.0,map@1.5,'
            # combined episodes (2026-10-26)
-           'stamp-black@0.2,stamp-black@1.2,continue@0.4,continue@1.6,continue@2.4,gag@0.3,gag@1.5,endcard@0.6,endcard@1.8,sources-union@2.0')
+           'stamp-black@0.2,stamp-black@1.2,continue@0.4,continue@1.6,continue@2.4,gag@0.3,gag@1.5,endcard@0.6,endcard@1.8,sources-union@2.0,'
+           # v6 (2026-10-27)
+           + V6)
 
 
 class Quiet(http.server.SimpleHTTPRequestHandler):
@@ -25,9 +29,10 @@ class Quiet(http.server.SimpleHTTPRequestHandler):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--out', required=True)
-    ap.add_argument('--shots', default=DEFAULT)
+    ap.add_argument('--shots', default=DEFAULT, help="comma list scene@t, or 'v6' for the v6 components only")
     ap.add_argument('--contact', action='store_true', help='also write contact.jpg')
     a = ap.parse_args()
+    if a.shots == 'v6': a.shots = V6
     out = Path(a.out); out.mkdir(parents=True, exist_ok=True)
     from playwright.sync_api import sync_playwright
     srv = http.server.ThreadingHTTPServer(('127.0.0.1', 0), functools.partial(Quiet, directory=str(ROOT)))
@@ -59,6 +64,11 @@ def main():
     # the fictional notice the 「フィクション」 tag (same rule as tools/record_variant.py check_frame)
     bad = [k for k, r in records.items() if not r['safe']['ok'] or ('sources' in r['items'] and not r.get('parodyNote'))
            or ('notice' in r['items'] and not r.get('fiction'))]
+    # v6 GOODBYE end card: the 4 blocks (quote / facts / ours / foot) must not overlap (visually separate blocks)
+    for k, r in records.items():
+        gb = sorted([b for b in r['boxes'] if b['c'].startswith('goodbye-')], key=lambda b: b['y0'])
+        if gb and (len(gb) != 4 or any(gb[i]['y1'] > gb[i+1]['y0'] for i in range(3))):
+            bad.append(k + ' (goodbye blocks overlap/missing)')
     if a.contact:
         from PIL import Image
         cols = 6; w, h = 360, 640; rows = (len(files)+cols-1)//cols

@@ -91,6 +91,10 @@ def _facts():
             pytest.skip(f'{p} not available')
         for x in json.loads(p.read_text()):
             out.setdefault(x['id'], []).append(x)
+    v6 = LOGS / 'next/facts-v6.json'  # JR編 v6 end card / mission (optional)
+    if v6.exists():
+        for x in json.loads(v6.read_text()):
+            out.setdefault(x['id'], []).append(x)
     return out
 
 

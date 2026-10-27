@@ -1,0 +1,210 @@
+{
+ "id": "_opening-v6",
+ "episode": "jr",
+ "part": "opening",
+ "edition": "v6",
+ "beats": [
+  {
+   "id": "op-fly",
+   "dur": 3.6,
+   "shot": {
+    "key": "op-flythrough",
+    "params": {
+     "dur": 5.6,
+     "shake": [
+      {
+       "t": 4.5,
+       "amp": 0.55,
+       "decay": 0.32,
+       "freq": 11
+      },
+      {
+       "t": 4.9399999999999995,
+       "amp": 0.18,
+       "decay": 0.22,
+       "freq": 13
+      }
+     ]
+    }
+   },
+   "header": false,
+   "hud": [],
+   "cues": [
+    {
+     "at": 0,
+     "sfx": "whoosh",
+     "gain_db": -4
+    },
+    {
+     "at": 1.2,
+     "sfx": "whoosh",
+     "gain_db": -6
+    }
+   ],
+   "bgm": "tension",
+   "amb": "crowd-night",
+   "reuse": {
+    "variant": "_opening",
+    "beat": "op-fly"
+   }
+  },
+  {
+   "id": "op-logo",
+   "dur": 2.5,
+   "shot": {
+    "key": "op-flythrough",
+    "params": {
+     "dur": 5.6,
+     "shake": [
+      {
+       "t": 4.5,
+       "amp": 0.55,
+       "decay": 0.32,
+       "freq": 11
+      },
+      {
+       "t": 4.9399999999999995,
+       "amp": 0.18,
+       "decay": 0.22,
+       "freq": 13
+      }
+     ]
+    },
+    "t0": 3.6
+   },
+   "header": false,
+   "hud": [
+    {
+     "c": "logo",
+     "factIds": []
+    }
+   ],
+   "reuse": {
+    "variant": "_opening",
+    "beat": "op-logo"
+   }
+  },
+  {
+   "id": "op-press",
+   "dur": 1.6,
+   "shot": {
+    "key": "op-flythrough",
+    "params": {
+     "dur": 5.6,
+     "shake": [
+      {
+       "t": 4.5,
+       "amp": 0.55,
+       "decay": 0.32,
+       "freq": 11
+      },
+      {
+       "t": 4.9399999999999995,
+       "amp": 0.18,
+       "decay": 0.22,
+       "freq": 13
+      }
+     ]
+    },
+    "t0": 6.1
+   },
+   "header": false,
+   "hud": [
+    {
+     "c": "logo",
+     "press": true,
+     "outAt": 1.1666666666666667,
+     "outDur": 0.45,
+     "params": {
+      "hitAt": 3.5
+     },
+     "factIds": []
+    }
+   ],
+   "cues": [
+    {
+     "at": 1,
+     "sfx": "ui_select"
+    },
+    {
+     "at": 1.1666666666666667,
+     "sfx": "whoosh",
+     "gain_db": -6
+    }
+   ],
+   "reuse": {
+    "variant": "_opening",
+    "beat": "op-press"
+   }
+  },
+  {
+   "id": "mission",
+   "dur": 3.5,
+   "shot": {
+    "key": "card-bg"
+   },
+   "hud": [
+    {
+     "c": "mission",
+     "card": true,
+     "issuer": "脱出ゲーム運営（架空）",
+     "ja": "渋谷ハロウィンには、近づくな。\nもう来てしまったなら、安全に脱出せよ。",
+     "en": "Stay away from Shibuya Halloween. If you're already there, escape safely.",
+     "factIds": []
+    }
+   ],
+   "header": {
+    "sub": "10/31 渋谷ハロウィンには近づくな"
+   }
+  },
+  {
+   "id": "rules",
+   "dur": 4,
+   "shot": {
+    "key": "card-bg",
+    "params": {
+     "yaw0": 0.9
+    }
+   },
+   "hud": [
+    {
+     "c": "rules",
+     "head": "ゲームのルール＝本物の注意",
+     "factIds": [],
+     "items": [
+      {
+       "title": "誘導に従え",
+       "tip": "警察・係員の指示が最優先\n出入口は混雑で変わることも",
+       "factIds": [
+        "MEAS-12"
+       ]
+      },
+      {
+       "title": "立ち止まるな",
+       "tip": "監視台・警備員が\n滞留を抑える（2026年）",
+       "factIds": [
+        "MEAS-09"
+       ]
+      },
+      {
+       "title": "終電を先に調べろ",
+       "tip": "山手線の終電（通常の土休日）\n渋谷 外回り0:33・内回り0:48",
+       "factIds": [
+        "JR-LAST-01",
+        "JR-LAST-02"
+       ]
+      }
+     ]
+    }
+   ],
+   "fadeOut": 0.2,
+   "reuse": {
+    "variant": "_opening",
+    "beat": "rules"
+   }
+  }
+ ],
+ "bgm": "tension",
+ "amb": "crowd-night",
+ "generated": "tools/v6_configs.mjs (do not edit by hand: edit the generator and re-run --write)"
+}
