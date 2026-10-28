@@ -1,0 +1,3008 @@
+{
+  "id": "v10-alt",
+  "episode": "jr",
+  "pair": "alt",
+  "kind": "v6",
+  "outcome": "V6",
+  "edition": "v6",
+  "parts": {
+    "over": "alt-over",
+    "clear": "alt-clear",
+    "combined": "combined/alt"
+  },
+  "title": {
+    "ja": "恵比寿駅で GAME OVER → 原宿駅で再挑戦"
+  },
+  "start": {
+    "place": "hachiko-square",
+    "ja": "スタート：ハチ公前広場",
+    "factIds": []
+  },
+  "clock": {
+    "start": "00:23",
+    "ja": "ゲーム内時刻（架空）",
+    "rate": 0.5
+  },
+  "choice": {
+    "prompt": {
+      "ja": "渋谷を避けて隣の駅へ。\nどっちへ歩く？"
+    },
+    "options": [
+      {
+        "key": "A",
+        "ja": "原宿駅（北へ）",
+        "sub": "約20分・OSMから概算",
+        "factIds": [
+          "ALT-HARA-H"
+        ]
+      },
+      {
+        "key": "B",
+        "ja": "恵比寿駅（南へ）",
+        "sub": "約25分・OSMから概算",
+        "factIds": [
+          "ALT-EBI-H"
+        ]
+      }
+    ],
+    "picked": "B"
+  },
+  "firstChoice": {
+    "prompt": {
+      "ja": "まず、どうする？"
+    },
+    "options": [
+      {
+        "key": "A",
+        "ja": "そもそも渋谷に行かない",
+        "factIds": []
+      },
+      {
+        "key": "B",
+        "ja": "もう渋谷にいる",
+        "sub": "仕事・住まい・うっかり来てしまった",
+        "factIds": []
+      }
+    ],
+    "picked": "A"
+  },
+  "beats": [
+    {
+      "id": "first-choice",
+      "dur": 4,
+      "shot": {
+        "key": "card-bg",
+        "params": {
+          "yaw0": 0.3
+        }
+      },
+      "hud": [
+        {
+          "c": "choice",
+          "card": true,
+          "prompt": {
+            "ja": "まず、どうする？"
+          },
+          "en": "First, what will you do?",
+          "options": [
+            {
+              "key": "A",
+              "ja": "そもそも渋谷に行かない",
+              "factIds": []
+            },
+            {
+              "key": "B",
+              "ja": "もう渋谷にいる",
+              "sub": "仕事・住まい・うっかり来てしまった",
+              "factIds": []
+            }
+          ],
+          "picked": "A",
+          "pickAt": 3,
+          "factIds": []
+        }
+      ],
+      "header": {
+        "sub": "10/31 渋谷ハロウィンには近づくな"
+      },
+      "clock": false,
+      "bgm": "calm",
+      "amb": null,
+      "plateTag": "AI生成画像を加工"
+    },
+    {
+      "id": "true-end",
+      "dur": 4,
+      "shot": {
+        "key": "true-end-bg"
+      },
+      "hud": [
+        {
+          "c": "stamp",
+          "kind": "TRUE_END",
+          "ja": "今年の渋谷ハロウィンには行かない",
+          "kicker": "いちばん安全なクリア",
+          "en": "TRUE END — the safest clear: don't go.",
+          "factIds": []
+        }
+      ],
+      "header": {
+        "sub": "10/31 渋谷ハロウィンには近づくな"
+      },
+      "clock": false,
+      "bgm": "calm",
+      "amb": null
+    },
+    {
+      "id": "guide",
+      "dur": 3,
+      "shot": {
+        "key": "card-bg",
+        "params": {
+          "yaw0": 0.9
+        }
+      },
+      "hud": [
+        {
+          "c": "guide",
+          "ja": "ここからは“もしも”の脱出ガイド",
+          "sub": "もう渋谷にいる人（仕事・住まい・うっかり来た人）へ",
+          "en": "From here: a just-in-case escape guide",
+          "options": [
+            {
+              "key": "A",
+              "ja": "そもそも渋谷に行かない",
+              "factIds": []
+            },
+            {
+              "key": "B",
+              "ja": "もう渋谷にいる",
+              "sub": "仕事・住まい・うっかり来てしまった",
+              "factIds": []
+            }
+          ],
+          "hot": "B",
+          "doneKey": "A",
+          "doneLabel": "TRUE END",
+          "factIds": []
+        }
+      ],
+      "header": {
+        "sub": "10/31 渋谷ハロウィンには近づくな"
+      },
+      "clock": false,
+      "bgm": "tension",
+      "amb": null,
+      "plateTag": "AI生成画像を加工"
+    },
+    {
+      "id": "over-start",
+      "dur": 3.5,
+      "shot": {
+        "key": "topdown",
+        "params": {
+          "center": [
+            16,
+            0,
+            26
+          ]
+        },
+        "t0": 0
+      },
+      "crowd": {
+        "key": "hachiko-peak",
+        "t0": 0,
+        "restart": true
+      },
+      "hud": [
+        {
+          "c": "mission",
+          "ja": "山手線の内回りで\n品川方面へ帰れ",
+          "factIds": [
+            "JR-PLAT-01"
+          ]
+        },
+        {
+          "c": "caption",
+          "ja": "渋谷の内回り終電は0:48\n（通常の土休日ダイヤ）",
+          "factIds": [
+            "JR-LAST-02"
+          ],
+          "until": 1.2
+        },
+        {
+          "c": "caption",
+          "ja": "混雑で駅の出入口が\n変わる可能性も（2026年）",
+          "factIds": [
+            "MEAS-12"
+          ],
+          "at": 1.2
+        },
+        {
+          "c": "sim",
+          "ja": "人の流れ＝シミュレーション",
+          "factIds": []
+        }
+      ],
+      "clock": {
+        "set": "00:23:00",
+        "rate": 0.5
+      },
+      "vt0": 14.2,
+      "bgm": "tension",
+      "amb": "crowd-night",
+      "reuse": {
+        "variant": "alt-over",
+        "beat": "start"
+      }
+    },
+    {
+      "id": "sim-plan",
+      "dur": 11,
+      "shot": {
+        "key": "routemap",
+        "params": {
+          "routes": [
+            "SIM-HA",
+            "SIM-EB"
+          ],
+          "highlight": null,
+          "colors": {
+            "SIM-HA": "#4FE3C1",
+            "SIM-EB": "#FF9A3D"
+          },
+          "points": [
+            [
+              10.5,
+              -371.5
+            ],
+            [
+              356.5,
+              -371.5
+            ],
+            [
+              10.5,
+              347.5
+            ],
+            [
+              356.5,
+              347.5
+            ]
+          ],
+          "azimuth": 90,
+          "push": 0,
+          "rect": {
+            "x0": 0.08,
+            "x1": 0.92,
+            "y0": 0.2,
+            "y1": 0.5
+          },
+          "span": true,
+          "redZone": 0,
+          "drawOn": [
+            0,
+            0.01
+          ]
+        },
+        "t0": 0
+      },
+      "simmap": {
+        "scenario": "plan",
+        "routes": [
+          "HA",
+          "EB"
+        ],
+        "colors": {
+          "HA": "#4FE3C1",
+          "EB": "#FF9A3D"
+        },
+        "player": "EB",
+        "crowd": true,
+        "heat": 1,
+        "run": [
+          0.35,
+          10.4
+        ],
+        "simT": [
+          0,
+          776
+        ],
+        "costumes": true
+      },
+      "hud": [
+        {
+          "c": "simpanel",
+          "scenario": "plan",
+          "pair": "alt",
+          "head": "シミュレーション",
+          "assume": "仮定：人出48,000人・ピーク時／範囲外はOSMから概算（80m/分）／終電は通常の土休日ダイヤ",
+          "factIds": [],
+          "phase": "run",
+          "run": [
+            0.35,
+            10.4
+          ],
+          "simT": [
+            0,
+            776
+          ],
+          "speed": "×77 早送り",
+          "exit": false,
+          "finalAt": 10.4
+        },
+        {
+          "c": "pin",
+          "world": [
+            22.5,
+            0,
+            36.5
+          ],
+          "ja": "スタート",
+          "color": "#E9DDFF",
+          "factIds": []
+        },
+        {
+          "c": "pin",
+          "world": [
+            161.5,
+            0,
+            -367.5
+          ],
+          "ja": "A →OSM区間（概算）",
+          "color": "#4FE3C1",
+          "factIds": [
+            "ALT-HARA-H"
+          ]
+        },
+        {
+          "c": "pin",
+          "world": [
+            295.5,
+            0,
+            341.5
+          ],
+          "ja": "B →OSM区間（概算）",
+          "color": "#FF9A3D",
+          "factIds": [
+            "ALT-EBI-H"
+          ]
+        }
+      ],
+      "cues": [
+        {
+          "at": 0.05,
+          "sfx": "card_in",
+          "gain_db": -4
+        },
+        {
+          "at": 0.4,
+          "sfx": "tick",
+          "repeat": 0.45,
+          "until": 10.4,
+          "gain_db": -6
+        }
+      ],
+      "clock": false,
+      "header": true,
+      "bgm": "tension",
+      "amb": "crowd-night",
+      "duck": -5
+    },
+    {
+      "id": "sim-pick",
+      "dur": 4,
+      "shot": {
+        "key": "routemap",
+        "params": {
+          "routes": [
+            "SIM-HA",
+            "SIM-EB"
+          ],
+          "highlight": "SIM-HA",
+          "colors": {
+            "SIM-HA": "#4FE3C1",
+            "SIM-EB": "#FF9A3D"
+          },
+          "points": [
+            [
+              10.5,
+              -371.5
+            ],
+            [
+              356.5,
+              -371.5
+            ],
+            [
+              10.5,
+              347.5
+            ],
+            [
+              356.5,
+              347.5
+            ]
+          ],
+          "azimuth": 90,
+          "push": 0,
+          "rect": {
+            "x0": 0.08,
+            "x1": 0.92,
+            "y0": 0.2,
+            "y1": 0.5
+          },
+          "span": true,
+          "redZone": 0,
+          "drawOn": [
+            0,
+            0.01
+          ]
+        },
+        "t0": 0
+      },
+      "simmap": {
+        "scenario": "plan",
+        "routes": [
+          "HA",
+          "EB"
+        ],
+        "colors": {
+          "HA": "#4FE3C1",
+          "EB": "#FF9A3D"
+        },
+        "player": "EB",
+        "crowd": true,
+        "heat": 1,
+        "run": [
+          0,
+          1
+        ],
+        "simT": [
+          776,
+          776
+        ],
+        "costumes": true
+      },
+      "hud": [
+        {
+          "c": "simpanel",
+          "scenario": "plan",
+          "pair": "alt",
+          "head": "シミュレーション",
+          "assume": "仮定：人出48,000人・ピーク時／範囲外はOSMから概算（80m/分）／終電は通常の土休日ダイヤ",
+          "factIds": [],
+          "phase": "pick",
+          "run": [
+            0,
+            1
+          ],
+          "simT": [
+            776,
+            776
+          ],
+          "speed": "×77 早送り",
+          "anim": "none",
+          "reorder": [
+            0.15,
+            0.95
+          ],
+          "pickAt": 1.15,
+          "verdict": "シミュレーションの結論"
+        },
+        {
+          "c": "pin",
+          "world": [
+            22.5,
+            0,
+            36.5
+          ],
+          "ja": "スタート",
+          "color": "#E9DDFF",
+          "factIds": []
+        },
+        {
+          "c": "pin",
+          "world": [
+            161.5,
+            0,
+            -367.5
+          ],
+          "ja": "A →OSM区間（概算）",
+          "color": "#4FE3C1",
+          "factIds": [
+            "ALT-HARA-H"
+          ]
+        },
+        {
+          "c": "pin",
+          "world": [
+            295.5,
+            0,
+            341.5
+          ],
+          "ja": "B →OSM区間（概算）",
+          "color": "#FF9A3D",
+          "factIds": [
+            "ALT-EBI-H"
+          ]
+        }
+      ],
+      "cues": [
+        {
+          "at": 0.15,
+          "sfx": "whoosh",
+          "gain_db": -12
+        },
+        {
+          "at": 1.15,
+          "sfx": "ui_select"
+        },
+        {
+          "at": 1.19,
+          "sfx": "choice_pick",
+          "gain_db": -2
+        }
+      ],
+      "clock": false,
+      "header": true,
+      "bgm": "tension",
+      "amb": "crowd-night",
+      "duck": -5
+    },
+    {
+      "id": "over-choice",
+      "dur": 3.5,
+      "shot": {
+        "key": "routemap",
+        "params": {
+          "routes": [
+            "ALT-HARA-H",
+            "ALT-EBI-H"
+          ],
+          "routeWidth": 30,
+          "highlight": null,
+          "colors": {
+            "ALT-HARA-H": "#FF9A3D",
+            "ALT-EBI-H": "#4FE3C1"
+          },
+          "points": [
+            [
+              209.8,
+              -1211.2
+            ],
+            [
+              768.8,
+              1406
+            ],
+            [
+              22,
+              34
+            ]
+          ],
+          "azimuth": -8,
+          "rect": {
+            "x0": 0.14,
+            "x1": 0.86,
+            "y0": 0.2,
+            "y1": 0.86
+          },
+          "span": true,
+          "redZone": 0,
+          "drawOn": [
+            0.1,
+            1.4
+          ]
+        },
+        "t0": 0
+      },
+      "hud": [
+        {
+          "c": "choice",
+          "picked": "B"
+        },
+        {
+          "c": "pin",
+          "world": [
+            209.8,
+            0,
+            -1211.2
+          ],
+          "ja": "A 原宿駅",
+          "color": "#FF9A3D",
+          "factIds": []
+        },
+        {
+          "c": "pin",
+          "world": [
+            768.8,
+            0,
+            1406
+          ],
+          "ja": "B 恵比寿駅",
+          "color": "#4FE3C1",
+          "factIds": []
+        },
+        {
+          "c": "sim",
+          "ja": "シミュレーションの結論は「A 原宿駅（北へ）」",
+          "factIds": []
+        },
+        {
+          "c": "caption",
+          "ja": "でも…終電が遅い方が安心でしょ？",
+          "speaker": "プレイヤー",
+          "factIds": [],
+          "tone": "sub",
+          "at": 1
+        }
+      ],
+      "clock": {
+        "set": "00:24:15",
+        "rate": 0.5
+      },
+      "vt0": 16.7,
+      "bgm": "tension",
+      "amb": "crowd-night",
+      "reuse": {
+        "variant": "alt-over",
+        "beat": "choice"
+      }
+    },
+    {
+      "id": "crush-pov",
+      "dur": 8,
+      "shot": {
+        "key": "card-bg",
+        "params": {},
+        "t0": 0
+      },
+      "clock": false,
+      "header": true,
+      "hud": [
+        {
+          "c": "crushmeter",
+          "scenario": "crush",
+          "route": "EB",
+          "track": "worst",
+          "run": [
+            0.3,
+            5.6
+          ],
+          "simT": [
+            1,
+            43
+          ],
+          "peak": 5.56,
+          "danger": 4,
+          "label": "足元の密度（駅前・圧死シナリオ）",
+          "note": "シミュレーション（仮定：モデルの上限 4人/m² を 8人/m² に緩和）",
+          "factIds": []
+        },
+        {
+          "c": "caption",
+          "ja": "駅前：一歩も前に進めない",
+          "factIds": [],
+          "tone": "warn",
+          "at": 0.9,
+          "until": 3.9
+        },
+        {
+          "c": "caption",
+          "ja": "押されても倒れられない。\nこれが「近づくな」の理由。",
+          "factIds": [],
+          "tone": "warn",
+          "at": 4
+        }
+      ],
+      "cues": [
+        {
+          "at": 0,
+          "sfx": "crush_muffled",
+          "gain_db": 0,
+          "duck": 0
+        },
+        {
+          "at": 0.15,
+          "sfx": "heartbeat",
+          "repeat": 0.74,
+          "until": 7.9,
+          "gain_db": -1
+        },
+        {
+          "at": 0.6,
+          "sfx": "breath",
+          "repeat": 2.05,
+          "until": 7.4,
+          "gain_db": -3
+        },
+        {
+          "at": 0.95,
+          "sfx": "shove",
+          "gain_db": -2
+        },
+        {
+          "at": 2.25,
+          "sfx": "shove",
+          "gain_db": -2
+        },
+        {
+          "at": 3.35,
+          "sfx": "shove",
+          "gain_db": -2
+        },
+        {
+          "at": 4.65,
+          "sfx": "shove",
+          "gain_db": -2
+        },
+        {
+          "at": 5.9,
+          "sfx": "shove",
+          "gain_db": -2
+        },
+        {
+          "at": 6.95,
+          "sfx": "shove",
+          "gain_db": -2
+        }
+      ],
+      "bgm": null,
+      "amb": null,
+      "crush": {
+        "pair": "alt",
+        "route": "EB",
+        "walker": 0,
+        "peak": 5.56,
+        "simT": 43,
+        "at": [
+          63.5,
+          13.2
+        ],
+        "area": "駅前の通路",
+        "shoves": [
+          0.95,
+          2.25,
+          3.35,
+          4.65,
+          5.9,
+          6.95
+        ]
+      }
+    },
+    {
+      "id": "over-move",
+      "dur": 4.5,
+      "shot": {
+        "key": "detour",
+        "params": {
+          "route": "ALT-HARA-H",
+          "mode": "chase",
+          "s0": 120,
+          "speed": 9,
+          "height": 30,
+          "back": 34,
+          "color": "#FF9A3D"
+        },
+        "t0": 0
+      },
+      "hud": [
+        {
+          "c": "caption",
+          "ja": "恵比寿へ 約1932m・約25分\n（OSMから概算）",
+          "factIds": [
+            "ALT-EBI-H"
+          ]
+        },
+        {
+          "c": "simmeter",
+          "scenario": "plan",
+          "route": "EB",
+          "run": [
+            0,
+            4.5
+          ],
+          "simT": [
+            38,
+            430.1
+          ],
+          "factIds": [],
+          "etaLabel": "恵比寿駅まで"
+        }
+      ],
+      "transition": "dip",
+      "clock": {
+        "set": "00:26:15",
+        "rate": 0.5
+      },
+      "vt0": 20.7,
+      "bgm": "tension",
+      "amb": "crowd-night",
+      "reuse": {
+        "variant": "alt-over",
+        "beat": "move"
+      },
+      "plateTag": "AI生成画像を加工"
+    },
+    {
+      "id": "over-result",
+      "dur": 4,
+      "clock": {
+        "set": "00:51:00",
+        "rate": 0.5
+      },
+      "shot": {
+        "key": "alt-platform",
+        "params": {
+          "station": "harajuku",
+          "mode": "train",
+          "trainLeaveAt": 0.4
+        },
+        "t0": 0
+      },
+      "crowd": {
+        "key": "alt-platform",
+        "t0": 0,
+        "restart": true
+      },
+      "board": {
+        "title": "恵比寿 山手線 内回り",
+        "rows": [
+          {
+            "note": "終電",
+            "time": "0:50",
+            "dest": "大崎"
+          }
+        ],
+        "foot": "通常の土休日ダイヤ（10/25確認）",
+        "status": "発車"
+      },
+      "factIds": [
+        "JR-LAST-14"
+      ],
+      "amb": "street-quiet",
+      "hud": [
+        {
+          "c": "caption",
+          "ja": "恵比寿着 0:51（シミュレーション）\n内回り終電0:50に間に合わない\n（通常の土休日ダイヤ）",
+          "factIds": [
+            "JR-LAST-14"
+          ],
+          "tone": "warn",
+          "sim": true
+        },
+        {
+          "c": "sim",
+          "ja": "着0:51＝シミュレーション",
+          "factIds": [],
+          "at": 0.4
+        }
+      ],
+      "vt0": 25.2,
+      "bgm": "tension",
+      "reuse": {
+        "variant": "alt-over",
+        "beat": "result"
+      },
+      "plateTag": "AI生成画像を加工"
+    },
+    {
+      "id": "caught",
+      "dur": 2.5,
+      "shot": {
+        "key": "caught-pov",
+        "params": {
+          "base": "alt-platform",
+          "baseParams": {
+            "station": "harajuku",
+            "mode": "train",
+            "trainLeaveAt": 0.4,
+            "board": {
+              "title": "原宿 山手線 内回り",
+              "rows": [
+                {
+                  "note": "終電",
+                  "time": "0:45",
+                  "dest": "大崎"
+                }
+              ],
+              "foot": "通常の土休日ダイヤ（10/25確認）",
+              "status": "発車"
+            }
+          },
+          "baseT0": 4,
+          "eyeY": 1.55,
+          "push": 0.6,
+          "flashAt": 1.75,
+          "blackAt": 2.15,
+          "hands": {
+            "scale": 0.75,
+            "reach": 0.6
+          },
+          "seed": 23
+        },
+        "t0": 0
+      },
+      "crowd": {
+        "key": "caught-press",
+        "params": {
+          "seed": 23,
+          "base": {
+            "key": "alt-platform",
+            "params": {},
+            "t0": 4
+          }
+        }
+      },
+      "hud": [
+        {
+          "c": "sim",
+          "ja": "終電に間に合わない…（シミュレーション）",
+          "factIds": [],
+          "until": 1.75
+        }
+      ],
+      "cues": [
+        {
+          "at": 0,
+          "sfx": "crowd_press"
+        },
+        {
+          "at": 0.35,
+          "sfx": "zombie_groan"
+        },
+        {
+          "at": 1.15,
+          "sfx": "zombie_groan_b",
+          "gain_db": -3,
+          "pan": 0.4
+        },
+        {
+          "at": 1.75,
+          "sfx": "red_flash"
+        },
+        {
+          "at": 1.75,
+          "sfx": "caught_hit",
+          "duck": 0.6,
+          "duck_db": -12
+        },
+        {
+          "at": 2.15,
+          "sfx": "cut_black"
+        }
+      ],
+      "header": false,
+      "clock": false,
+      "vt0": 29.2,
+      "factIds": [
+        "JR-LAST-14"
+      ],
+      "bgm": null,
+      "amb": "street-quiet",
+      "reuse": {
+        "variant": "combined/alt",
+        "beat": "caught"
+      },
+      "plateTag": "AI生成画像を加工"
+    },
+    {
+      "id": "over-stamp",
+      "dur": 2,
+      "shot": {
+        "key": "black",
+        "t0": 0
+      },
+      "hud": [
+        {
+          "c": "stamp",
+          "kind": "GAME_OVER",
+          "ja": "終電に間に合わない…\n（シミュレーション）",
+          "factIds": [],
+          "onBlack": true,
+          "safety": {
+            "ja": "終電の時刻と歩く時間を先に確認",
+            "factIds": []
+          }
+        }
+      ],
+      "header": false,
+      "clock": false,
+      "bgm": null,
+      "amb": null,
+      "vt0": 31.7,
+      "reuse": {
+        "variant": "combined/alt",
+        "beat": "over-stamp"
+      }
+    },
+    {
+      "id": "over-lesson",
+      "dur": 5,
+      "shot": {
+        "key": "card-bg",
+        "t0": 0
+      },
+      "hud": [
+        {
+          "c": "lesson"
+        }
+      ],
+      "clock": false,
+      "header": true,
+      "bgm": "calm",
+      "transition": "dip",
+      "vt0": 31.7,
+      "amb": "crowd-night",
+      "reuse": {
+        "variant": "alt-over",
+        "beat": "lesson"
+      },
+      "plateTag": "AI生成画像を加工"
+    },
+    {
+      "id": "continue",
+      "dur": 3,
+      "shot": {
+        "key": "continue-bg",
+        "t0": 0
+      },
+      "hud": [
+        {
+          "c": "continue",
+          "ja": "反対側の駅でやり直す",
+          "count": 3,
+          "yesAt": 1.6,
+          "factIds": []
+        }
+      ],
+      "clock": false,
+      "bgm": "retry",
+      "amb": null,
+      "vt0": 38.7,
+      "reuse": {
+        "variant": "combined/alt",
+        "beat": "continue"
+      },
+      "plateTag": "AI生成画像を加工"
+    },
+    {
+      "id": "retry-why",
+      "dur": 5,
+      "shot": {
+        "key": "routemap",
+        "params": {
+          "routes": [
+            "SIM-HA",
+            "SIM-EB"
+          ],
+          "highlight": null,
+          "colors": {
+            "SIM-HA": "#4FE3C1",
+            "SIM-EB": "#FF9A3D"
+          },
+          "points": [
+            [
+              10.5,
+              -371.5
+            ],
+            [
+              356.5,
+              -371.5
+            ],
+            [
+              10.5,
+              347.5
+            ],
+            [
+              356.5,
+              347.5
+            ]
+          ],
+          "azimuth": 90,
+          "push": 0,
+          "rect": {
+            "x0": 0.08,
+            "x1": 0.92,
+            "y0": 0.2,
+            "y1": 0.5
+          },
+          "span": true,
+          "redZone": 0,
+          "drawOn": [
+            0,
+            0.01
+          ]
+        },
+        "t0": 0
+      },
+      "simmap": {
+        "scenario": "plan",
+        "routes": [
+          "HA",
+          "EB"
+        ],
+        "colors": {
+          "HA": "#4FE3C1",
+          "EB": "#FF9A3D"
+        },
+        "player": "EB",
+        "crowd": true,
+        "heat": 1,
+        "freeze": 750,
+        "pulse": [
+          301.5,
+          334.4
+        ],
+        "dim": [
+          "HA"
+        ],
+        "run": [
+          0,
+          1
+        ],
+        "simT": [
+          750,
+          750
+        ],
+        "costumes": true
+      },
+      "hud": [
+        {
+          "c": "caption",
+          "ja": "なぜ失敗した？\nシミュレーションで見直す",
+          "factIds": [],
+          "tone": "warn",
+          "until": 2
+        },
+        {
+          "c": "pin",
+          "world": [
+            180.8,
+            0,
+            187.2
+          ],
+          "ja": "恵比寿着 0:51\n内回り終電0:50に間に合わない\n（シミュレーション・土休日ダイヤ）",
+          "color": "#FF6FB1",
+          "factIds": [
+            "JR-LAST-14"
+          ]
+        },
+        {
+          "c": "caption",
+          "ja": "同じシミュレーションの\n失敗した瞬間",
+          "factIds": [],
+          "tone": "warn",
+          "at": 2
+        }
+      ],
+      "cues": [
+        {
+          "at": 0.02,
+          "sfx": "red_alert",
+          "gain_db": -6
+        },
+        {
+          "at": 0.05,
+          "sfx": "card_in",
+          "gain_db": -6
+        }
+      ],
+      "clock": false,
+      "header": true,
+      "bgm": "retry",
+      "amb": "crowd-night",
+      "duck": -4,
+      "why": {
+        "t": 750,
+        "rho": 0.89,
+        "x": 301.5,
+        "z": 334.4,
+        "text": "恵比寿着 0:51\n内回り終電0:50に間に合わない\n（シミュレーション・土休日ダイヤ）"
+      }
+    },
+    {
+      "id": "clear-choice",
+      "dur": 7.5,
+      "shot": {
+        "key": "routemap",
+        "params": {
+          "routes": [
+            "SIM-HA",
+            "SIM-EB"
+          ],
+          "highlight": null,
+          "colors": {
+            "SIM-HA": "#4FE3C1",
+            "SIM-EB": "#FF9A3D"
+          },
+          "points": [
+            [
+              10.5,
+              -371.5
+            ],
+            [
+              356.5,
+              -371.5
+            ],
+            [
+              10.5,
+              347.5
+            ],
+            [
+              356.5,
+              347.5
+            ]
+          ],
+          "azimuth": 90,
+          "push": 0,
+          "rect": {
+            "x0": 0.08,
+            "x1": 0.92,
+            "y0": 0.2,
+            "y1": 0.5
+          },
+          "span": true,
+          "redZone": 0,
+          "drawOn": [
+            0,
+            0.01
+          ]
+        },
+        "t0": 0
+      },
+      "simmap": {
+        "scenario": "retry",
+        "routes": [
+          "HA",
+          "EB"
+        ],
+        "colors": {
+          "HA": "#4FE3C1",
+          "EB": "#FF9A3D"
+        },
+        "player": "HA",
+        "crowd": true,
+        "heat": 1,
+        "run": [
+          0.45,
+          4.2
+        ],
+        "simT": [
+          0,
+          747
+        ],
+        "costumes": true
+      },
+      "hud": [
+        {
+          "c": "simpanel",
+          "scenario": "retry",
+          "pair": "alt",
+          "head": "再計算（失敗した時間帯の人の流れで）",
+          "assume": "仮定：人出48,000人・ピーク時／範囲外はOSMから概算（80m/分）／終電は通常の土休日ダイヤ",
+          "factIds": [],
+          "phase": "recompute",
+          "from": "plan",
+          "reorder": [
+            4.2,
+            4.6000000000000005
+          ],
+          "run": [
+            0.45,
+            4.2
+          ],
+          "simT": [
+            0,
+            747
+          ],
+          "speed": "×199 早送り",
+          "finalAt": 4.2,
+          "pickAt": 4.65,
+          "verdict": "再計算の結論"
+        },
+        {
+          "c": "pin",
+          "world": [
+            22.5,
+            0,
+            36.5
+          ],
+          "ja": "スタート",
+          "color": "#E9DDFF",
+          "factIds": []
+        },
+        {
+          "c": "pin",
+          "world": [
+            161.5,
+            0,
+            -367.5
+          ],
+          "ja": "A →OSM区間（概算）",
+          "color": "#4FE3C1",
+          "factIds": [
+            "ALT-HARA-H"
+          ]
+        },
+        {
+          "c": "pin",
+          "world": [
+            295.5,
+            0,
+            341.5
+          ],
+          "ja": "B →OSM区間（概算）",
+          "color": "#FF9A3D",
+          "factIds": [
+            "ALT-EBI-H"
+          ]
+        }
+      ],
+      "cues": [
+        {
+          "at": 0.05,
+          "sfx": "whoosh",
+          "gain_db": -8
+        },
+        {
+          "at": 0.6,
+          "sfx": "tick",
+          "repeat": 0.4,
+          "until": 4.2,
+          "gain_db": -6
+        },
+        {
+          "at": 4.65,
+          "sfx": "ui_select"
+        },
+        {
+          "at": 4.69,
+          "sfx": "choice_pick",
+          "gain_db": -2
+        }
+      ],
+      "clock": false,
+      "header": true,
+      "bgm": "retry",
+      "amb": "crowd-night",
+      "duck": -5,
+      "reuse": {
+        "variant": "alt-clear",
+        "beat": "choice"
+      }
+    },
+    {
+      "id": "clear-move",
+      "dur": 4.5,
+      "shot": {
+        "key": "routemap",
+        "params": {
+          "routes": [
+            "ALT-HARA-H",
+            "ALT-EBI-H"
+          ],
+          "routeWidth": 30,
+          "highlight": "ALT-HARA-H",
+          "colors": {
+            "ALT-HARA-H": "#4FE3C1",
+            "ALT-EBI-H": "#FF9A3D"
+          },
+          "points": [
+            [
+              209.8,
+              -1211.2
+            ],
+            [
+              22,
+              34
+            ],
+            [
+              768.8,
+              1406
+            ]
+          ],
+          "rect": {
+            "x0": 0.12,
+            "x1": 0.88,
+            "y0": 0.2,
+            "y1": 0.74
+          },
+          "span": true,
+          "redZone": 0
+        },
+        "t0": 0
+      },
+      "hud": [
+        {
+          "c": "caption",
+          "ja": "原宿の内回り終電は0:45\n（通常の土休日ダイヤ）",
+          "factIds": [
+            "JR-LAST-08"
+          ],
+          "until": 2.3
+        },
+        {
+          "c": "caption",
+          "ja": "原宿へ 約1572m・約20分\n（OSMから概算）",
+          "factIds": [
+            "ALT-HARA-H"
+          ],
+          "at": 2.3
+        },
+        {
+          "c": "pin",
+          "world": [
+            209.8,
+            0,
+            -1211.2
+          ],
+          "ja": "原宿駅",
+          "color": "#4FE3C1",
+          "factIds": []
+        },
+        {
+          "c": "simmeter",
+          "scenario": "retry",
+          "route": "HA",
+          "run": [
+            0,
+            4.5
+          ],
+          "simT": [
+            2,
+            276
+          ],
+          "factIds": [],
+          "etaLabel": "原宿駅まで"
+        }
+      ],
+      "transition": "dip",
+      "clock": {
+        "set": "00:26:15",
+        "rate": 0.5
+      },
+      "vt0": 20.7,
+      "bgm": "tension",
+      "amb": "crowd-night",
+      "reuse": {
+        "variant": "alt-clear",
+        "beat": "move"
+      }
+    },
+    {
+      "id": "clear-pov",
+      "dur": 3,
+      "shot": {
+        "key": "card-bg",
+        "params": {},
+        "t0": 0
+      },
+      "clock": false,
+      "header": true,
+      "hud": [
+        {
+          "c": "simmeter",
+          "scenario": "retry",
+          "route": "HA",
+          "run": [
+            0,
+            3
+          ],
+          "simT": [
+            276,
+            296
+          ],
+          "factIds": [],
+          "etaLabel": "原宿駅まで"
+        },
+        {
+          "c": "caption",
+          "ja": "こっちは歩ける。\nまわりに余裕がある\n（シミュレーション）",
+          "factIds": [],
+          "at": 0.3
+        }
+      ],
+      "cues": [
+        {
+          "at": 0.05,
+          "sfx": "whoosh",
+          "gain_db": -14
+        }
+      ],
+      "bgm": "retry",
+      "amb": "street-quiet"
+    },
+    {
+      "id": "clear-result",
+      "dur": 4,
+      "clock": {
+        "set": "00:44:00",
+        "rate": 0.5
+      },
+      "shot": {
+        "key": "alt-platform",
+        "params": {
+          "station": "ebisu",
+          "mode": "board",
+          "trainLeaveAt": 9,
+          "pan": 0,
+          "side": 3,
+          "dist": 7.5,
+          "push": 0.05,
+          "fov": 56,
+          "lookDy": -0.6
+        },
+        "t0": 0
+      },
+      "crowd": {
+        "key": "alt-platform",
+        "t0": 0,
+        "restart": true
+      },
+      "board": {
+        "title": "原宿 山手線 内回り",
+        "rows": [
+          {
+            "note": "終電",
+            "time": "0:45",
+            "dest": "大崎"
+          }
+        ],
+        "foot": "通常の土休日ダイヤ（10/25確認）",
+        "status": ""
+      },
+      "factIds": [
+        "JR-LAST-08"
+      ],
+      "amb": "street-quiet",
+      "hud": [
+        {
+          "c": "caption",
+          "ja": "原宿に0:44ごろ到着\n（シミュレーション）",
+          "factIds": [],
+          "sim": true
+        },
+        {
+          "c": "sim",
+          "ja": "到着時刻＝シミュレーション",
+          "factIds": [],
+          "at": 0.4
+        }
+      ],
+      "vt0": 25.2,
+      "bgm": "tension",
+      "reuse": {
+        "variant": "combined/alt",
+        "beat": "clear-result"
+      },
+      "plateTag": "AI生成画像を加工"
+    },
+    {
+      "id": "clear-stamp",
+      "dur": 2.5,
+      "shot": {
+        "key": "alt-platform",
+        "params": {
+          "station": "ebisu",
+          "mode": "board",
+          "trainLeaveAt": 9,
+          "pan": 0,
+          "side": 3,
+          "dist": 7.5,
+          "push": 0.05,
+          "fov": 56,
+          "lookDy": -0.6
+        },
+        "t0": 4
+      },
+      "crowd": {
+        "key": "alt-platform",
+        "t0": 4,
+        "restart": true
+      },
+      "board": {
+        "title": "原宿 山手線 内回り",
+        "rows": [
+          {
+            "note": "終電",
+            "time": "0:45",
+            "dest": "大崎"
+          }
+        ],
+        "foot": "通常の土休日ダイヤ（10/25確認）",
+        "status": ""
+      },
+      "factIds": [
+        "JR-LAST-08"
+      ],
+      "amb": "street-quiet",
+      "hud": [
+        {
+          "c": "stamp",
+          "kind": "GAME_CLEAR",
+          "ja": "終電に間に合った！\n（シミュレーション）",
+          "factIds": []
+        }
+      ],
+      "bgm": "victory",
+      "clock": {
+        "set": "00:46:00",
+        "rate": 0.5
+      },
+      "vt0": 29.2,
+      "reuse": {
+        "variant": "combined/alt",
+        "beat": "clear-stamp"
+      },
+      "plateTag": "AI生成画像を加工"
+    },
+    {
+      "id": "clear-cheat",
+      "dur": 3.5,
+      "shot": {
+        "key": "card-bg",
+        "params": {
+          "yaw0": 1.1
+        },
+        "t0": 0
+      },
+      "hud": [
+        {
+          "c": "cheat"
+        }
+      ],
+      "clock": false,
+      "bgm": "victory",
+      "vt0": 36.7,
+      "amb": "crowd-night",
+      "reuse": {
+        "variant": "alt-clear",
+        "beat": "cheat"
+      },
+      "plateTag": "AI生成画像を加工"
+    },
+    {
+      "id": "kaiju",
+      "dur": 4,
+      "shot": {
+        "key": "kaiju-skyline",
+        "params": {
+          "rise": [
+            0.15,
+            1.7
+          ],
+          "roarAt": 1.85,
+          "roarDur": 1.35,
+          "kaiju": {
+            "scale": 480,
+            "ground": 500,
+            "pos": [
+              10,
+              1000
+            ]
+          }
+        },
+        "t0": 0
+      },
+      "hud": [
+        {
+          "c": "gag",
+          "ja": "終電より\nデカいの来た",
+          "factIds": [],
+          "at": 2.5
+        }
+      ],
+      "cues": [
+        {
+          "at": 0.1,
+          "sfx": "kaiju_rumble"
+        },
+        {
+          "at": 1.85,
+          "sfx": "kaiju_roar",
+          "duck": 1.2,
+          "duck_db": -10
+        },
+        {
+          "at": 1.95,
+          "sfx": "party_popper",
+          "gain_db": -2
+        }
+      ],
+      "header": false,
+      "clock": false,
+      "bgm": null,
+      "amb": "crowd-night",
+      "vt0": 60.2,
+      "reuse": {
+        "variant": "combined/alt",
+        "beat": "kaiju"
+      }
+    },
+    {
+      "id": "goodbye",
+      "dur": 8,
+      "shot": {
+        "key": "card-bg",
+        "params": {
+          "yaw0": 2.2,
+          "tone": "dark"
+        }
+      },
+      "hud": [
+        {
+          "c": "goodbye",
+          "quote": {
+            "title": "GOODBYE BAD HALLOWEEN",
+            "ja": "渋谷駅周辺では、条例で飲酒・喫煙、\nごみのポイ捨ては禁止されています。",
+            "attr": "（渋谷区）",
+            "en": "Drinking, smoking and littering on the streets around Shibuya Station are banned by ordinance.",
+            "enAttr": "(Shibuya City)",
+            "label": "引用"
+          },
+          "facts": [
+            {
+              "ja": "10/30(金)早朝〜11/1(日)朝方　ハチ公像は囲いで観覧不可",
+              "en": "Oct 30 early AM – Nov 1 morning: Hachiko statue fenced off"
+            },
+            {
+              "ja": "10/30夕方〜11/1早朝　駅周辺で交通規制",
+              "en": "Oct 30 evening – Nov 1 early AM: traffic restrictions around the station"
+            }
+          ],
+          "ours": {
+            "label": "制作チームより",
+            "ja": "いちばんのCLEARは、\n今年の渋谷に「行かない」こと。",
+            "en": "The best CLEAR this year: don't go to Shibuya."
+          },
+          "foot": {
+            "ja": "出典：渋谷区公式X（2026/10/22）・渋谷区・警視庁渋谷警察署　※本編はフィクションです",
+            "en": "Sources: Shibuya City (X, Oct 22, 2026), Shibuya City, MPD Shibuya Police Station. *Story is fiction."
+          },
+          "factIds": []
+        }
+      ],
+      "header": false,
+      "clock": false,
+      "footnote": false,
+      "bgm": "farewell",
+      "amb": null
+    },
+    {
+      "id": "sources",
+      "dur": 3,
+      "shot": {
+        "key": "card-bg",
+        "params": {
+          "yaw0": 1.5
+        }
+      },
+      "hud": [
+        {
+          "c": "sources",
+          "compact": true,
+          "note": "徒歩はOSMから概算（混雑・信号は含まず）／混雑・所要時間は人流シミュレーション（人出48,000人・ピーク時、入場規制などは仮定）",
+          "parodyNote": {
+            "ja": "※本編（ゲーム部分）はフィクションです。引用・日付は各出典の公表内容です",
+            "en": "*The game story is fiction; quotes and dates are as published by each source."
+          },
+          "factIds": [],
+          "credit": "出典：国土交通省 PLATEAU（3D都市モデル）／© OpenStreetMap contributors\n写真：Syced（CC0・Wikimedia Commons）／一部背景はAI生成画像を加工"
+        }
+      ],
+      "header": {
+        "sub": "10/31 渋谷ハロウィンには近づくな"
+      },
+      "clock": false,
+      "footnote": false,
+      "bgm": "farewell",
+      "amb": null,
+      "fadeOut": 0.4
+    }
+  ],
+  "lesson": {
+    "title": "終電が遅い駅が正解とは限らない",
+    "points": [
+      "恵比寿の内回り終電0:50は\n渋谷0:48より遅いけれど\n歩いて約25分（OSMから概算）",
+      "原宿の内回り終電は0:45\n歩いて約20分（OSMから概算）",
+      "通常の土休日ダイヤ（10/25確認）\n2026年の臨時ダイヤは未発表",
+      "終電の時刻と歩く時間を\n両方先に確認"
+    ],
+    "factIds": [
+      "JR-LAST-14",
+      "JR-LAST-02",
+      "JR-LAST-08",
+      "ALT-EBI-H",
+      "ALT-HARA-H",
+      "NA-JR-2026"
+    ],
+    "ja": "終電が遅い駅が正解とは限らない\n恵比寿の内回り終電0:50は\n渋谷0:48より遅いけれど\n歩いて約25分（OSMから概算）\n原宿の内回り終電は0:45\n歩いて約20分（OSMから概算）\n通常の土休日ダイヤ（10/25確認）\n2026年の臨時ダイヤは未発表\n終電の時刻と歩く時間を\n両方先に確認",
+    "summary": "終電が遅い駅が正解とは限らない。恵比寿の内回り終電0:50は渋谷0:48より遅いが歩いて約25分、原宿は0:45で約20分（OSMから概算・通常の土休日ダイヤ・10/25確認、2026年の臨時ダイヤは未発表）。終電の時刻と歩く時間を両方先に確認。"
+  },
+  "cheat": {
+    "title": "保存版 山手線の終電",
+    "sub": "通常の土休日ダイヤ（10/25確認）",
+    "asOf": "10/25時点",
+    "note": "当日は駅・警察の案内を確認",
+    "rows": [
+      {
+        "sec": "駅 外回り（新宿方面）・内回り（品川方面）",
+        "ja": "渋谷 外回り0:33・内回り0:48",
+        "sub": "通常の土休日・内回りは大崎行",
+        "factIds": [
+          "JR-LAST-01",
+          "JR-LAST-02"
+        ]
+      },
+      {
+        "ja": "原宿 外回り0:36・内回り0:45",
+        "sub": "土休日・内回りは渋谷より早い",
+        "factIds": [
+          "JR-LAST-07",
+          "JR-LAST-08"
+        ]
+      },
+      {
+        "ja": "代々木 外回り0:38・内回り0:43",
+        "sub": "土休日・内回りは渋谷より早い",
+        "factIds": [
+          "JR-LAST-09",
+          "JR-LAST-10"
+        ]
+      },
+      {
+        "ja": "恵比寿 外回り0:30・内回り0:50",
+        "sub": "土休日・内回りは渋谷より遅い",
+        "factIds": [
+          "JR-LAST-13",
+          "JR-LAST-14"
+        ]
+      },
+      {
+        "sec": "歩く時間",
+        "ja": "原宿 約20分・恵比寿 約25分",
+        "sub": "ハチ公前から（OSMから概算）",
+        "factIds": [
+          "ALT-HARA-H",
+          "ALT-EBI-H"
+        ]
+      },
+      {
+        "ja": "2026年の臨時ダイヤ：未発表",
+        "sub": "10/25時点",
+        "factIds": [
+          "NA-JR-2026"
+        ]
+      }
+    ]
+  },
+  "sources": [
+    "ALT-HARA-H",
+    "ALT-EBI-H",
+    "JR-PLAT-01",
+    "JR-LAST-02",
+    "MEAS-12",
+    "JR-LAST-08",
+    "ALT-LAST-CMP",
+    "JR-LAST-10",
+    "JR-LAST-14",
+    "NA-JR-2026",
+    "JR-LAST-01",
+    "JR-LAST-07",
+    "JR-LAST-09",
+    "JR-LAST-13",
+    "MEAS-09",
+    "END-01",
+    "END-02",
+    "END-03"
+  ],
+  "bgm": "tension",
+  "amb": "crowd-night",
+  "routes": {
+    "SIM-HA": {
+      "ja": "A 原宿駅（北へ）（シミュレーションの経路）",
+      "factIds": [],
+      "points": [
+        [
+          22.5,
+          36.5
+        ],
+        [
+          25.5,
+          33.5
+        ],
+        [
+          28.5,
+          30.5
+        ],
+        [
+          31.5,
+          27.5
+        ],
+        [
+          34.5,
+          24.5
+        ],
+        [
+          37.5,
+          21.5
+        ],
+        [
+          40.5,
+          18.5
+        ],
+        [
+          43.5,
+          15.5
+        ],
+        [
+          46.5,
+          12.5
+        ],
+        [
+          52.5,
+          12.5
+        ],
+        [
+          58.5,
+          12.5
+        ],
+        [
+          64.5,
+          12.5
+        ],
+        [
+          70.5,
+          12.5
+        ],
+        [
+          76.5,
+          12.5
+        ],
+        [
+          82.5,
+          12.5
+        ],
+        [
+          86.5,
+          11.5
+        ],
+        [
+          92.5,
+          11.5
+        ],
+        [
+          98.5,
+          11.5
+        ],
+        [
+          104.5,
+          11.5
+        ],
+        [
+          110.5,
+          11.5
+        ],
+        [
+          116.5,
+          11.5
+        ],
+        [
+          122.5,
+          11.5
+        ],
+        [
+          126.5,
+          9.5
+        ],
+        [
+          130.5,
+          7.5
+        ],
+        [
+          135.5,
+          6.5
+        ],
+        [
+          141.5,
+          6.5
+        ],
+        [
+          145.5,
+          4.5
+        ],
+        [
+          145.5,
+          -1.5
+        ],
+        [
+          145.5,
+          -7.5
+        ],
+        [
+          145.5,
+          -13.5
+        ],
+        [
+          148.5,
+          -16.5
+        ],
+        [
+          153.5,
+          -17.5
+        ],
+        [
+          154.5,
+          -19.5
+        ],
+        [
+          151.5,
+          -22.5
+        ],
+        [
+          148.5,
+          -25.5
+        ],
+        [
+          147.5,
+          -30.5
+        ],
+        [
+          147.5,
+          -36.5
+        ],
+        [
+          147.5,
+          -42.5
+        ],
+        [
+          147.5,
+          -48.5
+        ],
+        [
+          147.5,
+          -54.5
+        ],
+        [
+          147.5,
+          -60.5
+        ],
+        [
+          146.5,
+          -65.5
+        ],
+        [
+          146.5,
+          -71.5
+        ],
+        [
+          146.5,
+          -77.5
+        ],
+        [
+          145.5,
+          -81.5
+        ],
+        [
+          145.5,
+          -87.5
+        ],
+        [
+          145.5,
+          -93.5
+        ],
+        [
+          145.5,
+          -99.5
+        ],
+        [
+          145.5,
+          -105.5
+        ],
+        [
+          144.5,
+          -109.5
+        ],
+        [
+          144.5,
+          -115.5
+        ],
+        [
+          144.5,
+          -121.5
+        ],
+        [
+          143.5,
+          -126.5
+        ],
+        [
+          143.5,
+          -132.5
+        ],
+        [
+          143.5,
+          -138.5
+        ],
+        [
+          143.5,
+          -144.5
+        ],
+        [
+          143.5,
+          -150.5
+        ],
+        [
+          143.5,
+          -156.5
+        ],
+        [
+          143.5,
+          -162.5
+        ],
+        [
+          143.5,
+          -168.5
+        ],
+        [
+          143.5,
+          -174.5
+        ],
+        [
+          143.5,
+          -180.5
+        ],
+        [
+          143.5,
+          -186.5
+        ],
+        [
+          143.5,
+          -192.5
+        ],
+        [
+          143.5,
+          -198.5
+        ],
+        [
+          145.5,
+          -201.5
+        ],
+        [
+          145.5,
+          -207.5
+        ],
+        [
+          145.5,
+          -213.5
+        ],
+        [
+          145.5,
+          -218.5
+        ],
+        [
+          149.5,
+          -220.5
+        ],
+        [
+          155.5,
+          -220.5
+        ],
+        [
+          161.5,
+          -220.5
+        ],
+        [
+          165.5,
+          -222.5
+        ],
+        [
+          168.5,
+          -225.5
+        ],
+        [
+          168.5,
+          -231.5
+        ],
+        [
+          168.5,
+          -237.5
+        ],
+        [
+          168.5,
+          -243.5
+        ],
+        [
+          168.5,
+          -249.5
+        ],
+        [
+          168.5,
+          -255.5
+        ],
+        [
+          168.5,
+          -261.5
+        ],
+        [
+          168.5,
+          -267.5
+        ],
+        [
+          165.5,
+          -270.5
+        ],
+        [
+          162.5,
+          -273.5
+        ],
+        [
+          162.5,
+          -279.5
+        ],
+        [
+          162.5,
+          -285.5
+        ],
+        [
+          161.5,
+          -290.5
+        ],
+        [
+          161.5,
+          -296.5
+        ],
+        [
+          161.5,
+          -302.5
+        ],
+        [
+          161.5,
+          -308.5
+        ],
+        [
+          161.5,
+          -314.5
+        ],
+        [
+          161.5,
+          -320.5
+        ],
+        [
+          161.5,
+          -326.5
+        ],
+        [
+          161.5,
+          -332.5
+        ],
+        [
+          161.5,
+          -338.5
+        ],
+        [
+          161.5,
+          -344.5
+        ],
+        [
+          161.5,
+          -350.5
+        ],
+        [
+          161.5,
+          -356.5
+        ],
+        [
+          161.5,
+          -359.5
+        ]
+      ]
+    },
+    "SIM-EB": {
+      "ja": "B 恵比寿駅（南へ）（シミュレーションの経路）",
+      "factIds": [],
+      "points": [
+        [
+          22.5,
+          36.5
+        ],
+        [
+          25.5,
+          33.5
+        ],
+        [
+          28.5,
+          30.5
+        ],
+        [
+          31.5,
+          27.5
+        ],
+        [
+          34.5,
+          24.5
+        ],
+        [
+          37.5,
+          21.5
+        ],
+        [
+          40.5,
+          18.5
+        ],
+        [
+          43.5,
+          15.5
+        ],
+        [
+          46.5,
+          12.5
+        ],
+        [
+          52.5,
+          12.5
+        ],
+        [
+          58.5,
+          12.5
+        ],
+        [
+          64.5,
+          12.5
+        ],
+        [
+          70.5,
+          12.5
+        ],
+        [
+          76.5,
+          12.5
+        ],
+        [
+          82.5,
+          12.5
+        ],
+        [
+          86.5,
+          11.5
+        ],
+        [
+          92.5,
+          11.5
+        ],
+        [
+          96.5,
+          10.5
+        ],
+        [
+          102.5,
+          10.5
+        ],
+        [
+          107.5,
+          9.5
+        ],
+        [
+          113.5,
+          9.5
+        ],
+        [
+          117.5,
+          8.5
+        ],
+        [
+          123.5,
+          8.5
+        ],
+        [
+          127.5,
+          7.5
+        ],
+        [
+          133.5,
+          7.5
+        ],
+        [
+          137.5,
+          6.5
+        ],
+        [
+          143.5,
+          6.5
+        ],
+        [
+          148.5,
+          5.5
+        ],
+        [
+          153.5,
+          4.5
+        ],
+        [
+          159.5,
+          4.5
+        ],
+        [
+          165.5,
+          4.5
+        ],
+        [
+          170.5,
+          4.5
+        ],
+        [
+          175.5,
+          3.5
+        ],
+        [
+          180.5,
+          2.5
+        ],
+        [
+          183.5,
+          -0.5
+        ],
+        [
+          186.5,
+          -3.5
+        ],
+        [
+          190.5,
+          -5.5
+        ],
+        [
+          195.5,
+          -6.5
+        ],
+        [
+          200.5,
+          -7.5
+        ],
+        [
+          205.5,
+          -8.5
+        ],
+        [
+          210.5,
+          -9.5
+        ],
+        [
+          215.5,
+          -10.5
+        ],
+        [
+          221.5,
+          -10.5
+        ],
+        [
+          227.5,
+          -10.5
+        ],
+        [
+          233.5,
+          -10.5
+        ],
+        [
+          239.5,
+          -10.5
+        ],
+        [
+          242.5,
+          -8.5
+        ],
+        [
+          245.5,
+          -5.5
+        ],
+        [
+          248.5,
+          -2.5
+        ],
+        [
+          250.5,
+          0.5
+        ],
+        [
+          252.5,
+          3.5
+        ],
+        [
+          253.5,
+          6.5
+        ],
+        [
+          255.5,
+          10.5
+        ],
+        [
+          257.5,
+          13.5
+        ],
+        [
+          261.5,
+          12.5
+        ],
+        [
+          266.5,
+          11.5
+        ],
+        [
+          269.5,
+          9.5
+        ],
+        [
+          274.5,
+          8.5
+        ],
+        [
+          279.5,
+          7.5
+        ],
+        [
+          283.5,
+          5.5
+        ],
+        [
+          287.5,
+          4.5
+        ],
+        [
+          291.5,
+          2.5
+        ],
+        [
+          295.5,
+          0.5
+        ],
+        [
+          299.5,
+          -1.5
+        ],
+        [
+          305.5,
+          -1.5
+        ],
+        [
+          311.5,
+          -1.5
+        ],
+        [
+          317.5,
+          -1.5
+        ],
+        [
+          323.5,
+          -1.5
+        ],
+        [
+          329.5,
+          -1.5
+        ],
+        [
+          335.5,
+          -1.5
+        ],
+        [
+          340.5,
+          -1.5
+        ],
+        [
+          343.5,
+          1.5
+        ],
+        [
+          344.5,
+          6.5
+        ],
+        [
+          344.5,
+          12.5
+        ],
+        [
+          341.5,
+          15.5
+        ],
+        [
+          338.5,
+          18.5
+        ],
+        [
+          335.5,
+          21.5
+        ],
+        [
+          332.5,
+          24.5
+        ],
+        [
+          329.5,
+          27.5
+        ],
+        [
+          326.5,
+          30.5
+        ],
+        [
+          323.5,
+          33.5
+        ],
+        [
+          321.5,
+          37.5
+        ],
+        [
+          321.5,
+          43.5
+        ],
+        [
+          321.5,
+          49.5
+        ],
+        [
+          321.5,
+          55.5
+        ],
+        [
+          321.5,
+          61.5
+        ],
+        [
+          319.5,
+          65.5
+        ],
+        [
+          316.5,
+          68.5
+        ],
+        [
+          313.5,
+          71.5
+        ],
+        [
+          310.5,
+          74.5
+        ],
+        [
+          307.5,
+          77.5
+        ],
+        [
+          304.5,
+          79.5
+        ],
+        [
+          299.5,
+          80.5
+        ],
+        [
+          295.5,
+          82.5
+        ],
+        [
+          291.5,
+          83.5
+        ],
+        [
+          287.5,
+          84.5
+        ],
+        [
+          284.5,
+          86.5
+        ],
+        [
+          281.5,
+          88.5
+        ],
+        [
+          277.5,
+          90.5
+        ],
+        [
+          272.5,
+          91.5
+        ],
+        [
+          267.5,
+          92.5
+        ],
+        [
+          263.5,
+          93.5
+        ],
+        [
+          259.5,
+          95.5
+        ],
+        [
+          255.5,
+          96.5
+        ],
+        [
+          252.5,
+          99.5
+        ],
+        [
+          253.5,
+          104.5
+        ],
+        [
+          254.5,
+          109.5
+        ],
+        [
+          254.5,
+          115.5
+        ],
+        [
+          254.5,
+          121.5
+        ],
+        [
+          254.5,
+          127.5
+        ],
+        [
+          253.5,
+          131.5
+        ],
+        [
+          250.5,
+          134.5
+        ],
+        [
+          250.5,
+          140.5
+        ],
+        [
+          249.5,
+          145.5
+        ],
+        [
+          249.5,
+          151.5
+        ],
+        [
+          251.5,
+          155.5
+        ],
+        [
+          252.5,
+          159.5
+        ],
+        [
+          254.5,
+          163.5
+        ],
+        [
+          254.5,
+          169.5
+        ],
+        [
+          252.5,
+          173.5
+        ],
+        [
+          249.5,
+          176.5
+        ],
+        [
+          246.5,
+          178.5
+        ],
+        [
+          242.5,
+          180.5
+        ],
+        [
+          237.5,
+          181.5
+        ],
+        [
+          238.5,
+          185.5
+        ],
+        [
+          241.5,
+          188.5
+        ],
+        [
+          244.5,
+          191.5
+        ],
+        [
+          247.5,
+          194.5
+        ],
+        [
+          250.5,
+          197.5
+        ],
+        [
+          252.5,
+          201.5
+        ],
+        [
+          254.5,
+          205.5
+        ],
+        [
+          257.5,
+          208.5
+        ],
+        [
+          257.5,
+          214.5
+        ],
+        [
+          255.5,
+          218.5
+        ],
+        [
+          255.5,
+          224.5
+        ],
+        [
+          257.5,
+          227.5
+        ],
+        [
+          260.5,
+          230.5
+        ],
+        [
+          263.5,
+          233.5
+        ],
+        [
+          266.5,
+          236.5
+        ],
+        [
+          269.5,
+          239.5
+        ],
+        [
+          272.5,
+          242.5
+        ],
+        [
+          274.5,
+          245.5
+        ],
+        [
+          277.5,
+          248.5
+        ],
+        [
+          279.5,
+          251.5
+        ],
+        [
+          282.5,
+          254.5
+        ],
+        [
+          285.5,
+          257.5
+        ],
+        [
+          288.5,
+          260.5
+        ],
+        [
+          291.5,
+          263.5
+        ],
+        [
+          294.5,
+          266.5
+        ],
+        [
+          294.5,
+          272.5
+        ],
+        [
+          294.5,
+          278.5
+        ],
+        [
+          294.5,
+          284.5
+        ],
+        [
+          294.5,
+          290.5
+        ],
+        [
+          294.5,
+          296.5
+        ],
+        [
+          297.5,
+          299.5
+        ],
+        [
+          300.5,
+          302.5
+        ],
+        [
+          298.5,
+          306.5
+        ],
+        [
+          294.5,
+          308.5
+        ],
+        [
+          295.5,
+          312.5
+        ],
+        [
+          296.5,
+          315.5
+        ],
+        [
+          299.5,
+          318.5
+        ],
+        [
+          302.5,
+          321.5
+        ],
+        [
+          305.5,
+          324.5
+        ],
+        [
+          304.5,
+          329.5
+        ],
+        [
+          301.5,
+          332.5
+        ],
+        [
+          300.5,
+          335.5
+        ]
+      ]
+    }
+  },
+  "generated": "tools/v10_configs.mjs (do not edit by hand: edit the generator and re-run --write)",
+  "release": "v9",
+  "sim": {
+    "plan": "v8/sim/plan.json",
+    "retry": "v8/sim/retry.json",
+    "pick": "HA",
+    "retryPick": "HA",
+    "over": "EB",
+    "clear": "HA",
+    "rule": "判定：スコア（予測時間＋混雑ペナルティ）が最小のルート。ペナルティ＝最大密度が2人/m²を超えた分×1分",
+    "assumptions": "シミュレーション（仮定）：人出48,000人・ピーク時（22時ごろ想定）／ハチ公改札前は入場規制を仮定／歩行80m/分（OSM区間）。2026年のJRの対策は未発表",
+    "crush": "v9/sim/crush.json",
+    "crushPeak": 5.56,
+    "crushAssumption": "圧死シナリオ（仮定）：再計算と同じ人出・時間帯で、モデルの上限（1m²に4人）を8人に緩和し、行列の間隔も詰めた場合"
+  },
+  "look": {
+    "costumes": "v9"
+  },
+  "v10": {
+    "from": "v9/alt",
+    "fixes": [
+      {
+        "beat": "crush-pov",
+        "c": "crushmeter",
+        "key": "label",
+        "from": "足元の密度（駅前の通路・圧死シナリオ）",
+        "to": "足元の密度（駅前・圧死シナリオ）",
+        "why": "plate crush3 is an open-air crowd, not a passage"
+      },
+      {
+        "beat": "crush-pov",
+        "c": "caption",
+        "key": "ja",
+        "from": "駅前の通路：一歩も前に進めない",
+        "to": "駅前：一歩も前に進めない",
+        "why": "plate crush3 is an open-air crowd, not a passage"
+      }
+    ]
+  }
+}

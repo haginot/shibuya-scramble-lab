@@ -479,13 +479,13 @@
      "at": 0.4,
      "t0": 48.1,
      "t1": 51.14,
-     "text": "改札前の通路、\nUターンするんだよ〜",
+     "text": "広場から改札へは\nUターンで入るよ〜",
      "chars": 17,
      "nums": [],
      "box": [
       174,
       920,
-      679,
+      645,
       1070
      ],
      "ghost": [
@@ -497,15 +497,17 @@
      "bubble": [
       306,
       921,
-      679,
+      645,
       1044
      ],
      "flip": false,
      "overlap": 0,
      "probes": 17,
      "core": 0,
+     "v9text": "改札前の通路、\nUターンするんだよ〜",
      "protect": 0,
-     "moved": true
+     "moved": true,
+     "v102": true
     },
     {
      "id": "gate-14",
@@ -571,7 +573,8 @@
      "overlap": 0,
      "probes": 39,
      "core": 0,
-     "protect": 0
+     "protect": 0,
+     "v102": true
     },
     {
      "id": "gate-16",
@@ -611,7 +614,8 @@
      "overlap": 0,
      "probes": 39,
      "core": 0,
-     "protect": 0
+     "protect": 0,
+     "v102": true
     },
     {
      "id": "gate-17",
@@ -2768,14 +2772,14 @@
      "beat": "clear-result",
      "at": 0.5,
      "t0": 97.2,
-     "t1": 99.76,
-     "text": "やったー！\n原宿まで歩けた〜",
-     "chars": 13,
+     "t1": 99.88,
+     "text": "やったー！\n原宿へ抜けられる〜",
+     "chars": 14,
      "nums": [],
      "box": [
       42,
       1052,
-      490,
+      524,
       1202
      ],
      "ghost": [
@@ -2787,14 +2791,16 @@
      "bubble": [
       174,
       1053,
-      490,
+      524,
       1176
      ],
      "flip": false,
      "overlap": 0,
-     "probes": 15,
+     "probes": 16,
      "core": 0,
-     "protect": 0
+     "v9text": "やったー！\n原宿まで歩けた〜",
+     "protect": 0,
+     "v102": true
     },
     {
      "id": "zone-25",
@@ -3370,7 +3376,8 @@
      "overlap": 0,
      "core": 0,
      "probes": 39,
-     "protect": 0
+     "protect": 0,
+     "v102": true
     },
     {
      "id": "alt-14",
@@ -3410,7 +3417,8 @@
      "overlap": 0,
      "core": 0,
      "probes": 39,
-     "protect": 0
+     "protect": 0,
+     "v102": true
     },
     {
      "id": "alt-15",

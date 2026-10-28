@@ -14,7 +14,9 @@ Everything else is v9 frame for frame. The ghost overlay reads variants/jr/v10/g
 boxes re-checked against the faces / sign panel of the new photos).
 Rendered in SEG-frame segments ($WORK10/<pair>/seg/, finished segments are skipped → a restart resumes), then concatenated.
 usage: python3 tools/v10_composite.py <pair> [--frames a:b --out FILE] [--stills t1,t2,... --stills-dir DIR]
-env: WORK10 (default /workspace/projects/logs/ssl-claude-halloween/v10.1/render), SEG10 (frames per segment, 600)
+v10.2: HUD frames re-rendered for the beats whose text tools/v10_configs.mjs fixed ($WORK10/<pair>/hud, tools/v10_hud.py) are
+used instead of the v9 ones (hud_png).
+env: WORK10 (default /workspace/projects/logs/ssl-claude-halloween/v10.2/render), SEG10 (frames per segment, 600)
 """
 from __future__ import annotations
 
@@ -36,11 +38,18 @@ import v9_ghost as GHOST  # noqa: E402
 from v9_composite import V7C, COS, W, H, TR, PLAN, FPS, build_index, pieces, segments, cg_path  # noqa: E402
 
 from v10_shots import PLAN10, NEW, spec, crush_cam, crush_to_out, to_out  # noqa: E402
-WORK10 = Path(os.environ.get('WORK10', '/workspace/projects/logs/ssl-claude-halloween/v10.1/render'))
+WORK10 = Path(os.environ.get('WORK10', '/workspace/projects/logs/ssl-claude-halloween/v10.2/render'))
 SEG = int(os.environ.get('SEG10', 600))
 GHOST10 = ROOT/'web3d/shibuya/series/variants/jr/v10/ghost.json'
 for _pid, _g in PLAN10['geom'].items():
     V7C.GEOM[_pid] = dict(_g, blank=[tuple(b) for b in _g['blank']], x=tuple(_g['x']), vp=tuple(_g['vp']), mid=tuple(_g['mid']))
+
+
+def hud_png(pair, e):
+    """the v10.2 HUD frame (tools/v10_hud.py, fixed captions) when there is one, else the v9 HUD frame."""
+    who = 'opening' if e['part'] == 'opening' else pair
+    f = WORK10/who/'hud'/e['part']/f"f{e['pf']:05d}.png"
+    return Image.open(f).convert('RGBA') if f.exists() else C9.hud_png(pair, e)
 
 
 # ---------------------------------------------------------------- the new plates
@@ -172,7 +181,7 @@ def render(pair, out, frames=None, stills=None, stills_dir=None, ghost_data=None
                 else: a = C9.crush_frame(pid, e['bt'], e['bdur'], sharp, sp.get('crop'), seed, shoves)
                 fr = Image.fromarray(np.clip(a, 0, 255).astype(np.uint8)).convert('RGBA')
                 stats.append(dict(frame=v, beat=e['beat'], rho=round(rho or 0, 2), mode='crush', plate=pid))
-                fr.alpha_composite(C9.hud_png(pair, e))
+                fr.alpha_composite(hud_png(pair, e))
                 if pid in NEW: tag, xy = ai_tag(); fr.alpha_composite(tag, xy)
                 a = V7C.finish(np.asarray(fr.convert('RGB')), v, None)
             else:
@@ -200,7 +209,7 @@ def render(pair, out, frames=None, stills=None, stills_dir=None, ghost_data=None
                         fr.alpha_composite(COS.attackers_layer(W, H, t, V7C.ease((t-.35)/1.45), seed=seed))
                         ov = Image.new('RGBA', (W, H), (48, 10, 44, int(255*min(.5, max(0, (t-1.75)/.12)*.5*math.exp(-max(0, t-1.87)/.2)))))
                         fr.alpha_composite(ov)
-                fr.alpha_composite(C9.hud_png(pair, e))
+                fr.alpha_composite(hud_png(pair, e))
                 a = V7C.finish(np.asarray(fr.convert('RGB')), v, prev if (prev is not None and prev_v == v-1 and sp['mode'] in ('walk', 'caught')) else None)
         else:
             local = e['pf']-beat_f0[(e['part'], e['beat'])]

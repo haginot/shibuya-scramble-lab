@@ -6,6 +6,10 @@ kicks included, tools/v10_composite.py shot_mapper) and dilated 16 px. If the v9
 searched again (v9_ghost.search: protect first, then HUD core / overlap, inside the TikTok/Reels safe area).
 v10.1: the ghost's first appearance (op-fly, every pair) is a goofy self-intro (INTRO, 2 lines replacing the v9 op-fly
 line; same <= 2 x 20 chars / reading-time rules, box re-searched against the op-fly HUD probes).
+v10.2: two lines that named a place the plate does not show are rewritten (TEXT_FIX: gate over-move over the outdoor
+Hachiko square, zone clear-result over Meiji-dori in Shibuya). The HUD probes of the beats whose HUD text tools/v10_configs.mjs
+fixed are the re-rendered v10.2 HUD frames (tools/v10_hud.py; every 6th frame, the v9 probe grid); those beats and the
+rewritten lines are re-checked against them (recheck: the box stays unless it now touches the HUD core / a face or overlaps more).
 Result: web3d/shibuya/series/variants/jr/v10/ghost.json (v9 ghost.json + `protect` px per line, `moved` where re-placed).
 usage: python3 tools/v10_ghost.py place [pair|all]
        python3 tools/v10_ghost.py sheet <pair> out.jpg     QA: every line on the composited frame, protect boxes outlined
@@ -23,6 +27,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT/'tools'))
 import v9_ghost as G9  # noqa: E402
 import v10_composite as C10  # noqa: E402
+import v10_hud as HUD10  # noqa: E402
 
 W, H, FPS = G9.W, G9.H, G9.FPS
 OUT = C10.GHOST10
@@ -30,6 +35,21 @@ DILATE = 16
 # v10.1: the ghost introduces itself at its first appearance (op-fly, all pairs); original lines, no real names / lyrics
 INTRO_BEAT = 'op-fly'
 INTRO = [(1.0, 'どーも！\n渋谷系おばけです〜'), (3.8, '渋谷の裏道、\nぜんぶ知ってるよ〜')]
+# v10.2: (pair, beat) → (v9 text, new text): lines that named a place the plate on screen does not show
+TEXT_FIX = {
+    ('gate', 'over-move'): ('改札前の通路、\nUターンするんだよ〜', '広場から改札へは\nUターンで入るよ〜'),      # hachiko3 = the outdoor square
+    ('zone', 'clear-result'): ('やったー！\n原宿まで歩けた〜', 'やったー！\n原宿へ抜けられる〜'),          # meiji = Meiji-dori in Shibuya
+}
+PROBE_STRIDE = 6
+
+
+def probes10(who, part):
+    """the v10.2 HUD frames on the v9 probe grid (every 6th frame) → they replace the v9 probes in v9_ghost.hud_mask."""
+    d = C10.WORK10/who/'hud'/part
+    return {int(f.stem[1:]): f for f in d.glob('f*.png') if int(f.stem[1:]) % PROBE_STRIDE == 0}
+
+
+G9.PROBE_OVERRIDE = probes10
 
 
 def protect_rects(pair, idx, v):
@@ -78,6 +98,51 @@ def intro(pair, lines):
     return out
 
 
+def fix_text(pair, lines):
+    """TEXT_FIX: new text, chars and reading time (same start); → the fixed beats."""
+    done = []
+    for (p, beat), (old, new) in TEXT_FIX.items():
+        if p != pair: continue
+        ln = next(l for l in lines if l['beat'] == beat and l['text'] == old)
+        G9.check_text(new)
+        ln.update(text=new, chars=G9.nchars(new), t1=round(ln['t0']+G9.read_time(new), 3), v9text=old)
+        done.append(beat)
+    for a, b in zip(lines, lines[1:]): assert b['t0']-a['t1'] >= .2, (a, b)
+    return done
+
+
+def score(mask, pm, g, b):
+    """(protect px, HUD core px, dilated-HUD overlap px) of a ghost + bubble placement (v9_ghost.search's metrics)."""
+    m = Image.fromarray((mask*255).astype(np.uint8)).filter(ImageFilter.MaxFilter(25))
+    ii, raw, pp = G9._sat(np.asarray(m) > 0), G9._sat(mask), G9._sat(pm)
+    return tuple(G9.rect_sum(s, g)+G9.rect_sum(s, b) for s in (pp, raw, ii))
+
+
+def recheck(pair, lines, beats):
+    """beats whose HUD (v10.2 HUD frames) or line text changed: keep the box (re-laid-out for the new bubble size, same
+    bottom-left anchor) unless it now touches a face / the HUD core or overlaps the HUD more; else search again."""
+    _, idx, _ = C10.build_index(pair); bt = G9.beat_table(pair)
+    for beat in beats:
+        lns = [l for l in lines if l['beat'] == beat]
+        if not lns: continue
+        t0, t1 = min(l['t0'] for l in lns)-.25, max(l['t1'] for l in lns)+.3
+        mask, probes = G9.hud_mask(pair, bt, t0+.1, t1-.05)
+        assert probes, (pair, beat, 'no HUD probe frames')
+        pm, _ = protect_mask(pair, idx, t0, t1)
+        bw = max(G9.bubble_size(l['text'])[0] for l in lns); bh = max(G9.bubble_size(l['text'])[1] for l in lns)
+        box, flip = lns[0]['box'], lns[0]['flip']
+        g, b, nbox = G9.layout((box[0], box[3]-max(G9.GH, bh)), bw, bh, flip)
+        pr, core, ov = score(mask, pm, g, b)
+        if pr == 0 and core == 0 and ov <= lns[0]['overlap']:
+            print(f'{pair} {beat:12s} v10.2 HUD/text: box kept {list(nbox)} core=0 overlap={ov} (was {lns[0]["overlap"]})')
+        else:
+            g, b, nbox, flip, ov, core, pr = G9.search(mask, lns, pm)
+            print(f'{pair} {beat:12s} v10.2 HUD/text: box {box} → {list(nbox)} protect={pr} core={core} overlap={ov}')
+            for l in lns: l['moved'] = True
+        for l in lns:
+            l.update(box=list(nbox), ghost=list(g), bubble=list(b), flip=flip, overlap=ov, core=core, probes=probes, protect=pr, v102=True)
+
+
 def place(pair, data):
     _, idx, _ = C10.build_index(pair)
     bt = G9.beat_table(pair); lines = data['pairs'][pair]['lines']
@@ -113,7 +178,9 @@ def main(argv):
         for p in pairs:
             data['pairs'][p] = json.loads(json.dumps(v9['pairs'][p]))     # always start from the v9 placement
             data['pairs'][p]['lines'] = intro(p, data['pairs'][p]['lines'])
+            fixed = fix_text(p, data['pairs'][p]['lines'])
             place(p, data)
+            recheck(p, data['pairs'][p]['lines'], sorted(set(fixed) | {b for b, _, _ in HUD10.changed_beats(p)}))
         OUT.parent.mkdir(parents=True, exist_ok=True)
         OUT.write_text(json.dumps(data, ensure_ascii=False, indent=1)+'\n', encoding='utf-8')
         return 0

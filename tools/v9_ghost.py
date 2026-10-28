@@ -200,6 +200,9 @@ def layout(box_xy, bw, bh, flip=False):
     return g, b, (x, min(g[1], b[1]), max(g[2], b[2]), y+hh)
 
 
+PROBE_OVERRIDE = None   # v10.2 (tools/v10_ghost.py): (who, part) → {frame: png} of re-rendered HUD frames that replace the v9 probes
+
+
 def hud_mask(pair, bt, t0, t1):
     """union of the HUD probe frames (HUD-only renders, every 6th frame) of every beat overlapping [t0, t1) → (mask, probes)."""
     from render_v9 import WORK
@@ -209,8 +212,9 @@ def hud_mask(pair, bt, t0, t1):
         who = 'opening' if b['part'] == 'opening' else pair
         d = WORK/who/'probe'/b['part']
         fa, fb = int(round((max(t0, b['t0'])-b['off'])*FPS)), int(round((min(t1, b['t1'])-b['off'])*FPS))
-        for f in sorted(d.glob('f*.png')):
-            n = int(f.stem[1:])
+        files = {int(f.stem[1:]): f for f in d.glob('f*.png')}
+        if PROBE_OVERRIDE: files.update(PROBE_OVERRIDE(who, b['part']))
+        for n, f in sorted(files.items()):
             if fa <= n < fb:
                 al = np.asarray(Image.open(f).convert('RGBA'))[..., 3].astype(np.int16)
                 # card beats lay a dim full-frame backdrop (alpha ~150–210) under the card: HUD = clearly above it

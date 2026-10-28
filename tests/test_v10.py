@@ -1,12 +1,15 @@
 """JR v10: the v9 videos with two photoreal Gemini plates (tools/v10_plan.json) instead of the procedural flat costumed crowd
 — plate swaps, the crush POV camera on the photo, the crush meter still the sim peak, ghost lines unchanged (v10.1: except
 the op-fly self-intro) and their boxes clear of the photo faces / sign panel, rendered deliverables (skipped until rendered).
-v10.1: the Hachiko plate is grounded-refs/v3/01-hachiko-v2.png (the v10 01-hachiko.png was the wrong place)."""
+v10.1: the Hachiko plate is grounded-refs/v3/01-hachiko-v2.png (the v10 01-hachiko.png was the wrong place).
+v10.2: the on-screen text over a plate that shows a different place is rewritten (tools/v10_configs.mjs FIXES → variants/jr/
+v10/<pair>.json, tools/v10_ghost.py TEXT_FIX); only those beats' HUD frames are re-rendered (tools/v10_hud.py)."""
 from __future__ import annotations
 
 import json
 import math
 from pathlib import Path
+import subprocess
 import sys
 
 import pytest
@@ -20,7 +23,9 @@ V9 = ROOT/'web3d/shibuya/series/variants/jr/v9'
 G9 = json.loads((V9/'ghost.json').read_text(encoding='utf-8'))
 G10 = json.loads((ROOT/'web3d/shibuya/series/variants/jr/v10/ghost.json').read_text(encoding='utf-8'))
 PAIRS = ('gate', 'taxi', 'zone', 'alt')
-OUT = Path('/workspace/demos/halloween-escape-series/jr-v10.1')
+OUT = Path('/workspace/demos/halloween-escape-series/jr-v10.2')
+V10 = ROOT/'web3d/shibuya/series/variants/jr/v10'
+RENDER = Path('/workspace/projects/logs/ssl-claude-halloween')
 PLATE_ROOT = Path(PLAN9['plateRoot'])
 
 import v10_shots as C10  # noqa: E402  (numpy-free)
@@ -87,9 +92,16 @@ def test_crush_meter_is_still_the_sim_peak(pair):
 
 @pytest.mark.parametrize('pair', PAIRS)
 def test_ghost_lines_unchanged_from_v9_except_the_intro(pair):
+    """v9 lines, except the op-fly self-intro (v10.1) and the v10.2 TEXT_FIX lines (new text + reading time, same start)."""
+    import v9_ghost as GH
+    fix = {beat: v for (p, beat), v in _text_fix().items() if p == pair}
     keys = ('beat', 'at', 't0', 't1', 'text', 'chars', 'nums')
     a = [{k: l.get(k) for k in keys} for l in G9['pairs'][pair]['lines'] if l['beat'] != 'op-fly']
     b = [{k: l.get(k) for k in keys} for l in G10['pairs'][pair]['lines'] if l['beat'] != 'op-fly']
+    for l in a:
+        if l['beat'] in fix:
+            old, new = fix[l['beat']]; assert l['text'] == old
+            l.update(text=new, chars=GH.nchars(new), t1=round(l['t0']+GH.read_time(new), 3))
     assert a == b
     ids = [l['id'] for l in G10['pairs'][pair]['lines']]
     assert ids == [f'{pair}-{i:02d}' for i in range(len(ids))]
@@ -148,8 +160,9 @@ def test_ghost_recheck_on_sample_frames(pair):
 
 @pytest.mark.parametrize('pair', PAIRS)
 def test_rendered_v10_deliverables(pair):
-    rep = Path('/workspace/projects/logs/ssl-claude-halloween/v10.1/render')/pair/'report.json'
-    if not rep.exists() or not (OUT/f'{pair}-share.mp4').exists(): pytest.skip('v10.1 not rendered yet')
+    # v10.2 re-renders only the pairs with fixed text; the others are copies of the v10.1 files (their v10.1 report)
+    rep = RENDER/('v10.2' if _changed(pair) else 'v10.1')/'render'/pair/'report.json'
+    if not rep.exists() or not (OUT/f'{pair}-share.mp4').exists(): pytest.skip('v10.2 not rendered yet')
     r = json.loads(rep.read_text(encoding='utf-8'))
     assert r['ok'], r['errors']
     v = r['video']
@@ -172,3 +185,82 @@ def test_every_new_plate_shot_carries_the_ai_tag(pair):
             assert b.get('plateTag') == 'AI生成画像を加工' or (beat == 'crush-pov' and PLAN10['aiTag']['box']), (pair, beat)
     x0, y0, x1, y1 = PLAN10['aiTag']['box']
     assert x1 <= 1080*.9 and y1 < 1920*.15         # top right, under the header, above the crushmeter
+
+
+# ---------------------------------------------------------------- v10.2: text that names a place the plate does not show
+def _text_fix():
+    src = (ROOT/'tools/v10_ghost.py').read_text(encoding='utf-8')
+    body = src.split('TEXT_FIX = ', 1)[1].split('\n}\n', 1)[0]+'\n}'
+    return eval(body, {})                                   # the literal dict (v10_ghost needs numpy to import)
+
+
+def _changed(pair):
+    a = {b['id']: b for b in json.loads((V9/f'{pair}.json').read_text(encoding='utf-8'))['beats']}
+    return [b['id'] for b in json.loads((V10/f'{pair}.json').read_text(encoding='utf-8'))['beats'] if b['hud'] != a[b['id']]['hud']]
+
+
+def test_v10_configs_up_to_date():
+    r = subprocess.run(['node', 'tools/v10_configs.mjs', '--check'], cwd=ROOT, capture_output=True, text=True)
+    assert r.returncode == 0, r.stdout+r.stderr
+
+
+@pytest.mark.parametrize('pair', PAIRS)
+def test_v10_configs_are_v9_plus_the_listed_fixes(pair):
+    c9 = json.loads((V9/f'{pair}.json').read_text(encoding='utf-8')); c10 = json.loads((V10/f'{pair}.json').read_text(encoding='utf-8'))
+    fixes = c10['v10']['fixes']
+    for f in fixes:   # undo the fixes → exactly v9 (apart from id / generator / the v10 record)
+        b = next(x for x in c10['beats'] if x['id'] == f['beat'])
+        h = next(x for x in b['hud'] if x['c'] == f['c'] and x[f['key']] == f['to']); h[f['key']] = f['from']
+    for k in ('id', 'generated', 'v10'): c10.pop(k); c9.pop(k, None)
+    assert c10 == c9
+    assert sorted({f['beat'] for f in fixes}) == sorted(_changed(pair))
+    assert len(fixes) == dict(gate=3, taxi=0, zone=1, alt=2)[pair]
+
+
+def _plate(pair, beat):
+    return C10.spec(pair, _e('body', beat))['plate'] if beat in PLAN9['pairs'][pair] else None
+
+
+def _texts(h): return [h[k] for k in ('ja', 'label') if isinstance(h.get(k), str)]
+
+
+@pytest.mark.parametrize('pair', PAIRS)
+def test_no_passage_or_station_claim_over_outdoor_plates(pair):
+    """hachiko3 (the outdoor Hachiko square) and crush3 (an open-air crowd): no caption / meter label / ghost line names the
+    passage (通路) or the in-front-of-the-gate spot; meiji (Meiji-dori in Shibuya): no 'arrived at Harajuku station'."""
+    c10 = json.loads((V10/f'{pair}.json').read_text(encoding='utf-8'))
+    ghost = G10['pairs'][pair]['lines']
+    for b in c10['beats']:
+        pid = _plate(pair, b['id'])
+        if pid is None: continue
+        texts = [t for h in b['hud'] if h['c'] not in ('lesson', 'cheat') for t in _texts(h)]
+        texts += [l['text'] for l in ghost if l['beat'] == b['id']]
+        for t in texts:
+            if pid in ('hachiko3', 'crush3'): assert '通路' not in t and '改札前：' not in t and '（改札前・' not in t, (pair, b['id'], t)
+            if pid == 'meiji': assert 'たどり着いた' not in t and '原宿まで歩けた' not in t, (pair, b['id'], t)
+
+
+def test_gate_over_move_caption_describes_the_square_and_keeps_its_sources():
+    b = next(x for x in json.loads((V10/'gate.json').read_text(encoding='utf-8'))['beats'] if x['id'] == 'over-move')
+    cap = next(h for h in b['hud'] if h['c'] == 'caption')
+    assert cap['ja'].startswith('ハチ公口の広場、改札待ちの列') and '宮益坂口' in cap['ja'] and 'Uターン' in cap['ja']
+    assert '2025年1月' in cap['ja'] and '2026年3月' in cap['ja'] and cap['factIds'] == ['JR-GATE-03', 'JR-GATE-18']
+    assert any(h['c'] == 'sim' and 'シミュレーション' in h['ja'] for h in b['hud'])      # the queue is the sim's picture
+    gl = next(l for l in G10['pairs']['gate']['lines'] if l['beat'] == 'over-move')
+    assert '広場' in gl['text'] and gl.get('v102') and gl['protect'] == 0 and gl['core'] == 0
+
+
+@pytest.mark.parametrize('pair', PAIRS)
+def test_v102_hud_frames_cover_the_changed_beats(pair):
+    tl = RENDER/'v9/render'/pair/'timeline.json'
+    if not tl.exists(): pytest.skip('v9 timeline not on this machine')
+    HUD = pytest.importorskip('v10_hud')
+    ch = HUD.changed_beats(pair)
+    assert [b for b, _, _ in ch] == _changed(pair)
+    d = RENDER/'v10.2/render'/pair/'hud'/'body'
+    if ch and not d.exists(): pytest.skip('v10.2 HUD not rendered yet')
+    for _, f0, f1 in ch:
+        assert all((d/f'f{f:05d}.png').exists() for f in range(f0, f1))
+    if d.exists():   # nothing else is re-rendered: every other beat keeps the v9 HUD frames
+        want = {f for _, f0, f1 in ch for f in range(f0, f1)}
+        assert {int(p.stem[1:]) for p in d.glob('f*.png')} == want
