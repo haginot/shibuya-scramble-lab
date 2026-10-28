@@ -45,6 +45,7 @@
 import * as THREE from '../../vendor/three.module.min.js';
 import {shared as SHARED,common} from '../shaders.mjs';
 import {costumeOf,ORDINARY,ORDINARY_EARS,ORDINARY_HAT,POLICE,STAFF} from '../costume.mjs';
+import * as V9 from './costumes-v9.mjs';
 
 export const ANIM=Object.freeze({walk:0,idle:1,queue:2,phone:3});
 // bones
@@ -61,7 +62,21 @@ const pick4=(r,a,b,c,d)=>r<.25?a:r<.5?b:r<.75?c:d;
 const mix3=(a,b,t)=>a.map((v,i)=>v+(b[i]-v)*t);
 const hashU=i=>{let t=(i+0x6D2B79F5)|0;t=Math.imul(t^t>>>15,1|t);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};
 // Same top/bottom/skin/hair as costume.mjs ordinary mode for colour id `id` (aStyle.w) + near-only details.
-export function outfitOf(id,type=null,flags=null){
+// v9 Halloween costumes (setNearCostumes('v9')): every near person wears the costume class of their id (or of the palette slot
+// carried in flags by a swapped-in costume.mjs v9 agent): costume colours (zombie grey-green / skeleton / pumpkin / mascot
+// skin colour = the head), hats, ears, capes (long coat), skirts; no face mask needed (heads are costume heads / makeup).
+let NEAR_COSTUMES=null;
+export function setNearCostumes(mode){NEAR_COSTUMES=mode||null;}
+function v9Outfit(o,id,flags){const slot=flags!=null&&flags>=4?V9.v9SlotFromFlags(flags):-1;const S=slot>=0?V9.V9_SLOTS[slot]:null;
+ const k=S?S.cls:V9.classOf(id),C=V9.V9_COSTUMES.classes[k],pal=S?S.colors:C.palettes[V9.paletteOf(id)],L=pal.map(V9.lin),F=C.features,P=PIECES;
+ let mask=o.pieces&~((1<<(P.cap-1))|(1<<(P.beanie-1))|(1<<(P.catEars-1))|(1<<(P.smallHat-1))|(1<<(P.skirt-1))|(1<<(P.trousers-1))|(1<<(P.coat-1))|(1<<(P.hood-1))|(1<<(P.scarf-1)));
+ const on=q=>{mask|=1<<(q-1);};
+ if(F.includes('witch-hat')||F.includes('nurse-cap'))on(P.smallHat);if(F.includes('round-ears')||F.includes('horns'))on(P.catEars);
+ if(F.includes('cape')||F.includes('wings')||F.includes('sheet'))on(P.coat);if(F.includes('skirt'))on(P.skirt);else on(P.trousers);
+ if(F.includes('mascot')||F.includes('sheet')||F.includes('pumpkin')||F.includes('dino')||F.includes('box-head'))on(P.hood);
+ return {...o,costume:C.key,pieces:mask,skin:L[3],hair:L[2],top:L[0],bottom:L[1],acc:L[2],inner:L[2],scarf:L[2],legwear:L[1],jacket:false,faceMask:false};}
+export function outfitOf(id,type=null,flags=null){const o=outfitBase(id,type,flags==null?null:flags&3);return NEAR_COSTUMES==='v9'||(flags!=null&&flags>=4)?v9Outfit(o,id,flags):o;}
+function outfitBase(id,type=null,flags=null){
  let st=null;if(type==null||flags==null){st=costumeOf(id,{ordinary:true});type??=st[0];flags??=st[2];}
  const seed=st?st[1]:costumeOf(id,{ordinary:true})[1];
  const h1=hash11(f32(id*f32(.731))+f32(1.3)),h4=hash11(f32(id*f32(5.77))+f32(.3)),h3=hash11(f32(id*f32(3.31))+f32(2.9));

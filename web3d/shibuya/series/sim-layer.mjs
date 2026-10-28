@@ -9,11 +9,15 @@
 //   spec = beat.simmap: {scenario, routes:[keys], colors:{key:'#hex'}, player?:key, freeze?:simT, bbox?:[x0,z0,x1,z1],
 //          heat?:1, crowd?:true, pulse?:[x,z] (ring at the failing spot), dim?:[keys] (routes drawn faint)}
 // frames = {grid:{x0,z0,cell,w,h,area:Uint8Array}, routeKeys, frames:[{t, grid:Uint8Array, walkers:{route,x,z}, crowd:{x2,z2}}]}
+import {V9_COSTUMES,classOf,paletteOf} from './costumes-v9.mjs';
 const RAMP=[[0,[255,210,90,0]],[.35,[255,205,80,0]],[1,[255,190,60,.5]],[2,[255,135,30,.72]],[3,[255,55,45,.86]],[4,[255,25,110,.95]]];
 export function heatColor(rho){if(rho<=RAMP[0][0])return RAMP[0][1];for(let i=1;i<RAMP.length;i++){const [v,c]=RAMP[i];if(rho<=v){const [v0,c0]=RAMP[i-1],k=(rho-v0)/(v-v0);return c0.map((a,j)=>a+(c[j]-a)*k);}}return RAMP.at(-1)[1];}
 const b64=s=>{const bin=atob(s),a=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)a[i]=bin.charCodeAt(i);return a;};
 export function decodeFrames(raw){const G={...raw.grid,area:typeof raw.grid.area==='string'?b64(raw.grid.area):raw.grid.area};
  return {...raw,grid:G,frames:raw.frames.map(f=>({...f,grid:typeof f.grid==='string'?b64(f.grid):f.grid}))};}
+const DOT={};function dotColor(id){const k=classOf(id),j=paletteOf(id),key=k*8+j;if(DOT[key])return DOT[key];const C=V9_COSTUMES.classes[k],pal=C.palettes[j];
+ const lum=h=>{const v=parseInt(h.slice(1),16);return .3*((v>>16)&255)+.59*((v>>8)&255)+.11*(v&255);};const best=[...pal].sort((a,b)=>lum(b)-lum(a))[0],[R,G,B]=hexRGB(best);
+ return DOT[key]={key:C.key,css:`rgba(${R},${G},${B},.8)`};}
 const hexRGB=h=>{const v=parseInt(String(h).replace('#',''),16);return [(v>>16)&255,(v>>8)&255,v&255];};
 
 export function createSimLayer(parent,{W=720,H=1280,dpr=1.5,z=40}={}){
@@ -38,8 +42,11 @@ export function createSimLayer(parent,{W=720,H=1280,dpr=1.5,z=40}={}){
     hg.fillStyle=`rgba(${col[0]|0},${col[1]|0},${col[2]|0},${col[3].toFixed(3)})`;hg.beginPath();hg.moveTo(q[0].x*hs,q[0].y*hs);for(let j=1;j<4;j++)hg.lineTo(q[j].x*hs,q[j].y*hs);hg.closePath();hg.fill();}
    g.save();g.globalAlpha=spec.heat??1;g.filter=`blur(${(2*s).toFixed(1)}px)`;g.drawImage(heat,0,0,cv.width,cv.height);g.filter='none';g.globalCompositeOperation='lighter';g.globalAlpha=.35*(spec.heat??1);g.drawImage(heat,0,0,cv.width,cv.height);g.restore();}
   // crowd sample: faint dots (positions of the keyframe, half-metre units)
-  if(spec.crowd!==false&&A.crowd){const X=A.crowd.x2,Z=A.crowd.z2;g.fillStyle='rgba(235,225,255,.55)';
-   for(let i=0;i<X.length;i++){const p=P(X[i]/2,Z[i]/2);if(!p.inFrame)continue;g.fillRect(p.x*s-1.2,p.y*s-1.2,2.4,2.4);stats.crowd++;}}
+  // v9 (spec.costumes): every sampled person is drawn in the brightest colour of their costume class (costumes-v9.mjs, by
+  // agent id) as a slightly larger dot → the map crowd reads as a chaotic costume crowd; positions are still the solver's.
+  if(spec.crowd!==false&&A.crowd){const X=A.crowd.x2,Z=A.crowd.z2,I=A.crowd.id;const cos=spec.costumes&&I;g.fillStyle='rgba(235,225,255,.55)';const r=cos?1.9:1.2;
+   if(cos)stats.costumes={};
+   for(let i=0;i<X.length;i++){const p=P(X[i]/2,Z[i]/2);if(!p.inFrame)continue;if(cos){const c=dotColor(I[i]);g.fillStyle=c.css;stats.costumes[c.key]=(stats.costumes[c.key]||0)+1;}g.fillRect(p.x*s-r,p.y*s-r,2*r,2*r);stats.crowd++;}}
   // route walkers: coloured dots (interpolated between keyframes for motion only), the player with a halo
   const idx=Object.fromEntries((frames.routeKeys||[]).map((key,i)=>[key,i])),show=new Set(spec.routes||[]),dim=new Set(spec.dim||[]);
   const W0=A.walkers,W1=B?.walkers||W0;const firstOf={};

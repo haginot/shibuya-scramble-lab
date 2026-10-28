@@ -15,6 +15,7 @@
 //   S.loadRun()      precomputed run (?jrrun=URL) — optional for variants (only the interior shot uses it)
 //   S.render()       reflection pass (unless flat) + post chain;  S.finish() GPU sync (honest ms)
 //   S.project(x,y,z) → {x, y, inFrame} CSS px
+import {v9Style} from './costumes-v9.mjs';
 import * as THREE from '../../vendor/three.module.min.js';
 import {shared} from '../shaders.mjs';
 import {buildCity} from '../city.mjs';
@@ -32,7 +33,10 @@ import {createSets} from './sets-variants.mjs';
 const json=async p=>{const r=await fetch(p);if(!r.ok)throw Error(`${p}: ${r.status}`);return r.json();};
 export const LOOK=Object.freeze({stride:.5,key:.7,nearDim:.6});// pilot series look (QA M1)
 
-export async function buildJRScene(params,{recording=false,status=()=>{},routes={},crowd:withCrowd=true}={}){
+// costumes:'v9' → the solver crowd, interior and platform people wear the v9 Halloween costumes (costumes-v9.mjs v9Style)
+// instead of ordinary clothes (the sim is unchanged; only the look of the agents).
+export async function buildJRScene(params,{recording=false,status=()=>{},routes={},crowd:withCrowd=true,costumes=null}={}){
+ const ordinaryOr=(off)=>costumes==='v9'?{style:i=>v9Style(i+off)}:{ordinary:true,...(off?{style:i=>costumeOf(i+off,{ordinary:true})}:{})};
  const base=new URL('../../data/',import.meta.url).href;
  const [config,osm,plateau,traffic,lod2,wideData]=await Promise.all([json(base+'shibuya_config.json'),json(base+'shibuya_osm.json'),json(base+'shibuya_plateau.json'),json(base+'shibuya_traffic.json'),loadLod2(),loadWideArea()]);
  configureJR(config);
@@ -71,7 +75,7 @@ export async function buildJRScene(params,{recording=false,status=()=>{},routes=
   status('群衆シミュレーションを準備中…');
   state=await request({type:'init',config,osm,plateau,traffic});simAbs=state.time;
   nAgents=state.positions.length/2;
-  crowd=new CostumeCrowd(scene,nAgents,{ordinary:true});crowd.uniforms.uStride.value=LOOK.stride;crowd.uniforms.uKey.value=LOOK.key;
+  crowd=new CostumeCrowd(scene,nAgents,ordinaryOr(0));crowd.uniforms.uStride.value=LOOK.stride;crowd.uniforms.uKey.value=LOOK.key;
   // QA v6: the street layout's cones / police gate bars that fall inside the (enclosed) Hachiko paid concourse footprint
   // showed through the gate line as 「tape and cones」 in the void behind the gates — keep them out of the station
   const HB=st.anchors.hachikoConcourseBox,outHB=o=>!HB||!(o.x>HB.x0&&o.x<HB.x1&&o.z>HB.z0&&o.z<HB.z1);
@@ -95,10 +99,10 @@ export async function buildJRScene(params,{recording=false,status=()=>{},routes=
   const simTime=state.time-dt+alpha*dt;hs?.update(simTime);hs?.gates(state.gates,dtSim);vehicles.update(Math.max(0,state.clock-dt+alpha*dt));}
 
  // ---------- interior people (precomputed concourse run; pilot code) ----------
- const BINS=18,inner=[];for(let b=0;b<BINS;b++){const c=new CostumeCrowd(scene,120,{ordinary:true,style:i=>costumeOf(i+b*120+7,{ordinary:true})});c.uniforms.uLift.value=b*.5;c.uniforms.uStride.value=LOOK.stride;c.uniforms.uKey.value=LOOK.key;c.place([]);c.body.geometry.instanceCount=0;for(const L of c.layers)L.mesh.geometry.instanceCount=0;c.visible=false;inner.push(c);}
+ const BINS=18,inner=[];for(let b=0;b<BINS;b++){const c=new CostumeCrowd(scene,120,ordinaryOr(b*120+7));c.uniforms.uLift.value=b*.5;c.uniforms.uStride.value=LOOK.stride;c.uniforms.uKey.value=LOOK.key;c.place([]);c.body.geometry.instanceCount=0;for(const L of c.layers)L.mesh.geometry.instanceCount=0;c.visible=false;inner.push(c);}
  function placeInterior(list){const by=Array.from({length:BINS},()=>[]);for(const p of list){const b=Math.max(0,Math.min(BINS-1,Math.round(p.y/.5)));if(by[b].length<120)by[b].push({x:p.x,z:p.z,angle:p.heading});}
   by.forEach((l,b)=>{const c=inner[b];c.place(l);c.body.geometry.instanceCount=l.length;for(const L of c.layers){let k=0;for(const i of L.idx)if(i<l.length)k++;L.mesh.geometry.instanceCount=Math.min(k,L.idx.length);}c.visible=l.length>0;});}
- const PCAP=420,plat=new CostumeCrowd(scene,PCAP,{ordinary:true,style:i=>costumeOf(i+5003,{ordinary:true})});plat.uniforms.uLift.value=PLATFORM_Y;plat.uniforms.uStride.value=LOOK.stride;plat.uniforms.uKey.value=LOOK.key;
+ const PCAP=420,plat=new CostumeCrowd(scene,PCAP,ordinaryOr(5003));plat.uniforms.uLift.value=PLATFORM_Y;plat.uniforms.uStride.value=LOOK.stride;plat.uniforms.uKey.value=LOOK.key;
  plat.place([]);plat.body.geometry.instanceCount=0;for(const L of plat.layers)L.mesh.geometry.instanceCount=0;plat.visible=false;
  const yamP=st.platforms.find(p=>p.name==='yamanote');const pcum=[0];if(yamP)for(let i=1;i<yamP.strip.length;i++)pcum.push(pcum[i-1]+Math.hypot(yamP.strip[i][0]-yamP.strip[i-1][0],yamP.strip[i][1]-yamP.strip[i-1][1]));
  const hsh=n=>{let t=(n*2654435761)>>>0;t^=t>>>15;t=Math.imul(t,2246822519)>>>0;t^=t>>>13;return (t>>>0)/4294967296;};

@@ -11,6 +11,7 @@
 //     grid (base64 uint8), every route walker (route index, x, z) and a 1/12 sample of the crowd (x, z) — the heat map and
 //     the dots of the CG sim beats. Also copied to web3d/shibuya/series/variants/jr/v8/sim/cache/ (git-ignored) so the page
 //     can fetch it.
+// v9: the crowd sample also carries the agent ids (crowd.id) so the map dots keep their costume colour (costumes-v9.mjs).
 // usage: node tools/v8_sim.mjs plan|retry|all [--force] [--agents N]
 import fs from 'node:fs';
 import path from 'node:path';
@@ -44,9 +45,9 @@ function runScenario(name){
  const G=sim.gridSpec,frames=[];let lastLog=0;
  const routes=sim.e.routes,ids=sim.routeList.map(b=>b.ids);
  const onKeyframe=k=>{// k: crowd-jr capture() (stats + grid + walkers); add the crowd sample
-  const bx=[],bz=[];for(let i=0;i<sim.baseN;i+=12){const x=sim.x[i],z=sim.z[i];if(x===HIDDEN||x<G.x0||z<G.z0||x>G.x0+G.w*G.cell||z>G.z0+G.h*G.cell)continue;bx.push(Math.round(x*2));bz.push(Math.round(z*2));}
+  const bx=[],bz=[],bi=[];for(let i=0;i<sim.baseN;i+=12){const x=sim.x[i],z=sim.z[i];if(x===HIDDEN||x<G.x0||z<G.z0||x>G.x0+G.w*G.cell||z>G.z0+G.h*G.cell)continue;bx.push(Math.round(x*2));bz.push(Math.round(z*2));bi.push(i);}
   frames.push({t:k.t,grid:Buffer.from(k.grid.buffer,k.grid.byteOffset,k.grid.byteLength).toString('base64'),
-   walkers:{route:Array.from(k.walkers.route),x:Array.from(k.walkers.x,r1),z:Array.from(k.walkers.z,r1)},crowd:{x2:bx,z2:bz},
+   walkers:{route:Array.from(k.walkers.route),x:Array.from(k.walkers.x,r1),z:Array.from(k.walkers.z,r1)},crowd:{x2:bx,z2:bz,id:bi},
    routes:k.routes.map(r=>({key:r.key,walking:r.walking,queued:r.queued,done:r.done,medianTime:r.medianTime})),gates:k.gates.map(g=>({key:g.key,queue:g.queue,frontDensity:r2(g.frontDensity),perMin:g.perMin}))});
   if(Date.now()-lastLog>20000){lastLog=Date.now();console.log(`  ${name} t=${k.t} s (${((Date.now()-t0)/1000)|0} s)`);}};
  const summary=sim.runJR({onKeyframe});

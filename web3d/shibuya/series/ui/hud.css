@@ -505,3 +505,22 @@
 #gh .gh-simp .hl{display:flex;align-items:center;gap:6px;margin-top:3px;font:700 11px/1.3 var(--gh-f-body);color:var(--gh-textDim)}
 #gh .gh-simp .hl i{display:block;width:110px;height:8px;border-radius:2px;background:linear-gradient(90deg,rgba(255,205,80,.15),#FFBE3C 25%,#FF871E 50%,#FF372D 75%,#FF196E)}
 #gh .gh-simp .hl .num{font-size:12px}
+
+/* v9 crush POV meter (crushmeter): red, 8 segments of 1 p/m², pulsing 圧死危険 */
+#gh .gh-crush{--acc:var(--gh-warn);--acc2:#7a0a24}
+#gh .gh-crush .in{padding:10px 16px 10px 14px!important;display:flex;flex-direction:column;gap:5px;background:rgba(30,4,10,.82)!important}
+#gh .gh-crush .l1{display:flex;align-items:center;gap:8px}
+#gh .gh-crush .l1 .k{display:flex;align-items:center;gap:4px;height:22px;padding:0 6px;background:var(--gh-sim);color:#06222C;font:700 13px/22px var(--gh-f-hud);letter-spacing:.14em}
+#gh .gh-crush .l1 .k svg{width:14px;height:14px}
+#gh .gh-crush .l1 .lb{font:800 16px/1.2 var(--gh-f-body);color:#ffd6de}
+#gh .gh-crush .l2{display:flex;align-items:flex-end;gap:10px}
+#gh .gh-crush .bar{display:flex;gap:3px;align-items:flex-end;height:40px}
+#gh .gh-crush .bar i{display:block;width:14px;background:rgba(255,255,255,.14);border-radius:1px}
+#gh .gh-crush .bar i:nth-child(1){height:30%}#gh .gh-crush .bar i:nth-child(2){height:40%}#gh .gh-crush .bar i:nth-child(3){height:50%}#gh .gh-crush .bar i:nth-child(4){height:60%}
+#gh .gh-crush .bar i:nth-child(5){height:70%}#gh .gh-crush .bar i:nth-child(6){height:80%}#gh .gh-crush .bar i:nth-child(7){height:90%}#gh .gh-crush .bar i:nth-child(8){height:100%}
+#gh .gh-crush .bar i.on{background:var(--gh-candle);box-shadow:0 0 6px var(--gh-candle)}
+#gh .gh-crush .bar i.on.hi{background:#ff1f4b;box-shadow:0 0 10px #ff1f4b}
+#gh .gh-crush .l2 b{font-size:48px;line-height:.95;color:#fff}
+#gh .gh-crush .l2 small{font:800 15px/1.2 var(--gh-f-body);color:#ffd6de}
+#gh .gh-crush .dg{align-self:flex-start;padding:3px 14px;background:#e0102f;color:#fff;font:900 30px/1.25 var(--gh-f-body);letter-spacing:.12em;box-shadow:0 0 18px rgba(255,20,60,.9)}
+#gh .gh-crush .l3 small{font:700 12px/1.3 var(--gh-f-body);color:#f3c5cf}

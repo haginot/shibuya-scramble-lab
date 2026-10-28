@@ -409,7 +409,15 @@ export const V6_VIDEO=Object.freeze([75,95]);
 export const V8_BEATS=Object.freeze(['first-choice','true-end','guide','over-start','sim-plan','sim-pick','over-choice','over-move','over-result','caught','over-stamp',
  'over-lesson','continue','retry-why','clear-choice','clear-move','clear-result','clear-stamp','clear-cheat','kaiju','goodbye','sources']);
 export const V8_VIDEO=Object.freeze([75,100]);
-export const isV8=cfg=>isObj(cfg)&&cfg.release==='v8';   // v6 opening + v6 body, s (tools/variant_cues.mjs validateVideo)
+export const isV8=cfg=>isObj(cfg)&&(cfg.release==='v8'||cfg.release==='v9');   // v6 opening + v6 body, s (tools/variant_cues.mjs validateVideo)
+// v9 (release:'v9' = v8 + logs/ssl-claude-halloween/v9/STEERING-*.md): Halloween costumes on every CG person (look.costumes),
+// the crush POV beat (crush-pov: eye-level crush, crushmeter = the crush scenario's real peak; before the caught sequence —
+// alt: on the way out, right after the gut pick) and a low-density contrast beat on the CLEAR route (clear-pov); longer sim
+// beats. Video 100–130 s (no cap; HAGINO OK'd longer, STEERING-length.md).
+export const isV9=cfg=>isObj(cfg)&&cfg.release==='v9';
+export const V9_VIDEO=Object.freeze([100,130]);
+export function v9Beats(pair){const B=[...V8_BEATS];B.splice(B.indexOf('clear-move')+1,0,'clear-pov');
+ if(pair==='alt')B.splice(B.indexOf('over-choice')+1,0,'crush-pov');else B.splice(B.indexOf('over-result')+1,0,'crush-pov');return Object.freeze(B);}
 export const V6_OPENING_BEATS=Object.freeze(['op-fly','op-logo','op-press','mission','rules']);
 export const V6_OPENING_REUSE=Object.freeze(['op-fly','op-logo','op-press','rules']);
 // the source of a copied beat by default: combined new beats → the combined render; the rest → the variant bodies
@@ -464,7 +472,7 @@ export function validateV6(cfg,{configs=null}={}){const E=[],W=[];const err=m=>E
  if(cfg.outcome!=='V6')err(`v6: outcome must be 'V6' (${cfg.outcome})`);
  if(P.over!==`${cfg.pair}-over`||P.clear!==`${cfg.pair}-clear`||P.combined!==`combined/${cfg.pair}`)W.push(`v6: parts ${P.over}/${P.clear}/${P.combined} do not match pair ${cfg.pair}`);
  const ids=(cfg.beats||[]).map(b=>b?.id);
- const ORDER=isV8(cfg)?V8_BEATS:V6_BEATS;
+ const ORDER=isV9(cfg)?v9Beats(cfg.pair):isV8(cfg)?V8_BEATS:V6_BEATS;
  if(JSON.stringify(ids)!==JSON.stringify(ORDER))err(`v6: beats must be ${ORDER.join(' → ')} (got ${ids.join(' → ')})`);
  const by=Object.fromEntries((cfg.beats||[]).filter(isObj).map(b=>[b.id,b]));
  const items=(b,c)=>(b?.hud||[]).filter(h=>isObj(h)&&h.c===c);
@@ -517,6 +525,11 @@ export function validateV6(cfg,{configs=null}={}){const E=[],W=[];const err=m=>E
   for(const id of ['sim-plan','sim-pick','retry-why','clear-choice'])if(by[id]&&!by[id].simmap)err(`v8 ${id}: needs simmap (heat map + agents)`);
   if(cfg.sim&&cfg.sim.pick===cfg.sim.over)err('v8: the SIM PICK is the GAME OVER route');
   if(cfg.sim&&cfg.sim.retryPick!==cfg.sim.clear)err('v8: the re-run pick is not the CLEAR route');}
+ if(isV9(cfg)){// v9: the crush POV shows the crush scenario's number (crushmeter, labelled シミュレーション); costumes on
+  const cm=items(by['crush-pov'],'crushmeter')[0];if(!cm)err('v9 crush-pov: needs a crushmeter item');else if(cm.scenario!=='crush'||cm.route!==cfg.sim?.over)err('v9 crush-pov: the crushmeter reads the crush scenario of the GAME OVER route');
+  if(by['clear-pov']&&!items(by['clear-pov'],'simmeter').length)err('v9 clear-pov: needs a simmeter (low density, sim)');
+  if(cfg.look?.costumes!=='v9')err("v9: look.costumes must be 'v9'");
+  if(by['crush-pov']&&(by['crush-pov'].dur<6-1e-9||by['crush-pov'].dur>8+1e-9))W.push(`v9 crush-pov: ${by['crush-pov'].dur} s (steering: ~6–8 s)`);}
  if(items(by.endcard,'endcard').length||cfg.beats?.some(b=>items(b,'endcard').length))err('v6: the old endcard is replaced by the goodbye card');
  // GOODBYE: verbatim text, 3 separate blocks; the city's block never carries our message
  const gb=by.goodbye;

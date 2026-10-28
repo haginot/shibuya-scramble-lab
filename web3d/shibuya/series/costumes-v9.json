@@ -1,0 +1,24 @@
+{
+ "about": "JR v9 Halloween costume classes (logs/ssl-claude-halloween/v9/STEERING-costumes.md). Shared by the page (series/costumes-v9.mjs, mirrored + checked by tests/test_v9.py) and the compositor (tools/costumes_v9.py). Costumed people are ONLY a passive festival crowd: never attackers, never monsters, faces never identifiable (masks, full makeup, heads, backs), generic original costumes only (no known characters, no logos), cartoonish fake makeup only. Colours are sRGB hex: cloth (main), cloth2 (second garment), accent (hat / cape lining / print / ears), skin (visible skin or head). cg: costume.mjs base shape type for the far 3D crowd. features: what the procedural silhouette draws.",
+ "classes": [
+  {"key": "zombie-makeup",  "ja": "ゾンビメイク（灰緑の肌・破れた服）", "cg": 7,  "features": ["torn-hem", "slouch"],               "palettes": [["#5E5850", "#3A3631", "#8C8070", "#7FA06A"], ["#4A5A6A", "#2E3238", "#77705F", "#8DB07A"]]},
+  {"key": "skeleton-maid",  "ja": "スケルトンメイド",                  "cg": 10, "features": ["skirt", "bones", "headband"],     "palettes": [["#141218", "#141218", "#F2F0EA", "#EDEBE4"], ["#1C1026", "#141218", "#FF6FB5", "#EDEBE4"]]},
+  {"key": "pumpkin-head",   "ja": "かぼちゃ頭",                        "cg": 5,  "features": ["pumpkin"],                        "palettes": [["#1E1A22", "#141216", "#3FA535", "#FF7A12"], ["#3A1F5C", "#141216", "#3FA535", "#FF8A1E"]]},
+  {"key": "mascot-suit",    "ja": "着ぐるみ（オリジナルの動物）",       "cg": 4,  "features": ["mascot", "round-ears"],           "palettes": [["#FF6FB5", "#FF6FB5", "#FFE3F0", "#FF6FB5"], ["#B6F03C", "#B6F03C", "#F4FFD6", "#B6F03C"], ["#C98A4B", "#C98A4B", "#F3D9B8", "#C98A4B"], ["#8FD3FF", "#8FD3FF", "#FFFFFF", "#8FD3FF"]]},
+  {"key": "witch",          "ja": "魔女（とんがり帽子・ほうき）",       "cg": 1,  "features": ["witch-hat", "skirt", "broom"],    "palettes": [["#5B2A9E", "#1A1420", "#2A1440", "#C9A27E"], ["#1A1420", "#1A1420", "#FF8A1E", "#C9A27E"], ["#B6F03C", "#1A1420", "#5B2A9E", "#C9A27E"]]},
+  {"key": "vampire",        "ja": "吸血鬼（マント）",                  "cg": 2,  "features": ["cape", "collar"],                 "palettes": [["#0E0C12", "#0E0C12", "#C8102E", "#E4DCD8"], ["#2A0A3A", "#0E0C12", "#FF2D55", "#E4DCD8"]]},
+  {"key": "cartoon-print-nurse","ja": "ナース（漫画風の赤プリント）",      "cg": 0,  "features": ["nurse-cap", "skirt", "red-print"], "palettes": [["#F4F2F0", "#F4F2F0", "#E0245E", "#C9A27E"], ["#FFD3E6", "#F4F2F0", "#E0245E", "#C9A27E"]]},
+  {"key": "mummy",          "ja": "ミイラ（包帯）",                    "cg": 0,  "features": ["bandage"],                        "palettes": [["#E8DEC4", "#D6CBB0", "#B9AD90", "#E8DEC4"]]},
+  {"key": "ghost-sheet",    "ja": "おばけ（シーツ）",                  "cg": 6,  "features": ["sheet"],                          "palettes": [["#F5F5FA", "#F5F5FA", "#2A2A33", "#F5F5FA"], ["#E9DDFF", "#E9DDFF", "#2A2A33", "#E9DDFF"]]},
+  {"key": "devil",          "ja": "デビル（角・しっぽ）",              "cg": 3,  "features": ["horns", "tail"],                  "palettes": [["#D4143A", "#2A0A10", "#FF2D55", "#C9A27E"], ["#2A0A10", "#2A0A10", "#FF2D55", "#C9A27E"]]},
+  {"key": "angel",          "ja": "天使（光る輪・羽）",                "cg": 0,  "features": ["halo", "wings"],                  "palettes": [["#FFFFFF", "#F1EEF8", "#FFD84A", "#C9A27E"]]},
+  {"key": "cardboard-robot","ja": "段ボールのロボット",                "cg": 0,  "features": ["box-head", "box-body"],           "palettes": [["#B98B55", "#7A6A58", "#9AA3AD", "#B98B55"], ["#9AA3AD", "#5A626C", "#FF6FB5", "#9AA3AD"]]},
+  {"key": "inflatable-dino","ja": "ふくらむ恐竜",                      "cg": 5,  "features": ["dino"],                           "palettes": [["#6FD13A", "#6FD13A", "#2E8B2E", "#6FD13A"], ["#FF8A1E", "#FF8A1E", "#B34A00", "#FF8A1E"]]},
+  {"key": "fantasy-outfit", "ja": "オリジナルのファンタジー衣装",       "cg": 9,  "features": ["cape", "glow-headband"],          "palettes": [["#7B2FF7", "#141216", "#B6F03C", "#C9A27E"], ["#FF6FB5", "#3A1F5C", "#8FD3FF", "#C9A27E"]]}
+ ],
+ "attackers": {
+  "about": "GAME OVER 'caught' attackers: the FICTIONAL GAME ZOMBIES of v6/v7/v8 only (barely seen; dark green-black shadow masses and three-fingered pixel-outlined sprite hands from the frame edges, camera shake, cut to black). Never drawn with the costume classes; the costumed crowd stays a passive bystander crowd.",
+  "sprites": ["game-zombie-shadow-mass", "game-zombie-sprite-hand"],
+  "palette": ["#0B140C", "#1C2A1A", "#46FF6E"]
+ }
+}

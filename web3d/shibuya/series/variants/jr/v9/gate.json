@@ -1,0 +1,2742 @@
+{
+  "id": "v9-gate",
+  "episode": "jr",
+  "pair": "gate",
+  "kind": "v6",
+  "outcome": "V6",
+  "edition": "v6",
+  "parts": {
+    "over": "gate-over",
+    "clear": "gate-clear",
+    "combined": "combined/gate"
+  },
+  "title": {
+    "ja": "ハチ公改札で GAME OVER → 新南改札で再挑戦"
+  },
+  "start": {
+    "place": "hachiko-square",
+    "ja": "スタート：ハチ公前広場",
+    "factIds": []
+  },
+  "clock": {
+    "start": "21:58",
+    "ja": "ゲーム内時刻（架空）",
+    "rate": 0.5
+  },
+  "choice": {
+    "prompt": {
+      "ja": "どの改札から入る？"
+    },
+    "options": [
+      {
+        "key": "A",
+        "ja": "ハチ公改札（目の前）",
+        "factIds": []
+      },
+      {
+        "key": "B",
+        "ja": "南改札・新南改札",
+        "sub": "少し歩く",
+        "factIds": []
+      }
+    ],
+    "picked": "A"
+  },
+  "firstChoice": {
+    "prompt": {
+      "ja": "まず、どうする？"
+    },
+    "options": [
+      {
+        "key": "A",
+        "ja": "そもそも渋谷に行かない",
+        "factIds": []
+      },
+      {
+        "key": "B",
+        "ja": "もう渋谷にいる",
+        "sub": "仕事・住まい・うっかり来てしまった",
+        "factIds": []
+      }
+    ],
+    "picked": "A"
+  },
+  "beats": [
+    {
+      "id": "first-choice",
+      "dur": 4,
+      "shot": {
+        "key": "card-bg",
+        "params": {
+          "yaw0": 0.3
+        }
+      },
+      "hud": [
+        {
+          "c": "choice",
+          "card": true,
+          "prompt": {
+            "ja": "まず、どうする？"
+          },
+          "en": "First, what will you do?",
+          "options": [
+            {
+              "key": "A",
+              "ja": "そもそも渋谷に行かない",
+              "factIds": []
+            },
+            {
+              "key": "B",
+              "ja": "もう渋谷にいる",
+              "sub": "仕事・住まい・うっかり来てしまった",
+              "factIds": []
+            }
+          ],
+          "picked": "A",
+          "pickAt": 3,
+          "factIds": []
+        }
+      ],
+      "header": {
+        "sub": "10/31 渋谷ハロウィンには近づくな"
+      },
+      "clock": false,
+      "bgm": "calm",
+      "amb": null,
+      "plateTag": "AI生成画像を加工"
+    },
+    {
+      "id": "true-end",
+      "dur": 4,
+      "shot": {
+        "key": "true-end-bg"
+      },
+      "hud": [
+        {
+          "c": "stamp",
+          "kind": "TRUE_END",
+          "ja": "今年の渋谷ハロウィンには行かない",
+          "kicker": "いちばん安全なクリア",
+          "en": "TRUE END — the safest clear: don't go.",
+          "factIds": []
+        }
+      ],
+      "header": {
+        "sub": "10/31 渋谷ハロウィンには近づくな"
+      },
+      "clock": false,
+      "bgm": "calm",
+      "amb": null
+    },
+    {
+      "id": "guide",
+      "dur": 3,
+      "shot": {
+        "key": "card-bg",
+        "params": {
+          "yaw0": 0.9
+        }
+      },
+      "hud": [
+        {
+          "c": "guide",
+          "ja": "ここからは“もしも”の脱出ガイド",
+          "sub": "もう渋谷にいる人（仕事・住まい・うっかり来た人）へ",
+          "en": "From here: a just-in-case escape guide",
+          "options": [
+            {
+              "key": "A",
+              "ja": "そもそも渋谷に行かない",
+              "factIds": []
+            },
+            {
+              "key": "B",
+              "ja": "もう渋谷にいる",
+              "sub": "仕事・住まい・うっかり来てしまった",
+              "factIds": []
+            }
+          ],
+          "hot": "B",
+          "doneKey": "A",
+          "doneLabel": "TRUE END",
+          "factIds": []
+        }
+      ],
+      "header": {
+        "sub": "10/31 渋谷ハロウィンには近づくな"
+      },
+      "clock": false,
+      "bgm": "tension",
+      "amb": null,
+      "plateTag": "AI生成画像を加工"
+    },
+    {
+      "id": "over-start",
+      "dur": 3.5,
+      "shot": {
+        "key": "topdown",
+        "params": {
+          "center": [
+            16,
+            0,
+            26
+          ]
+        },
+        "t0": 0
+      },
+      "crowd": {
+        "key": "hachiko-peak",
+        "t0": 0,
+        "restart": true
+      },
+      "hud": [
+        {
+          "c": "mission",
+          "ja": "JRの改札から\n電車に乗れ",
+          "factIds": []
+        },
+        {
+          "c": "caption",
+          "ja": "スタート：ハチ公前広場",
+          "factIds": [],
+          "tone": "sub",
+          "until": 1.2
+        },
+        {
+          "c": "caption",
+          "ja": "人出のピークは22時ごろ\n（区の見込み・2024年並み）",
+          "factIds": [
+            "CROWD-01"
+          ],
+          "at": 1.2
+        },
+        {
+          "c": "sim",
+          "ja": "人の流れ＝シミュレーション",
+          "factIds": []
+        }
+      ],
+      "clock": {
+        "set": "21:58:00",
+        "rate": 0.5
+      },
+      "vt0": 14.2,
+      "bgm": "tension",
+      "amb": "crowd-night",
+      "reuse": {
+        "variant": "gate-over",
+        "beat": "start"
+      }
+    },
+    {
+      "id": "sim-plan",
+      "dur": 11,
+      "shot": {
+        "key": "routemap",
+        "params": {
+          "routes": [
+            "SIM-GA",
+            "SIM-GB",
+            "SIM-GC"
+          ],
+          "highlight": null,
+          "colors": {
+            "SIM-GA": "#FF7A9A",
+            "SIM-GB": "#FFD23F",
+            "SIM-GC": "#4FE3C1"
+          },
+          "points": [
+            [
+              -16.5,
+              -0.5
+            ],
+            [
+              151.5,
+              -0.5
+            ],
+            [
+              -16.5,
+              245.5
+            ],
+            [
+              151.5,
+              245.5
+            ]
+          ],
+          "azimuth": 90,
+          "push": 0,
+          "rect": {
+            "x0": 0.08,
+            "x1": 0.92,
+            "y0": 0.2,
+            "y1": 0.47
+          },
+          "span": true,
+          "redZone": 0,
+          "drawOn": [
+            0,
+            0.01
+          ]
+        },
+        "t0": 0
+      },
+      "simmap": {
+        "scenario": "plan",
+        "routes": [
+          "GA",
+          "GB",
+          "GC"
+        ],
+        "colors": {
+          "GA": "#FF7A9A",
+          "GB": "#FFD23F",
+          "GC": "#4FE3C1"
+        },
+        "player": "GA",
+        "crowd": true,
+        "heat": 1,
+        "run": [
+          0.35,
+          10.4
+        ],
+        "simT": [
+          0,
+          342
+        ],
+        "costumes": true
+      },
+      "hud": [
+        {
+          "c": "simpanel",
+          "scenario": "plan",
+          "pair": "gate",
+          "head": "シミュレーション",
+          "assume": "仮定：人出48,000人・ピーク時／ハチ公改札前は入場規制を仮定（2024年の例）／2026年のJRの対策は未発表",
+          "factIds": [
+            "MEAS-15",
+            "NA-JR-2026"
+          ],
+          "phase": "run",
+          "run": [
+            0.35,
+            10.4
+          ],
+          "simT": [
+            0,
+            342
+          ],
+          "speed": "×34 早送り",
+          "exit": false,
+          "finalAt": 10.4
+        },
+        {
+          "c": "pin",
+          "world": [
+            22.5,
+            0,
+            36.5
+          ],
+          "ja": "スタート",
+          "color": "#E9DDFF",
+          "factIds": []
+        },
+        {
+          "c": "pin",
+          "world": [
+            85.5,
+            0,
+            16.5
+          ],
+          "ja": "A ハチ公改札",
+          "color": "#FF7A9A",
+          "factIds": []
+        },
+        {
+          "c": "pin",
+          "world": [
+            78.5,
+            0,
+            159.5
+          ],
+          "ja": "B 南改札",
+          "color": "#FFD23F",
+          "factIds": []
+        },
+        {
+          "c": "pin",
+          "world": [
+            118.5,
+            0,
+            228.5
+          ],
+          "ja": "B 新南改札",
+          "color": "#4FE3C1",
+          "factIds": []
+        }
+      ],
+      "cues": [
+        {
+          "at": 0.05,
+          "sfx": "card_in",
+          "gain_db": -4
+        },
+        {
+          "at": 0.4,
+          "sfx": "tick",
+          "repeat": 0.45,
+          "until": 10.4,
+          "gain_db": -6
+        }
+      ],
+      "clock": false,
+      "header": true,
+      "bgm": "tension",
+      "amb": "crowd-night",
+      "duck": -5
+    },
+    {
+      "id": "sim-pick",
+      "dur": 4,
+      "shot": {
+        "key": "routemap",
+        "params": {
+          "routes": [
+            "SIM-GA",
+            "SIM-GB",
+            "SIM-GC"
+          ],
+          "highlight": "SIM-GC",
+          "colors": {
+            "SIM-GA": "#FF7A9A",
+            "SIM-GB": "#FFD23F",
+            "SIM-GC": "#4FE3C1"
+          },
+          "points": [
+            [
+              -16.5,
+              -0.5
+            ],
+            [
+              151.5,
+              -0.5
+            ],
+            [
+              -16.5,
+              245.5
+            ],
+            [
+              151.5,
+              245.5
+            ]
+          ],
+          "azimuth": 90,
+          "push": 0,
+          "rect": {
+            "x0": 0.08,
+            "x1": 0.92,
+            "y0": 0.2,
+            "y1": 0.47
+          },
+          "span": true,
+          "redZone": 0,
+          "drawOn": [
+            0,
+            0.01
+          ]
+        },
+        "t0": 0
+      },
+      "simmap": {
+        "scenario": "plan",
+        "routes": [
+          "GA",
+          "GB",
+          "GC"
+        ],
+        "colors": {
+          "GA": "#FF7A9A",
+          "GB": "#FFD23F",
+          "GC": "#4FE3C1"
+        },
+        "player": "GA",
+        "crowd": true,
+        "heat": 1,
+        "run": [
+          0,
+          1
+        ],
+        "simT": [
+          342,
+          342
+        ],
+        "costumes": true
+      },
+      "hud": [
+        {
+          "c": "simpanel",
+          "scenario": "plan",
+          "pair": "gate",
+          "head": "シミュレーション",
+          "assume": "仮定：人出48,000人・ピーク時／ハチ公改札前は入場規制を仮定（2024年の例）／2026年のJRの対策は未発表",
+          "factIds": [
+            "MEAS-15",
+            "NA-JR-2026"
+          ],
+          "phase": "pick",
+          "run": [
+            0,
+            1
+          ],
+          "simT": [
+            342,
+            342
+          ],
+          "speed": "×34 早送り",
+          "anim": "none",
+          "reorder": [
+            0.15,
+            0.95
+          ],
+          "pickAt": 1.15,
+          "verdict": "シミュレーションの結論"
+        },
+        {
+          "c": "pin",
+          "world": [
+            22.5,
+            0,
+            36.5
+          ],
+          "ja": "スタート",
+          "color": "#E9DDFF",
+          "factIds": []
+        },
+        {
+          "c": "pin",
+          "world": [
+            85.5,
+            0,
+            16.5
+          ],
+          "ja": "A ハチ公改札",
+          "color": "#FF7A9A",
+          "factIds": []
+        },
+        {
+          "c": "pin",
+          "world": [
+            78.5,
+            0,
+            159.5
+          ],
+          "ja": "B 南改札",
+          "color": "#FFD23F",
+          "factIds": []
+        },
+        {
+          "c": "pin",
+          "world": [
+            118.5,
+            0,
+            228.5
+          ],
+          "ja": "B 新南改札",
+          "color": "#4FE3C1",
+          "factIds": []
+        }
+      ],
+      "cues": [
+        {
+          "at": 0.15,
+          "sfx": "whoosh",
+          "gain_db": -12
+        },
+        {
+          "at": 1.15,
+          "sfx": "ui_select"
+        },
+        {
+          "at": 1.19,
+          "sfx": "choice_pick",
+          "gain_db": -2
+        }
+      ],
+      "clock": false,
+      "header": true,
+      "bgm": "tension",
+      "amb": "crowd-night",
+      "duck": -5
+    },
+    {
+      "id": "over-choice",
+      "dur": 3.5,
+      "shot": {
+        "key": "routemap",
+        "params": {
+          "routes": [
+            "JR-A-hachiko",
+            "JR-B-south",
+            "JR-C-newsouth-east"
+          ],
+          "highlight": null,
+          "colors": {
+            "JR-A-hachiko": "#FF7A9A",
+            "JR-B-south": "#FFD23F",
+            "JR-C-newsouth-east": "#4FE3C1"
+          },
+          "points": [
+            [
+              22,
+              34
+            ],
+            [
+              85.9,
+              18.9
+            ],
+            [
+              96.6,
+              162
+            ],
+            [
+              159.8,
+              260
+            ]
+          ],
+          "azimuth": 90,
+          "rect": {
+            "x0": 0.1,
+            "x1": 0.9,
+            "y0": 0.17,
+            "y1": 0.33
+          },
+          "span": true,
+          "redZone": 0,
+          "drawOn": [
+            0.1,
+            1.4
+          ]
+        },
+        "t0": 0
+      },
+      "hud": [
+        {
+          "c": "choice",
+          "picked": "A"
+        },
+        {
+          "c": "pin",
+          "world": [
+            85.9,
+            0,
+            18.9
+          ],
+          "ja": "A ハチ公改札",
+          "color": "#FF7A9A",
+          "factIds": []
+        },
+        {
+          "c": "pin",
+          "world": [
+            96.6,
+            0,
+            162
+          ],
+          "ja": "B 南改札",
+          "color": "#FFD23F",
+          "factIds": []
+        },
+        {
+          "c": "pin",
+          "world": [
+            159.8,
+            0,
+            260
+          ],
+          "ja": "B 新南改札",
+          "color": "#4FE3C1",
+          "factIds": []
+        },
+        {
+          "c": "sim",
+          "ja": "シミュレーションの結論は「B 新南改札」",
+          "factIds": []
+        },
+        {
+          "c": "caption",
+          "ja": "でも…みんなが行く方でしょ？",
+          "speaker": "プレイヤー",
+          "factIds": [],
+          "tone": "sub",
+          "at": 1
+        }
+      ],
+      "clock": {
+        "set": "21:59:15",
+        "rate": 0.5
+      },
+      "vt0": 16.7,
+      "bgm": "tension",
+      "amb": "crowd-night",
+      "reuse": {
+        "variant": "gate-over",
+        "beat": "choice"
+      }
+    },
+    {
+      "id": "over-move",
+      "dur": 4.5,
+      "shot": {
+        "key": "eye-walk",
+        "params": {
+          "walk": "hachiko",
+          "wp": 3,
+          "speed": 1.25
+        },
+        "t0": 0
+      },
+      "crowd": {
+        "key": "hachiko-peak",
+        "t0": 0,
+        "restart": true
+      },
+      "hud": [
+        {
+          "c": "caption",
+          "ja": "改札前の通路は一方通行\n宮益坂口側まで抜けてUターン\n（2025年1月・2026年3月の報道）",
+          "factIds": [
+            "JR-GATE-03",
+            "JR-GATE-18"
+          ]
+        },
+        {
+          "c": "sim",
+          "ja": "混雑＝シミュレーション",
+          "factIds": []
+        },
+        {
+          "c": "simmeter",
+          "scenario": "plan",
+          "route": "GA",
+          "run": [
+            0,
+            4.5
+          ],
+          "simT": [
+            22,
+            283.8
+          ],
+          "factIds": [],
+          "etaLabel": "改札まで"
+        }
+      ],
+      "transition": "dip",
+      "clock": {
+        "set": "22:01:15",
+        "rate": 0.5
+      },
+      "vt0": 20.7,
+      "bgm": "tension",
+      "amb": "crowd-night",
+      "reuse": {
+        "variant": "gate-over",
+        "beat": "move"
+      },
+      "plateTag": "AI生成画像を加工"
+    },
+    {
+      "id": "over-result",
+      "dur": 4,
+      "shot": {
+        "key": "gate-queue",
+        "params": {
+          "mode": "approach",
+          "back": 17,
+          "speed": 0.3,
+          "stopGo": 0.9,
+          "eyeY": 2.3,
+          "nearHide": 2.2,
+          "lookGate": 0.85,
+          "lookY": 1.9
+        },
+        "t0": 0
+      },
+      "crowd": {
+        "key": "hachiko-peak",
+        "t0": 4.5,
+        "restart": true
+      },
+      "cues": [
+        {
+          "at": 0,
+          "sfx": "crowd_swell"
+        },
+        {
+          "at": 0.02,
+          "sfx": "ui_blip",
+          "gain_db": -4
+        },
+        {
+          "at": 0.6,
+          "sfx": "red_alert",
+          "duck": 1
+        }
+      ],
+      "hud": [
+        {
+          "c": "caption",
+          "ja": "列がほとんど進まない…\n（シミュレーション）",
+          "factIds": [],
+          "tone": "warn",
+          "sim": true,
+          "until": 2
+        },
+        {
+          "c": "caption",
+          "ja": "ハロウィーンは例年\n一部規制（2025年1月の報道）",
+          "factIds": [
+            "JR-GATE-05"
+          ],
+          "at": 2
+        },
+        {
+          "c": "sim",
+          "ja": "⚠ 密集（シミュレーション）",
+          "factIds": [],
+          "at": 0.6
+        },
+        {
+          "c": "simmeter",
+          "scenario": "plan",
+          "route": "GA",
+          "run": [
+            0,
+            4
+          ],
+          "simT": [
+            283.8,
+            498
+          ],
+          "factIds": [],
+          "etaLabel": "改札まで"
+        }
+      ],
+      "clock": {
+        "set": "22:03:30",
+        "rate": 0.5
+      },
+      "vt0": 25.2,
+      "bgm": "tension",
+      "amb": "crowd-night",
+      "origin": {
+        "variant": "gate-over",
+        "beat": "result"
+      },
+      "fix": "Hachiko gate front changed: JR-East-style green gate band (渋谷駅/ハチ公改札/JY JA JS), white hoarding + striped post wraps, covered frontage (ceiling/floor, no open sky), green/stainless gates",
+      "plateTag": "AI生成画像を加工"
+    },
+    {
+      "id": "crush-pov",
+      "dur": 8,
+      "shot": {
+        "key": "card-bg",
+        "params": {},
+        "t0": 0
+      },
+      "clock": false,
+      "header": true,
+      "hud": [
+        {
+          "c": "crushmeter",
+          "scenario": "crush",
+          "route": "GA",
+          "track": "worst",
+          "run": [
+            0.3,
+            5.6
+          ],
+          "simT": [
+            427,
+            502
+          ],
+          "peak": 6.44,
+          "danger": 4,
+          "label": "足元の密度（改札前・圧死シナリオ）",
+          "note": "シミュレーション（仮定：モデルの上限 4人/m² を 8人/m² に緩和）",
+          "factIds": []
+        },
+        {
+          "c": "caption",
+          "ja": "改札前：一歩も前に進めない",
+          "factIds": [],
+          "tone": "warn",
+          "at": 0.9,
+          "until": 3.9
+        },
+        {
+          "c": "caption",
+          "ja": "押されても倒れられない。\nこれが「近づくな」の理由。",
+          "factIds": [],
+          "tone": "warn",
+          "at": 4
+        }
+      ],
+      "cues": [
+        {
+          "at": 0,
+          "sfx": "crush_muffled",
+          "gain_db": 0,
+          "duck": 0
+        },
+        {
+          "at": 0.15,
+          "sfx": "heartbeat",
+          "repeat": 0.74,
+          "until": 7.9,
+          "gain_db": -1
+        },
+        {
+          "at": 0.6,
+          "sfx": "breath",
+          "repeat": 2.05,
+          "until": 7.4,
+          "gain_db": -3
+        },
+        {
+          "at": 0.95,
+          "sfx": "shove",
+          "gain_db": -2
+        },
+        {
+          "at": 2.25,
+          "sfx": "shove",
+          "gain_db": -2
+        },
+        {
+          "at": 3.35,
+          "sfx": "shove",
+          "gain_db": -2
+        },
+        {
+          "at": 4.65,
+          "sfx": "shove",
+          "gain_db": -2
+        },
+        {
+          "at": 5.9,
+          "sfx": "shove",
+          "gain_db": -2
+        },
+        {
+          "at": 6.95,
+          "sfx": "shove",
+          "gain_db": -2
+        }
+      ],
+      "bgm": null,
+      "amb": null,
+      "crush": {
+        "pair": "gate",
+        "route": "GA",
+        "walker": 14,
+        "peak": 6.44,
+        "simT": 502,
+        "at": [
+          90,
+          17.5
+        ],
+        "area": "改札前",
+        "shoves": [
+          0.95,
+          2.25,
+          3.35,
+          4.65,
+          5.9,
+          6.95
+        ]
+      }
+    },
+    {
+      "id": "caught",
+      "dur": 2.5,
+      "shot": {
+        "key": "caught-pov",
+        "params": {
+          "base": "gate-queue",
+          "baseParams": {
+            "mode": "approach",
+            "back": 17,
+            "speed": 0.3,
+            "stopGo": 0.9,
+            "eyeY": 2.3,
+            "nearHide": 2.2,
+            "lookGate": 0.85,
+            "lookY": 1.9
+          },
+          "baseT0": 4,
+          "eyeY": 1.55,
+          "push": 0.6,
+          "flashAt": 1.75,
+          "blackAt": 2.15,
+          "hands": {
+            "scale": 0.75,
+            "reach": 0.45,
+            "slots": [
+              {
+                "edge": "left",
+                "at": 0.3
+              },
+              {
+                "edge": "right",
+                "at": 0.2
+              },
+              {
+                "edge": "corner-bl",
+                "at": 0
+              },
+              {
+                "edge": "right",
+                "at": 0.08
+              },
+              {
+                "edge": "left",
+                "at": 0.68
+              },
+              {
+                "edge": "corner-tr",
+                "at": 0
+              }
+            ]
+          },
+          "seed": 7
+        },
+        "t0": 0
+      },
+      "crowd": {
+        "key": "caught-press",
+        "params": {
+          "seed": 7,
+          "base": {
+            "key": "hachiko-peak",
+            "params": {},
+            "t0": 8.5
+          },
+          "plain": true
+        }
+      },
+      "hud": [
+        {
+          "c": "sim",
+          "ja": "囲まれて動けない（シミュレーション）",
+          "factIds": [],
+          "until": 1.75
+        }
+      ],
+      "cues": [
+        {
+          "at": 0,
+          "sfx": "crowd_press"
+        },
+        {
+          "at": 0.35,
+          "sfx": "zombie_groan"
+        },
+        {
+          "at": 1.15,
+          "sfx": "zombie_groan_b",
+          "gain_db": -3,
+          "pan": 0.4
+        },
+        {
+          "at": 1.75,
+          "sfx": "red_flash"
+        },
+        {
+          "at": 1.75,
+          "sfx": "caught_hit",
+          "duck": 0.6,
+          "duck_db": -12
+        },
+        {
+          "at": 2.15,
+          "sfx": "cut_black"
+        }
+      ],
+      "header": false,
+      "clock": false,
+      "vt0": 29.2,
+      "bgm": null,
+      "amb": "crowd-night",
+      "origin": {
+        "variant": "combined/gate",
+        "beat": "caught"
+      },
+      "fix": "caught-pov base = gate-queue: the same Hachiko fix is visible until the cut; QA v6: right creature hand lower + shallower (it overlapped a bystander's back and could read as their arm)",
+      "plateTag": "AI生成画像を加工"
+    },
+    {
+      "id": "over-stamp",
+      "dur": 2,
+      "shot": {
+        "key": "black",
+        "t0": 0
+      },
+      "hud": [
+        {
+          "c": "stamp",
+          "kind": "GAME_OVER",
+          "ja": "人波にのまれて\n改札までたどり着けない\n（シミュレーション）",
+          "factIds": [],
+          "onBlack": true,
+          "safety": {
+            "ja": "混雑の中で立ち止まると危険",
+            "factIds": []
+          }
+        }
+      ],
+      "header": false,
+      "clock": false,
+      "bgm": null,
+      "amb": null,
+      "vt0": 31.7,
+      "reuse": {
+        "variant": "combined/gate",
+        "beat": "over-stamp"
+      }
+    },
+    {
+      "id": "over-lesson",
+      "dur": 5,
+      "shot": {
+        "key": "card-bg",
+        "t0": 0
+      },
+      "hud": [
+        {
+          "c": "lesson"
+        }
+      ],
+      "clock": false,
+      "header": true,
+      "bgm": "calm",
+      "transition": "dip",
+      "vt0": 31.7,
+      "amb": "crowd-night",
+      "reuse": {
+        "variant": "gate-over",
+        "beat": "lesson"
+      },
+      "plateTag": "AI生成画像を加工"
+    },
+    {
+      "id": "continue",
+      "dur": 3,
+      "shot": {
+        "key": "continue-bg",
+        "t0": 0
+      },
+      "hud": [
+        {
+          "c": "continue",
+          "ja": "別の改札でやり直す",
+          "count": 3,
+          "yesAt": 1.6,
+          "factIds": []
+        }
+      ],
+      "clock": false,
+      "bgm": "retry",
+      "amb": null,
+      "vt0": 38.7,
+      "reuse": {
+        "variant": "combined/gate",
+        "beat": "continue"
+      },
+      "plateTag": "AI生成画像を加工"
+    },
+    {
+      "id": "retry-why",
+      "dur": 5,
+      "shot": {
+        "key": "routemap",
+        "params": {
+          "routes": [
+            "SIM-GA",
+            "SIM-GB",
+            "SIM-GC"
+          ],
+          "highlight": null,
+          "colors": {
+            "SIM-GA": "#FF7A9A",
+            "SIM-GB": "#FFD23F",
+            "SIM-GC": "#4FE3C1"
+          },
+          "points": [
+            [
+              -16.5,
+              -0.5
+            ],
+            [
+              151.5,
+              -0.5
+            ],
+            [
+              -16.5,
+              245.5
+            ],
+            [
+              151.5,
+              245.5
+            ]
+          ],
+          "azimuth": 90,
+          "push": 0,
+          "rect": {
+            "x0": 0.08,
+            "x1": 0.92,
+            "y0": 0.2,
+            "y1": 0.47
+          },
+          "span": true,
+          "redZone": 0,
+          "drawOn": [
+            0,
+            0.01
+          ]
+        },
+        "t0": 0
+      },
+      "simmap": {
+        "scenario": "plan",
+        "routes": [
+          "GA",
+          "GB",
+          "GC"
+        ],
+        "colors": {
+          "GA": "#FF7A9A",
+          "GB": "#FFD23F",
+          "GC": "#4FE3C1"
+        },
+        "player": "GA",
+        "crowd": true,
+        "heat": 1,
+        "freeze": 498,
+        "pulse": [
+          80.9,
+          13.9
+        ],
+        "dim": [
+          "GB",
+          "GC"
+        ],
+        "run": [
+          0,
+          1
+        ],
+        "simT": [
+          498,
+          498
+        ],
+        "costumes": true
+      },
+      "hud": [
+        {
+          "c": "caption",
+          "ja": "なぜ失敗した？\nシミュレーションで見直す",
+          "factIds": [],
+          "tone": "warn",
+          "until": 2
+        },
+        {
+          "c": "pin",
+          "world": [
+            80.9,
+            0,
+            13.9
+          ],
+          "ja": "改札前 4.0人/m²\n15分たっても通れない\n（シミュレーション）",
+          "color": "#FF6FB1",
+          "factIds": []
+        },
+        {
+          "c": "caption",
+          "ja": "同じシミュレーションの\n失敗した瞬間",
+          "factIds": [],
+          "tone": "warn",
+          "at": 2
+        }
+      ],
+      "cues": [
+        {
+          "at": 0.02,
+          "sfx": "red_alert",
+          "gain_db": -6
+        },
+        {
+          "at": 0.05,
+          "sfx": "card_in",
+          "gain_db": -6
+        }
+      ],
+      "clock": false,
+      "header": true,
+      "bgm": "retry",
+      "amb": "crowd-night",
+      "duck": -4,
+      "why": {
+        "t": 498,
+        "rho": 4,
+        "x": 80.9,
+        "z": 13.9,
+        "text": "改札前 4.0人/m²\n15分たっても通れない\n（シミュレーション）"
+      }
+    },
+    {
+      "id": "clear-choice",
+      "dur": 7.5,
+      "shot": {
+        "key": "routemap",
+        "params": {
+          "routes": [
+            "SIM-GA",
+            "SIM-GB",
+            "SIM-GC"
+          ],
+          "highlight": null,
+          "colors": {
+            "SIM-GA": "#FF7A9A",
+            "SIM-GB": "#FFD23F",
+            "SIM-GC": "#4FE3C1"
+          },
+          "points": [
+            [
+              -16.5,
+              -0.5
+            ],
+            [
+              151.5,
+              -0.5
+            ],
+            [
+              -16.5,
+              245.5
+            ],
+            [
+              151.5,
+              245.5
+            ]
+          ],
+          "azimuth": 90,
+          "push": 0,
+          "rect": {
+            "x0": 0.08,
+            "x1": 0.92,
+            "y0": 0.2,
+            "y1": 0.47
+          },
+          "span": true,
+          "redZone": 0,
+          "drawOn": [
+            0,
+            0.01
+          ]
+        },
+        "t0": 0
+      },
+      "simmap": {
+        "scenario": "retry",
+        "routes": [
+          "GA",
+          "GB",
+          "GC"
+        ],
+        "colors": {
+          "GA": "#FF7A9A",
+          "GB": "#FFD23F",
+          "GC": "#4FE3C1"
+        },
+        "player": "GC",
+        "crowd": true,
+        "heat": 1,
+        "run": [
+          0.45,
+          4.2
+        ],
+        "simT": [
+          0,
+          358
+        ],
+        "costumes": true
+      },
+      "hud": [
+        {
+          "c": "simpanel",
+          "scenario": "retry",
+          "pair": "gate",
+          "head": "再計算（失敗した時間帯の人の流れで）",
+          "assume": "仮定：人出48,000人・ピーク時／ハチ公改札前は入場規制を仮定（2024年の例）／2026年のJRの対策は未発表",
+          "factIds": [
+            "MEAS-15",
+            "NA-JR-2026"
+          ],
+          "phase": "recompute",
+          "from": "plan",
+          "reorder": [
+            4.2,
+            4.6000000000000005
+          ],
+          "run": [
+            0.45,
+            4.2
+          ],
+          "simT": [
+            0,
+            358
+          ],
+          "speed": "×95 早送り",
+          "finalAt": 4.2,
+          "pickAt": 4.65,
+          "verdict": "再計算の結論"
+        },
+        {
+          "c": "pin",
+          "world": [
+            22.5,
+            0,
+            36.5
+          ],
+          "ja": "スタート",
+          "color": "#E9DDFF",
+          "factIds": []
+        },
+        {
+          "c": "pin",
+          "world": [
+            85.5,
+            0,
+            16.5
+          ],
+          "ja": "A ハチ公改札",
+          "color": "#FF7A9A",
+          "factIds": []
+        },
+        {
+          "c": "pin",
+          "world": [
+            78.5,
+            0,
+            159.5
+          ],
+          "ja": "B 南改札",
+          "color": "#FFD23F",
+          "factIds": []
+        },
+        {
+          "c": "pin",
+          "world": [
+            118.5,
+            0,
+            228.5
+          ],
+          "ja": "B 新南改札",
+          "color": "#4FE3C1",
+          "factIds": []
+        }
+      ],
+      "cues": [
+        {
+          "at": 0.05,
+          "sfx": "whoosh",
+          "gain_db": -8
+        },
+        {
+          "at": 0.6,
+          "sfx": "tick",
+          "repeat": 0.4,
+          "until": 4.2,
+          "gain_db": -6
+        },
+        {
+          "at": 4.65,
+          "sfx": "ui_select"
+        },
+        {
+          "at": 4.69,
+          "sfx": "choice_pick",
+          "gain_db": -2
+        }
+      ],
+      "clock": false,
+      "header": true,
+      "bgm": "retry",
+      "amb": "crowd-night",
+      "duck": -5,
+      "reuse": {
+        "variant": "gate-clear",
+        "beat": "choice"
+      }
+    },
+    {
+      "id": "clear-move",
+      "dur": 4.5,
+      "shot": {
+        "key": "routemap",
+        "params": {
+          "routes": [
+            "JR-C-newsouth-east",
+            "JR-B-south",
+            "JR-A-hachiko"
+          ],
+          "highlight": "JR-C-newsouth-east",
+          "colors": {
+            "JR-A-hachiko": "#FF7A9A",
+            "JR-B-south": "#FFD23F",
+            "JR-C-newsouth-east": "#4FE3C1"
+          },
+          "redZone": 0
+        },
+        "t0": 0
+      },
+      "hud": [
+        {
+          "c": "legend",
+          "factIds": [],
+          "rows": [
+            {
+              "color": "#4FE3C1",
+              "ja": "ルート例：新南改札へ"
+            },
+            {
+              "color": "#FFD23F",
+              "ja": "南改札へ"
+            },
+            {
+              "color": "#FF7A9A",
+              "ja": "ハチ公改札へ"
+            }
+          ]
+        },
+        {
+          "c": "caption",
+          "ja": "ルート例：新南改札（3F）へ\nハチ公前から約7〜8分\n（OSMから概算）",
+          "factIds": [
+            "GATE-H-NS-E",
+            "GATE-H-NS-W",
+            "JR-GATE-01"
+          ],
+          "until": 2.3
+        },
+        {
+          "c": "caption",
+          "ja": "出て右がサクラステージ\n左がストリーム（3F・2024年〜）",
+          "factIds": [
+            "JR-GATE-08",
+            "JR-GATE-09"
+          ],
+          "at": 2.3
+        },
+        {
+          "c": "simmeter",
+          "scenario": "retry",
+          "route": "GC",
+          "run": [
+            0,
+            4.5
+          ],
+          "simT": [
+            34,
+            174.1
+          ],
+          "factIds": [],
+          "etaLabel": "改札まで"
+        }
+      ],
+      "transition": "dip",
+      "clock": {
+        "set": "22:01:15",
+        "rate": 0.5
+      },
+      "vt0": 20.7,
+      "bgm": "tension",
+      "amb": "crowd-night",
+      "reuse": {
+        "variant": "gate-clear",
+        "beat": "move"
+      }
+    },
+    {
+      "id": "clear-pov",
+      "dur": 3,
+      "shot": {
+        "key": "card-bg",
+        "params": {},
+        "t0": 0
+      },
+      "clock": false,
+      "header": true,
+      "hud": [
+        {
+          "c": "simmeter",
+          "scenario": "retry",
+          "route": "GC",
+          "run": [
+            0,
+            3
+          ],
+          "simT": [
+            174.1,
+            194.1
+          ],
+          "factIds": [],
+          "etaLabel": "改札まで"
+        },
+        {
+          "c": "caption",
+          "ja": "こっちは歩ける。\nまわりに余裕がある\n（シミュレーション）",
+          "factIds": [],
+          "at": 0.3
+        }
+      ],
+      "cues": [
+        {
+          "at": 0.05,
+          "sfx": "whoosh",
+          "gain_db": -14
+        }
+      ],
+      "bgm": "retry",
+      "amb": "street-quiet"
+    },
+    {
+      "id": "clear-result",
+      "dur": 4,
+      "shot": {
+        "key": "gate-newsouth",
+        "params": {
+          "gate": "south",
+          "mode": "hall",
+          "dur": 6.5,
+          "start": -10,
+          "lookY0": 2.3
+        },
+        "t0": 0
+      },
+      "crowd": {
+        "key": "gate-newsouth",
+        "params": {
+          "path": [
+            [
+              102.49,
+              144.99
+            ],
+            [
+              98.38,
+              156.26
+            ],
+            [
+              94.95,
+              165.65
+            ],
+            [
+              91.52,
+              175.05
+            ]
+          ],
+          "width": 2.4,
+          "density": 0.7,
+          "fill": 0.4,
+          "approach": 6
+        },
+        "t0": 0,
+        "restart": true
+      },
+      "hud": [
+        {
+          "c": "caption",
+          "ja": "この回は列が流れた\n（シミュレーション）",
+          "factIds": [],
+          "sim": true,
+          "until": 2
+        },
+        {
+          "c": "caption",
+          "ja": "当日は係員の誘導に従う",
+          "factIds": [],
+          "tone": "note",
+          "at": 2
+        },
+        {
+          "c": "sim",
+          "ja": "人の流れ＝シミュレーション",
+          "factIds": []
+        },
+        {
+          "c": "simmeter",
+          "scenario": "retry",
+          "route": "GC",
+          "run": [
+            0,
+            4
+          ],
+          "simT": [
+            174.1,
+            267.5
+          ],
+          "factIds": [],
+          "etaLabel": "改札まで"
+        }
+      ],
+      "clock": {
+        "set": "22:03:30",
+        "rate": 0.5
+      },
+      "vt0": 25.2,
+      "bgm": "tension",
+      "amb": "crowd-night",
+      "header": {
+        "scrim": true
+      },
+      "origin": {
+        "variant": "gate-clear",
+        "beat": "result"
+      },
+      "fix": "South gate hall dressed from the photo: green band 南改札, exits 西口 left / 東口 right, green gates, office, LED boards, deeper hall. Framing patch puts the band below the HUD header (it is cropped under it with the old framing); QA v6: dark header plate while the 南改札 band passes behind the HUD header (body ≈49.2–50.0 s)",
+      "plateTag": "AI生成画像を加工"
+    },
+    {
+      "id": "clear-stamp",
+      "dur": 2.5,
+      "shot": {
+        "key": "gate-newsouth",
+        "params": {
+          "gate": "south",
+          "mode": "hall",
+          "dur": 6.5,
+          "start": -10,
+          "lookY0": 2.3
+        },
+        "t0": 4
+      },
+      "crowd": {
+        "key": "gate-newsouth",
+        "params": {
+          "path": [
+            [
+              102.49,
+              144.99
+            ],
+            [
+              98.38,
+              156.26
+            ],
+            [
+              94.95,
+              165.65
+            ],
+            [
+              91.52,
+              175.05
+            ]
+          ],
+          "width": 2.4,
+          "density": 0.7,
+          "fill": 0.4,
+          "approach": 6
+        },
+        "t0": 4,
+        "restart": true
+      },
+      "hud": [
+        {
+          "c": "stamp",
+          "kind": "GAME_CLEAR",
+          "ja": "新南改札から乗車！\n（シミュレーション）",
+          "factIds": []
+        }
+      ],
+      "bgm": "victory",
+      "clock": {
+        "set": "22:05:30",
+        "rate": 0.5
+      },
+      "vt0": 29.2,
+      "amb": "crowd-night",
+      "origin": {
+        "variant": "gate-clear",
+        "beat": "stamp"
+      },
+      "fix": "same South hall (t0 4: the patched dolly is identical to the old one after 3.6 s)",
+      "plateTag": "AI生成画像を加工"
+    },
+    {
+      "id": "clear-cheat",
+      "dur": 3.5,
+      "shot": {
+        "key": "card-bg",
+        "params": {
+          "yaw0": 1.1
+        },
+        "t0": 0
+      },
+      "hud": [
+        {
+          "c": "cheat"
+        }
+      ],
+      "clock": false,
+      "bgm": "victory",
+      "vt0": 36.7,
+      "amb": "crowd-night",
+      "reuse": {
+        "variant": "gate-clear",
+        "beat": "cheat"
+      },
+      "plateTag": "AI生成画像を加工"
+    },
+    {
+      "id": "kaiju",
+      "dur": 4,
+      "shot": {
+        "key": "kaiju-skyline",
+        "params": {
+          "rise": [
+            0.15,
+            1.7
+          ],
+          "roarAt": 1.85,
+          "roarDur": 1.35,
+          "kaiju": {
+            "scale": 480,
+            "ground": 500,
+            "pos": [
+              10,
+              1000
+            ]
+          }
+        },
+        "t0": 0
+      },
+      "hud": [
+        {
+          "c": "gag",
+          "ja": "えっ、\nボス戦あるの!?",
+          "factIds": [],
+          "at": 2.5
+        }
+      ],
+      "cues": [
+        {
+          "at": 0.1,
+          "sfx": "kaiju_rumble"
+        },
+        {
+          "at": 1.85,
+          "sfx": "kaiju_roar",
+          "duck": 1.2,
+          "duck_db": -10
+        },
+        {
+          "at": 1.95,
+          "sfx": "party_popper",
+          "gain_db": -2
+        }
+      ],
+      "header": false,
+      "clock": false,
+      "bgm": null,
+      "amb": "crowd-night",
+      "vt0": 60.2,
+      "reuse": {
+        "variant": "combined/gate",
+        "beat": "kaiju"
+      }
+    },
+    {
+      "id": "goodbye",
+      "dur": 8,
+      "shot": {
+        "key": "card-bg",
+        "params": {
+          "yaw0": 2.2,
+          "tone": "dark"
+        }
+      },
+      "hud": [
+        {
+          "c": "goodbye",
+          "quote": {
+            "title": "GOODBYE BAD HALLOWEEN",
+            "ja": "渋谷駅周辺では、条例で飲酒・喫煙、\nごみのポイ捨ては禁止されています。",
+            "attr": "（渋谷区）",
+            "en": "Drinking, smoking and littering on the streets around Shibuya Station are banned by ordinance.",
+            "enAttr": "(Shibuya City)",
+            "label": "引用"
+          },
+          "facts": [
+            {
+              "ja": "10/30(金)早朝〜11/1(日)朝方　ハチ公像は囲いで観覧不可",
+              "en": "Oct 30 early AM – Nov 1 morning: Hachiko statue fenced off"
+            },
+            {
+              "ja": "10/30夕方〜11/1早朝　駅周辺で交通規制",
+              "en": "Oct 30 evening – Nov 1 early AM: traffic restrictions around the station"
+            }
+          ],
+          "ours": {
+            "label": "制作チームより",
+            "ja": "いちばんのCLEARは、\n今年の渋谷に「行かない」こと。",
+            "en": "The best CLEAR this year: don't go to Shibuya."
+          },
+          "foot": {
+            "ja": "出典：渋谷区公式X（2026/10/22）・渋谷区・警視庁渋谷警察署　※本編はフィクションです",
+            "en": "Sources: Shibuya City (X, Oct 22, 2026), Shibuya City, MPD Shibuya Police Station. *Story is fiction."
+          },
+          "factIds": []
+        }
+      ],
+      "header": false,
+      "clock": false,
+      "footnote": false,
+      "bgm": "farewell",
+      "amb": null
+    },
+    {
+      "id": "sources",
+      "dur": 3,
+      "shot": {
+        "key": "card-bg",
+        "params": {
+          "yaw0": 1.5
+        }
+      },
+      "hud": [
+        {
+          "c": "sources",
+          "compact": true,
+          "note": "徒歩はOSMから概算（混雑・信号は含まず）／混雑・所要時間は人流シミュレーション（人出48,000人・ピーク時、入場規制などは仮定）",
+          "parodyNote": {
+            "ja": "※本編（ゲーム部分）はフィクションです。引用・日付は各出典の公表内容です",
+            "en": "*The game story is fiction; quotes and dates are as published by each source."
+          },
+          "factIds": [],
+          "credit": "出典：国土交通省 PLATEAU（3D都市モデル）／© OpenStreetMap contributors\n写真：Syced（CC0・Wikimedia Commons）／一部背景はAI生成画像を加工"
+        }
+      ],
+      "header": {
+        "sub": "10/31 渋谷ハロウィンには近づくな"
+      },
+      "clock": false,
+      "footnote": false,
+      "bgm": "farewell",
+      "amb": null,
+      "fadeOut": 0.4
+    }
+  ],
+  "lesson": {
+    "title": "改札は1つじゃない",
+    "ja": "改札は1つじゃない\nハチ公改札前は一方通行\nUターンして入る形\n（2025年1月の報道）\nハロウィーンは例年一部規制\n（例：2024年・2023年）\n南改札（1F）・新南改札（3F）\nも選択肢に\n2026年のJRの対策は\n10/25時点で未発表",
+    "points": [
+      "ハチ公改札前は一方通行\nUターンして入る形\n（2025年1月の報道）",
+      "ハロウィーンは例年一部規制\n（例：2024年・2023年）",
+      "南改札（1F）・新南改札（3F）\nも選択肢に",
+      "2026年のJRの対策は\n10/25時点で未発表"
+    ],
+    "factIds": [
+      "JR-GATE-03",
+      "JR-GATE-05",
+      "MEAS-15",
+      "MEAS-16",
+      "JR-GATE-01",
+      "NA-JR-2026"
+    ],
+    "summary": "ハチ公改札は2025年1月の移設で改札前が一方通行になり、ハチ公側からはUターンして入る形に（2025年1月の報道）。ハロウィーン期間は例年一部規制があるため（例：2024年・2023年）、南改札・新南改札など別の改札も選択肢に。2026年のJRの対策は10/25時点で未発表。"
+  },
+  "cheat": {
+    "title": "保存版 JR渋谷の改札",
+    "sub": "4つの改札と出口",
+    "asOf": "10/25時点",
+    "note": "当日は係員の誘導に従う",
+    "rows": [
+      {
+        "sec": "改札 → 出口",
+        "ja": "ハチ公改札 1F：前は一方通行",
+        "sub": "Uターンして入る（2025年1月の報道）",
+        "tone": "ng",
+        "factIds": [
+          "JR-GATE-01",
+          "JR-GATE-03"
+        ]
+      },
+      {
+        "ja": "南改札 1F → 西口・東口",
+        "sub": "ハチ公前から約4分（OSMから概算）",
+        "factIds": [
+          "JR-GATE-13",
+          "GATE-H-S"
+        ]
+      },
+      {
+        "ja": "新南改札 3F → サクラステージ・ストリーム",
+        "sub": "ハチ公前から約7〜8分（OSMから概算）",
+        "factIds": [
+          "JR-GATE-14",
+          "GATE-H-NS-E",
+          "GATE-H-NS-W"
+        ]
+      },
+      {
+        "ja": "中央改札 3F → スクランブルスクエア",
+        "factIds": [
+          "JR-GATE-01",
+          "JR-GATE-12"
+        ]
+      },
+      {
+        "sec": "2026年",
+        "ja": "JRの対策：10/25時点で未発表",
+        "factIds": [
+          "NA-JR-2026"
+        ]
+      },
+      {
+        "ja": "例：2024年 ハチ公改札を16〜23時ごろ一部規制",
+        "factIds": [
+          "MEAS-15"
+        ]
+      }
+    ]
+  },
+  "sources": [
+    "CROWD-01",
+    "JR-GATE-03",
+    "JR-GATE-18",
+    "JR-GATE-05",
+    "MEAS-15",
+    "MEAS-16",
+    "JR-GATE-01",
+    "NA-JR-2026",
+    "JR-GATE-13",
+    "GATE-H-S",
+    "JR-GATE-14",
+    "GATE-H-NS-E",
+    "GATE-H-NS-W",
+    "JR-GATE-12",
+    "MEAS-12",
+    "MEAS-09",
+    "JR-LAST-01",
+    "JR-LAST-02",
+    "END-01",
+    "END-02",
+    "END-03",
+    "JR-GATE-08",
+    "JR-GATE-09"
+  ],
+  "bgm": "tension",
+  "amb": "crowd-night",
+  "routes": {
+    "SIM-GA": {
+      "ja": "A ハチ公改札（シミュレーションの経路）",
+      "factIds": [],
+      "points": [
+        [
+          22.5,
+          36.5
+        ],
+        [
+          25.5,
+          33.5
+        ],
+        [
+          28.5,
+          30.5
+        ],
+        [
+          31.5,
+          27.5
+        ],
+        [
+          34.5,
+          24.5
+        ],
+        [
+          37.5,
+          21.5
+        ],
+        [
+          39.5,
+          17.5
+        ],
+        [
+          40.5,
+          13.5
+        ],
+        [
+          45.5,
+          12.5
+        ],
+        [
+          51.5,
+          12.5
+        ],
+        [
+          57.5,
+          12.5
+        ],
+        [
+          63.5,
+          12.5
+        ],
+        [
+          69.5,
+          12.5
+        ],
+        [
+          75.5,
+          12.5
+        ],
+        [
+          81.5,
+          12.5
+        ],
+        [
+          86.5,
+          11.5
+        ],
+        [
+          92.5,
+          11.5
+        ],
+        [
+          98.5,
+          11.5
+        ],
+        [
+          104.5,
+          11.5
+        ],
+        [
+          110.5,
+          11.5
+        ],
+        [
+          116.5,
+          11.5
+        ],
+        [
+          122.5,
+          11.5
+        ],
+        [
+          127.5,
+          12.5
+        ],
+        [
+          133.5,
+          12.5
+        ],
+        [
+          139.5,
+          12.5
+        ],
+        [
+          138.5,
+          17.5
+        ],
+        [
+          132.5,
+          17.5
+        ],
+        [
+          126.5,
+          17.5
+        ],
+        [
+          120.5,
+          17.5
+        ],
+        [
+          114.5,
+          17.5
+        ],
+        [
+          109.5,
+          17.5
+        ],
+        [
+          104.5,
+          16.5
+        ],
+        [
+          98.5,
+          16.5
+        ],
+        [
+          92.5,
+          16.5
+        ],
+        [
+          87.5,
+          16.5
+        ]
+      ]
+    },
+    "SIM-GB": {
+      "ja": "B 南改札（シミュレーションの経路）",
+      "factIds": [],
+      "points": [
+        [
+          22.5,
+          36.5
+        ],
+        [
+          19.5,
+          39.5
+        ],
+        [
+          16.5,
+          42.5
+        ],
+        [
+          13.5,
+          45.5
+        ],
+        [
+          10.5,
+          48.5
+        ],
+        [
+          7.5,
+          51.5
+        ],
+        [
+          4.5,
+          54.5
+        ],
+        [
+          1.5,
+          57.5
+        ],
+        [
+          -1.5,
+          60.5
+        ],
+        [
+          -4.5,
+          63.5
+        ],
+        [
+          1.5,
+          63.5
+        ],
+        [
+          2.5,
+          68.5
+        ],
+        [
+          1.5,
+          73.5
+        ],
+        [
+          0.5,
+          78.5
+        ],
+        [
+          0.5,
+          84.5
+        ],
+        [
+          -0.5,
+          89.5
+        ],
+        [
+          0.5,
+          94.5
+        ],
+        [
+          1.5,
+          98.5
+        ],
+        [
+          3.5,
+          102.5
+        ],
+        [
+          3.5,
+          108.5
+        ],
+        [
+          2.5,
+          105.5
+        ],
+        [
+          -2.5,
+          104.5
+        ],
+        [
+          -4.5,
+          107.5
+        ],
+        [
+          -3.5,
+          112.5
+        ],
+        [
+          -1.5,
+          116.5
+        ],
+        [
+          0.5,
+          120.5
+        ],
+        [
+          3.5,
+          123.5
+        ],
+        [
+          7.5,
+          124.5
+        ],
+        [
+          12.5,
+          125.5
+        ],
+        [
+          14.5,
+          125.5
+        ],
+        [
+          10.5,
+          123.5
+        ],
+        [
+          4.5,
+          123.5
+        ],
+        [
+          -1.5,
+          123.5
+        ],
+        [
+          -3.5,
+          126.5
+        ],
+        [
+          -2.5,
+          131.5
+        ],
+        [
+          -1.5,
+          134.5
+        ],
+        [
+          0.5,
+          138.5
+        ],
+        [
+          1.5,
+          141.5
+        ],
+        [
+          3.5,
+          145.5
+        ],
+        [
+          4.5,
+          148.5
+        ],
+        [
+          6.5,
+          152.5
+        ],
+        [
+          8.5,
+          155.5
+        ],
+        [
+          12.5,
+          157.5
+        ],
+        [
+          18.5,
+          157.5
+        ],
+        [
+          23.5,
+          158.5
+        ],
+        [
+          26.5,
+          161.5
+        ],
+        [
+          29.5,
+          164.5
+        ],
+        [
+          35.5,
+          164.5
+        ],
+        [
+          41.5,
+          164.5
+        ],
+        [
+          47.5,
+          164.5
+        ],
+        [
+          53.5,
+          164.5
+        ],
+        [
+          59.5,
+          164.5
+        ],
+        [
+          65.5,
+          164.5
+        ],
+        [
+          69.5,
+          163.5
+        ],
+        [
+          72.5,
+          161.5
+        ],
+        [
+          76.5,
+          160.5
+        ]
+      ]
+    },
+    "SIM-GC": {
+      "ja": "B 新南改札（シミュレーションの経路）",
+      "factIds": [],
+      "points": [
+        [
+          22.5,
+          36.5
+        ],
+        [
+          19.5,
+          39.5
+        ],
+        [
+          16.5,
+          42.5
+        ],
+        [
+          13.5,
+          45.5
+        ],
+        [
+          10.5,
+          48.5
+        ],
+        [
+          7.5,
+          51.5
+        ],
+        [
+          4.5,
+          54.5
+        ],
+        [
+          1.5,
+          57.5
+        ],
+        [
+          -1.5,
+          60.5
+        ],
+        [
+          -4.5,
+          63.5
+        ],
+        [
+          1.5,
+          63.5
+        ],
+        [
+          2.5,
+          68.5
+        ],
+        [
+          1.5,
+          73.5
+        ],
+        [
+          0.5,
+          78.5
+        ],
+        [
+          0.5,
+          84.5
+        ],
+        [
+          -0.5,
+          89.5
+        ],
+        [
+          0.5,
+          94.5
+        ],
+        [
+          1.5,
+          98.5
+        ],
+        [
+          3.5,
+          102.5
+        ],
+        [
+          3.5,
+          108.5
+        ],
+        [
+          2.5,
+          105.5
+        ],
+        [
+          -2.5,
+          104.5
+        ],
+        [
+          -4.5,
+          107.5
+        ],
+        [
+          -3.5,
+          112.5
+        ],
+        [
+          -1.5,
+          116.5
+        ],
+        [
+          0.5,
+          120.5
+        ],
+        [
+          3.5,
+          123.5
+        ],
+        [
+          7.5,
+          124.5
+        ],
+        [
+          12.5,
+          125.5
+        ],
+        [
+          14.5,
+          125.5
+        ],
+        [
+          10.5,
+          123.5
+        ],
+        [
+          4.5,
+          123.5
+        ],
+        [
+          -1.5,
+          123.5
+        ],
+        [
+          -3.5,
+          126.5
+        ],
+        [
+          -2.5,
+          131.5
+        ],
+        [
+          -1.5,
+          134.5
+        ],
+        [
+          0.5,
+          138.5
+        ],
+        [
+          1.5,
+          141.5
+        ],
+        [
+          3.5,
+          145.5
+        ],
+        [
+          4.5,
+          148.5
+        ],
+        [
+          6.5,
+          152.5
+        ],
+        [
+          8.5,
+          155.5
+        ],
+        [
+          12.5,
+          157.5
+        ],
+        [
+          18.5,
+          157.5
+        ],
+        [
+          24.5,
+          157.5
+        ],
+        [
+          24.5,
+          163.5
+        ],
+        [
+          23.5,
+          167.5
+        ],
+        [
+          23.5,
+          173.5
+        ],
+        [
+          23.5,
+          179.5
+        ],
+        [
+          24.5,
+          184.5
+        ],
+        [
+          27.5,
+          187.5
+        ],
+        [
+          30.5,
+          190.5
+        ],
+        [
+          33.5,
+          193.5
+        ],
+        [
+          36.5,
+          196.5
+        ],
+        [
+          39.5,
+          199.5
+        ],
+        [
+          42.5,
+          202.5
+        ],
+        [
+          45.5,
+          205.5
+        ],
+        [
+          51.5,
+          205.5
+        ],
+        [
+          57.5,
+          205.5
+        ],
+        [
+          63.5,
+          205.5
+        ],
+        [
+          67.5,
+          206.5
+        ],
+        [
+          71.5,
+          208.5
+        ],
+        [
+          73.5,
+          212.5
+        ],
+        [
+          75.5,
+          215.5
+        ],
+        [
+          76.5,
+          219.5
+        ],
+        [
+          78.5,
+          223.5
+        ],
+        [
+          79.5,
+          227.5
+        ],
+        [
+          81.5,
+          230.5
+        ],
+        [
+          84.5,
+          233.5
+        ],
+        [
+          88.5,
+          232.5
+        ],
+        [
+          92.5,
+          230.5
+        ],
+        [
+          96.5,
+          229.5
+        ],
+        [
+          100.5,
+          228.5
+        ],
+        [
+          106.5,
+          228.5
+        ],
+        [
+          112.5,
+          228.5
+        ],
+        [
+          115.5,
+          228.5
+        ]
+      ]
+    }
+  },
+  "generated": "tools/v9_configs.mjs (do not edit by hand: edit the generator and re-run --write)",
+  "release": "v9",
+  "sim": {
+    "plan": "v8/sim/plan.json",
+    "retry": "v8/sim/retry.json",
+    "pick": "GC",
+    "retryPick": "GC",
+    "over": "GA",
+    "clear": "GC",
+    "rule": "判定：スコア（予測時間＋混雑ペナルティ）が最小のルート。ペナルティ＝最大密度が2人/m²を超えた分×1分",
+    "assumptions": "シミュレーション（仮定）：人出48,000人・ピーク時（22時ごろ想定）／ハチ公改札前は入場規制を仮定／歩行80m/分（OSM区間）。2026年のJRの対策は未発表",
+    "crush": "v9/sim/crush.json",
+    "crushPeak": 6.44,
+    "crushAssumption": "圧死シナリオ（仮定）：再計算と同じ人出・時間帯で、モデルの上限（1m²に4人）を8人に緩和し、行列の間隔も詰めた場合"
+  },
+  "look": {
+    "costumes": "v9"
+  }
+}

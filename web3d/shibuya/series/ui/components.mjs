@@ -520,7 +520,22 @@ function simmeter(item,env){const r=R('top',env.lang),t=item.t??0,dur=item.dur??
  r.strings.push(rho,fmtS(item.eta));r.sims.push({text:'（シミュレーション）',label:true});r.simmeter={rho:+rho,segs:item.segs??0,eta:item.eta??null};r.ids(item.factIds);
  return r;}
 
-export const COMPONENTS=Object.freeze({parody,fiction,tag,header,clock,mission,choice,caption,direction,sim,footnote,stamp,lesson,rules,notice,'press-start':pressStart,pressStart,sources,cheat,pin,legend,continue:cont,endcard,gag,guide,goodbye,simpanel,simmeter});
+// crushmeter (v9 crush POV): {rho, simT, peak, t, dur, label?, note?} — the crush-scenario density at the player (the tracked
+//   walker of the GAME OVER route in tools/v9_sim.mjs crush, series/sim-v8.mjs meterState on the crush summary), as an
+//   8-segment bar of 1 p/m² (≥ 4 red), the value, a pulsing red 「圧死危険」 once ≥ item.danger (default 4 p/m² = crowd-jr JR_CROWD.crush) and the
+//   シミュレーション label + the scenario's assumption (the model's 4 p/m² limit lifted to 8). Never a made-up number.
+function crushmeter(item,env){const r=R('top',env.lang),t=item.t??0,dur=item.dur??0,st=enterStyle(item.anim??'slide-l',t,dur);
+ const v=item.rho??0,segs=Array.from({length:8},(_,k)=>`<i class="${k<Math.min(8,Math.ceil(v-1e-9))?'on':''}${k>=4?' hi':''}"></i>`).join('');
+ const rho=(Math.round(v*10)/10).toFixed(1),danger=v>=(item.danger??4),pulse=danger?(.55+.45*Math.abs(Math.sin(t*Math.PI*2.2))).toFixed(3):'0';
+ r.html=panel(`gh-crush${danger?' on':''}`,`<div class="l1"><span class="k">${icon('sim')}SIM</span><span class="lb">${r.txt(item.label??'足元の密度（圧死シナリオ）')}</span></div>`+
+  `<div class="l2"><div class="bar">${segs}</div><b class="num">${rho}</b><small>人/m²</small></div>`+
+  `<div class="dg" style="opacity:${pulse}">${r.txt('圧死危険')}</div>`+
+  `<div class="l3"><small>${r.txt(item.note??'シミュレーション（仮定：モデルの上限4人/m²を8人に緩和）')}</small></div>`,{style:st.style,brackets:false,attrs:'data-c="crushmeter"'});
+ r.strings.push(rho,'シミュレーション');if(danger)r.strings.push('圧死危険');r.sims.push({text:'シミュレーション',label:true});
+ r.crushmeter={rho:+rho,danger,simT:item.simT??null};r.ids(item.factIds);
+ return r;}
+
+export const COMPONENTS=Object.freeze({parody,fiction,tag,header,clock,mission,choice,caption,direction,sim,footnote,stamp,lesson,rules,notice,'press-start':pressStart,pressStart,sources,cheat,pin,legend,continue:cont,endcard,gag,guide,goodbye,simpanel,simmeter,crushmeter});
 export const COMPONENT_KEYS=Object.freeze(Object.keys(COMPONENTS));
 export const EXTERNAL_KEYS=Object.freeze(['logo']);   // rendered by other modules (3D logotype)
 
@@ -572,7 +587,7 @@ export class GameHUD{
   const out={fx:'',pins:'',center:'',top:'',press:'',low:'',gag:'',chips:'',foot:'',clock:'',header:'',parody:''};
   const rec={T,parody:false,fiction:false,notice:false,parodyNote:false,header:false,items:[],strings:[],factIds:[],sims:[],stamps:[],cheat:false,choice:null,labels:[],cont:null,endcard:null,gag:false,credit:false,goodbye:null,guide:null,mission:null};
   const add=res=>{if(!res)return;out[res.slot]+=res.html;if(res.fx)out.fx+=res.fx;rec.strings.push(...res.strings);for(const id of res.factIds)if(!rec.factIds.includes(id))rec.factIds.push(id);
-   rec.sims.push(...res.sims);rec.stamps.push(...res.stamps);if(res.cheat)rec.cheat=true;if(res.choice)rec.choice=res.choice;if(res.label)rec.labels.push(res.label);if(res.header)rec.header=true;if(res.parody&&res.slot==='parody')rec.parody=true;if(res.fiction)rec.fiction=true;if(res.notice)rec.notice=true;if(res.parodyNote)rec.parodyNote=true;if(res.cont)rec.cont=res.cont;if(res.endcard)rec.endcard=res.endcard;if(res.gag)rec.gag=true;if(res.credit)rec.credit=true;if(res.goodbye)rec.goodbye=res.goodbye;if(res.guide)rec.guide=res.guide;if(res.missionCard)rec.mission=res.missionCard;if(res.simpanel)rec.simpanel=res.simpanel;if(res.simmeter)rec.simmeter=res.simmeter;};
+   rec.sims.push(...res.sims);rec.stamps.push(...res.stamps);if(res.cheat)rec.cheat=true;if(res.choice)rec.choice=res.choice;if(res.label)rec.labels.push(res.label);if(res.header)rec.header=true;if(res.parody&&res.slot==='parody')rec.parody=true;if(res.fiction)rec.fiction=true;if(res.notice)rec.notice=true;if(res.parodyNote)rec.parodyNote=true;if(res.cont)rec.cont=res.cont;if(res.endcard)rec.endcard=res.endcard;if(res.gag)rec.gag=true;if(res.credit)rec.credit=true;if(res.goodbye)rec.goodbye=res.goodbye;if(res.guide)rec.guide=res.guide;if(res.missionCard)rec.mission=res.missionCard;if(res.simpanel)rec.simpanel=res.simpanel;if(res.simmeter)rec.simmeter=res.simmeter;if(res.crushmeter)rec.crushmeter=res.crushmeter;};
   if(state.parody)add(render({c:'parody',...(state.parody===true?{}:state.parody)},env));   // opt-in (steering: no persistent label)
   if(state.fiction||(state.items||[]).some(it=>it.c==='notice'||(it.c==='mission'&&it.card&&it.fiction!==false)))add(render({c:'fiction',...(isObjS(state.fiction)?state.fiction:{})},env));
   if(state.header)add(render({c:'header',...(state.header===true?{}:state.header)},env));

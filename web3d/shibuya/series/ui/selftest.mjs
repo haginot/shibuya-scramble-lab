@@ -12,7 +12,7 @@ const items={parody:{},fiction:{},tag:{ja:'位置・構造は概略'},header:{},
  continue:{ja:'別のルートでやり直す',count:3,dur:3},endcard:{ja:'あなたなら、\nどう帰る？',sub:'コメントで教えて',dur:2.5},gag:{ja:'なんで！？',sub:'※ゲームとは関係ありません',dur:4},
  guide:{ja:'ここからは“もしも”の脱出ガイド',sub:'もう渋谷にいる人へ',dur:3},goodbye:{dur:8},
  simpanel:{dur:4,pickAt:1,pick:'B',reorder:[.5,1],rule:'スコア',assume:'仮定',clock:'SIM +1:00',speed:'×60',rows:[{key:'A',label:'A',color:'#f00',final:false,shown:30,rho:1.2,bar:.3,rank:1,rankFrom:1},{key:'B',label:'B',color:'#0f0',final:true,total:200,peak:2.5,rho:2.5,bar:.6,risk:'中',score:230,ruledOut:null,rank:1,rankFrom:2},{key:'C',label:'C',color:'#00f',final:true,total:null,peak:3.9,rho:3.9,bar:1,risk:'高',score:null,ruledOut:{ja:'通れない'},rank:3,rankFrom:3}]},
- simmeter:{dur:4,rho:3.3,segs:5,eta:null}};
+ simmeter:{dur:4,rho:3.3,segs:5,eta:null},crushmeter:{dur:7,rho:6.4,danger:4,simT:500}};
 for(const k of Object.keys(COMPONENTS)){ok(items[k],`sample for ${k}`);
  for(const t of [0,.05,.1,.2,.3,.5,1,2,3.3,3.9,4]){const a=render({c:k,...items[k],t},{config,T:t}),b=render({c:k,...items[k],t},{config,T:t});
   ok(a&&typeof a.html==='string'&&a.html.length>0,`${k}@${t} renders`);ok(a.html===b.html,`${k}@${t} deterministic`);ok(!/NaN|undefined/.test(a.html),`${k}@${t} no NaN/undefined: ${a.html.match(/.{30}(NaN|undefined).{10}/)?.[0]}`);}}

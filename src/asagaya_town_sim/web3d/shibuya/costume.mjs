@@ -8,11 +8,20 @@
 // new CostumeCrowd(scene,n,{ordinary:true}) draw everyone in normal clothes (everyday palette)
 // with at most small cat ears or a small hat; no monster bodies, no pale/green/orange skin.
 // Police (POLICE) and staff (STAFF) keep their normal uniforms. The default (v4) assignment is unchanged.
+// v9 Halloween costumes (series/costumes-v9.mjs v9Style): flags ≥ 4 carry a palette slot → the body is recoloured with the
+// slot colours (uniform uV9) and the hat / ears / cape / skirt / prop layers follow the class features. Without such flags
+// nothing changes.
 // Series-only look uniforms (defaults keep the v4 look): crowd.uniforms.uStride (leg/arm swing scale, 1),
 // uKey (soft key light on body faces, 0), uFill (indoor fill light, 0), uNearDim (darkening of figures within ~9 m of the camera, 0).
 import * as THREE from '../vendor/three.module.min.js';
 import {shared,common} from './shaders.mjs';
 import {personGeometry} from './crowd.mjs';
+// v9 costume hook (series/costumes-v9.mjs calls setV9Costumes at import; nothing here imports the series code):
+// {slots:[{colors:[4 hex]}], lin(hex)→[r,g,b], hasFeature(flags, feature)}. Without it v9 flags are never produced.
+let V9=null;
+export function setV9Costumes(h){V9=h;}
+const v9HasFeature=(f,feat)=>!!V9&&V9.hasFeature(f,feat);
+const v9N=()=>4*Math.max(1,V9?V9.slots.length:1);
 
 export const COSTUMES=['casual','witch','vampire','devil','ears','pumpkin','ghost','zombie','wizard','hero','skeleton'];
 const WEIGHTS=[.2,.12,.09,.08,.12,.06,.05,.08,.06,.07,.07];
@@ -37,17 +46,17 @@ function build(parts){const p=[],n=[],part=[];for(const [geo,id] of parts){const
  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(p,3));g.setAttribute('normal',new THREE.Float32BufferAttribute(n,3));g.setAttribute('aPart',new THREE.Float32BufferAttribute(part,1));return g;}
 const cape=()=>{const g=new THREE.BufferGeometry(),v=[],q=[[-.2,1.42,-.13],[.2,1.42,-.13],[-.34,.5,-.2],[.34,.5,-.2]];for(const [a,b,c] of [[0,2,1],[1,2,3]])v.push(...q[a],...q[b],...q[c]);g.setAttribute('position',new THREE.Float32BufferAttribute(v,3));g.computeVertexNormals();return g;};
 const LAYERS=[
- {name:'hat',has:(t)=>t===1||t===8||t===POLICE||t===ORDINARY_HAT,geo:()=>build([[new THREE.CylinderGeometry(.27,.27,.02,10).translate(0,1.7,0),7],[new THREE.ConeGeometry(.13,.42,8).translate(0,1.92,-.02),8]])},
- {name:'ears',has:(t)=>t===3||t===4||t===ORDINARY_EARS,geo:()=>build([[new THREE.ConeGeometry(.04,.13,5).rotateZ(.35).translate(-.08,1.74,.01),9],[new THREE.ConeGeometry(.04,.13,5).rotateZ(-.35).translate(.08,1.74,.01),10]])},
- {name:'cape',has:(t)=>t===2||t===9,geo:()=>build([[cape(),11]]),side:THREE.DoubleSide},
- {name:'skirt',has:(t)=>t===1||t===6||t===8,geo:()=>build([[new THREE.CylinderGeometry(.2,.55,.7,10,1,true).translate(0,.6,0),12]]),side:THREE.DoubleSide},
- {name:'prop',has:(t)=>t===3||t===8||t===POLICE,geo:()=>build([[new THREE.CylinderGeometry(.016,.016,1.1,4).translate(.23,1.37,.06),13],[new THREE.OctahedronGeometry(.06,0).scale(1.4,1,1).translate(.23,1.95,.06),14]])},
- {name:'light',has:(t,f)=>f>0&&t<POLICE&&t!==6,geo:()=>build([[new THREE.PlaneGeometry(.075,.14).translate(-.23,.84,.08),15],[new THREE.CylinderGeometry(.018,.018,.26,4).translate(.23,.86,.05),16]]),side:THREE.DoubleSide},
+ {name:'hat',has:(t,f)=>f>=4?v9HasFeature(f,'witch-hat'):t===1||t===8||t===POLICE||t===ORDINARY_HAT,geo:()=>build([[new THREE.CylinderGeometry(.27,.27,.02,10).translate(0,1.7,0),7],[new THREE.ConeGeometry(.13,.42,8).translate(0,1.92,-.02),8]])},
+ {name:'ears',has:(t,f)=>f>=4?v9HasFeature(f,'round-ears')||v9HasFeature(f,'horns'):t===3||t===4||t===ORDINARY_EARS,geo:()=>build([[new THREE.ConeGeometry(.04,.13,5).rotateZ(.35).translate(-.08,1.74,.01),9],[new THREE.ConeGeometry(.04,.13,5).rotateZ(-.35).translate(.08,1.74,.01),10]])},
+ {name:'cape',has:(t,f)=>f>=4?v9HasFeature(f,'cape')||v9HasFeature(f,'wings'):t===2||t===9,geo:()=>build([[cape(),11]]),side:THREE.DoubleSide},
+ {name:'skirt',has:(t,f)=>f>=4?v9HasFeature(f,'skirt')||v9HasFeature(f,'sheet'):t===1||t===6||t===8,geo:()=>build([[new THREE.CylinderGeometry(.2,.55,.7,10,1,true).translate(0,.6,0),12]]),side:THREE.DoubleSide},
+ {name:'prop',has:(t,f)=>f>=4?v9HasFeature(f,'broom'):t===3||t===8||t===POLICE,geo:()=>build([[new THREE.CylinderGeometry(.016,.016,1.1,4).translate(.23,1.37,.06),13],[new THREE.OctahedronGeometry(.06,0).scale(1.4,1,1).translate(.23,1.95,.06),14]])},
+ {name:'light',has:(t,f)=>(Math.round(f)&3)>0&&t<POLICE&&t!==6,geo:()=>build([[new THREE.PlaneGeometry(.075,.14).translate(-.23,.84,.08),15],[new THREE.CylinderGeometry(.018,.018,.26,4).translate(.23,.86,.05),16]]),side:THREE.DoubleSide},
 ];
 
-const vertex=/* glsl */`${common}
+const vertexBody=/* glsl */`${common}
 attribute vec4 aAgent,aStyle;attribute float aPart;
-uniform float uLift,uStride,uNearDim,uKey,uFill;
+uniform float uLift,uStride,uNearDim,uKey,uFill;uniform vec3 uV9[V9N];
 varying vec3 vColor,vWorld,vLocal,vEmit;varying float vPart,vType,vSeed;
 vec3 pick4(float r,vec3 a,vec3 b,vec3 c,vec3 d){return r<.25?a:r<.5?b:r<.75?c:d;}
 vec3 rotX(vec3 p,float pivot,float a){float y=p.y-pivot;return vec3(p.x,pivot+y*cos(a)-p.z*sin(a),y*sin(a)+p.z*cos(a));}
@@ -56,7 +65,7 @@ void main(){
  float spd=floor(aAgent.w/8.)/20.,ph=mod(aAgent.w,8.);
  float part=aPart;vec3 p=position,nrm=normal;
  float amp=clamp(spd/1.35,0.,1.),sw=sin(ph)*.48*amp*uStride;
- bool phone=mod(flags,2.)>.5,glow=mod(floor(flags/2.),2.)>.5;
+ bool phone=mod(flags,2.)>.5,glow=mod(floor(flags/2.),2.)>.5;int v9=int(floor(flags/4.+.01))-1;
  bool police=abs(type-100.)<.5,staff=abs(type-101.)<.5,performer=abs(type-102.)<.5;
  bool ghost=abs(type-6.)<.5,pumpkin=abs(type-5.)<.5;
  float h1=hash11(id*.731+1.3),h4=hash11(id*5.77+.3);
@@ -117,6 +126,7 @@ void main(){
   float h3=hash11(id*3.31+2.9);top=h3<.55?pick4(h4,vec3(.035,.035,.04),vec3(.06,.065,.09),vec3(.12,.11,.1),vec3(.025,.03,.05)):h3<.82?pick4(h4,vec3(.42,.44,.48),vec3(.75,.74,.72),vec3(.2,.22,.18),vec3(.45,.47,.5)):pick4(h4,vec3(.6,.08,.1),vec3(.1,.22,.5),vec3(.62,.45,.12),vec3(.15,.4,.32));
   bottom=pick4(fract(h4*7.3),vec3(.03),vec3(.06,.07,.11),vec3(.2,.19,.18),vec3(.1,.14,.24));
   acc=T==21?pick4(fract(seed*5.),BLACK,vec3(.12,.07,.04),vec3(.7,.68,.66),vec3(.35,.2,.25)):pick4(fract(seed*5.),BLACK,vec3(.15,.1,.06),vec3(.2,.2,.24),vec3(.3,.08,.1));}
+ if(v9>=0){top=uV9[4*v9];bottom=uV9[4*v9+1];acc=uV9[4*v9+2];skin=uV9[4*v9+3];hair=acc;}// v9 costume palette slot
  if(part>14.5&&part<15.5)emit=vec3(1.7,1.9,2.4);
  if(part>15.5&&part<16.5)emit=pick4(fract(seed*13.),vec3(.3,3.,.5),vec3(2.2,.4,3.2),vec3(3.2,1.,.1),vec3(.4,1.8,3.2));
  vec3 alb=part<.5?top:part<2.5?bottom:part<4.5?top:part<5.5?skin:part<6.5?hair:acc;
@@ -154,10 +164,10 @@ export class CostumeCrowd{
  constructor(scene,n,{style,accessories=true,ordinary=false}={}){style=style||(ordinary?ordinaryStyle:costumeOf);
   this.n=n;this.data=new Float32Array(Math.max(1,n)*4);this.phase=new Float32Array(Math.max(1,n));
   this.attr=new THREE.InstancedBufferAttribute(this.data,4).setUsage(THREE.DynamicDrawUsage);
-  this.uniforms={...shared,uLift:{value:0},uUmbrella:{value:0},uStride:{value:1},uNearDim:{value:0},uKey:{value:0},uFill:{value:0}};this.group=new THREE.Group();scene.add(this.group);
+  this.uniforms={...shared,uV9:{value:V9?V9.slots.flatMap(sl=>sl.colors.map(h=>new THREE.Vector3(...V9.lin(h)))):[0,1,2,3].map(()=>new THREE.Vector3())},uLift:{value:0},uUmbrella:{value:0},uStride:{value:1},uNearDim:{value:0},uKey:{value:0},uFill:{value:0}};this.group=new THREE.Group();scene.add(this.group);
   const styles=new Float32Array(Math.max(1,n)*4);this.types=new Uint8Array(n);
   for(let i=0;i<n;i++){const [t,s,f]=style(i);styles.set([t,s,f,i],4*i);this.types[i]=Math.min(255,t);}
-  const material=side=>new THREE.ShaderMaterial({uniforms:this.uniforms,vertexShader:vertex,fragmentShader:fragment,side});
+  const material=side=>new THREE.ShaderMaterial({uniforms:this.uniforms,vertexShader:`#define V9N ${v9N()}\n`+vertexBody,fragmentShader:fragment,side});
   const mesh=(geo,count,agent,styleAttr,side=THREE.FrontSide)=>{const g=new THREE.InstancedBufferGeometry().copy(geo);g.setAttribute('aAgent',agent);g.setAttribute('aStyle',styleAttr);g.instanceCount=count;const m=new THREE.Mesh(g,material(side));m.frustumCulled=false;this.group.add(m);return m;};
   this.body=mesh(personGeometry(),n,this.attr,new THREE.InstancedBufferAttribute(styles,4));
   this.layers=[];

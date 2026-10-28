@@ -131,4 +131,4 @@ def test_hud_only_mode_wired():
     page = (ROOT/'web3d/shibuya/series/app-variant.mjs').read_text(encoding='utf-8')
     assert "hudOnly=params.get('hudonly')==='1'" in page and '#view{visibility:hidden!important}' in page
     rec = (ROOT/'tools/record_variant.py').read_text(encoding='utf-8')
-    assert "omit_background=hud_only" in rec and "startswith(('v6/', 'v7/', 'v8/'))" in rec
+    assert "omit_background=hud_only" in rec and "startswith(('v6/', 'v7/', 'v8/', 'v9/'))" in rec

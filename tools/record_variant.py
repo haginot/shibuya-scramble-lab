@@ -59,11 +59,12 @@ VIDEO_RANGE = (30, 45)
 COMBINED_RANGE = (60, 80)  # series/variant-system.mjs COMBINED_VIDEO
 V6_RANGE = (75, 95)  # series/variant-system.mjs V6_VIDEO (v6 opening + v6 body; next/CONTRACT.md)
 V8_RANGE = (75, 100)  # V8_VIDEO (v8: the sim beats; < 100 s)
+V9_RANGE = (100, 130)   # v9: 100–130 s (STEERING-length.md, no cap)
 
 
 def is_v6(plan):
     """v6 and v7 editions (v7 configs are v6-kind configs: same beats, validator and video length)."""
-    return str(plan.get('variant') or '').startswith(('v6/', 'v7/', 'v8/')) or plan.get('kind') == 'v6'
+    return str(plan.get('variant') or '').startswith(('v6/', 'v7/', 'v8/', 'v9/')) or plan.get('kind') == 'v6'
 
 
 def is_combined(plan):
@@ -129,7 +130,7 @@ def check_plan(plan):
     edges = [(b['f0'], b['f1']) for b in plan['beats']]
     assert edges[0][0] == 0 and edges[-1][1] == plan['frames'] and all(a[1] == b[0] for a, b in zip(edges, edges[1:])), 'beats must tile the part'
     if plan['part'] == 'body':
-        lo, hi = V8_RANGE if str(plan.get('variant') or '').startswith('v8/') else V6_RANGE if is_v6(plan) else COMBINED_RANGE if is_combined(plan) else VIDEO_RANGE
+        lo, hi = V9_RANGE if str(plan.get('variant') or '').startswith('v9/') else V8_RANGE if str(plan.get('variant') or '').startswith('v8/') else V6_RANGE if is_v6(plan) else COMBINED_RANGE if is_combined(plan) else VIDEO_RANGE
         assert lo-1e-6 <= plan['videoDuration'] <= hi+1e-6 or str(plan['id']).startswith('_'), (f'video must be {lo}–{hi} s', plan['videoDuration'])
         cheat = [b for b in plan['beats'] if 'cheat' in b['hud']]
         assert cheat and max(b['t1']-b['t0'] for b in cheat) >= CHEAT_MIN_SECONDS-1e-6, 'cheat sheet beat ≥ 3 s'
@@ -143,7 +144,7 @@ def frame_line(frame, state, rec):
             'sims': [s['text'] for s in rec.get('sims') or []], 'stamps': rec.get('stamps'), 'claims': sorted(rec.get('claims') or []),
             'footnote': (rec.get('footnote') or {}).get('text'), 'safe': (rec.get('safe') or {}).get('ok'), 'fallbacks': rec.get('fallbacks'),
             'ms': rec.get('ms'), 'people': rec.get('peopleDrawn'), 'near': rec.get('near'), 'drawCalls': state.get('drawCalls'), 'triangles': state.get('triangles'),
-            **({k: rec[k] for k in ('simpanel', 'simmeter', 'simmap') if rec.get(k)})}  # v8 sim records (tests/test_v8.py)
+            **({k: rec[k] for k in ('simpanel', 'simmeter', 'simmap', 'crushmeter') if rec.get(k)})}  # v8/v9 sim records (tests/test_v8.py, test_v9.py)
 
 
 def encoder_cmd(path, title=TITLE):
@@ -162,7 +163,7 @@ def page_query(variant, part, agents=None, pr=1.0, opening=None, hud_only=False)
 
 
 def record(variant, part, output=None, log=None, start_frame=0, end_frame=None, stills=None, stills_at=None, agents=None, pr=1.0,
-           run_cache=RUN_CACHE, opening=None, summary_path=None, hud_only=False):
+           run_cache=RUN_CACHE, opening=None, summary_path=None, hud_only=False, stride=1):
     """hud_only (v7): transparent HUD layer only (app-variant.mjs &hudonly=1); `output` is a DIRECTORY that gets one RGBA
     PNG per frame (f<frame:05d>.png, 1080x1920) — resumable: frames already on disk are skipped."""
     t_entry = time.monotonic()
@@ -213,7 +214,7 @@ def record(variant, part, output=None, log=None, start_frame=0, end_frame=None, 
                 return timing
             if hud_only:
                 output.mkdir(parents=True, exist_ok=True)
-                todo = [f for f in range(start_frame, end_frame) if not (output/f'f{f:05d}.png').exists()]
+                todo = [f for f in range(start_frame, end_frame, stride) if not (output/f'f{f:05d}.png').exists()]
                 fl = log.open('a', encoding='utf-8') if log else None
                 ms = []
                 for frame in todo:
@@ -360,9 +361,10 @@ def main(argv=None):
     ap.add_argument('--agents', type=int, help='smaller crowd (preview only)')
     ap.add_argument('--pr', type=float, default=1.0)
     ap.add_argument('--hud-only', action='store_true', help='v7: transparent HUD layer → RGBA PNGs in the --output directory')
+    ap.add_argument('--stride', type=int, default=1, help='v9 (--hud-only): every n-th frame only (HUD layout probe for the ghost guide)')
     ap.add_argument('--run-cache', type=Path, default=RUN_CACHE)
     a = ap.parse_args(argv)
-    kw = dict(agents=a.agents, pr=a.pr, run_cache=a.run_cache, opening=a.opening, hud_only=a.hud_only)
+    kw = dict(agents=a.agents, pr=a.pr, run_cache=a.run_cache, opening=a.opening, hud_only=a.hud_only, stride=a.stride)
     if a.stills_at: return record(a.variant, a.part, stills=a.stills, stills_at=a.stills_at, **kw)
     if not a.output: ap.error('--output is required (or --stills-at)')
     return record(a.variant, a.part, a.output, a.log, a.start_frame, a.end_frame, summary_path=a.summary, **kw)

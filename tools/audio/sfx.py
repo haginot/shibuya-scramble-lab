@@ -41,6 +41,10 @@ BASE_DB = {
     'glitch': -9.0,
     # v8: the kaiju's confetti cannon (replaces the beam)
     'party_popper': -6.0,
+    # v9: the crush POV beat (muffled crowd bed, breathing; heartbeat above)
+    'crush_muffled': -7.0, 'breath': -9.0, 'shove': -6.0,
+    # v9: the ghost guide's 'voice' — short pitched blips (original synthesis, no voice / TTS), one set per speech bubble
+    'ghost_blip_a': -17.0, 'ghost_blip_b': -17.0, 'ghost_blip_c': -17.0,
 }
 
 _IR = {}
@@ -707,6 +711,76 @@ def glitch() -> np.ndarray:
     return _rev(y, 'room', 0.12)
 
 
+def crush_muffled() -> np.ndarray:
+    """~7.2 s: inside a crush — the crowd noise heard through the bodies pressed around you: babble low-passed hard
+    (≈ 450–700 Hz, it breathes with the sway), a constant low pressure rumble, cloth rustle against the mic, and dull shove
+    narrow, almost mono image (the shoves are separate `shove` cues, on the picture's shoves). Original synthesis."""
+    import ambience
+    r = rng('crush_muffled')
+    d = 7.2
+    n = ns(d)
+    u = np.arange(n) / n
+    t = u * d
+    sway = 0.5 + 0.5 * np.sin(2 * np.pi * 0.42 * t)
+    bab = dsp.fit(ambience.babble(d + 0.1, 'crush', voices=48, rate=5.0, talk=(1.5, 4.0), pause=(0.1, 0.5)), n)
+    bab = dsp.sweep_filter(bab, 'lowpass', 450 + 260 * sway, order=2)
+    rumble = dsp.stereo(dsp.lp(dsp.brown(n, r), 110) * 0.9)
+    grains = np.abs(dsp.lp(r.standard_normal(n), 9)) ** 2
+    rust = dsp.lp(dsp.bp(r.standard_normal((2, n)), 500, 3000) * grains / (grains.std() + 1e-9), 1400) * 0.08
+    y = bab * 0.9 + rumble + rust
+    m, s2 = (y[0] + y[1]) / 2, (y[0] - y[1]) / 2
+    y = np.vstack([m + 0.15 * s2, m - 0.15 * s2])
+    return dsp.fade(y, 0.25, 0.3)
+
+
+def shove() -> np.ndarray:
+    """~0.6 s: one shove through the crowd — a dull body thump + a cloth rustle burst (original synthesis)."""
+    r = rng('shove')
+    d = 0.6
+    n = ns(d)
+    th = ins.thump(52, 0.4, 1.0, 'shove')
+    y = np.zeros(n)
+    y[:th.size] += th[:n]
+    rus = dsp.bp(r.standard_normal(n), 600, 3500) * dsp.env_perc(d, 0.01, 0.12) * 0.35
+    return dsp.fade(dsp.stereo(dsp.lp(y + rus, 1800)), 0.003, 0.08)
+
+
+def breath() -> np.ndarray:
+    """~1.7 s: one short, tight breath close to the mic (inhale, held, exhale): band-passed noise with a breathy formant."""
+    r = rng('breath')
+    d = 1.7
+    n = ns(d)
+    t = np.arange(n) / SR
+    env = np.interp(t, [0, .08, .55, .7, .78, 1.2, 1.7], [0, .55, .35, .05, .5, .2, 0])
+    nz = r.standard_normal(n)
+    inh = dsp.bp(nz, 900, 3200) * (t < .72)
+    exh = dsp.bp(nz, 350, 1600) * (t >= .72)
+    y = (inh * 0.8 + exh) * env
+    return dsp.fade(dsp.stereo(y), 0.01, 0.1)
+
+
+def _ghost_blip(f0: float, f1: float) -> np.ndarray:
+    """~70 ms: a soft rounded 'pu' (sine + a little 2nd harmonic, quick upward glide) — the ghost's chatter."""
+    d = 0.075
+    t = tvec(d)
+    f = f0 + (f1 - f0) * dsp.smoothstep(t / d)
+    ph = 2 * np.pi * np.cumsum(f) / SR
+    y = (np.sin(ph) + 0.25 * np.sin(2 * ph)) * dsp.env_perc(d, 0.004, 0.045)
+    return _rev(dsp.pan(dsp.lp(y, 4000), -0.1), 'room', 0.1)
+
+
+def ghost_blip_a() -> np.ndarray:
+    return _ghost_blip(620, 760)
+
+
+def ghost_blip_b() -> np.ndarray:
+    return _ghost_blip(700, 880)
+
+
+def ghost_blip_c() -> np.ndarray:
+    return _ghost_blip(540, 640)
+
+
 REGISTRY = {
     'logo_slam': logo_slam, 'whoosh': whoosh, 'ui_blip': ui_blip, 'ui_select': ui_select, 'tick': tick, 'tock': tock,
     'escaped': escaped, 'clear_jingle': clear_jingle, 'gameover_jingle': gameover_jingle, 'red_alert': red_alert,
@@ -720,6 +794,8 @@ REGISTRY = {
     'true_end_jingle': true_end_jingle, 'guide_in': guide_in, 'goodbye_in': goodbye_in,
     'glitch': glitch,
     'party_popper': party_popper,
+    'crush_muffled': crush_muffled, 'breath': breath, 'shove': shove,
+    'ghost_blip_a': ghost_blip_a, 'ghost_blip_b': ghost_blip_b, 'ghost_blip_c': ghost_blip_c,
 }
 REQUIRED = ('logo_slam', 'whoosh', 'ui_blip', 'ui_select', 'tick', 'escaped', 'clear_jingle', 'gameover_jingle',
             'red_alert', 'stamp_hit')
