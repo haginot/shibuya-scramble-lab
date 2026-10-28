@@ -183,19 +183,21 @@ function build(sim,E){
   // Inbound network: the start's network minus the gate's `block` (one-way rule), outbound: the whole network.
   let gpass=mainPass;if(G.block){gpass=mainPass.slice();const [x0,z0,x1,z1]=G.block,fs=new Set(front);for(let z=Math.floor(z0);z<Math.ceil(z1);z++)for(let x=Math.floor(x0);x<Math.ceil(x1);x++){const r=ek(x+.5,z+.5);if(r>=0&&!fs.has(r))gpass[r]=0;}}
   const map=dijkstra(W,W,front,gpass),mapAll=G.block?dijkstra(W,W,front,mainPass):map;
-  return {key:G.key,label:G.label,floor:G.floor,leadsTo:G.leadsTo,sources:G.sources,x:G.at[0],z:G.at[1],front:{x:X(f0),z:Z(f0),radius:rad,gap:Math.round(Math.hypot(X(f0)-G.at[0],Z(f0)-G.at[1]))},block:G.block,capacity:G.capacity,burst:G.burst,offset:G.offset,approx:true,
+  return {key:G.key,label:G.label,floor:G.floor,leadsTo:G.leadsTo,sources:G.sources,x:G.at[0],z:G.at[1],front:{x:X(f0),z:Z(f0),radius:rad,gap:Math.round(Math.hypot(X(f0)-G.at[0],Z(f0)-G.at[1]))},block:G.block,capacity:E.gateCapacity?.[G.key]??G.capacity,burst:G.burst,offset:G.offset,approx:true,
    _:{front,frontSet:new Set(front),map,mapAll,gpass}};});
  const gi=Object.fromEntries(gates.map((G,k)=>[G.key,k]));
  // Routes.
  const s0=snap(...JR_START.at),startCells=disc(s0,E.startRadius);
- const routes=JR_ROUTES.map(Rt=>{const G=Rt.gate?gates[gi[Rt.gate]]:null,alt=Rt.kind==='walk-alt',rpass=G?G._.gpass:mainPass;
+ // v8: E.routeDefs replaces JR_ROUTES (same schema + optional start:{at,label,sources} per route); default unchanged
+ const routes=(E.routeDefs||JR_ROUTES).map(Rt=>{const G=Rt.gate?gates[gi[Rt.gate]]:null,alt=Rt.kind==='walk-alt',rpass=G?G._.gpass:mainPass;
+  const S0=Rt.start?snap(...Rt.start.at):s0,SC=Rt.start?disc(S0,E.startRadius):startCells,ST=Rt.start||JR_START;
   const targetCells=G?G._.front:disc(snap(...Rt.edge),8);if(targetCells.length<6)throw Error(`crowd-jr ${Rt.key}: target zone too small`);
-  const stops=[...Rt.via.map(p=>[snap(...p)]),targetCells];let cur=s0;const cells=[s0];
+  const stops=[...Rt.via.map(p=>[snap(...p)]),targetCells];let cur=S0;const cells=[S0];
   for(const goal of stops){const d=goal===targetCells&&G?G._.map:dijkstra(W,W,goal,rpass);if(d[cur]===Infinity)throw Error(`crowd-jr ${Rt.key}: leg unreachable`);const leg=trace(d,cur,rpass);cells.push(...leg.slice(1));cur=leg.at(-1);}
   const lineOk=(a,b)=>{const ax=X(a),az=Z(a),bx=X(b),bz=Z(b);for(let u=0;u<=1;u+=.05){const r=ek(ax+(bx-ax)*u,az+(bz-az)*u);if(r<0||!rpass[r])return false;}return true;};
   const keep=[cells[0]];for(let k=1;k<cells.length;k++){const last=keep.at(-1),nx=cells[k+1];if(nx!==undefined&&Math.hypot(X(nx)-X(last),Z(nx)-Z(last))<=2&&lineOk(last,nx))continue;keep.push(cells[k]);}
   const path=keep.map(r=>[X(r),Z(r)]);let length=0;for(let k=1;k<cells.length;k++)length+=Math.hypot(X(cells[k])-X(cells[k-1]),Z(cells[k])-Z(cells[k-1]));
-  let x0=Infinity,z0=Infinity,x1=-Infinity,z1=-Infinity;for(const r of [...cells,...targetCells,...startCells]){x0=Math.min(x0,X(r));x1=Math.max(x1,X(r));z0=Math.min(z0,Z(r));z1=Math.max(z1,Z(r));}
+  let x0=Infinity,z0=Infinity,x1=-Infinity,z1=-Infinity;for(const r of [...cells,...targetCells,...SC]){x0=Math.min(x0,X(r));x1=Math.max(x1,X(r));z0=Math.min(z0,Z(r));z1=Math.max(z1,Z(r));}
   const M=30,bx=Math.floor(x0-M),bz=Math.floor(z0-M),bw=Math.ceil(x1+M)-bx,bh=Math.ceil(z1+M)-bz,lk=(x,z)=>{const a=Math.floor(x)-bx,b=Math.floor(z)-bz;return a<0||b<0||a>=bw||b>=bh?-1:b*bw+a;};
   const lpass=new Uint8Array(bw*bh),cost=new Float32Array(bw*bh).fill(E.offCost);
   for(let b=0;b<bh;b++)for(let a=0;a<bw;a++){const r=ek(bx+a+.5,bz+b+.5);if(r>=0)lpass[b*bw+a]=rpass[r];}
@@ -204,16 +206,16 @@ function build(sim,E){
   const tr=cells.at(-1),zx=alt?X(snap(...Rt.edge)):G.front.x,zz=alt?Z(snap(...Rt.edge)):G.front.z;
   const freeFlow=length/E.freeSpeed,simLimit=Math.round(freeFlow*E.rule.limitFactor+E.rule.limitSlack);
   return {key:Rt.key,gate:Rt.gate,kind:Rt.kind,recommended:!!Rt.recommended,color:Rt.color,label:G?G.label:Rt.label,sources:[...new Set([...Rt.sources,...(G?G.sources:[])])],
-   start:{x:X(s0),z:Z(s0),label:JR_START.label,sources:JR_START.sources},path,zone:{x:zx,z:zz,radius:alt?8:E.frontRadius},length,freeFlow,simLimit,
-   offsim:alt?[[zx,zz],Rt.station]:null,offsimLabel:Rt.offsimLabel||null,edgeBearing:alt?bearing([zx,zz],Rt.station):null,
-   _:{cells,targetCells,targetSet:new Set(targetCells),map,bx,bz,bw,bh,gate:G?gi[Rt.gate]:-1,tr}};});
+   start:{x:X(S0),z:Z(S0),label:ST.label,sources:ST.sources},path,zone:{x:zx,z:zz,radius:alt?8:E.frontRadius},length,freeFlow,simLimit,
+   offsim:alt?[[zx,zz],Rt.station??Rt.edge]:null,offsimLabel:Rt.offsimLabel||null,edgeBearing:alt?bearing([zx,zz],Rt.station??Rt.edge):null,
+   _:{cells,targetCells,targetSet:new Set(targetCells),map,bx,bz,bw,bh,gate:G?gi[Rt.gate]:-1,tr,startCells:SC}};});
  return {RE,W,N,pass,mainPass,xwalk,signalled,railCells:railCells.size,crossings:crossings.length,bridges:bridges.length,DC,DN,darea,gates,routes,startCells,ek,X,Z};
 }
 
 // ─── outdoor simulation ──────────────────────────────────────────────────────
 export class JRCrowdSimulation extends HalloweenSimulation{
  constructor(config,osm,plateau,traffic){
-  const E={...JR_CROWD,...config.jr},base=config.agents??HALLOWEEN.agents,per=E.walkers,nr=JR_ROUTES.length;
+  const E={...JR_CROWD,...config.jr},base=config.agents??HALLOWEEN.agents,per=E.walkers,nr=(E.routeDefs||JR_ROUTES).length;
   // Alighting schedule (assumption): per gate, a burst every headway s leaves the concourse model and
   // appears at the gate front at the concourse model's exit time. Fixed before the run.
   const horizon=E.warmup+E.tmax,schedule=JR_GATES.map(G=>outboundExits(G,E,horizon));
@@ -228,7 +230,7 @@ export class JRCrowdSimulation extends HalloweenSimulation{
     let k=-1;for(let t=0;t<50;t++){this.placeBackground(i);k=this.g.key(this.x[i],this.z[i]);if(k>=0&&this.occ[k]<HALLOWEEN.occupancy)break;}if(k>=0)this.occ[k]++;
     this.px[i]=this.x[i];this.pz[i]=this.z[i];this.vx[i]=this.vz[i]=0;moved++;}
    this.constructed=was;this.startMoved=moved;}
-  const key=JSON.stringify([E.RE,E.frontRadius,E.startRadius,E.corridor,E.offCost]);let byG=cache.get(this.g);if(!byG){byG=new Map();cache.set(this.g,byG);}
+  const key=JSON.stringify([E.RE,E.frontRadius,E.startRadius,E.corridor,E.offCost,...(E.routeDefs||E.gateCapacity?[E.routeDefs||null,E.gateCapacity||null]:[])]);let byG=cache.get(this.g);if(!byG){byG=new Map();cache.set(this.g,byG);}
   let s=byG.get(key);if(!s){s=build(this,E);byG.set(key,s);}this.e=s;
   const n=this.n;
   this.jRoute=new Int8Array(n).fill(-1);this.jGate=new Int8Array(n).fill(-1);this.jRank=new Int16Array(n);this.jSpawnAt=new Float32Array(n).fill(Infinity);
@@ -316,7 +318,7 @@ export class JRCrowdSimulation extends HalloweenSimulation{
   for(let k=0;k<s.gates.length;k++)this.tokens[k]=Math.min(E.tokenMax,this.tokens[k]+s.gates[k].capacity*dt);
   // Route walkers spawn on a free start cell (≤ 2 per m²), in order per route.
   if(this.time+1e-9>=this.eStart)for(const br of this.routeList)for(const i of br.ids){if(this.motion[i]!==PENDING)continue;if(this.jSpawnAt[i]>this.time+1e-9)break;
-   let ok=false;for(let t=0;t<12&&!ok;t++){const r=s.startCells[Math.floor(this.jrng()*s.startCells.length)],x=Math.fround(s.X(r)-.3+this.jrng()*.6),z=Math.fround(s.Z(r)-.3+this.jrng()*.6),kk=key(x,z);
+   let ok=false;for(let t=0;t<12&&!ok;t++){const SC=s.routes[br.r]._.startCells,r=SC[Math.floor(this.jrng()*SC.length)],x=Math.fround(s.X(r)-.3+this.jrng()*.6),z=Math.fround(s.Z(r)-.3+this.jrng()*.6),kk=key(x,z);
     if(kk<0||occ[kk]>=2||this.sidewalkBlocked(x,z))continue;occ[kk]++;this.x[i]=this.px[i]=x;this.z[i]=this.pz[i]=z;this.vx[i]=this.vz[i]=0;this.motion[i]=WALK;this.jBorn[i]=this.time;ok=true;}
    if(!ok){this.spawnRetries++;break;}}
   // Alighting passengers appear in their gate's admission zone at the scheduled time (≤ 3 per m²).

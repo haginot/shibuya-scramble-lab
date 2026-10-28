@@ -6,7 +6,7 @@ place it 1.8 s before a slam), heartbeat, card_in (soft paper/air swipe), press_
 PRESS START beat), choice_move (cursor move), crowd_swell (brief crowd surge used under red_alert / zone scenes).
 Combined episodes (REQUIRED_COMBINED): crowd_press zombie_groan caught_hit red_flash cut_black continue_tick
 continue_yes kaiju_rumble kaiju_roar smash_cut, plus zombie_groan_b (2nd groan voice), boing (gag), end_sting (end
-card).  cut_black / smash_cut also *act* in mix.py (CUT_DEFAULTS: other buses silenced / tails chopped), and the
+card), party_popper (v8: the kaiju's confetti-cannon pop).  cut_black / smash_cut also *act* in mix.py (CUT_DEFAULTS: other buses silenced / tails chopped), and the
 caught/kaiju sounds hard-duck the BGM by default (mix.AUTO_DUCK).
 
 Design notes: red_alert is a *game* sting — detuned buzzy saw pulses with downward pitch drops over a drum hit; it
@@ -39,6 +39,8 @@ BASE_DB = {
     'goodbye_in': -9.0,
     # v7: CG↔photoreal switch (RGB glitch cut)
     'glitch': -9.0,
+    # v8: the kaiju's confetti cannon (replaces the beam)
+    'party_popper': -6.0,
 }
 
 _IR = {}
@@ -495,6 +497,43 @@ def boing() -> np.ndarray:
     return _rev(dsp.pan(dsp.fade(y + tw, 0.001, 0.05), 0.1), 'room', 0.15)
 
 
+def party_popper() -> np.ndarray:
+    """~1.2 s ORIGINAL party-popper / confetti-cannon pop (v8 kaiju gag; the beak fires confetti instead of a beam):
+    a short papery 'pok!' (cardboard-tube thump + bright snap, no long low tail -> not a gunshot), a comic rising
+    kazoo-ish squeak 'fweeep!' 0.06-0.5 s, and a sparkly paper-confetti rustle that thins out to ~1.15 s.
+    The pop is at 0 s (HIT_AT 0: place the cue on the frame the pop flash shows)."""
+    r = rng('party_popper')
+    d = 1.2
+    t = tvec(d)
+    n = t.size
+    out = np.zeros((2, n))
+    # 1) the pop: tube thump (pitch-dropping sine, 40 ms) + bandpassed snap (6 ms) + a hollow cardboard ring
+    dp = 0.12
+    tp = tvec(dp)
+    thump = np.sin(2 * np.pi * dsp.phase_of(150 + 260 * np.exp(-tp / 0.008), tp.size)) * np.exp(-tp / 0.035)
+    snap = dsp.bp(r.standard_normal(tp.size), 1200, 7000) * np.exp(-tp / 0.006)
+    ring = dsp.resonator(r.standard_normal(tp.size) * np.exp(-tp / 0.003), 1450, 18) * 0.5
+    pop = dsp.soft_clip(0.7 * thump + 1.0 * snap + ring, 1.3)
+    dsp.place(out, dsp.haas(dsp.fade(pop, 0.0005, 0.02), 2), 0.0)
+    # 2) the squeak: rising kazoo-ish 'fweeep!' (buzzy saw through a nasal band, wobbly vibrato)
+    dq = 0.44
+    tq = tvec(dq)
+    fq = 620 * 2 ** (1.25 * dsp.smoothstep(tq / dq)) * 2 ** (0.5 * np.sin(2 * np.pi * 13 * tq) / 12)
+    sq = dsp.bp(dsp.saw(fq, dq) + 0.4 * dsp.square(fq * 0.5, dq, 0.3), 700, 4200)
+    sq = dsp.peak_eq(sq, 1600, 6, 1.5) * dsp.env_adsr(dq, 0.03, 0.08, 0.75, 0.12) * 0.35
+    dsp.place(out, dsp.pan(dsp.fade(sq, 0.004, 0.03), -0.15), 0.06)
+    # 3) the confetti rustle: sparse tiny paper ticks, dense right after the pop, thinning out, wide stereo
+    dr = d - 0.03
+    m = ns(dr)
+    tr = np.arange(m) / SR
+    dens = 0.06 * np.exp(-tr / 0.4) + 0.006
+    ticks = (r.random((2, m)) < dens) * r.uniform(-1, 1, (2, m))
+    rustle = dsp.bp(ticks, 2500, 9500) * (1.6 * np.exp(-tr / 0.5) + 0.45) * dsp.smoothstep(tr / 0.03)
+    hiss = dsp.bp(r.standard_normal((2, m)), 3000, 8000) * 0.05 * np.exp(-tr / 0.25)
+    dsp.place(out, dsp.fade(rustle + hiss, 0.005, 0.15), 0.03)
+    return _rev(dsp.fade(out, 0.0, 0.05), 'room', 0.12)
+
+
 def smash_cut() -> np.ndarray:
     """~0.6 s: 0.1 s sucked-in noise swell into a hard punchy 'thwack' (kick + snap) — the gag's smash cut.
     The hit is at 0.1 s (HIT_AT, place with align:'hit'); mix.py chops earlier SFX tails right at the hit."""
@@ -680,6 +719,7 @@ REGISTRY = {
     'mission_in': mission_in, 'choice_pick': choice_pick, 'seal_stamp': seal_stamp,
     'true_end_jingle': true_end_jingle, 'guide_in': guide_in, 'goodbye_in': goodbye_in,
     'glitch': glitch,
+    'party_popper': party_popper,
 }
 REQUIRED = ('logo_slam', 'whoosh', 'ui_blip', 'ui_select', 'tick', 'escaped', 'clear_jingle', 'gameover_jingle',
             'red_alert', 'stamp_hit')
@@ -703,11 +743,14 @@ ALIASES = {'slam': 'logo_slam', 'blip': 'ui_blip', 'select': 'ui_select', 'alert
            'guide': 'guide_in', 'guide_card': 'guide_in',
            'goodbye': 'goodbye_in', 'goodbye_card': 'goodbye_in', 'farewell_in': 'goodbye_in',
            # v7
-           'rgb_glitch': 'glitch', 'switch': 'glitch', 'whip': 'whoosh', 'whip_pan': 'whoosh'}
+           'rgb_glitch': 'glitch', 'switch': 'glitch', 'whip': 'whoosh', 'whip_pan': 'whoosh',
+           # v8
+           'popper': 'party_popper', 'party_pop': 'party_popper', 'confetti': 'party_popper',
+           'confetti_pop': 'party_popper', 'party_cannon': 'party_popper', 'kaiju_blast': 'party_popper'}
 # v6 contract (next/CONTRACT.md "sound"): selftest / tests check these exist
 REQUIRED_V6 = ('mission_in', 'choice_pick', 'seal_stamp', 'true_end_jingle', 'guide_in', 'goodbye_in')
 # gag / scare sounds that must never sound over the GOODBYE end card's quoted block (mix.lint_v6 checks this)
-COMEDIC = ('boing', 'smash_cut', 'kaiju_roar', 'kaiju_rumble', 'zombie_groan', 'zombie_groan_b', 'red_flash',
+COMEDIC = ('boing', 'party_popper', 'smash_cut', 'kaiju_roar', 'kaiju_rumble', 'zombie_groan', 'zombie_groan_b', 'red_flash',
            'caught_hit', 'red_alert', 'crowd_swell', 'crowd_press', 'end_sting', 'gameover_jingle', 'stamp_hit',
            'logo_slam')
 
@@ -739,4 +782,5 @@ def get(name: str) -> np.ndarray:
 # 'align': 'end' to place by the hit point.
 HIT_AT = {'riser': 1.8, 'escaped': 0.32, 'clear_jingle': 7 * 0.07 + 0.05, 'gameover_jingle': 0.0,
           'smash_cut': 0.1, 'kaiju_roar': 0.3, 'continue_yes': 0.0, 'end_sting': 0.26,
-          'mission_in': 0.12, 'true_end_jingle': 1.0, 'seal_stamp': 0.0, 'goodbye_in': 0.0}
+          'mission_in': 0.12, 'true_end_jingle': 1.0, 'seal_stamp': 0.0, 'goodbye_in': 0.0,
+          'party_popper': 0.0}

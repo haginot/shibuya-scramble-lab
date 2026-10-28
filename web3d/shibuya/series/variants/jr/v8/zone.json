@@ -1,0 +1,2926 @@
+{
+  "id": "v8-zone",
+  "episode": "jr",
+  "pair": "zone",
+  "kind": "v6",
+  "outcome": "V6",
+  "edition": "v6",
+  "parts": {
+    "over": "zone-over",
+    "clear": "zone-clear",
+    "combined": "combined/zone"
+  },
+  "title": {
+    "ja": "最短ルートで GAME OVER → 外側を回って再挑戦"
+  },
+  "start": {
+    "place": "hachiko-square",
+    "ja": "スタート：ハチ公前広場",
+    "factIds": []
+  },
+  "clock": {
+    "start": "22:30",
+    "ja": "ゲーム内時刻（架空）",
+    "rate": 0.5
+  },
+  "choice": {
+    "prompt": {
+      "ja": "原宿へ。どの道で行く？"
+    },
+    "options": [
+      {
+        "key": "A",
+        "ja": "最短：駅前から北へ直進",
+        "factIds": []
+      },
+      {
+        "key": "B",
+        "ja": "外側を回るルート例",
+        "factIds": []
+      }
+    ],
+    "picked": "A"
+  },
+  "firstChoice": {
+    "prompt": {
+      "ja": "まず、どうする？"
+    },
+    "options": [
+      {
+        "key": "A",
+        "ja": "そもそも渋谷に行かない",
+        "factIds": []
+      },
+      {
+        "key": "B",
+        "ja": "もう渋谷にいる",
+        "sub": "仕事・住まい・うっかり来てしまった",
+        "factIds": []
+      }
+    ],
+    "picked": "A"
+  },
+  "beats": [
+    {
+      "id": "first-choice",
+      "dur": 4,
+      "shot": {
+        "key": "card-bg",
+        "params": {
+          "yaw0": 0.3
+        }
+      },
+      "hud": [
+        {
+          "c": "choice",
+          "card": true,
+          "prompt": {
+            "ja": "まず、どうする？"
+          },
+          "en": "First, what will you do?",
+          "options": [
+            {
+              "key": "A",
+              "ja": "そもそも渋谷に行かない",
+              "factIds": []
+            },
+            {
+              "key": "B",
+              "ja": "もう渋谷にいる",
+              "sub": "仕事・住まい・うっかり来てしまった",
+              "factIds": []
+            }
+          ],
+          "picked": "A",
+          "pickAt": 3,
+          "factIds": []
+        }
+      ],
+      "header": {
+        "sub": "10/31 渋谷ハロウィンには近づくな"
+      },
+      "clock": false,
+      "bgm": "calm",
+      "amb": null,
+      "plateTag": "AI生成画像を加工"
+    },
+    {
+      "id": "true-end",
+      "dur": 4,
+      "shot": {
+        "key": "true-end-bg"
+      },
+      "hud": [
+        {
+          "c": "stamp",
+          "kind": "TRUE_END",
+          "ja": "今年の渋谷ハロウィンには行かない",
+          "kicker": "いちばん安全なクリア",
+          "en": "TRUE END — the safest clear: don't go.",
+          "factIds": []
+        }
+      ],
+      "header": {
+        "sub": "10/31 渋谷ハロウィンには近づくな"
+      },
+      "clock": false,
+      "bgm": "calm",
+      "amb": null
+    },
+    {
+      "id": "guide",
+      "dur": 2.5,
+      "shot": {
+        "key": "card-bg",
+        "params": {
+          "yaw0": 0.9
+        }
+      },
+      "hud": [
+        {
+          "c": "guide",
+          "ja": "ここからは“もしも”の脱出ガイド",
+          "sub": "もう渋谷にいる人（仕事・住まい・うっかり来た人）へ",
+          "en": "From here: a just-in-case escape guide",
+          "options": [
+            {
+              "key": "A",
+              "ja": "そもそも渋谷に行かない",
+              "factIds": []
+            },
+            {
+              "key": "B",
+              "ja": "もう渋谷にいる",
+              "sub": "仕事・住まい・うっかり来てしまった",
+              "factIds": []
+            }
+          ],
+          "hot": "B",
+          "doneKey": "A",
+          "doneLabel": "TRUE END",
+          "factIds": []
+        }
+      ],
+      "header": {
+        "sub": "10/31 渋谷ハロウィンには近づくな"
+      },
+      "clock": false,
+      "bgm": "tension",
+      "amb": null,
+      "plateTag": "AI生成画像を加工"
+    },
+    {
+      "id": "over-start",
+      "dur": 2.5,
+      "shot": {
+        "key": "topdown",
+        "params": {
+          "center": [
+            16,
+            0,
+            26
+          ]
+        },
+        "t0": 0
+      },
+      "crowd": {
+        "key": "hachiko-peak",
+        "t0": 0,
+        "restart": true
+      },
+      "hud": [
+        {
+          "c": "mission",
+          "ja": "原宿駅まで\n歩いて脱出せよ",
+          "factIds": []
+        },
+        {
+          "c": "caption",
+          "ja": "スタート：ハチ公前広場",
+          "factIds": [],
+          "tone": "sub"
+        },
+        {
+          "c": "sim",
+          "ja": "人の流れ＝シミュレーション",
+          "factIds": []
+        }
+      ],
+      "clock": {
+        "set": "22:30:00",
+        "rate": 0.5
+      },
+      "vt0": 14.2,
+      "bgm": "tension",
+      "amb": "crowd-night",
+      "reuse": {
+        "variant": "zone-over",
+        "beat": "start"
+      }
+    },
+    {
+      "id": "sim-plan",
+      "dur": 6.5,
+      "shot": {
+        "key": "routemap",
+        "params": {
+          "routes": [
+            "SIM-ZA",
+            "SIM-HA"
+          ],
+          "highlight": null,
+          "colors": {
+            "SIM-ZA": "#FFD23F",
+            "SIM-HA": "#4FE3C1"
+          },
+          "points": [
+            [
+              4.5,
+              -371.5
+            ],
+            [
+              180.5,
+              -371.5
+            ],
+            [
+              4.5,
+              48.5
+            ],
+            [
+              180.5,
+              48.5
+            ]
+          ],
+          "azimuth": 90,
+          "push": 0,
+          "rect": {
+            "x0": 0.08,
+            "x1": 0.92,
+            "y0": 0.2,
+            "y1": 0.5
+          },
+          "span": true,
+          "redZone": 0.3,
+          "drawOn": [
+            0,
+            0.01
+          ]
+        },
+        "t0": 0
+      },
+      "simmap": {
+        "scenario": "plan",
+        "routes": [
+          "ZA",
+          "HA"
+        ],
+        "colors": {
+          "ZA": "#FFD23F",
+          "HA": "#4FE3C1"
+        },
+        "player": "ZA",
+        "crowd": true,
+        "heat": 1,
+        "run": [
+          0.35,
+          6.1
+        ],
+        "simT": [
+          0,
+          553
+        ]
+      },
+      "hud": [
+        {
+          "c": "simpanel",
+          "scenario": "plan",
+          "pair": "zone",
+          "head": "シミュレーション",
+          "assume": "仮定：人出48,000人・ピーク時／シミュレーション範囲の外はOSMから概算（80m/分）",
+          "factIds": [],
+          "phase": "run",
+          "run": [
+            0.35,
+            6.1
+          ],
+          "simT": [
+            0,
+            553
+          ],
+          "speed": "×96 早送り",
+          "exit": false,
+          "finalAt": 6.1
+        },
+        {
+          "c": "pin",
+          "world": [
+            22.5,
+            0,
+            36.5
+          ],
+          "ja": "スタート",
+          "color": "#E9DDFF",
+          "factIds": []
+        },
+        {
+          "c": "pin",
+          "world": [
+            33.5,
+            0,
+            -346.5
+          ],
+          "ja": "A →OSM区間（概算）",
+          "color": "#FFD23F",
+          "factIds": [
+            "ZONE-D-H-HARA"
+          ]
+        },
+        {
+          "c": "pin",
+          "world": [
+            161.5,
+            0,
+            -367.5
+          ],
+          "ja": "B →OSM区間（概算）",
+          "color": "#4FE3C1",
+          "factIds": [
+            "ALT-HARA-H"
+          ]
+        }
+      ],
+      "cues": [
+        {
+          "at": 0.05,
+          "sfx": "card_in",
+          "gain_db": -4
+        },
+        {
+          "at": 0.4,
+          "sfx": "tick",
+          "repeat": 0.45,
+          "until": 6.1,
+          "gain_db": -6
+        }
+      ],
+      "clock": false,
+      "header": true,
+      "bgm": "tension",
+      "amb": "crowd-night",
+      "duck": -5
+    },
+    {
+      "id": "sim-pick",
+      "dur": 2.5,
+      "shot": {
+        "key": "routemap",
+        "params": {
+          "routes": [
+            "SIM-ZA",
+            "SIM-HA"
+          ],
+          "highlight": "SIM-HA",
+          "colors": {
+            "SIM-ZA": "#FFD23F",
+            "SIM-HA": "#4FE3C1"
+          },
+          "points": [
+            [
+              4.5,
+              -371.5
+            ],
+            [
+              180.5,
+              -371.5
+            ],
+            [
+              4.5,
+              48.5
+            ],
+            [
+              180.5,
+              48.5
+            ]
+          ],
+          "azimuth": 90,
+          "push": 0,
+          "rect": {
+            "x0": 0.08,
+            "x1": 0.92,
+            "y0": 0.2,
+            "y1": 0.5
+          },
+          "span": true,
+          "redZone": 0.3,
+          "drawOn": [
+            0,
+            0.01
+          ]
+        },
+        "t0": 0
+      },
+      "simmap": {
+        "scenario": "plan",
+        "routes": [
+          "ZA",
+          "HA"
+        ],
+        "colors": {
+          "ZA": "#FFD23F",
+          "HA": "#4FE3C1"
+        },
+        "player": "ZA",
+        "crowd": true,
+        "heat": 1,
+        "run": [
+          0,
+          1
+        ],
+        "simT": [
+          553,
+          553
+        ]
+      },
+      "hud": [
+        {
+          "c": "simpanel",
+          "scenario": "plan",
+          "pair": "zone",
+          "head": "シミュレーション",
+          "assume": "仮定：人出48,000人・ピーク時／シミュレーション範囲の外はOSMから概算（80m/分）",
+          "factIds": [],
+          "phase": "pick",
+          "run": [
+            0,
+            1
+          ],
+          "simT": [
+            553,
+            553
+          ],
+          "speed": "×96 早送り",
+          "anim": "none",
+          "reorder": [
+            0.1,
+            0.6
+          ],
+          "pickAt": 0.7,
+          "verdict": "シミュレーションの結論"
+        },
+        {
+          "c": "pin",
+          "world": [
+            22.5,
+            0,
+            36.5
+          ],
+          "ja": "スタート",
+          "color": "#E9DDFF",
+          "factIds": []
+        },
+        {
+          "c": "pin",
+          "world": [
+            33.5,
+            0,
+            -346.5
+          ],
+          "ja": "A →OSM区間（概算）",
+          "color": "#FFD23F",
+          "factIds": [
+            "ZONE-D-H-HARA"
+          ]
+        },
+        {
+          "c": "pin",
+          "world": [
+            161.5,
+            0,
+            -367.5
+          ],
+          "ja": "B →OSM区間（概算）",
+          "color": "#4FE3C1",
+          "factIds": [
+            "ALT-HARA-H"
+          ]
+        }
+      ],
+      "cues": [
+        {
+          "at": 0.1,
+          "sfx": "whoosh",
+          "gain_db": -12
+        },
+        {
+          "at": 0.7,
+          "sfx": "ui_select"
+        },
+        {
+          "at": 0.74,
+          "sfx": "choice_pick",
+          "gain_db": -2
+        }
+      ],
+      "clock": false,
+      "header": true,
+      "bgm": "tension",
+      "amb": "crowd-night",
+      "duck": -5
+    },
+    {
+      "id": "over-choice",
+      "dur": 3.5,
+      "shot": {
+        "key": "routemap",
+        "params": {
+          "routes": [
+            "ZONE-D-H-HARA",
+            "ALT-HARA-H"
+          ],
+          "routeWidth": 13,
+          "highlight": null,
+          "colors": {
+            "ZONE-D-H-HARA": "#FFD23F",
+            "ALT-HARA-H": "#4FE3C1"
+          },
+          "points": [
+            [
+              -30,
+              60
+            ],
+            [
+              210,
+              60
+            ],
+            [
+              -30,
+              -470
+            ],
+            [
+              210,
+              -470
+            ]
+          ],
+          "rect": {
+            "x0": 0.1,
+            "x1": 0.9,
+            "y0": 0.17,
+            "y1": 0.97
+          },
+          "span": true,
+          "redZone": 1,
+          "drawOn": [
+            0.1,
+            1.4
+          ]
+        },
+        "t0": 0
+      },
+      "hud": [
+        {
+          "c": "choice",
+          "picked": "A"
+        },
+        {
+          "c": "pin",
+          "world": [
+            34.5,
+            0,
+            -150
+          ],
+          "ja": "A 最短",
+          "color": "#FFD23F",
+          "factIds": []
+        },
+        {
+          "c": "pin",
+          "world": [
+            172,
+            0,
+            -130
+          ],
+          "ja": "B 外側",
+          "color": "#4FE3C1",
+          "factIds": []
+        },
+        {
+          "c": "legend",
+          "factIds": [],
+          "rows": [
+            {
+              "color": "#FFD23F",
+              "ja": "A 最短（駅前から北へ）"
+            },
+            {
+              "color": "#4FE3C1",
+              "ja": "B 外側のルート例"
+            }
+          ]
+        },
+        {
+          "c": "sim",
+          "ja": "シミュレーションの結論は「B 外側のルート例」",
+          "factIds": []
+        },
+        {
+          "c": "caption",
+          "ja": "でも…近い方でいいでしょ？",
+          "speaker": "プレイヤー",
+          "factIds": [],
+          "tone": "sub",
+          "at": 1
+        }
+      ],
+      "clock": {
+        "set": "22:31:15",
+        "rate": 0.5
+      },
+      "vt0": 16.7,
+      "bgm": "tension",
+      "amb": "crowd-night",
+      "reuse": {
+        "variant": "zone-over",
+        "beat": "choice"
+      }
+    },
+    {
+      "id": "over-move",
+      "dur": 4.5,
+      "shot": {
+        "key": "routemap",
+        "params": {
+          "routes": [
+            "ZONE-D-H-HARA",
+            "ALT-HARA-H"
+          ],
+          "routeWidth": 13,
+          "highlight": "ZONE-D-H-HARA",
+          "colors": {
+            "ZONE-D-H-HARA": "#FFD23F",
+            "ALT-HARA-H": "#4FE3C1"
+          },
+          "points": [
+            [
+              -30,
+              60
+            ],
+            [
+              210,
+              60
+            ],
+            [
+              -30,
+              -470
+            ],
+            [
+              210,
+              -470
+            ]
+          ],
+          "rect": {
+            "x0": 0.08,
+            "x1": 0.92,
+            "y0": 0.17,
+            "y1": 0.74
+          },
+          "span": true,
+          "redZone": 1
+        },
+        "t0": 0
+      },
+      "hud": [
+        {
+          "c": "caption",
+          "ja": "最短 約1350m・約17分\nうち赤枠内 約347m\n（OSMから概算・規制図より概略）",
+          "factIds": [
+            "ZONE-D-H-HARA",
+            "MEAS-04"
+          ],
+          "until": 2.3
+        },
+        {
+          "c": "caption",
+          "ja": "赤枠＝車両の検問・規制エリア\n（2026年・規制図より概略）",
+          "factIds": [
+            "MEAS-02",
+            "MEAS-04"
+          ],
+          "at": 2.3
+        },
+        {
+          "c": "legend",
+          "factIds": [],
+          "rows": [
+            {
+              "color": "#FFD23F",
+              "ja": "A 最短（駅前から北へ）"
+            },
+            {
+              "color": "#4FE3C1",
+              "ja": "B 外側のルート例"
+            }
+          ]
+        },
+        {
+          "c": "simmeter",
+          "scenario": "plan",
+          "route": "ZA",
+          "run": [
+            0,
+            4.5
+          ],
+          "simT": [
+            40,
+            129.7
+          ],
+          "factIds": [],
+          "etaLabel": "原宿駅まで"
+        }
+      ],
+      "transition": "dip",
+      "clock": {
+        "set": "22:33:15",
+        "rate": 0.5
+      },
+      "vt0": 20.7,
+      "bgm": "tension",
+      "amb": "crowd-night",
+      "reuse": {
+        "variant": "zone-over",
+        "beat": "move"
+      }
+    },
+    {
+      "id": "over-result",
+      "dur": 4,
+      "shot": {
+        "key": "zone-edge",
+        "params": {
+          "side": "open",
+          "back": 8,
+          "height": 4.2,
+          "lookY": 0,
+          "far": 3,
+          "nearHide": 2.5
+        },
+        "t0": 0
+      },
+      "crowd": {
+        "key": "zone-dense",
+        "t0": 0,
+        "restart": true
+      },
+      "cues": [
+        {
+          "at": 0,
+          "sfx": "crowd_swell"
+        },
+        {
+          "at": 0.02,
+          "sfx": "ui_blip",
+          "gain_db": -4
+        },
+        {
+          "at": 0.6,
+          "sfx": "red_alert",
+          "duck": 1
+        }
+      ],
+      "hud": [
+        {
+          "c": "caption",
+          "ja": "赤枠内は状況により\n検問・交通規制（2026年）",
+          "factIds": [
+            "MEAS-02"
+          ],
+          "until": 2
+        },
+        {
+          "c": "caption",
+          "ja": "過去には歩行者も一方通行\n（例：2024年・2023年）",
+          "factIds": [
+            "PED-2024",
+            "PED-2023"
+          ],
+          "at": 2
+        },
+        {
+          "c": "sim",
+          "ja": "進めない（シミュレーション）",
+          "factIds": [],
+          "at": 0.6
+        },
+        {
+          "c": "simmeter",
+          "scenario": "plan",
+          "route": "ZA",
+          "run": [
+            0,
+            4
+          ],
+          "simT": [
+            129.7,
+            203
+          ],
+          "factIds": [],
+          "etaLabel": "原宿駅まで"
+        }
+      ],
+      "clock": {
+        "set": "22:35:30",
+        "rate": 0.5
+      },
+      "vt0": 25.2,
+      "bgm": "tension",
+      "amb": "crowd-night",
+      "reuse": {
+        "variant": "zone-over",
+        "beat": "result"
+      },
+      "plateTag": "AI生成画像を加工"
+    },
+    {
+      "id": "caught",
+      "dur": 2.5,
+      "shot": {
+        "key": "caught-pov",
+        "params": {
+          "base": "zone-edge",
+          "baseParams": {
+            "side": "open",
+            "back": 8,
+            "height": 4.2,
+            "lookY": 0,
+            "far": 3,
+            "nearHide": 2.5
+          },
+          "baseT0": 4,
+          "eyeY": 1.55,
+          "push": 0.6,
+          "flashAt": 1.75,
+          "blackAt": 2.15,
+          "hands": {
+            "scale": 0.75,
+            "reach": 0.6
+          },
+          "seed": 19
+        },
+        "t0": 0
+      },
+      "crowd": {
+        "key": "caught-press",
+        "params": {
+          "seed": 19,
+          "base": {
+            "key": "zone-dense",
+            "params": {},
+            "t0": 4
+          }
+        }
+      },
+      "hud": [
+        {
+          "c": "sim",
+          "ja": "人の波にはさまれた（シミュレーション）",
+          "factIds": [],
+          "until": 1.75
+        }
+      ],
+      "cues": [
+        {
+          "at": 0,
+          "sfx": "crowd_press"
+        },
+        {
+          "at": 0.35,
+          "sfx": "zombie_groan"
+        },
+        {
+          "at": 1.15,
+          "sfx": "zombie_groan_b",
+          "gain_db": -3,
+          "pan": 0.4
+        },
+        {
+          "at": 1.75,
+          "sfx": "red_flash"
+        },
+        {
+          "at": 1.75,
+          "sfx": "caught_hit",
+          "duck": 0.6,
+          "duck_db": -12
+        },
+        {
+          "at": 2.15,
+          "sfx": "cut_black"
+        }
+      ],
+      "header": false,
+      "clock": false,
+      "vt0": 29.2,
+      "bgm": null,
+      "amb": "crowd-night",
+      "reuse": {
+        "variant": "combined/zone",
+        "beat": "caught"
+      },
+      "plateTag": "AI生成画像を加工"
+    },
+    {
+      "id": "over-stamp",
+      "dur": 2,
+      "shot": {
+        "key": "black",
+        "t0": 0
+      },
+      "hud": [
+        {
+          "c": "stamp",
+          "kind": "GAME_OVER",
+          "ja": "人の波で前に進めない…\n（シミュレーション）",
+          "factIds": [],
+          "onBlack": true,
+          "safety": {
+            "ja": "密集の中で立ち止まると危険",
+            "factIds": []
+          }
+        }
+      ],
+      "header": false,
+      "clock": false,
+      "bgm": null,
+      "amb": null,
+      "vt0": 31.7,
+      "reuse": {
+        "variant": "combined/zone",
+        "beat": "over-stamp"
+      }
+    },
+    {
+      "id": "over-lesson",
+      "dur": 5,
+      "shot": {
+        "key": "card-bg",
+        "t0": 0
+      },
+      "hud": [
+        {
+          "c": "lesson"
+        }
+      ],
+      "clock": false,
+      "header": true,
+      "bgm": "calm",
+      "transition": "dip",
+      "vt0": 31.7,
+      "amb": "crowd-night",
+      "reuse": {
+        "variant": "zone-over",
+        "beat": "lesson"
+      },
+      "plateTag": "AI生成画像を加工"
+    },
+    {
+      "id": "continue",
+      "dur": 3,
+      "shot": {
+        "key": "continue-bg",
+        "t0": 0
+      },
+      "hud": [
+        {
+          "c": "continue",
+          "ja": "外側を回ってやり直す",
+          "count": 3,
+          "yesAt": 1.6,
+          "factIds": []
+        }
+      ],
+      "clock": false,
+      "bgm": "retry",
+      "amb": null,
+      "vt0": 38.7,
+      "reuse": {
+        "variant": "combined/zone",
+        "beat": "continue"
+      },
+      "plateTag": "AI生成画像を加工"
+    },
+    {
+      "id": "retry-why",
+      "dur": 2.5,
+      "shot": {
+        "key": "routemap",
+        "params": {
+          "routes": [
+            "SIM-ZA",
+            "SIM-HA"
+          ],
+          "highlight": null,
+          "colors": {
+            "SIM-ZA": "#FFD23F",
+            "SIM-HA": "#4FE3C1"
+          },
+          "points": [
+            [
+              4.5,
+              -371.5
+            ],
+            [
+              180.5,
+              -371.5
+            ],
+            [
+              4.5,
+              48.5
+            ],
+            [
+              180.5,
+              48.5
+            ]
+          ],
+          "azimuth": 90,
+          "push": 0,
+          "rect": {
+            "x0": 0.08,
+            "x1": 0.92,
+            "y0": 0.2,
+            "y1": 0.5
+          },
+          "span": true,
+          "redZone": 0.3,
+          "drawOn": [
+            0,
+            0.01
+          ]
+        },
+        "t0": 0
+      },
+      "simmap": {
+        "scenario": "plan",
+        "routes": [
+          "ZA",
+          "HA"
+        ],
+        "colors": {
+          "ZA": "#FFD23F",
+          "HA": "#4FE3C1"
+        },
+        "player": "ZA",
+        "crowd": true,
+        "heat": 1,
+        "freeze": 203,
+        "pulse": [
+          19.4,
+          -23.3
+        ],
+        "dim": [
+          "HA"
+        ],
+        "run": [
+          0,
+          1
+        ],
+        "simT": [
+          203,
+          203
+        ]
+      },
+      "hud": [
+        {
+          "c": "caption",
+          "ja": "なぜ失敗した？\nシミュレーションで見直す",
+          "factIds": [],
+          "tone": "warn"
+        },
+        {
+          "c": "pin",
+          "world": [
+            19.4,
+            0,
+            -23.3
+          ],
+          "ja": "赤枠内 4.0人/m²（シミュレーション）\n状況により規制（2026年）",
+          "color": "#FF6FB1",
+          "factIds": [
+            "MEAS-01"
+          ]
+        }
+      ],
+      "cues": [
+        {
+          "at": 0.02,
+          "sfx": "red_alert",
+          "gain_db": -6
+        },
+        {
+          "at": 0.05,
+          "sfx": "card_in",
+          "gain_db": -6
+        }
+      ],
+      "clock": false,
+      "header": true,
+      "bgm": "retry",
+      "amb": "crowd-night",
+      "duck": -4,
+      "why": {
+        "t": 203,
+        "rho": 4,
+        "x": 19.4,
+        "z": -23.3,
+        "text": "赤枠内 4.0人/m²（シミュレーション）\n状況により規制（2026年）"
+      }
+    },
+    {
+      "id": "clear-choice",
+      "dur": 4.5,
+      "shot": {
+        "key": "routemap",
+        "params": {
+          "routes": [
+            "SIM-ZA",
+            "SIM-HA"
+          ],
+          "highlight": null,
+          "colors": {
+            "SIM-ZA": "#FFD23F",
+            "SIM-HA": "#4FE3C1"
+          },
+          "points": [
+            [
+              4.5,
+              -371.5
+            ],
+            [
+              180.5,
+              -371.5
+            ],
+            [
+              4.5,
+              48.5
+            ],
+            [
+              180.5,
+              48.5
+            ]
+          ],
+          "azimuth": 90,
+          "push": 0,
+          "rect": {
+            "x0": 0.08,
+            "x1": 0.92,
+            "y0": 0.2,
+            "y1": 0.5
+          },
+          "span": true,
+          "redZone": 0.3,
+          "drawOn": [
+            0,
+            0.01
+          ]
+        },
+        "t0": 0
+      },
+      "simmap": {
+        "scenario": "retry",
+        "routes": [
+          "ZA",
+          "HA"
+        ],
+        "colors": {
+          "ZA": "#FFD23F",
+          "HA": "#4FE3C1"
+        },
+        "player": "HA",
+        "crowd": true,
+        "heat": 1,
+        "run": [
+          0.45,
+          3.2
+        ],
+        "simT": [
+          0,
+          484
+        ]
+      },
+      "hud": [
+        {
+          "c": "simpanel",
+          "scenario": "retry",
+          "pair": "zone",
+          "head": "再計算（失敗した時間帯の人の流れで）",
+          "assume": "仮定：人出48,000人・ピーク時／シミュレーション範囲の外はOSMから概算（80m/分）",
+          "factIds": [],
+          "phase": "recompute",
+          "from": "plan",
+          "reorder": [
+            3.2,
+            3.6
+          ],
+          "run": [
+            0.45,
+            3.2
+          ],
+          "simT": [
+            0,
+            484
+          ],
+          "speed": "×176 早送り",
+          "finalAt": 3.2,
+          "pickAt": 3.6500000000000004,
+          "verdict": "再計算の結論"
+        },
+        {
+          "c": "pin",
+          "world": [
+            22.5,
+            0,
+            36.5
+          ],
+          "ja": "スタート",
+          "color": "#E9DDFF",
+          "factIds": []
+        },
+        {
+          "c": "pin",
+          "world": [
+            33.5,
+            0,
+            -346.5
+          ],
+          "ja": "A →OSM区間（概算）",
+          "color": "#FFD23F",
+          "factIds": [
+            "ZONE-D-H-HARA"
+          ]
+        },
+        {
+          "c": "pin",
+          "world": [
+            161.5,
+            0,
+            -367.5
+          ],
+          "ja": "B →OSM区間（概算）",
+          "color": "#4FE3C1",
+          "factIds": [
+            "ALT-HARA-H"
+          ]
+        }
+      ],
+      "cues": [
+        {
+          "at": 0.05,
+          "sfx": "whoosh",
+          "gain_db": -8
+        },
+        {
+          "at": 0.6,
+          "sfx": "tick",
+          "repeat": 0.4,
+          "until": 3.2,
+          "gain_db": -6
+        },
+        {
+          "at": 3.6500000000000004,
+          "sfx": "ui_select"
+        },
+        {
+          "at": 3.6900000000000004,
+          "sfx": "choice_pick",
+          "gain_db": -2
+        }
+      ],
+      "clock": false,
+      "header": true,
+      "bgm": "retry",
+      "amb": "crowd-night",
+      "duck": -5,
+      "reuse": {
+        "variant": "zone-clear",
+        "beat": "choice"
+      }
+    },
+    {
+      "id": "clear-move",
+      "dur": 4.5,
+      "shot": {
+        "key": "routemap",
+        "params": {
+          "routes": [
+            "ALT-HARA-H",
+            "ZONE-D-H-HARA"
+          ],
+          "routeWidth": 13,
+          "highlight": "ALT-HARA-H",
+          "colors": {
+            "ZONE-D-H-HARA": "#FFD23F",
+            "ALT-HARA-H": "#4FE3C1"
+          },
+          "points": [
+            [
+              -30,
+              60
+            ],
+            [
+              210,
+              60
+            ],
+            [
+              -30,
+              -470
+            ],
+            [
+              210,
+              -470
+            ]
+          ],
+          "rect": {
+            "x0": 0.08,
+            "x1": 0.92,
+            "y0": 0.17,
+            "y1": 0.74
+          },
+          "span": true,
+          "redZone": 1
+        },
+        "t0": 0
+      },
+      "hud": [
+        {
+          "c": "caption",
+          "ja": "ルート例：ガード下の歩道\n→宮益坂下→明治通り東側\n（OSMから概算）",
+          "factIds": [
+            "ALT-HARA-H"
+          ],
+          "until": 2.3
+        },
+        {
+          "c": "caption",
+          "ja": "約1572m・約20分\n赤枠内は最初の約180mだけ\n（OSMから概算・規制図より概略）",
+          "factIds": [
+            "ALT-HARA-H",
+            "MEAS-04"
+          ],
+          "at": 2.3
+        },
+        {
+          "c": "legend",
+          "factIds": [],
+          "rows": [
+            {
+              "color": "#FFD23F",
+              "ja": "A 最短（駅前から北へ）"
+            },
+            {
+              "color": "#4FE3C1",
+              "ja": "B 外側のルート例"
+            }
+          ]
+        },
+        {
+          "c": "simmeter",
+          "scenario": "retry",
+          "route": "HA",
+          "run": [
+            0,
+            4.5
+          ],
+          "simT": [
+            2,
+            276
+          ],
+          "factIds": [],
+          "etaLabel": "原宿駅まで"
+        }
+      ],
+      "transition": "dip",
+      "clock": {
+        "set": "22:33:15",
+        "rate": 0.5
+      },
+      "vt0": 20.7,
+      "bgm": "tension",
+      "amb": "crowd-night",
+      "reuse": {
+        "variant": "zone-clear",
+        "beat": "move"
+      }
+    },
+    {
+      "id": "clear-result",
+      "dur": 4,
+      "shot": {
+        "key": "detour",
+        "params": {
+          "route": "ALT-HARA-H",
+          "mode": "eye",
+          "s0": 200,
+          "speed": 1.5,
+          "crowd": false
+        },
+        "t0": 0
+      },
+      "crowd": {
+        "key": "detour-light",
+        "params": {
+          "path": [
+            [
+              161.7,
+              -20.5
+            ],
+            [
+              170.4,
+              -22
+            ],
+            [
+              177.2,
+              -23.4
+            ],
+            [
+              176,
+              -47.2
+            ],
+            [
+              175,
+              -61.4
+            ],
+            [
+              172.8,
+              -102.1
+            ]
+          ],
+          "width": 9,
+          "density": 0.05,
+          "player": {
+            "u": 0.24,
+            "speed": 1.5
+          },
+          "clear": {
+            "ahead": 8,
+            "behind": 1.5,
+            "half": 2.4,
+            "ease": 3
+          }
+        },
+        "t0": 0,
+        "restart": true
+      },
+      "amb": "street-quiet",
+      "hud": [
+        {
+          "c": "caption",
+          "ja": "この回は流れて歩けた\n（シミュレーション）",
+          "factIds": [],
+          "sim": true,
+          "until": 2
+        },
+        {
+          "c": "caption",
+          "ja": "警察は車両に周辺道路への\n迂回を呼びかけ（2026年）",
+          "factIds": [
+            "MEAS-25"
+          ],
+          "tone": "note",
+          "at": 2
+        },
+        {
+          "c": "sim",
+          "ja": "人の流れ＝シミュレーション",
+          "factIds": []
+        },
+        {
+          "c": "simmeter",
+          "scenario": "retry",
+          "route": "HA",
+          "run": [
+            0,
+            4
+          ],
+          "simT": [
+            276,
+            458.7
+          ],
+          "factIds": [],
+          "etaLabel": "原宿駅まで"
+        }
+      ],
+      "clock": {
+        "set": "22:35:30",
+        "rate": 0.5
+      },
+      "vt0": 25.2,
+      "bgm": "tension",
+      "reuse": {
+        "variant": "combined/zone",
+        "beat": "clear-result"
+      },
+      "plateTag": "AI生成画像を加工"
+    },
+    {
+      "id": "clear-stamp",
+      "dur": 2.5,
+      "shot": {
+        "key": "detour",
+        "params": {
+          "route": "ALT-HARA-H",
+          "mode": "eye",
+          "s0": 200,
+          "speed": 1.5,
+          "crowd": false
+        },
+        "t0": 4
+      },
+      "crowd": {
+        "key": "detour-light",
+        "params": {
+          "path": [
+            [
+              161.7,
+              -20.5
+            ],
+            [
+              170.4,
+              -22
+            ],
+            [
+              177.2,
+              -23.4
+            ],
+            [
+              176,
+              -47.2
+            ],
+            [
+              175,
+              -61.4
+            ],
+            [
+              172.8,
+              -102.1
+            ]
+          ],
+          "width": 9,
+          "density": 0.05,
+          "player": {
+            "u": 0.24,
+            "speed": 1.5
+          },
+          "clear": {
+            "ahead": 8,
+            "behind": 1.5,
+            "half": 2.4,
+            "ease": 3
+          }
+        },
+        "t0": 4,
+        "restart": true
+      },
+      "amb": "street-quiet",
+      "hud": [
+        {
+          "c": "stamp",
+          "kind": "GAME_CLEAR",
+          "ja": "原宿駅にたどり着いた！\n（シミュレーション）",
+          "factIds": []
+        }
+      ],
+      "bgm": "victory",
+      "clock": {
+        "set": "22:37:30",
+        "rate": 0.5
+      },
+      "vt0": 29.2,
+      "reuse": {
+        "variant": "combined/zone",
+        "beat": "clear-stamp"
+      },
+      "plateTag": "AI生成画像を加工"
+    },
+    {
+      "id": "clear-cheat",
+      "dur": 3.5,
+      "shot": {
+        "key": "card-bg",
+        "params": {
+          "yaw0": 1.1
+        },
+        "t0": 0
+      },
+      "hud": [
+        {
+          "c": "cheat"
+        }
+      ],
+      "clock": false,
+      "bgm": "victory",
+      "vt0": 36.7,
+      "amb": "crowd-night",
+      "reuse": {
+        "variant": "zone-clear",
+        "beat": "cheat"
+      },
+      "plateTag": "AI生成画像を加工"
+    },
+    {
+      "id": "kaiju",
+      "dur": 4,
+      "shot": {
+        "key": "kaiju-skyline",
+        "params": {
+          "rise": [
+            0.15,
+            1.7
+          ],
+          "roarAt": 1.85,
+          "roarDur": 1.35,
+          "kaiju": {
+            "scale": 480,
+            "ground": 500,
+            "pos": [
+              10,
+              1000
+            ]
+          }
+        },
+        "t0": 0
+      },
+      "hud": [
+        {
+          "c": "gag",
+          "ja": "隠しボス\n出現!?",
+          "factIds": [],
+          "at": 2.5
+        }
+      ],
+      "cues": [
+        {
+          "at": 0.1,
+          "sfx": "kaiju_rumble"
+        },
+        {
+          "at": 1.85,
+          "sfx": "kaiju_roar",
+          "duck": 1.2,
+          "duck_db": -10
+        },
+        {
+          "at": 1.95,
+          "sfx": "party_popper",
+          "gain_db": -2
+        }
+      ],
+      "header": false,
+      "clock": false,
+      "bgm": null,
+      "amb": "crowd-night",
+      "vt0": 60.2,
+      "reuse": {
+        "variant": "combined/zone",
+        "beat": "kaiju"
+      }
+    },
+    {
+      "id": "goodbye",
+      "dur": 8,
+      "shot": {
+        "key": "card-bg",
+        "params": {
+          "yaw0": 2.2,
+          "tone": "dark"
+        }
+      },
+      "hud": [
+        {
+          "c": "goodbye",
+          "quote": {
+            "title": "GOODBYE BAD HALLOWEEN",
+            "ja": "渋谷駅周辺では、条例で飲酒・喫煙、\nごみのポイ捨ては禁止されています。",
+            "attr": "（渋谷区）",
+            "en": "Drinking, smoking and littering on the streets around Shibuya Station are banned by ordinance.",
+            "enAttr": "(Shibuya City)",
+            "label": "引用"
+          },
+          "facts": [
+            {
+              "ja": "10/30(金)早朝〜11/1(日)朝方　ハチ公像は囲いで観覧不可",
+              "en": "Oct 30 early AM – Nov 1 morning: Hachiko statue fenced off"
+            },
+            {
+              "ja": "10/30夕方〜11/1早朝　駅周辺で交通規制",
+              "en": "Oct 30 evening – Nov 1 early AM: traffic restrictions around the station"
+            }
+          ],
+          "ours": {
+            "label": "制作チームより",
+            "ja": "いちばんのCLEARは、\n今年の渋谷に「行かない」こと。",
+            "en": "The best CLEAR this year: don't go to Shibuya."
+          },
+          "foot": {
+            "ja": "出典：渋谷区公式X（2026/10/22）・渋谷区・警視庁渋谷警察署　※本編はフィクションです",
+            "en": "Sources: Shibuya City (X, Oct 22, 2026), Shibuya City, MPD Shibuya Police Station. *Story is fiction."
+          },
+          "factIds": []
+        }
+      ],
+      "header": false,
+      "clock": false,
+      "footnote": false,
+      "bgm": "farewell",
+      "amb": null
+    },
+    {
+      "id": "sources",
+      "dur": 3,
+      "shot": {
+        "key": "card-bg",
+        "params": {
+          "yaw0": 1.5
+        }
+      },
+      "hud": [
+        {
+          "c": "sources",
+          "compact": true,
+          "note": "徒歩はOSMから概算（混雑・信号は含まず）／混雑・所要時間は人流シミュレーション（人出48,000人・ピーク時、入場規制などは仮定）",
+          "parodyNote": {
+            "ja": "※本編（ゲーム部分）はフィクションです。引用・日付は各出典の公表内容です",
+            "en": "*The game story is fiction; quotes and dates are as published by each source."
+          },
+          "factIds": [],
+          "credit": "出典：国土交通省 PLATEAU（3D都市モデル）／© OpenStreetMap contributors\n写真：Syced（CC0・Wikimedia Commons）／一部背景はAI生成画像を加工"
+        }
+      ],
+      "header": {
+        "sub": "10/31 渋谷ハロウィンには近づくな"
+      },
+      "clock": false,
+      "footnote": false,
+      "bgm": "farewell",
+      "amb": null,
+      "fadeOut": 0.4
+    }
+  ],
+  "lesson": {
+    "title": "規制と人の流れを先に確認",
+    "ja": "規制と人の流れを先に確認\n10/30夕方〜11/1早朝\n駅周辺は交通規制（2026年）\n警察は車両に周辺道路への\n迂回を呼びかけ（2026年）\n歩行者の一方通行は例：2024年\n2026年は10/25時点で未発表\n遠回りは約220m・約3分\n（外側のルート例・OSMから概算）",
+    "points": [
+      "10/30夕方〜11/1早朝\n駅周辺は交通規制（2026年）",
+      "警察は車両に周辺道路への\n迂回を呼びかけ（2026年）",
+      "歩行者の一方通行は例：2024年\n2026年は10/25時点で未発表",
+      "遠回りは約220m・約3分\n（外側のルート例・OSMから概算）"
+    ],
+    "factIds": [
+      "MEAS-01",
+      "MEAS-25",
+      "PED-2024",
+      "NA-PED-2026",
+      "ZONE-DETOUR-COST"
+    ],
+    "summary": "2026年は10/30夕方〜11/1早朝、駅周辺で警察の交通規制（赤枠＝車両の検問・規制、規制図より概略）。警察は車両に「周辺道路に迂回するなど」協力を呼びかけ。歩行者も、過去には広場やセンター街が一方通行に（例：2024年。2026年は10/25時点で未発表）。外側を回るルート例は約220m・約3分の遠回り（OSMから概算）。"
+  },
+  "cheat": {
+    "title": "保存版 渋谷の交通規制",
+    "sub": "2026年・警察の発表など",
+    "asOf": "10/25時点",
+    "note": "当日は駅・警察の案内を確認",
+    "rows": [
+      {
+        "sec": "2026年",
+        "ja": "交通規制：10/30夕方〜11/1早朝",
+        "factIds": [
+          "MEAS-01"
+        ]
+      },
+      {
+        "ja": "高架下（宮益坂下〜駅前）車両通行止め",
+        "sub": "各日16時ごろ〜警備終了",
+        "tone": "ng",
+        "factIds": [
+          "MEAS-03",
+          "MEAS-20"
+        ]
+      },
+      {
+        "ja": "赤枠＝検問・規制の場合あり（車両）",
+        "sub": "規制図より概略",
+        "factIds": [
+          "MEAS-02",
+          "MEAS-04"
+        ]
+      },
+      {
+        "ja": "警察：車両は周辺道路へ迂回を",
+        "sub": "規制のお知らせ（2026年）",
+        "factIds": [
+          "MEAS-25"
+        ]
+      },
+      {
+        "sec": "原宿へ歩く",
+        "ja": "ルート例：ガード下→宮益坂下→明治通り東側",
+        "sub": "約20分（OSMから概算）",
+        "tone": "ok",
+        "factIds": [
+          "ALT-HARA-H"
+        ]
+      },
+      {
+        "ja": "歩行者の一方通行：例：2024年",
+        "sub": "2026年は10/25時点で未発表",
+        "factIds": [
+          "PED-2024",
+          "NA-PED-2026"
+        ]
+      }
+    ]
+  },
+  "sources": [
+    "ZONE-D-H-HARA",
+    "MEAS-04",
+    "MEAS-02",
+    "PED-2024",
+    "PED-2023",
+    "MEAS-01",
+    "MEAS-25",
+    "NA-PED-2026",
+    "ZONE-DETOUR-COST",
+    "MEAS-03",
+    "MEAS-20",
+    "ALT-HARA-H",
+    "MEAS-12",
+    "MEAS-09",
+    "JR-LAST-01",
+    "JR-LAST-02",
+    "END-01",
+    "END-02",
+    "END-03"
+  ],
+  "bgm": "tension",
+  "amb": "crowd-night",
+  "routes": {
+    "ZONE-D-H-HARA": {
+      "ja": "最短（比較用・OSMから概算）",
+      "factIds": [
+        "ZONE-D-H-HARA"
+      ],
+      "points": [
+        [
+          22.2,
+          33.8
+        ],
+        [
+          15.2,
+          34.8
+        ],
+        [
+          16.8,
+          22.2
+        ],
+        [
+          18.3,
+          11.6
+        ],
+        [
+          19.7,
+          1.4
+        ],
+        [
+          20.8,
+          -6
+        ],
+        [
+          16.5,
+          -14
+        ],
+        [
+          17.6,
+          -17.9
+        ],
+        [
+          19.1,
+          -22.7
+        ],
+        [
+          33.4,
+          -91.7
+        ],
+        [
+          34.3,
+          -103.7
+        ],
+        [
+          34.5,
+          -118.9
+        ],
+        [
+          34.5,
+          -124
+        ],
+        [
+          33.2,
+          -166.6
+        ],
+        [
+          33,
+          -178.8
+        ],
+        [
+          33,
+          -183.6
+        ],
+        [
+          32.9,
+          -201.8
+        ],
+        [
+          34.3,
+          -285.4
+        ],
+        [
+          36,
+          -289.5
+        ],
+        [
+          38.2,
+          -300.7
+        ],
+        [
+          38.3,
+          -307.5
+        ],
+        [
+          34.3,
+          -311.5
+        ],
+        [
+          33.4,
+          -316.8
+        ],
+        [
+          33.2,
+          -346.1
+        ],
+        [
+          33.7,
+          -355.4
+        ],
+        [
+          35.1,
+          -370.2
+        ],
+        [
+          36.4,
+          -375.9
+        ],
+        [
+          37.6,
+          -380.8
+        ],
+        [
+          39.7,
+          -386.5
+        ],
+        [
+          42.6,
+          -392.1
+        ],
+        [
+          46.1,
+          -398.4
+        ],
+        [
+          50.6,
+          -403.5
+        ],
+        [
+          55.3,
+          -408.9
+        ],
+        [
+          59.5,
+          -412.9
+        ],
+        [
+          53.2,
+          -420
+        ],
+        [
+          47.4,
+          -427
+        ],
+        [
+          53.9,
+          -434.4
+        ],
+        [
+          56.2,
+          -438.1
+        ],
+        [
+          57.8,
+          -444.5
+        ],
+        [
+          58.7,
+          -451.6
+        ],
+        [
+          59.6,
+          -460.9
+        ],
+        [
+          63.8,
+          -513.3
+        ],
+        [
+          66.7,
+          -525.5
+        ],
+        [
+          69.7,
+          -557.1
+        ],
+        [
+          70.3,
+          -560.8
+        ],
+        [
+          70.8,
+          -565.3
+        ],
+        [
+          71.5,
+          -571.6
+        ],
+        [
+          71.2,
+          -575.6
+        ],
+        [
+          77.4,
+          -629.1
+        ],
+        [
+          96,
+          -714.6
+        ],
+        [
+          98.9,
+          -737.7
+        ],
+        [
+          102.8,
+          -786.4
+        ],
+        [
+          101.3,
+          -789.8
+        ],
+        [
+          94.5,
+          -796.1
+        ],
+        [
+          89.4,
+          -795.5
+        ],
+        [
+          88.7,
+          -803.7
+        ],
+        [
+          88.2,
+          -812.3
+        ],
+        [
+          93.5,
+          -813
+        ],
+        [
+          102.3,
+          -822.1
+        ],
+        [
+          107.4,
+          -886.3
+        ],
+        [
+          113.3,
+          -959
+        ],
+        [
+          115.6,
+          -990.1
+        ],
+        [
+          122,
+          -1032.7
+        ],
+        [
+          122.6,
+          -1038.9
+        ],
+        [
+          116.6,
+          -1046.2
+        ],
+        [
+          124.6,
+          -1058
+        ],
+        [
+          113.7,
+          -1080.3
+        ],
+        [
+          125.2,
+          -1086.2
+        ],
+        [
+          134.3,
+          -1093.3
+        ],
+        [
+          137.3,
+          -1094.7
+        ],
+        [
+          142.1,
+          -1097
+        ],
+        [
+          146.9,
+          -1099.5
+        ],
+        [
+          153,
+          -1102.3
+        ],
+        [
+          179.8,
+          -1116
+        ],
+        [
+          183.1,
+          -1117.7
+        ],
+        [
+          186.4,
+          -1120.1
+        ],
+        [
+          186,
+          -1124.8
+        ],
+        [
+          186.8,
+          -1132.2
+        ],
+        [
+          187.5,
+          -1137.7
+        ],
+        [
+          187.9,
+          -1141.7
+        ],
+        [
+          190.5,
+          -1151
+        ],
+        [
+          199.5,
+          -1166.5
+        ],
+        [
+          200.6,
+          -1176
+        ],
+        [
+          201.2,
+          -1179.9
+        ],
+        [
+          202.5,
+          -1190.7
+        ],
+        [
+          203.8,
+          -1204.2
+        ],
+        [
+          203.8,
+          -1209.8
+        ],
+        [
+          203.8,
+          -1211.1
+        ]
+      ],
+      "note": "OSRM foot https://routing.openstreetmap.de/routed-foot/route/v1/foot/139.7008,35.65915;139.70287,35.67036 (2026-10-25), © OpenStreetMap contributors"
+    },
+    "SIM-ZA": {
+      "ja": "A 最短（北へ直進）（シミュレーションの経路）",
+      "factIds": [],
+      "points": [
+        [
+          22.5,
+          36.5
+        ],
+        [
+          19.5,
+          33.5
+        ],
+        [
+          16.5,
+          30.5
+        ],
+        [
+          16.5,
+          24.5
+        ],
+        [
+          18.5,
+          20.5
+        ],
+        [
+          19.5,
+          15.5
+        ],
+        [
+          19.5,
+          9.5
+        ],
+        [
+          19.5,
+          3.5
+        ],
+        [
+          19.5,
+          -2.5
+        ],
+        [
+          19.5,
+          -8.5
+        ],
+        [
+          19.5,
+          -14.5
+        ],
+        [
+          19.5,
+          -20.5
+        ],
+        [
+          21.5,
+          -24.5
+        ],
+        [
+          22.5,
+          -29.5
+        ],
+        [
+          23.5,
+          -34.5
+        ],
+        [
+          24.5,
+          -38.5
+        ],
+        [
+          25.5,
+          -43.5
+        ],
+        [
+          26.5,
+          -48.5
+        ],
+        [
+          27.5,
+          -53.5
+        ],
+        [
+          28.5,
+          -58.5
+        ],
+        [
+          29.5,
+          -62.5
+        ],
+        [
+          30.5,
+          -67.5
+        ],
+        [
+          31.5,
+          -71.5
+        ],
+        [
+          31.5,
+          -76.5
+        ],
+        [
+          32.5,
+          -81.5
+        ],
+        [
+          33.5,
+          -86.5
+        ],
+        [
+          33.5,
+          -91.5
+        ],
+        [
+          34.5,
+          -96.5
+        ],
+        [
+          34.5,
+          -102.5
+        ],
+        [
+          34.5,
+          -108.5
+        ],
+        [
+          34.5,
+          -114.5
+        ],
+        [
+          34.5,
+          -120.5
+        ],
+        [
+          33.5,
+          -124.5
+        ],
+        [
+          33.5,
+          -130.5
+        ],
+        [
+          33.5,
+          -136.5
+        ],
+        [
+          33.5,
+          -142.5
+        ],
+        [
+          33.5,
+          -148.5
+        ],
+        [
+          33.5,
+          -154.5
+        ],
+        [
+          33.5,
+          -160.5
+        ],
+        [
+          33.5,
+          -166.5
+        ],
+        [
+          33.5,
+          -172.5
+        ],
+        [
+          33.5,
+          -178.5
+        ],
+        [
+          33.5,
+          -184.5
+        ],
+        [
+          34.5,
+          -189.5
+        ],
+        [
+          34.5,
+          -195.5
+        ],
+        [
+          34.5,
+          -201.5
+        ],
+        [
+          34.5,
+          -207.5
+        ],
+        [
+          34.5,
+          -213.5
+        ],
+        [
+          34.5,
+          -219.5
+        ],
+        [
+          34.5,
+          -225.5
+        ],
+        [
+          34.5,
+          -231.5
+        ],
+        [
+          34.5,
+          -237.5
+        ],
+        [
+          34.5,
+          -243.5
+        ],
+        [
+          34.5,
+          -249.5
+        ],
+        [
+          34.5,
+          -255.5
+        ],
+        [
+          34.5,
+          -261.5
+        ],
+        [
+          34.5,
+          -267.5
+        ],
+        [
+          34.5,
+          -273.5
+        ],
+        [
+          34.5,
+          -279.5
+        ],
+        [
+          34.5,
+          -285.5
+        ],
+        [
+          37.5,
+          -288.5
+        ],
+        [
+          37.5,
+          -294.5
+        ],
+        [
+          37.5,
+          -300.5
+        ],
+        [
+          37.5,
+          -306.5
+        ],
+        [
+          35.5,
+          -309.5
+        ],
+        [
+          33.5,
+          -313.5
+        ],
+        [
+          33.5,
+          -319.5
+        ],
+        [
+          33.5,
+          -325.5
+        ],
+        [
+          33.5,
+          -331.5
+        ],
+        [
+          33.5,
+          -337.5
+        ],
+        [
+          33.5,
+          -338.5
+        ]
+      ]
+    },
+    "SIM-HA": {
+      "ja": "B 外側のルート例（シミュレーションの経路）",
+      "factIds": [],
+      "points": [
+        [
+          22.5,
+          36.5
+        ],
+        [
+          25.5,
+          33.5
+        ],
+        [
+          28.5,
+          30.5
+        ],
+        [
+          31.5,
+          27.5
+        ],
+        [
+          34.5,
+          24.5
+        ],
+        [
+          37.5,
+          21.5
+        ],
+        [
+          40.5,
+          18.5
+        ],
+        [
+          43.5,
+          15.5
+        ],
+        [
+          46.5,
+          12.5
+        ],
+        [
+          52.5,
+          12.5
+        ],
+        [
+          58.5,
+          12.5
+        ],
+        [
+          64.5,
+          12.5
+        ],
+        [
+          70.5,
+          12.5
+        ],
+        [
+          76.5,
+          12.5
+        ],
+        [
+          82.5,
+          12.5
+        ],
+        [
+          86.5,
+          11.5
+        ],
+        [
+          92.5,
+          11.5
+        ],
+        [
+          98.5,
+          11.5
+        ],
+        [
+          104.5,
+          11.5
+        ],
+        [
+          110.5,
+          11.5
+        ],
+        [
+          116.5,
+          11.5
+        ],
+        [
+          122.5,
+          11.5
+        ],
+        [
+          126.5,
+          9.5
+        ],
+        [
+          130.5,
+          7.5
+        ],
+        [
+          135.5,
+          6.5
+        ],
+        [
+          141.5,
+          6.5
+        ],
+        [
+          145.5,
+          4.5
+        ],
+        [
+          145.5,
+          -1.5
+        ],
+        [
+          145.5,
+          -7.5
+        ],
+        [
+          145.5,
+          -13.5
+        ],
+        [
+          148.5,
+          -16.5
+        ],
+        [
+          153.5,
+          -17.5
+        ],
+        [
+          154.5,
+          -19.5
+        ],
+        [
+          151.5,
+          -22.5
+        ],
+        [
+          148.5,
+          -25.5
+        ],
+        [
+          147.5,
+          -30.5
+        ],
+        [
+          147.5,
+          -36.5
+        ],
+        [
+          147.5,
+          -42.5
+        ],
+        [
+          147.5,
+          -48.5
+        ],
+        [
+          147.5,
+          -54.5
+        ],
+        [
+          147.5,
+          -60.5
+        ],
+        [
+          146.5,
+          -65.5
+        ],
+        [
+          146.5,
+          -71.5
+        ],
+        [
+          146.5,
+          -77.5
+        ],
+        [
+          145.5,
+          -81.5
+        ],
+        [
+          145.5,
+          -87.5
+        ],
+        [
+          145.5,
+          -93.5
+        ],
+        [
+          145.5,
+          -99.5
+        ],
+        [
+          145.5,
+          -105.5
+        ],
+        [
+          144.5,
+          -109.5
+        ],
+        [
+          144.5,
+          -115.5
+        ],
+        [
+          144.5,
+          -121.5
+        ],
+        [
+          143.5,
+          -126.5
+        ],
+        [
+          143.5,
+          -132.5
+        ],
+        [
+          143.5,
+          -138.5
+        ],
+        [
+          143.5,
+          -144.5
+        ],
+        [
+          143.5,
+          -150.5
+        ],
+        [
+          143.5,
+          -156.5
+        ],
+        [
+          143.5,
+          -162.5
+        ],
+        [
+          143.5,
+          -168.5
+        ],
+        [
+          143.5,
+          -174.5
+        ],
+        [
+          143.5,
+          -180.5
+        ],
+        [
+          143.5,
+          -186.5
+        ],
+        [
+          143.5,
+          -192.5
+        ],
+        [
+          143.5,
+          -198.5
+        ],
+        [
+          145.5,
+          -201.5
+        ],
+        [
+          145.5,
+          -207.5
+        ],
+        [
+          145.5,
+          -213.5
+        ],
+        [
+          145.5,
+          -218.5
+        ],
+        [
+          149.5,
+          -220.5
+        ],
+        [
+          155.5,
+          -220.5
+        ],
+        [
+          161.5,
+          -220.5
+        ],
+        [
+          165.5,
+          -222.5
+        ],
+        [
+          168.5,
+          -225.5
+        ],
+        [
+          168.5,
+          -231.5
+        ],
+        [
+          168.5,
+          -237.5
+        ],
+        [
+          168.5,
+          -243.5
+        ],
+        [
+          168.5,
+          -249.5
+        ],
+        [
+          168.5,
+          -255.5
+        ],
+        [
+          168.5,
+          -261.5
+        ],
+        [
+          168.5,
+          -267.5
+        ],
+        [
+          165.5,
+          -270.5
+        ],
+        [
+          162.5,
+          -273.5
+        ],
+        [
+          162.5,
+          -279.5
+        ],
+        [
+          162.5,
+          -285.5
+        ],
+        [
+          161.5,
+          -290.5
+        ],
+        [
+          161.5,
+          -296.5
+        ],
+        [
+          161.5,
+          -302.5
+        ],
+        [
+          161.5,
+          -308.5
+        ],
+        [
+          161.5,
+          -314.5
+        ],
+        [
+          161.5,
+          -320.5
+        ],
+        [
+          161.5,
+          -326.5
+        ],
+        [
+          161.5,
+          -332.5
+        ],
+        [
+          161.5,
+          -338.5
+        ],
+        [
+          161.5,
+          -344.5
+        ],
+        [
+          161.5,
+          -350.5
+        ],
+        [
+          161.5,
+          -356.5
+        ],
+        [
+          161.5,
+          -359.5
+        ]
+      ]
+    }
+  },
+  "generated": "tools/v8_configs.mjs (do not edit by hand: edit the generator and re-run --write)",
+  "release": "v8",
+  "sim": {
+    "plan": "v8/sim/plan.json",
+    "retry": "v8/sim/retry.json",
+    "pick": "HA",
+    "retryPick": "HA",
+    "over": "ZA",
+    "clear": "HA",
+    "rule": "判定：スコア（予測時間＋混雑ペナルティ）が最小のルート。ペナルティ＝最大密度が2人/m²を超えた分×1分",
+    "assumptions": "シミュレーション（仮定）：人出48,000人・ピーク時（22時ごろ想定）／ハチ公改札前は入場規制を仮定／歩行80m/分（OSM区間）。2026年のJRの対策は未発表"
+  }
+}

@@ -103,7 +103,7 @@ async function main(argv){
 // opening + body as one video: both parts valid, total 30–45 s (combined: 60–80 s; test fixtures whose id starts with
 // '_' are exempt)
 export function validateVideo(opening,body,opt){const v=V.validateConfig(body,{...opt,part:'body'});const P=V.videoPlan(opening,body);
- const [lo,hi]=V.isV6(body)?V.V6_VIDEO:V.isCombined(body)?V.COMBINED_VIDEO:[30,45];
+ const [lo,hi]=V.isV8(body)?V.V8_VIDEO:V.isV6(body)?V.V6_VIDEO:V.isCombined(body)?V.COMBINED_VIDEO:[30,45];
  if(V.isV6(body)&&!V.isV6Opening(opening))v.errors.push(`a v6 body needs the v6 opening (--opening v6/_opening), got ${opening.id}`);
  if(!String(body.id).startsWith('_')&&(P.duration<lo-1e-9||P.duration>hi+1e-9))v.errors.push(`video is ${P.duration.toFixed(2)} s (must be ${lo}–${hi} s)`);
  v.ok=!v.errors.length;return v;}

@@ -446,3 +446,62 @@
 #gh .gh-sources.cmp.dn li{padding:4px 0;font-size:14px;line-height:1.3}
 #gh .gh-sources.cmp.dn li .d{display:inline-block;white-space:nowrap;margin:0 0 0 5px;font-size:12.5px}
 #gh .gh-stampsub.true .in{background:var(--gh-noise) 0 0/128px 128px,linear-gradient(180deg,rgba(58,34,6,.95),rgba(26,14,2,.96))!important}
+
+/* ---------- v8 sim compare panel (simpanel) + plate density meter (simmeter) ---------- */
+#gh .gh-simp{--acc:var(--gh-sim);--acc2:var(--gh-violet);width:100%}
+#gh .gh-simp .in{padding:8px 12px 9px!important}
+#gh .gh-simp .hd{display:flex;align-items:center;gap:10px;margin-bottom:2px}
+#gh .gh-simp .hd .gh-tab{margin:0}
+#gh .gh-simp .ck{font-size:19px;color:#fff;letter-spacing:.04em}
+#gh .gh-simp .sp{margin-left:auto;font-size:14px;color:var(--gh-sim);letter-spacing:.12em;border:1px solid color-mix(in srgb,var(--gh-sim) 60%,transparent);padding:0 7px;height:22px;line-height:21px}
+#gh .gh-simp .cols{display:grid;grid-template-columns:8px 1fr 104px 132px 76px;gap:0 8px;font:700 11px/1.4 var(--gh-f-body);color:var(--gh-textMute);letter-spacing:.06em;padding:0 0 2px}
+#gh .gh-simp .cols span:first-child{grid-column:1/3}
+#gh .gh-simp .rows{position:relative}
+#gh .gh-simp .sr{position:absolute;left:0;right:0;height:54px;display:grid;grid-template-columns:8px 1fr 104px 132px 76px;gap:0 8px;align-items:center;
+ background:linear-gradient(90deg,color-mix(in srgb,var(--c) 16%,rgba(10,6,16,.6)),rgba(10,6,16,.35));border-top:1px solid rgba(255,255,255,.07)}
+#gh .gh-simp .sr .cb{align-self:stretch;background:var(--c);box-shadow:0 0 10px var(--c)}
+#gh .gh-simp .sr .nm{display:flex;flex-direction:column;min-width:0}
+#gh .gh-simp .sr .nm b{font:900 18px/1.15 var(--gh-f-body);color:#fff;white-space:nowrap;text-shadow:0 1px 0 rgba(0,0,0,.6)}
+#gh .gh-simp .sr .nm small,#gh .gh-simp .sr small{font:700 11.5px/1.25 var(--gh-f-body);color:var(--gh-textDim);white-space:nowrap}
+#gh .gh-simp .sr .nm small.why{color:var(--gh-warn)}
+#gh .gh-simp .sr .tm{display:flex;flex-direction:column;align-items:flex-start}
+#gh .gh-simp .sr .tm b{font-size:27px;line-height:1;color:#fff}
+#gh .gh-simp .sr .tm b.run{color:var(--gh-textDim)}
+#gh .gh-simp .sr .dn{display:grid;grid-template-columns:auto auto;grid-template-rows:auto auto;column-gap:6px;align-items:center}
+#gh .gh-simp .sr .dn .bar{grid-row:1/3;display:flex;gap:2px;align-items:flex-end;height:26px}
+#gh .gh-simp .bar i,#gh .gh-simm .bar i{display:block;width:9px;background:rgba(255,255,255,.14);border-radius:1px}
+#gh .gh-simp .bar i:nth-child(1),#gh .gh-simm .bar i:nth-child(1){height:40%}#gh .gh-simp .bar i:nth-child(2),#gh .gh-simm .bar i:nth-child(2){height:55%}
+#gh .gh-simp .bar i:nth-child(3),#gh .gh-simm .bar i:nth-child(3){height:70%}#gh .gh-simp .bar i:nth-child(4),#gh .gh-simm .bar i:nth-child(4){height:85%}#gh .gh-simp .bar i:nth-child(5),#gh .gh-simm .bar i:nth-child(5){height:100%}
+#gh .gh-simp .bar i.on,#gh .gh-simm .bar i.on{background:var(--gh-candle);box-shadow:0 0 6px var(--gh-candle)}
+#gh .gh-simp .bar i.on.hi,#gh .gh-simm .bar i.on.hi{background:var(--gh-warn);box-shadow:0 0 8px var(--gh-warn)}
+#gh .gh-simp .sr .dn .num{font-size:22px;line-height:1;color:#fff}
+#gh .gh-simp .sr .rs{display:flex;flex-direction:column;align-items:flex-start;gap:2px}
+#gh .gh-simp .rk{font:900 15px/20px var(--gh-f-body);padding:0 8px;border-radius:2px;background:rgba(255,255,255,.12);color:#fff}
+#gh .gh-simp .rk.r低{background:#1E6B47;color:#C9FFE4}#gh .gh-simp .rk.r中{background:#7A5A00;color:#FFF0B8}#gh .gh-simp .rk.r高{background:#8A1B55;color:#FFD3EA}
+#gh .gh-simp .sc{font-size:14px;color:var(--gh-textDim)}#gh .gh-simp .sc::before{content:"スコア ";font:700 10.5px var(--gh-f-body)}
+#gh .gh-simp .sc.x{color:var(--gh-warn);font:900 16px var(--gh-f-body)}#gh .gh-simp .sc.x::before{content:""}
+#gh .gh-simp .sr.out .nm b,#gh .gh-simp .sr.out .tm b{text-decoration:line-through;text-decoration-color:var(--gh-warn);text-decoration-thickness:3px;color:var(--gh-textMute)}
+#gh .gh-simp .sr.pk{background:linear-gradient(90deg,color-mix(in srgb,var(--gh-gold) calc(var(--pk,1)*42%),rgba(10,6,16,.5)),rgba(40,28,0,.55));
+ box-shadow:inset 0 0 0 calc(var(--pk,1)*2px) var(--gh-gold),0 0 calc(var(--pk,1)*18px) rgba(255,211,90,.55);z-index:2}
+#gh .gh-simp .sr .badge{position:absolute;left:150px;top:-11px;font:700 13px/20px var(--gh-f-hud);letter-spacing:.16em;color:#2A1A00;background:linear-gradient(180deg,var(--gh-goldHi),var(--gh-gold));padding:0 8px;transform-origin:0 50%}
+#gh .gh-simp .vd{margin-top:6px;font:900 19px/1.3 var(--gh-f-body);color:var(--gh-goldHi);text-shadow:0 0 10px rgba(255,211,90,.5)}
+#gh .gh-simp .vd b{color:#fff}
+#gh .gh-simp .rl{margin-top:4px;font:700 12.5px/1.35 var(--gh-f-body);color:var(--gh-text)}
+#gh .gh-simp .as{font:700 11px/1.35 var(--gh-f-body);color:var(--gh-textMute)}
+#gh .gh-simm{--acc:var(--gh-sim);--acc2:var(--gh-violet)}
+#gh .gh-simm.hi{--acc:var(--gh-warn)}
+#gh .gh-simm .in{padding:7px 14px 8px 12px!important;display:flex;flex-direction:column;gap:3px}
+#gh .gh-simm .l1{display:flex;align-items:center;gap:8px}
+#gh .gh-simm .l1 .k{display:flex;align-items:center;gap:4px;height:20px;padding:0 6px;background:var(--gh-sim);color:#06222C;font:700 12px/20px var(--gh-f-hud);letter-spacing:.14em}
+#gh .gh-simm .l1 .k svg{width:13px;height:13px}
+#gh .gh-simm .l1 .lb{font:800 14px/1.2 var(--gh-f-body);color:var(--gh-textDim)}
+#gh .gh-simm .l2{display:flex;align-items:flex-end;gap:8px}
+#gh .gh-simm .l2 .bar{display:flex;gap:3px;align-items:flex-end;height:30px}
+#gh .gh-simm .l2 .bar i{width:13px}
+#gh .gh-simm .l2 b{font-size:34px;line-height:.95;color:#fff}
+#gh .gh-simm .l2 small,#gh .gh-simm .l3 small{font:700 12px/1.2 var(--gh-f-body);color:var(--gh-textDim)}
+#gh .gh-simm .l3{font:800 15px/1.2 var(--gh-f-body);color:#fff}
+#gh .gh-simm .l3 b{font-size:22px}
+#gh .gh-simp .hl{display:flex;align-items:center;gap:6px;margin-top:3px;font:700 11px/1.3 var(--gh-f-body);color:var(--gh-textDim)}
+#gh .gh-simp .hl i{display:block;width:110px;height:8px;border-radius:2px;background:linear-gradient(90deg,rgba(255,205,80,.15),#FFBE3C 25%,#FF871E 50%,#FF372D 75%,#FF196E)}
+#gh .gh-simp .hl .num{font-size:12px}

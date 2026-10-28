@@ -58,11 +58,12 @@ CONTACT_FONT = '/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc'
 VIDEO_RANGE = (30, 45)
 COMBINED_RANGE = (60, 80)  # series/variant-system.mjs COMBINED_VIDEO
 V6_RANGE = (75, 95)  # series/variant-system.mjs V6_VIDEO (v6 opening + v6 body; next/CONTRACT.md)
+V8_RANGE = (75, 100)  # V8_VIDEO (v8: the sim beats; < 100 s)
 
 
 def is_v6(plan):
     """v6 and v7 editions (v7 configs are v6-kind configs: same beats, validator and video length)."""
-    return str(plan.get('variant') or '').startswith(('v6/', 'v7/')) or plan.get('kind') == 'v6'
+    return str(plan.get('variant') or '').startswith(('v6/', 'v7/', 'v8/')) or plan.get('kind') == 'v6'
 
 
 def is_combined(plan):
@@ -128,7 +129,7 @@ def check_plan(plan):
     edges = [(b['f0'], b['f1']) for b in plan['beats']]
     assert edges[0][0] == 0 and edges[-1][1] == plan['frames'] and all(a[1] == b[0] for a, b in zip(edges, edges[1:])), 'beats must tile the part'
     if plan['part'] == 'body':
-        lo, hi = V6_RANGE if is_v6(plan) else COMBINED_RANGE if is_combined(plan) else VIDEO_RANGE
+        lo, hi = V8_RANGE if str(plan.get('variant') or '').startswith('v8/') else V6_RANGE if is_v6(plan) else COMBINED_RANGE if is_combined(plan) else VIDEO_RANGE
         assert lo-1e-6 <= plan['videoDuration'] <= hi+1e-6 or str(plan['id']).startswith('_'), (f'video must be {lo}–{hi} s', plan['videoDuration'])
         cheat = [b for b in plan['beats'] if 'cheat' in b['hud']]
         assert cheat and max(b['t1']-b['t0'] for b in cheat) >= CHEAT_MIN_SECONDS-1e-6, 'cheat sheet beat ≥ 3 s'
@@ -141,7 +142,8 @@ def frame_line(frame, state, rec):
     return {'frame': frame, 't': round(frame/FPS, 4), 'vt': rec.get('vt'), 'beat': rec['beat'], 'shot': rec.get('shot'), 'crowd': rec.get('crowd'),
             'sims': [s['text'] for s in rec.get('sims') or []], 'stamps': rec.get('stamps'), 'claims': sorted(rec.get('claims') or []),
             'footnote': (rec.get('footnote') or {}).get('text'), 'safe': (rec.get('safe') or {}).get('ok'), 'fallbacks': rec.get('fallbacks'),
-            'ms': rec.get('ms'), 'people': rec.get('peopleDrawn'), 'near': rec.get('near'), 'drawCalls': state.get('drawCalls'), 'triangles': state.get('triangles')}
+            'ms': rec.get('ms'), 'people': rec.get('peopleDrawn'), 'near': rec.get('near'), 'drawCalls': state.get('drawCalls'), 'triangles': state.get('triangles'),
+            **({k: rec[k] for k in ('simpanel', 'simmeter', 'simmap') if rec.get(k)})}  # v8 sim records (tests/test_v8.py)
 
 
 def encoder_cmd(path, title=TITLE):

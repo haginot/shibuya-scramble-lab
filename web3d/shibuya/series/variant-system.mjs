@@ -72,7 +72,7 @@ const txt=(v,lang='ja')=>typeof v==='string'?v:isObj(v)?(v[lang]??v.ja??''):'';
 
 // ---------------------------------------------------------------- strings / fact ids
 const TEXT_KEYS=new Set(['ja','sub','title','tip','head','issuer','when','order','foot','note','label','labelJa','word','w2','go','snap','asOf','prompt','sec','dest','status','time',
- 'en','kicker','attr','enAttr','doneLabel']);   // + v6 (mission/choice card/TRUE END/guide/goodbye: EN lines and labels are checked too)
+ 'en','kicker','attr','enAttr','doneLabel','assume','verdict']);   // + v8 sim panel (assumptions line, verdict)   // + v6 (mission/choice card/TRUE END/guide/goodbye: EN lines and labels are checked too)
 // every displayable string of a value: [{text, path, factIds (nearest enclosing factIds)}]
 export function collectStrings(v,path='',ids=[],out=[]){
  if(typeof v==='string'){out.push({text:v,path,factIds:ids});return out;}
@@ -403,7 +403,13 @@ export const V6_COPIED=Object.freeze(COMBINED_BEATS.slice(0,14));   // over-star
 export const V6_BEATS=Object.freeze(['first-choice','true-end','guide',...V6_COPIED,'goodbye','sources']);
 export const V6_NEW=Object.freeze({'first-choice':{shot:['card-bg'],dur:4.5},'true-end':{shot:['card-bg','true-end-bg'],dur:4},guide:{shot:['card-bg'],dur:3},
  goodbye:{shot:['card-bg','black'],dur:8},sources:{shot:['card-bg'],dur:3.5}});
-export const V6_VIDEO=Object.freeze([75,95]);   // v6 opening + v6 body, s (tools/variant_cues.mjs validateVideo)
+export const V6_VIDEO=Object.freeze([75,95]);
+// v8 (release:'v8', a v6-kind config; logs/ssl-claude-halloween/v8/STEERING-sim-core.md): the crowd-flow sim beats
+// (sim-plan → sim-pick right after the start map; retry-why before the re-run clear-choice), video < 100 s.
+export const V8_BEATS=Object.freeze(['first-choice','true-end','guide','over-start','sim-plan','sim-pick','over-choice','over-move','over-result','caught','over-stamp',
+ 'over-lesson','continue','retry-why','clear-choice','clear-move','clear-result','clear-stamp','clear-cheat','kaiju','goodbye','sources']);
+export const V8_VIDEO=Object.freeze([75,100]);
+export const isV8=cfg=>isObj(cfg)&&cfg.release==='v8';   // v6 opening + v6 body, s (tools/variant_cues.mjs validateVideo)
 export const V6_OPENING_BEATS=Object.freeze(['op-fly','op-logo','op-press','mission','rules']);
 export const V6_OPENING_REUSE=Object.freeze(['op-fly','op-logo','op-press','rules']);
 // the source of a copied beat by default: combined new beats → the combined render; the rest → the variant bodies
@@ -458,7 +464,8 @@ export function validateV6(cfg,{configs=null}={}){const E=[],W=[];const err=m=>E
  if(cfg.outcome!=='V6')err(`v6: outcome must be 'V6' (${cfg.outcome})`);
  if(P.over!==`${cfg.pair}-over`||P.clear!==`${cfg.pair}-clear`||P.combined!==`combined/${cfg.pair}`)W.push(`v6: parts ${P.over}/${P.clear}/${P.combined} do not match pair ${cfg.pair}`);
  const ids=(cfg.beats||[]).map(b=>b?.id);
- if(JSON.stringify(ids)!==JSON.stringify(V6_BEATS))err(`v6: beats must be ${V6_BEATS.join(' → ')} (got ${ids.join(' → ')})`);
+ const ORDER=isV8(cfg)?V8_BEATS:V6_BEATS;
+ if(JSON.stringify(ids)!==JSON.stringify(ORDER))err(`v6: beats must be ${ORDER.join(' → ')} (got ${ids.join(' → ')})`);
  const by=Object.fromEntries((cfg.beats||[]).filter(isObj).map(b=>[b.id,b]));
  const items=(b,c)=>(b?.hud||[]).filter(h=>isObj(h)&&h.c===c);
  for(const b of cfg.beats||[]){if(!isObj(b))continue;const at=`v6 ${b.id}`,ok=v6Allowed(b.id,P);
@@ -497,12 +504,19 @@ export function validateV6(cfg,{configs=null}={}){const E=[],W=[];const err=m=>E
  for(const id of ['over-stamp','caught','kaiju','goodbye'])if(by[id]&&by[id].header!==false)err(`v6 ${id}: header:false`);
  for(const id of ['caught','kaiju','goodbye','first-choice','true-end','guide'])if(by[id]&&by[id].clock!==false)err(`v6 ${id}: clock:false`);
  if(by.kaiju&&by.kaiju.bgm!==null)err('v6 kaiju: bgm:null (BGM off for the gag)');
- for(const [id,c] of [['over-stamp','stamp'],['clear-stamp','stamp'],['continue','continue'],['over-lesson','lesson'],['clear-cheat','cheat'],['over-choice','choice'],['clear-choice','choice'],['sources','sources']])
+ for(const [id,c] of [['over-stamp','stamp'],['clear-stamp','stamp'],['continue','continue'],['over-lesson','lesson'],['clear-cheat','cheat'],['over-choice','choice'],isV8(cfg)?['clear-choice','simpanel']:['clear-choice','choice'],['sources','sources'],...(isV8(cfg)?[['sim-plan','simpanel'],['sim-pick','simpanel']]:[])])
   if(by[id]&&!items(by[id],c).length)err(`v6 ${id}: needs a '${c}' item`);
  if(by['over-stamp']&&!items(by['over-stamp'],'stamp').some(h=>h.kind==='GAME_OVER'))err('v6 over-stamp: needs a GAME_OVER stamp');
  if(by['clear-stamp']&&!items(by['clear-stamp'],'stamp').some(h=>CLEAR_KINDS.includes(h.kind)))err('v6 clear-stamp: needs a GAME_CLEAR/CLEAR/ESCAPED stamp');
  const pk=id=>items(by[id],'choice')[0]?.picked??cfg.choice?.picked;
- if(by['over-choice']&&by['clear-choice']&&pk('over-choice')===pk('clear-choice'))err('v6: over-choice and clear-choice pick the same option');
+ if(!isV8(cfg)&&by['over-choice']&&by['clear-choice']&&pk('over-choice')===pk('clear-choice'))err('v6: over-choice and clear-choice pick the same option');
+ if(isV8(cfg)){// v8: the sim drives the choice: SIM PICK before the gut pick; the re-run picks the CLEAR route; sim beats are labelled
+  const sp=items(by['sim-pick'],'simpanel')[0],cc=items(by['clear-choice'],'simpanel')[0];
+  if(sp&&sp.pickAt==null)err('v8 sim-pick: the panel needs pickAt (the SIM PICK highlight)');
+  if(cc&&(cc.from==null||cc.pickAt==null))err('v8 clear-choice: the re-run panel needs from (first ranking) + pickAt');
+  for(const id of ['sim-plan','sim-pick','retry-why','clear-choice'])if(by[id]&&!by[id].simmap)err(`v8 ${id}: needs simmap (heat map + agents)`);
+  if(cfg.sim&&cfg.sim.pick===cfg.sim.over)err('v8: the SIM PICK is the GAME OVER route');
+  if(cfg.sim&&cfg.sim.retryPick!==cfg.sim.clear)err('v8: the re-run pick is not the CLEAR route');}
  if(items(by.endcard,'endcard').length||cfg.beats?.some(b=>items(b,'endcard').length))err('v6: the old endcard is replaced by the goodbye card');
  // GOODBYE: verbatim text, 3 separate blocks; the city's block never carries our message
  const gb=by.goodbye;
@@ -516,11 +530,11 @@ export function validateV6(cfg,{configs=null}={}){const E=[],W=[];const err=m=>E
  // with the source configs: picks, source beats + durations, sources union
  if(configs){const O=configs[P.over],C=configs[P.clear],K=configs[P.combined];
   if(!O||!C||!K)err(`v6: source configs ${[!O&&P.over,!C&&P.clear,!K&&P.combined].filter(Boolean).join(' ')} missing`);
-  else{if(pk('over-choice')!==O.choice?.picked)err(`v6 over-choice picks ${pk('over-choice')} (${P.over} picks ${O.choice?.picked})`);
-   if(pk('clear-choice')!==C.choice?.picked)err(`v6 clear-choice picks ${pk('clear-choice')} (${P.clear} picks ${C.choice?.picked})`);
+  else{if(!isV8(cfg)&&pk('over-choice')!==O.choice?.picked)err(`v6 over-choice picks ${pk('over-choice')} (${P.over} picks ${O.choice?.picked})`);
+   if(!isV8(cfg)&&pk('clear-choice')!==C.choice?.picked)err(`v6 clear-choice picks ${pk('clear-choice')} (${P.clear} picks ${C.choice?.picked})`);
    for(const b of cfg.beats||[]){const r=b?.reuse??b?.origin;if(!isObj(r))continue;const sc=configs[r.variant];const sb=sc?.beats?.find(x=>x.id===r.beat);
     if(!sb){err(`v6 ${b.id}: source beat ${r.variant}/${r.beat} missing`);continue;}
-    if(Math.round(sb.dur*FPS)!==Math.round(b.dur*FPS))err(`v6 ${b.id}: ${b.dur} s ≠ source ${r.variant}/${r.beat} ${sb.dur} s`);
+    if(!isV8(cfg)&&Math.round(sb.dur*FPS)!==Math.round(b.dur*FPS))err(`v6 ${b.id}: ${b.dur} s ≠ source ${r.variant}/${r.beat} ${sb.dur} s`);
     if(b.reuse&&sb.origin==null&&sb.reuse==null&&r.variant===P.combined&&!V6_COMBINED_NEW.includes(b.id))err(`v6 ${b.id}: ${r.variant}/${r.beat} is not a rendered (new/re-shot) beat of the combined episode`);
     if(b.reuse&&r.variant===P.combined&&sb.reuse)err(`v6 ${b.id}: reuse the original ${sb.reuse.variant}/${sb.reuse.beat}, not the combined copy of it`);}
    const have=new Set(cfg.sources||[]);const miss=[...new Set([...(O.sources||[]),...(C.sources||[])])].filter(id=>!have.has(id));

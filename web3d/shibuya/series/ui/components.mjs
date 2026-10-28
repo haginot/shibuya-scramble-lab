@@ -483,7 +483,44 @@ function goodbye(item,env){const r=R('press',env.lang),t=item.t??0,dur=item.dur?
  r.fx=`<div class="gh-tint gb" style="opacity:${f3(seg(t,0,.25)*(1-out))}"></div>`;
  r.goodbye={blocks:4,quoteAttr:Q.attr,full:t>=T.fullFrom&&t<=T.exit};r.parodyNote=/フィクション/.test(FT.ja);return r;}
 
-export const COMPONENTS=Object.freeze({parody,fiction,tag,header,clock,mission,choice,caption,direction,sim,footnote,stamp,lesson,rules,notice,'press-start':pressStart,pressStart,sources,cheat,pin,legend,continue:cont,endcard,gag,guide,goodbye});
+// ---------- v8: the crowd-flow simulation drives the route choice (STEERING-sim-core.md, 2026-10-28) ----------
+// simpanel: {rows:[{key,label,sub,color,final,shown(s),total,offsim:{seconds}|null,rho,bar 0..1,risk,score,ruledOut:{ja}|null,
+//   rank,rankFrom}], pick (key|null), phase, clock?, speed?, rule, assume, head?, t, dur} — the per-route compare panel of the
+//   CG sim beats. The page fills the live fields from the sim summary (series/sim-v8.mjs panelState): every number shown
+//   is the solver's. Rows sit by rank (rankFrom → rank slides during a recompute); the pick row turns gold with 「SIM PICK」.
+const fmtS=s=>{if(s==null||!isFinite(s))return '—';const v=Math.round(s);return `${Math.floor(v/60)}:${String(v%60).padStart(2,'0')}`;};
+function simpanel(item,env){const r=R('low',env.lang),t=item.t??0,dur=item.dur??0,st=enterStyle(item.anim??'slide-up',t,dur,{exitOn:item.exit!==false});
+ const rows=item.rows||[],n=rows.length,RH=58,mv=EASE.inOutCubic(seg(t,item.reorder?.[0]??0,item.reorder?.[1]??.01));
+ const pick=item.pick??null,pk=pick?EASE.outBack(seg(t,item.pickAt??0,(item.pickAt??0)+.35)):0;
+ const body=rows.map((w,i)=>{const y=((w.rankFrom??w.rank??i+1)-1)*(1-mv)+((w.rank??i+1)-1)*mv;const isPick=w.key===pick,out=!!w.ruledOut&&w.final;
+  const segs=Array.from({length:5},(_,k)=>`<i class="${k<Math.ceil((w.bar??0)*5-1e-9)?'on':''}${k>=3?' hi':''}"></i>`).join('');
+  const tm=w.final?`<b class="num">${fmtS(w.total)}</b>${w.offsim?`<small>うちOSM区間 ${fmtS(w.offsim.seconds)}</small>`:'<small>予測時間</small>'}`:`<b class="num run">${fmtS(w.shown)}</b><small>計測中…</small>`;
+  const rk=w.final?`<span class="rk r${esc(w.risk)}">${r.txt(w.risk)}</span>`:'<span class="rk">…</span>';
+  const sc=w.final&&!out?`<span class="sc num">${fmtS(w.score)}</span>`:out?'<span class="sc x">✕</span>':'<span class="sc">—</span>';
+  return `<div class="sr${isPick?' pk':''}${out?' out':''}" style="--c:${esc(w.color)};top:${f3(y*RH)}px;${isPick?`--pk:${f3(pk)};`:''}"><span class="cb"></span>`+
+   `<div class="nm"><b>${r.txt(w.label)}</b>${out?`<small class="why">${r.txt(w.ruledOut)}</small>`:`<small>${r.txt(w.sub??'')}</small>`}</div>`+
+   `<div class="tm">${tm}</div><div class="dn"><div class="bar">${segs}</div><span class="num">${(Math.round((w.rho??0)*10)/10).toFixed(1)}</span><small>人/m²</small></div>`+
+   `<div class="rs">${rk}${sc}</div>${isPick?`<span class="badge" style="transform:scale(${f3(pk)})">SIM PICK</span>`:''}</div>`;}).join('');
+ const head=`<div class="hd">${tab('SIM',{ic:'sim',jp:item.head??'シミュレーション'})}${item.clock?`<span class="ck num">${esc(item.clock)}</span>`:''}${item.speed?`<span class="sp num">${esc(item.speed)}</span>`:''}</div>`;
+ const cols=`<div class="cols"><span>ルート</span><span>予測時間</span><span>${rows.every(w=>w.final)?'最大密度':'いまの密度'}</span><span>リスク</span></div>`;
+ const legendH='<div class="hl"><span>ヒートマップ</span><span class="num">0</span><i></i><span class="num">4.0人/m²（上限）</span></div>';
+ const verdict=pick?`<div class="vd" style="opacity:${f3(seg(t,item.pickAt??0,(item.pickAt??0)+.3))}">${r.txt(item.verdict??'シミュレーションの結論')}：<b>${r.txt(rows.find(w=>w.key===pick)?.label??'')}</b></div>`:'';
+ r.html=panel('gh-simp',`${head}${cols}<div class="rows" style="height:${n*RH}px">${body}</div>${verdict}<div class="rl">${r.txt(item.rule??'')}</div>${item.heatLegend===false?'':legendH}<div class="as">${r.txt(item.assume??'')}</div>`,{style:st.style,attrs:'data-c="simpanel"'});
+ r.sims.push({text:'シミュレーション',label:true});r.ids(item.factIds);for(const w of rows)r.ids(w.ruledOut?.factIds);
+ r.simpanel={pick,rows:rows.map(w=>({key:w.key,final:!!w.final,total:w.total,peak:w.peak,score:w.score,risk:w.risk,ruledOut:!!w.ruledOut,shown:w.shown,rho:w.rho}))};
+ return r;}
+// simmeter: {rho (p/m²), segs 0..5, eta (s)|null, label?, t, dur} — density meter + ETA on the photoreal plates (move / result
+//   beats), fed from the tracked sim walker of the route (series/sim-v8.mjs meterState). 5 segments of 0.8 p/m² (≥ 3.2 red).
+function simmeter(item,env){const r=R('top',env.lang),t=item.t??0,dur=item.dur??0,st=enterStyle(item.anim??'slide-l',t,dur);
+ const segs=Array.from({length:5},(_,k)=>`<i class="${k<(item.segs??0)?'on':''}${k>=3?' hi':''}"></i>`).join('');
+ const rho=(Math.round((item.rho??0)*10)/10).toFixed(1),lvl=(item.rho??0)>=3?'hi':(item.rho??0)>=2?'mid':'lo';
+ r.html=panel(`gh-simm ${lvl}`,`<div class="l1"><span class="k">${icon('sim')}SIM</span><span class="lb">${r.txt(item.label??'まわり6mの密度')}</span></div>`+
+  `<div class="l2"><div class="bar">${segs}</div><b class="num">${rho}</b><small>人/m²</small></div>`+
+  `<div class="l3">${r.txt(item.etaLabel??'到着まで')} <b class="num">${fmtS(item.eta)}</b> <small>${r.txt(item.tagJa??'（シミュレーション）')}</small></div>`,{style:st.style,brackets:false,attrs:'data-c="simmeter"'});
+ r.strings.push(rho,fmtS(item.eta));r.sims.push({text:'（シミュレーション）',label:true});r.simmeter={rho:+rho,segs:item.segs??0,eta:item.eta??null};r.ids(item.factIds);
+ return r;}
+
+export const COMPONENTS=Object.freeze({parody,fiction,tag,header,clock,mission,choice,caption,direction,sim,footnote,stamp,lesson,rules,notice,'press-start':pressStart,pressStart,sources,cheat,pin,legend,continue:cont,endcard,gag,guide,goodbye,simpanel,simmeter});
 export const COMPONENT_KEYS=Object.freeze(Object.keys(COMPONENTS));
 export const EXTERNAL_KEYS=Object.freeze(['logo']);   // rendered by other modules (3D logotype)
 
@@ -535,7 +572,7 @@ export class GameHUD{
   const out={fx:'',pins:'',center:'',top:'',press:'',low:'',gag:'',chips:'',foot:'',clock:'',header:'',parody:''};
   const rec={T,parody:false,fiction:false,notice:false,parodyNote:false,header:false,items:[],strings:[],factIds:[],sims:[],stamps:[],cheat:false,choice:null,labels:[],cont:null,endcard:null,gag:false,credit:false,goodbye:null,guide:null,mission:null};
   const add=res=>{if(!res)return;out[res.slot]+=res.html;if(res.fx)out.fx+=res.fx;rec.strings.push(...res.strings);for(const id of res.factIds)if(!rec.factIds.includes(id))rec.factIds.push(id);
-   rec.sims.push(...res.sims);rec.stamps.push(...res.stamps);if(res.cheat)rec.cheat=true;if(res.choice)rec.choice=res.choice;if(res.label)rec.labels.push(res.label);if(res.header)rec.header=true;if(res.parody&&res.slot==='parody')rec.parody=true;if(res.fiction)rec.fiction=true;if(res.notice)rec.notice=true;if(res.parodyNote)rec.parodyNote=true;if(res.cont)rec.cont=res.cont;if(res.endcard)rec.endcard=res.endcard;if(res.gag)rec.gag=true;if(res.credit)rec.credit=true;if(res.goodbye)rec.goodbye=res.goodbye;if(res.guide)rec.guide=res.guide;if(res.missionCard)rec.mission=res.missionCard;};
+   rec.sims.push(...res.sims);rec.stamps.push(...res.stamps);if(res.cheat)rec.cheat=true;if(res.choice)rec.choice=res.choice;if(res.label)rec.labels.push(res.label);if(res.header)rec.header=true;if(res.parody&&res.slot==='parody')rec.parody=true;if(res.fiction)rec.fiction=true;if(res.notice)rec.notice=true;if(res.parodyNote)rec.parodyNote=true;if(res.cont)rec.cont=res.cont;if(res.endcard)rec.endcard=res.endcard;if(res.gag)rec.gag=true;if(res.credit)rec.credit=true;if(res.goodbye)rec.goodbye=res.goodbye;if(res.guide)rec.guide=res.guide;if(res.missionCard)rec.mission=res.missionCard;if(res.simpanel)rec.simpanel=res.simpanel;if(res.simmeter)rec.simmeter=res.simmeter;};
   if(state.parody)add(render({c:'parody',...(state.parody===true?{}:state.parody)},env));   // opt-in (steering: no persistent label)
   if(state.fiction||(state.items||[]).some(it=>it.c==='notice'||(it.c==='mission'&&it.card&&it.fiction!==false)))add(render({c:'fiction',...(isObjS(state.fiction)?state.fiction:{})},env));
   if(state.header)add(render({c:'header',...(state.header===true?{}:state.header)},env));

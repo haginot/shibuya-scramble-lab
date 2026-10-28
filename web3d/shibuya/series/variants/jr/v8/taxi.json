@@ -1,0 +1,2137 @@
+{
+  "id": "v8-taxi",
+  "episode": "jr",
+  "pair": "taxi",
+  "kind": "v6",
+  "outcome": "V6",
+  "edition": "v6",
+  "parts": {
+    "over": "taxi-over",
+    "clear": "taxi-clear",
+    "combined": "combined/taxi"
+  },
+  "title": {
+    "ja": "西口で GAME OVER → 別の乗り場で再挑戦"
+  },
+  "start": {
+    "place": "scramble",
+    "ja": "スタート：スクランブル交差点",
+    "factIds": []
+  },
+  "clock": {
+    "start": "23:40",
+    "ja": "ゲーム内時刻（架空）",
+    "rate": 0.5
+  },
+  "choice": {
+    "prompt": {
+      "ja": "タクシーはどこで乗る？"
+    },
+    "options": [
+      {
+        "key": "A",
+        "ja": "西口の乗り場",
+        "sub": "駅のすぐ前",
+        "factIds": []
+      },
+      {
+        "key": "B",
+        "ja": "渋谷SAKURAテラス前",
+        "sub": "桜丘町・少し歩く",
+        "factIds": [
+          "TAXI-01"
+        ]
+      }
+    ],
+    "picked": "A"
+  },
+  "firstChoice": {
+    "prompt": {
+      "ja": "まず、どうする？"
+    },
+    "options": [
+      {
+        "key": "A",
+        "ja": "そもそも渋谷に行かない",
+        "factIds": []
+      },
+      {
+        "key": "B",
+        "ja": "もう渋谷にいる",
+        "sub": "仕事・住まい・うっかり来てしまった",
+        "factIds": []
+      }
+    ],
+    "picked": "A"
+  },
+  "beats": [
+    {
+      "id": "first-choice",
+      "dur": 4,
+      "shot": {
+        "key": "card-bg",
+        "params": {
+          "yaw0": 0.3
+        }
+      },
+      "hud": [
+        {
+          "c": "choice",
+          "card": true,
+          "prompt": {
+            "ja": "まず、どうする？"
+          },
+          "en": "First, what will you do?",
+          "options": [
+            {
+              "key": "A",
+              "ja": "そもそも渋谷に行かない",
+              "factIds": []
+            },
+            {
+              "key": "B",
+              "ja": "もう渋谷にいる",
+              "sub": "仕事・住まい・うっかり来てしまった",
+              "factIds": []
+            }
+          ],
+          "picked": "A",
+          "pickAt": 3,
+          "factIds": []
+        }
+      ],
+      "header": {
+        "sub": "10/31 渋谷ハロウィンには近づくな"
+      },
+      "clock": false,
+      "bgm": "calm",
+      "amb": null,
+      "plateTag": "AI生成画像を加工"
+    },
+    {
+      "id": "true-end",
+      "dur": 4,
+      "shot": {
+        "key": "true-end-bg"
+      },
+      "hud": [
+        {
+          "c": "stamp",
+          "kind": "TRUE_END",
+          "ja": "今年の渋谷ハロウィンには行かない",
+          "kicker": "いちばん安全なクリア",
+          "en": "TRUE END — the safest clear: don't go.",
+          "factIds": []
+        }
+      ],
+      "header": {
+        "sub": "10/31 渋谷ハロウィンには近づくな"
+      },
+      "clock": false,
+      "bgm": "calm",
+      "amb": null
+    },
+    {
+      "id": "guide",
+      "dur": 2.5,
+      "shot": {
+        "key": "card-bg",
+        "params": {
+          "yaw0": 0.9
+        }
+      },
+      "hud": [
+        {
+          "c": "guide",
+          "ja": "ここからは“もしも”の脱出ガイド",
+          "sub": "もう渋谷にいる人（仕事・住まい・うっかり来た人）へ",
+          "en": "From here: a just-in-case escape guide",
+          "options": [
+            {
+              "key": "A",
+              "ja": "そもそも渋谷に行かない",
+              "factIds": []
+            },
+            {
+              "key": "B",
+              "ja": "もう渋谷にいる",
+              "sub": "仕事・住まい・うっかり来てしまった",
+              "factIds": []
+            }
+          ],
+          "hot": "B",
+          "doneKey": "A",
+          "doneLabel": "TRUE END",
+          "factIds": []
+        }
+      ],
+      "header": {
+        "sub": "10/31 渋谷ハロウィンには近づくな"
+      },
+      "clock": false,
+      "bgm": "tension",
+      "amb": null,
+      "plateTag": "AI生成画像を加工"
+    },
+    {
+      "id": "over-start",
+      "dur": 2.5,
+      "shot": {
+        "key": "topdown",
+        "params": {
+          "center": [
+            4,
+            0,
+            8
+          ]
+        },
+        "t0": 0
+      },
+      "hud": [
+        {
+          "c": "mission",
+          "ja": "タクシーで\n渋谷を脱出せよ",
+          "factIds": []
+        },
+        {
+          "c": "caption",
+          "ja": "スタート：スクランブル交差点",
+          "factIds": [],
+          "tone": "sub"
+        }
+      ],
+      "clock": {
+        "set": "23:40:00",
+        "rate": 0.5
+      },
+      "vt0": 14.2,
+      "bgm": "tension",
+      "amb": "crowd-night",
+      "reuse": {
+        "variant": "taxi-over",
+        "beat": "start"
+      }
+    },
+    {
+      "id": "sim-plan",
+      "dur": 6.5,
+      "shot": {
+        "key": "routemap",
+        "params": {
+          "routes": [
+            "SIM-TA",
+            "SIM-TB"
+          ],
+          "highlight": null,
+          "colors": {
+            "SIM-TA": "#FF7A9A",
+            "SIM-TB": "#4FE3C1"
+          },
+          "points": [
+            [
+              -16.5,
+              -1.5
+            ],
+            [
+              98.5,
+              -1.5
+            ],
+            [
+              -16.5,
+              337.5
+            ],
+            [
+              98.5,
+              337.5
+            ]
+          ],
+          "azimuth": 90,
+          "push": 0,
+          "rect": {
+            "x0": 0.08,
+            "x1": 0.92,
+            "y0": 0.2,
+            "y1": 0.5
+          },
+          "span": true,
+          "redZone": 0,
+          "drawOn": [
+            0,
+            0.01
+          ]
+        },
+        "t0": 0
+      },
+      "simmap": {
+        "scenario": "plan",
+        "routes": [
+          "TA",
+          "TB"
+        ],
+        "colors": {
+          "TA": "#FF7A9A",
+          "TB": "#4FE3C1"
+        },
+        "player": "TA",
+        "crowd": true,
+        "heat": 1,
+        "run": [
+          0.35,
+          6.1
+        ],
+        "simT": [
+          0,
+          373
+        ]
+      },
+      "hud": [
+        {
+          "c": "simpanel",
+          "scenario": "plan",
+          "pair": "taxi",
+          "head": "シミュレーション",
+          "assume": "仮定：人出48,000人・ピーク時／歩く区間のみシミュレーション（タクシー待ちは含まず）",
+          "factIds": [],
+          "phase": "run",
+          "run": [
+            0.35,
+            6.1
+          ],
+          "simT": [
+            0,
+            373
+          ],
+          "speed": "×65 早送り",
+          "exit": false,
+          "finalAt": 6.1
+        },
+        {
+          "c": "pin",
+          "world": [
+            -3.5,
+            0,
+            10.5
+          ],
+          "ja": "スタート",
+          "color": "#E9DDFF",
+          "factIds": []
+        },
+        {
+          "c": "pin",
+          "world": [
+            30.5,
+            0,
+            152.5
+          ],
+          "ja": "A 西口の乗り場",
+          "color": "#FF7A9A",
+          "factIds": []
+        },
+        {
+          "c": "pin",
+          "world": [
+            94.5,
+            0,
+            325.5
+          ],
+          "ja": "B SAKURAテラス前",
+          "color": "#4FE3C1",
+          "factIds": []
+        }
+      ],
+      "cues": [
+        {
+          "at": 0.05,
+          "sfx": "card_in",
+          "gain_db": -4
+        },
+        {
+          "at": 0.4,
+          "sfx": "tick",
+          "repeat": 0.45,
+          "until": 6.1,
+          "gain_db": -6
+        }
+      ],
+      "clock": false,
+      "header": true,
+      "bgm": "tension",
+      "amb": "crowd-night",
+      "duck": -5
+    },
+    {
+      "id": "sim-pick",
+      "dur": 2.5,
+      "shot": {
+        "key": "routemap",
+        "params": {
+          "routes": [
+            "SIM-TA",
+            "SIM-TB"
+          ],
+          "highlight": "SIM-TB",
+          "colors": {
+            "SIM-TA": "#FF7A9A",
+            "SIM-TB": "#4FE3C1"
+          },
+          "points": [
+            [
+              -16.5,
+              -1.5
+            ],
+            [
+              98.5,
+              -1.5
+            ],
+            [
+              -16.5,
+              337.5
+            ],
+            [
+              98.5,
+              337.5
+            ]
+          ],
+          "azimuth": 90,
+          "push": 0,
+          "rect": {
+            "x0": 0.08,
+            "x1": 0.92,
+            "y0": 0.2,
+            "y1": 0.5
+          },
+          "span": true,
+          "redZone": 0,
+          "drawOn": [
+            0,
+            0.01
+          ]
+        },
+        "t0": 0
+      },
+      "simmap": {
+        "scenario": "plan",
+        "routes": [
+          "TA",
+          "TB"
+        ],
+        "colors": {
+          "TA": "#FF7A9A",
+          "TB": "#4FE3C1"
+        },
+        "player": "TA",
+        "crowd": true,
+        "heat": 1,
+        "run": [
+          0,
+          1
+        ],
+        "simT": [
+          373,
+          373
+        ]
+      },
+      "hud": [
+        {
+          "c": "simpanel",
+          "scenario": "plan",
+          "pair": "taxi",
+          "head": "シミュレーション",
+          "assume": "仮定：人出48,000人・ピーク時／歩く区間のみシミュレーション（タクシー待ちは含まず）",
+          "factIds": [],
+          "phase": "pick",
+          "run": [
+            0,
+            1
+          ],
+          "simT": [
+            373,
+            373
+          ],
+          "speed": "×65 早送り",
+          "anim": "none",
+          "reorder": [
+            0.1,
+            0.6
+          ],
+          "pickAt": 0.7,
+          "verdict": "シミュレーションの結論"
+        },
+        {
+          "c": "pin",
+          "world": [
+            -3.5,
+            0,
+            10.5
+          ],
+          "ja": "スタート",
+          "color": "#E9DDFF",
+          "factIds": []
+        },
+        {
+          "c": "pin",
+          "world": [
+            30.5,
+            0,
+            152.5
+          ],
+          "ja": "A 西口の乗り場",
+          "color": "#FF7A9A",
+          "factIds": []
+        },
+        {
+          "c": "pin",
+          "world": [
+            94.5,
+            0,
+            325.5
+          ],
+          "ja": "B SAKURAテラス前",
+          "color": "#4FE3C1",
+          "factIds": []
+        }
+      ],
+      "cues": [
+        {
+          "at": 0.1,
+          "sfx": "whoosh",
+          "gain_db": -12
+        },
+        {
+          "at": 0.7,
+          "sfx": "ui_select"
+        },
+        {
+          "at": 0.74,
+          "sfx": "choice_pick",
+          "gain_db": -2
+        }
+      ],
+      "clock": false,
+      "header": true,
+      "bgm": "tension",
+      "amb": "crowd-night",
+      "duck": -5
+    },
+    {
+      "id": "over-choice",
+      "dur": 3.5,
+      "shot": {
+        "key": "routemap",
+        "params": {
+          "routes": [],
+          "points": [
+            [
+              2,
+              8
+            ],
+            [
+              30,
+              152
+            ],
+            [
+              112,
+              312
+            ]
+          ],
+          "azimuth": 90,
+          "rect": {
+            "x0": 0.12,
+            "x1": 0.88,
+            "y0": 0.19,
+            "y1": 0.31
+          },
+          "span": true,
+          "redZone": 0
+        },
+        "t0": 0
+      },
+      "hud": [
+        {
+          "c": "choice",
+          "picked": "A"
+        },
+        {
+          "c": "pin",
+          "world": [
+            2,
+            0,
+            8
+          ],
+          "ja": "いまここ",
+          "color": "#E9DDFF",
+          "factIds": []
+        },
+        {
+          "c": "pin",
+          "world": [
+            30,
+            0,
+            152
+          ],
+          "ja": "A 西口",
+          "color": "#FF7A9A",
+          "factIds": []
+        },
+        {
+          "c": "pin",
+          "world": [
+            112,
+            0,
+            312
+          ],
+          "ja": "B SAKURAテラス前",
+          "color": "#4FE3C1",
+          "factIds": []
+        },
+        {
+          "c": "sim",
+          "ja": "シミュレーションの結論は「B SAKURAテラス前」",
+          "factIds": []
+        },
+        {
+          "c": "caption",
+          "ja": "でも…駅前の乗り場でいいでしょ？",
+          "speaker": "プレイヤー",
+          "factIds": [],
+          "tone": "sub",
+          "at": 1
+        }
+      ],
+      "clock": {
+        "set": "23:41:15",
+        "rate": 0.5
+      },
+      "vt0": 16.7,
+      "bgm": "tension",
+      "amb": "crowd-night",
+      "reuse": {
+        "variant": "taxi-over",
+        "beat": "choice"
+      }
+    },
+    {
+      "id": "over-move",
+      "dur": 4.5,
+      "shot": {
+        "key": "taxi-west",
+        "params": {
+          "mode": "front",
+          "dur": 4.5,
+          "lookY": -0.6
+        },
+        "t0": 0
+      },
+      "crowd": {
+        "key": "taxi-west",
+        "t0": 0,
+        "restart": true
+      },
+      "hud": [
+        {
+          "c": "caption",
+          "ja": "西口の乗り場に到着…\nでも列が動かない？\n（シミュレーション）",
+          "factIds": [],
+          "sim": true
+        },
+        {
+          "c": "sim",
+          "ja": "待ち行列＝シミュレーション",
+          "factIds": []
+        },
+        {
+          "c": "simmeter",
+          "scenario": "plan",
+          "route": "TA",
+          "run": [
+            0,
+            4.5
+          ],
+          "simT": [
+            26,
+            121.3
+          ],
+          "factIds": [],
+          "etaLabel": "乗り場まで"
+        }
+      ],
+      "transition": "dip",
+      "clock": {
+        "set": "23:43:15",
+        "rate": 0.5
+      },
+      "vt0": 20.7,
+      "bgm": "tension",
+      "amb": "crowd-night",
+      "reuse": {
+        "variant": "taxi-over",
+        "beat": "move"
+      },
+      "plateTag": "AI生成画像を加工"
+    },
+    {
+      "id": "over-result",
+      "dur": 4,
+      "shot": {
+        "key": "taxi-west",
+        "params": {
+          "mode": "queue",
+          "dur": 6.5,
+          "lookSign": 0.8,
+          "lookY": 0.6
+        },
+        "t0": 0
+      },
+      "crowd": {
+        "key": "taxi-west",
+        "t0": 4.5,
+        "restart": true
+      },
+      "hud": [
+        {
+          "c": "caption",
+          "ja": "西口の乗り場は\n2025年3月30日から一時休止\n（東京タクシーセンター）",
+          "factIds": [
+            "TAXI-01"
+          ],
+          "until": 2.2
+        },
+        {
+          "c": "caption",
+          "ja": "再開の発表は見当たらない\n（10/25時点）",
+          "factIds": [
+            "TAXI-09"
+          ],
+          "at": 2.2
+        },
+        {
+          "c": "sim",
+          "ja": "タクシー0台（シミュレーション）",
+          "factIds": [],
+          "at": 0.4
+        },
+        {
+          "c": "simmeter",
+          "scenario": "plan",
+          "route": "TA",
+          "run": [
+            0,
+            4
+          ],
+          "simT": [
+            121.3,
+            199.2
+          ],
+          "factIds": [],
+          "etaLabel": "乗り場まで"
+        }
+      ],
+      "clock": {
+        "set": "23:45:30",
+        "rate": 0.5
+      },
+      "vt0": 25.2,
+      "bgm": "tension",
+      "amb": "crowd-night",
+      "reuse": {
+        "variant": "taxi-over",
+        "beat": "result"
+      },
+      "plateTag": "AI生成画像を加工"
+    },
+    {
+      "id": "caught",
+      "dur": 2.5,
+      "shot": {
+        "key": "caught-pov",
+        "params": {
+          "base": "taxi-west",
+          "baseParams": {
+            "mode": "queue",
+            "dur": 6.5,
+            "lookSign": 0.8,
+            "lookY": 0.6
+          },
+          "baseT0": 4,
+          "eyeY": 1.55,
+          "push": 0.6,
+          "flashAt": 1.75,
+          "blackAt": 2.15,
+          "hands": {
+            "scale": 0.75,
+            "reach": 0.6
+          },
+          "seed": 11
+        },
+        "t0": 0
+      },
+      "crowd": {
+        "key": "caught-press",
+        "params": {
+          "seed": 11,
+          "base": {
+            "key": "taxi-west",
+            "params": {},
+            "t0": 8.5
+          }
+        }
+      },
+      "hud": [
+        {
+          "c": "sim",
+          "ja": "押し寄せて動けない（シミュレーション）",
+          "factIds": [],
+          "until": 1.75
+        }
+      ],
+      "cues": [
+        {
+          "at": 0,
+          "sfx": "crowd_press"
+        },
+        {
+          "at": 0.35,
+          "sfx": "zombie_groan"
+        },
+        {
+          "at": 1.15,
+          "sfx": "zombie_groan_b",
+          "gain_db": -3,
+          "pan": 0.4
+        },
+        {
+          "at": 1.75,
+          "sfx": "red_flash"
+        },
+        {
+          "at": 1.75,
+          "sfx": "caught_hit",
+          "duck": 0.6,
+          "duck_db": -12
+        },
+        {
+          "at": 2.15,
+          "sfx": "cut_black"
+        }
+      ],
+      "header": false,
+      "clock": false,
+      "vt0": 29.2,
+      "bgm": null,
+      "amb": "crowd-night",
+      "reuse": {
+        "variant": "combined/taxi",
+        "beat": "caught"
+      },
+      "plateTag": "AI生成画像を加工"
+    },
+    {
+      "id": "over-stamp",
+      "dur": 2,
+      "shot": {
+        "key": "black",
+        "t0": 0
+      },
+      "hud": [
+        {
+          "c": "stamp",
+          "kind": "GAME_OVER",
+          "ja": "タクシー待ちの人波で動けない…\n（シミュレーション）",
+          "factIds": [],
+          "onBlack": true,
+          "safety": {
+            "ja": "人が集まる場所で立ち止まり続けない",
+            "factIds": []
+          }
+        }
+      ],
+      "header": false,
+      "clock": false,
+      "bgm": null,
+      "amb": null,
+      "vt0": 31.7,
+      "reuse": {
+        "variant": "combined/taxi",
+        "beat": "over-stamp"
+      }
+    },
+    {
+      "id": "over-lesson",
+      "dur": 5,
+      "shot": {
+        "key": "card-bg",
+        "t0": 0
+      },
+      "hud": [
+        {
+          "c": "lesson"
+        }
+      ],
+      "clock": false,
+      "header": true,
+      "bgm": "calm",
+      "transition": "dip",
+      "vt0": 31.7,
+      "amb": "crowd-night",
+      "reuse": {
+        "variant": "taxi-over",
+        "beat": "lesson"
+      },
+      "plateTag": "AI生成画像を加工"
+    },
+    {
+      "id": "continue",
+      "dur": 3,
+      "shot": {
+        "key": "continue-bg",
+        "t0": 0
+      },
+      "hud": [
+        {
+          "c": "continue",
+          "ja": "別の乗り場でやり直す",
+          "count": 3,
+          "yesAt": 1.6,
+          "factIds": []
+        }
+      ],
+      "clock": false,
+      "bgm": "retry",
+      "amb": null,
+      "vt0": 38.7,
+      "reuse": {
+        "variant": "combined/taxi",
+        "beat": "continue"
+      },
+      "plateTag": "AI生成画像を加工"
+    },
+    {
+      "id": "retry-why",
+      "dur": 2.5,
+      "shot": {
+        "key": "routemap",
+        "params": {
+          "routes": [
+            "SIM-TA",
+            "SIM-TB"
+          ],
+          "highlight": null,
+          "colors": {
+            "SIM-TA": "#FF7A9A",
+            "SIM-TB": "#4FE3C1"
+          },
+          "points": [
+            [
+              -16.5,
+              -1.5
+            ],
+            [
+              98.5,
+              -1.5
+            ],
+            [
+              -16.5,
+              337.5
+            ],
+            [
+              98.5,
+              337.5
+            ]
+          ],
+          "azimuth": 90,
+          "push": 0,
+          "rect": {
+            "x0": 0.08,
+            "x1": 0.92,
+            "y0": 0.2,
+            "y1": 0.5
+          },
+          "span": true,
+          "redZone": 0,
+          "drawOn": [
+            0,
+            0.01
+          ]
+        },
+        "t0": 0
+      },
+      "simmap": {
+        "scenario": "plan",
+        "routes": [
+          "TA",
+          "TB"
+        ],
+        "colors": {
+          "TA": "#FF7A9A",
+          "TB": "#4FE3C1"
+        },
+        "player": "TA",
+        "crowd": true,
+        "heat": 1,
+        "freeze": 199,
+        "pulse": [
+          21.9,
+          152.4
+        ],
+        "dim": [
+          "TB"
+        ],
+        "run": [
+          0,
+          1
+        ],
+        "simT": [
+          199,
+          199
+        ]
+      },
+      "hud": [
+        {
+          "c": "caption",
+          "ja": "なぜ失敗した？\nシミュレーションで見直す",
+          "factIds": [],
+          "tone": "warn"
+        },
+        {
+          "c": "pin",
+          "world": [
+            21.9,
+            0,
+            152.4
+          ],
+          "ja": "乗り場は休止中（2025年3月30日から）\nまわり 1.1人/m²（シミュレーション）",
+          "color": "#FF6FB1",
+          "factIds": [
+            "TAXI-01"
+          ]
+        }
+      ],
+      "cues": [
+        {
+          "at": 0.02,
+          "sfx": "red_alert",
+          "gain_db": -6
+        },
+        {
+          "at": 0.05,
+          "sfx": "card_in",
+          "gain_db": -6
+        }
+      ],
+      "clock": false,
+      "header": true,
+      "bgm": "retry",
+      "amb": "crowd-night",
+      "duck": -4,
+      "why": {
+        "t": 199,
+        "rho": 1.11,
+        "x": 21.9,
+        "z": 152.4,
+        "text": "乗り場は休止中（2025年3月30日から）\nまわり 1.1人/m²（シミュレーション）"
+      }
+    },
+    {
+      "id": "clear-choice",
+      "dur": 4.5,
+      "shot": {
+        "key": "routemap",
+        "params": {
+          "routes": [
+            "SIM-TA",
+            "SIM-TB"
+          ],
+          "highlight": null,
+          "colors": {
+            "SIM-TA": "#FF7A9A",
+            "SIM-TB": "#4FE3C1"
+          },
+          "points": [
+            [
+              -16.5,
+              -1.5
+            ],
+            [
+              98.5,
+              -1.5
+            ],
+            [
+              -16.5,
+              337.5
+            ],
+            [
+              98.5,
+              337.5
+            ]
+          ],
+          "azimuth": 90,
+          "push": 0,
+          "rect": {
+            "x0": 0.08,
+            "x1": 0.92,
+            "y0": 0.2,
+            "y1": 0.5
+          },
+          "span": true,
+          "redZone": 0,
+          "drawOn": [
+            0,
+            0.01
+          ]
+        },
+        "t0": 0
+      },
+      "simmap": {
+        "scenario": "retry",
+        "routes": [
+          "TA",
+          "TB"
+        ],
+        "colors": {
+          "TA": "#FF7A9A",
+          "TB": "#4FE3C1"
+        },
+        "player": "TB",
+        "crowd": true,
+        "heat": 1,
+        "run": [
+          0.45,
+          3.2
+        ],
+        "simT": [
+          0,
+          396
+        ]
+      },
+      "hud": [
+        {
+          "c": "simpanel",
+          "scenario": "retry",
+          "pair": "taxi",
+          "head": "再計算（失敗した時間帯の人の流れで）",
+          "assume": "仮定：人出48,000人・ピーク時／歩く区間のみシミュレーション（タクシー待ちは含まず）",
+          "factIds": [],
+          "phase": "recompute",
+          "from": "plan",
+          "reorder": [
+            3.2,
+            3.6
+          ],
+          "run": [
+            0.45,
+            3.2
+          ],
+          "simT": [
+            0,
+            396
+          ],
+          "speed": "×144 早送り",
+          "finalAt": 3.2,
+          "pickAt": 3.6500000000000004,
+          "verdict": "再計算の結論"
+        },
+        {
+          "c": "pin",
+          "world": [
+            -3.5,
+            0,
+            10.5
+          ],
+          "ja": "スタート",
+          "color": "#E9DDFF",
+          "factIds": []
+        },
+        {
+          "c": "pin",
+          "world": [
+            30.5,
+            0,
+            152.5
+          ],
+          "ja": "A 西口の乗り場",
+          "color": "#FF7A9A",
+          "factIds": []
+        },
+        {
+          "c": "pin",
+          "world": [
+            94.5,
+            0,
+            325.5
+          ],
+          "ja": "B SAKURAテラス前",
+          "color": "#4FE3C1",
+          "factIds": []
+        }
+      ],
+      "cues": [
+        {
+          "at": 0.05,
+          "sfx": "whoosh",
+          "gain_db": -8
+        },
+        {
+          "at": 0.6,
+          "sfx": "tick",
+          "repeat": 0.4,
+          "until": 3.2,
+          "gain_db": -6
+        },
+        {
+          "at": 3.6500000000000004,
+          "sfx": "ui_select"
+        },
+        {
+          "at": 3.6900000000000004,
+          "sfx": "choice_pick",
+          "gain_db": -2
+        }
+      ],
+      "clock": false,
+      "header": true,
+      "bgm": "retry",
+      "amb": "crowd-night",
+      "duck": -5,
+      "reuse": {
+        "variant": "taxi-clear",
+        "beat": "choice"
+      }
+    },
+    {
+      "id": "clear-move",
+      "dur": 4.5,
+      "shot": {
+        "key": "eye-walk",
+        "params": {
+          "from": [
+            1.8,
+            0
+          ],
+          "to": [
+            112.1,
+            311.9
+          ],
+          "speed": 1.6
+        },
+        "t0": 0
+      },
+      "amb": "street-quiet",
+      "hud": [
+        {
+          "c": "caption",
+          "ja": "西口歩道橋を渡って桜丘町へ\nスクランブルから約500m・約7分\n（OSMから概算）",
+          "factIds": [
+            "TAXI-W-SCR"
+          ]
+        },
+        {
+          "c": "simmeter",
+          "scenario": "retry",
+          "route": "TB",
+          "run": [
+            0,
+            4.5
+          ],
+          "simT": [
+            4,
+            223.8
+          ],
+          "factIds": [],
+          "etaLabel": "乗り場まで"
+        }
+      ],
+      "transition": "dip",
+      "clock": {
+        "set": "23:43:15",
+        "rate": 0.5
+      },
+      "vt0": 20.7,
+      "bgm": "tension",
+      "reuse": {
+        "variant": "taxi-clear",
+        "beat": "move"
+      },
+      "plateTag": "写真 Syced／CC0"
+    },
+    {
+      "id": "clear-result",
+      "dur": 4,
+      "shot": {
+        "key": "taxi-sakura",
+        "params": {
+          "mode": "hero",
+          "dur": 6.5
+        },
+        "t0": 0
+      },
+      "crowd": {
+        "key": "taxi-sakura",
+        "t0": 0,
+        "restart": true
+      },
+      "amb": "street-quiet",
+      "hud": [
+        {
+          "c": "caption",
+          "ja": "渋谷SAKURAテラス前の乗り場\n（桜丘町3-4・位置は概略）",
+          "factIds": [
+            "TAXI-01",
+            "TAXI-07"
+          ],
+          "until": 2.2
+        },
+        {
+          "c": "caption",
+          "ja": "規制エリア（赤枠）の外\n（規制図より概略）",
+          "factIds": [
+            "TAXI-07",
+            "MEAS-04"
+          ],
+          "at": 2.2
+        },
+        {
+          "c": "sim",
+          "ja": "列は進む（シミュレーション）",
+          "factIds": [],
+          "at": 0.4
+        },
+        {
+          "c": "simmeter",
+          "scenario": "retry",
+          "route": "TB",
+          "run": [
+            0,
+            4
+          ],
+          "simT": [
+            223.8,
+            370.4
+          ],
+          "factIds": [],
+          "etaLabel": "乗り場まで"
+        }
+      ],
+      "clock": {
+        "set": "23:45:30",
+        "rate": 0.5
+      },
+      "vt0": 25.2,
+      "bgm": "tension",
+      "reuse": {
+        "variant": "taxi-clear",
+        "beat": "result"
+      },
+      "plateTag": "AI生成画像を加工"
+    },
+    {
+      "id": "clear-stamp",
+      "dur": 2.5,
+      "shot": {
+        "key": "taxi-sakura",
+        "params": {
+          "mode": "hero",
+          "dur": 6.5
+        },
+        "t0": 4
+      },
+      "crowd": {
+        "key": "taxi-sakura",
+        "t0": 4,
+        "restart": true
+      },
+      "amb": "street-quiet",
+      "hud": [
+        {
+          "c": "stamp",
+          "kind": "GAME_CLEAR",
+          "ja": "タクシーに乗れた！\n（シミュレーション）",
+          "factIds": []
+        }
+      ],
+      "bgm": "victory",
+      "clock": {
+        "set": "23:47:30",
+        "rate": 0.5
+      },
+      "vt0": 29.2,
+      "reuse": {
+        "variant": "taxi-clear",
+        "beat": "stamp"
+      },
+      "plateTag": "AI生成画像を加工"
+    },
+    {
+      "id": "clear-cheat",
+      "dur": 3.5,
+      "shot": {
+        "key": "card-bg",
+        "params": {
+          "yaw0": 1.1
+        },
+        "t0": 0
+      },
+      "hud": [
+        {
+          "c": "cheat"
+        }
+      ],
+      "clock": false,
+      "bgm": "victory",
+      "vt0": 36.7,
+      "amb": "crowd-night",
+      "reuse": {
+        "variant": "taxi-clear",
+        "beat": "cheat"
+      },
+      "plateTag": "AI生成画像を加工"
+    },
+    {
+      "id": "kaiju",
+      "dur": 4,
+      "shot": {
+        "key": "kaiju-skyline",
+        "params": {
+          "rise": [
+            0.15,
+            1.7
+          ],
+          "roarAt": 1.85,
+          "roarDur": 1.35,
+          "kaiju": {
+            "scale": 480,
+            "ground": 500,
+            "pos": [
+              10,
+              1000
+            ]
+          }
+        },
+        "t0": 0
+      },
+      "hud": [
+        {
+          "c": "gag",
+          "ja": "それ\nタクシーじゃない!",
+          "factIds": [],
+          "at": 2.5
+        }
+      ],
+      "cues": [
+        {
+          "at": 0.1,
+          "sfx": "kaiju_rumble"
+        },
+        {
+          "at": 1.85,
+          "sfx": "kaiju_roar",
+          "duck": 1.2,
+          "duck_db": -10
+        },
+        {
+          "at": 1.95,
+          "sfx": "party_popper",
+          "gain_db": -2
+        }
+      ],
+      "header": false,
+      "clock": false,
+      "bgm": null,
+      "amb": "crowd-night",
+      "vt0": 60.2,
+      "reuse": {
+        "variant": "combined/taxi",
+        "beat": "kaiju"
+      }
+    },
+    {
+      "id": "goodbye",
+      "dur": 8,
+      "shot": {
+        "key": "card-bg",
+        "params": {
+          "yaw0": 2.2,
+          "tone": "dark"
+        }
+      },
+      "hud": [
+        {
+          "c": "goodbye",
+          "quote": {
+            "title": "GOODBYE BAD HALLOWEEN",
+            "ja": "渋谷駅周辺では、条例で飲酒・喫煙、\nごみのポイ捨ては禁止されています。",
+            "attr": "（渋谷区）",
+            "en": "Drinking, smoking and littering on the streets around Shibuya Station are banned by ordinance.",
+            "enAttr": "(Shibuya City)",
+            "label": "引用"
+          },
+          "facts": [
+            {
+              "ja": "10/30(金)早朝〜11/1(日)朝方　ハチ公像は囲いで観覧不可",
+              "en": "Oct 30 early AM – Nov 1 morning: Hachiko statue fenced off"
+            },
+            {
+              "ja": "10/30夕方〜11/1早朝　駅周辺で交通規制",
+              "en": "Oct 30 evening – Nov 1 early AM: traffic restrictions around the station"
+            }
+          ],
+          "ours": {
+            "label": "制作チームより",
+            "ja": "いちばんのCLEARは、\n今年の渋谷に「行かない」こと。",
+            "en": "The best CLEAR this year: don't go to Shibuya."
+          },
+          "foot": {
+            "ja": "出典：渋谷区公式X（2026/10/22）・渋谷区・警視庁渋谷警察署　※本編はフィクションです",
+            "en": "Sources: Shibuya City (X, Oct 22, 2026), Shibuya City, MPD Shibuya Police Station. *Story is fiction."
+          },
+          "factIds": []
+        }
+      ],
+      "header": false,
+      "clock": false,
+      "footnote": false,
+      "bgm": "farewell",
+      "amb": null
+    },
+    {
+      "id": "sources",
+      "dur": 3,
+      "shot": {
+        "key": "card-bg",
+        "params": {
+          "yaw0": 1.5
+        }
+      },
+      "hud": [
+        {
+          "c": "sources",
+          "compact": true,
+          "note": "徒歩はOSMから概算（混雑・信号は含まず）／混雑・所要時間は人流シミュレーション（人出48,000人・ピーク時、入場規制などは仮定）",
+          "parodyNote": {
+            "ja": "※本編（ゲーム部分）はフィクションです。引用・日付は各出典の公表内容です",
+            "en": "*The game story is fiction; quotes and dates are as published by each source."
+          },
+          "factIds": [],
+          "credit": "出典：国土交通省 PLATEAU（3D都市モデル）／© OpenStreetMap contributors\n写真：Syced（CC0・Wikimedia Commons）／一部背景はAI生成画像を加工"
+        }
+      ],
+      "header": {
+        "sub": "10/31 渋谷ハロウィンには近づくな"
+      },
+      "clock": false,
+      "footnote": false,
+      "bgm": "farewell",
+      "amb": null,
+      "fadeOut": 0.4
+    }
+  ],
+  "lesson": {
+    "title": "乗り場は移っている",
+    "ja": "乗り場は移っている\n西口の乗り場は2025年3月30日\nから一時休止の案内\n再開の発表は見当たらない\n（10/25時点）\n乗るなら渋谷SAKURAテラス前\n新南改札から約97m・約2分\n（OSMから概算・階の移動含まず）\n駅前の高架下は16時ごろ〜\n車両通行止め（2026年）",
+    "points": [
+      "西口の乗り場は2025年3月30日\nから一時休止の案内",
+      "再開の発表は見当たらない\n（10/25時点）",
+      "乗るなら渋谷SAKURAテラス前\n新南改札から約97m・約2分\n（OSMから概算・階の移動含まず）",
+      "駅前の高架下は16時ごろ〜\n車両通行止め（2026年）"
+    ],
+    "factIds": [
+      "TAXI-01",
+      "TAXI-09",
+      "TAXI-W-NS",
+      "MEAS-20"
+    ],
+    "summary": "渋谷駅西口の優良タクシー乗り場は2025年3月30日から一時休止の案内（再開の発表は10/25時点で見当たらず）。乗るなら渋谷SAKURAテラス前（桜丘町3-4）の乗り場へ（新南改札から約97m・約2分、OSMから概算・階の移動含まず）。駅前の高架下は16時ごろから車両通行止め（2026年）。"
+  },
+  "cheat": {
+    "title": "保存版 渋谷でタクシー",
+    "sub": "乗り場と歩く時間",
+    "asOf": "10/25時点",
+    "note": "当日は駅・警察の案内を確認",
+    "rows": [
+      {
+        "sec": "乗り場",
+        "ja": "西口の乗り場：2025年3月30日〜休止",
+        "sub": "再開の発表なし（10/25時点）",
+        "tone": "ng",
+        "factIds": [
+          "TAXI-01",
+          "TAXI-09"
+        ]
+      },
+      {
+        "ja": "渋谷SAKURAテラス前（桜丘町3-4）",
+        "sub": "位置は概略・赤枠の外（規制図より概略）",
+        "tone": "ok",
+        "factIds": [
+          "TAXI-01",
+          "TAXI-07",
+          "MEAS-04"
+        ]
+      },
+      {
+        "sec": "歩く時間",
+        "ja": "新南改札から約97m・約2分",
+        "sub": "OSMから概算・階の移動は含まず",
+        "factIds": [
+          "TAXI-W-NS"
+        ]
+      },
+      {
+        "ja": "スクランブルから約500m・約7分",
+        "sub": "OSMから概算",
+        "factIds": [
+          "TAXI-W-SCR"
+        ]
+      },
+      {
+        "sec": "2026年",
+        "ja": "駅前の高架下 16時ごろ〜車両通行止め",
+        "sub": "宮益坂下〜渋谷駅前",
+        "factIds": [
+          "MEAS-03",
+          "MEAS-20"
+        ]
+      }
+    ]
+  },
+  "sources": [
+    "TAXI-01",
+    "TAXI-09",
+    "TAXI-W-NS",
+    "MEAS-20",
+    "TAXI-07",
+    "MEAS-04",
+    "TAXI-W-SCR",
+    "MEAS-03",
+    "MEAS-12",
+    "MEAS-09",
+    "JR-LAST-01",
+    "JR-LAST-02",
+    "END-01",
+    "END-02",
+    "END-03"
+  ],
+  "bgm": "tension",
+  "amb": "crowd-night",
+  "routes": {
+    "SIM-TA": {
+      "ja": "A 西口の乗り場（シミュレーションの経路）",
+      "factIds": [],
+      "points": [
+        [
+          -3.5,
+          10.5
+        ],
+        [
+          -0.5,
+          13.5
+        ],
+        [
+          2.5,
+          16.5
+        ],
+        [
+          5.5,
+          19.5
+        ],
+        [
+          9.5,
+          21.5
+        ],
+        [
+          8.5,
+          25.5
+        ],
+        [
+          7.5,
+          29.5
+        ],
+        [
+          6.5,
+          33.5
+        ],
+        [
+          5.5,
+          37.5
+        ],
+        [
+          3.5,
+          41.5
+        ],
+        [
+          2.5,
+          46.5
+        ],
+        [
+          1.5,
+          51.5
+        ],
+        [
+          1.5,
+          57.5
+        ],
+        [
+          1.5,
+          63.5
+        ],
+        [
+          2.5,
+          68.5
+        ],
+        [
+          1.5,
+          73.5
+        ],
+        [
+          0.5,
+          78.5
+        ],
+        [
+          0.5,
+          84.5
+        ],
+        [
+          -0.5,
+          89.5
+        ],
+        [
+          0.5,
+          94.5
+        ],
+        [
+          0.5,
+          100.5
+        ],
+        [
+          -1.5,
+          104.5
+        ],
+        [
+          -4.5,
+          105.5
+        ],
+        [
+          -3.5,
+          110.5
+        ],
+        [
+          -3.5,
+          116.5
+        ],
+        [
+          -3.5,
+          122.5
+        ],
+        [
+          -3.5,
+          128.5
+        ],
+        [
+          -2.5,
+          132.5
+        ],
+        [
+          -0.5,
+          135.5
+        ],
+        [
+          0.5,
+          139.5
+        ],
+        [
+          2.5,
+          142.5
+        ],
+        [
+          3.5,
+          146.5
+        ],
+        [
+          5.5,
+          149.5
+        ],
+        [
+          6.5,
+          153.5
+        ],
+        [
+          9.5,
+          155.5
+        ],
+        [
+          12.5,
+          152.5
+        ],
+        [
+          18.5,
+          152.5
+        ],
+        [
+          22.5,
+          152.5
+        ]
+      ]
+    },
+    "SIM-TB": {
+      "ja": "B SAKURAテラス前（シミュレーションの経路）",
+      "factIds": [],
+      "points": [
+        [
+          -3.5,
+          10.5
+        ],
+        [
+          -0.5,
+          13.5
+        ],
+        [
+          2.5,
+          16.5
+        ],
+        [
+          5.5,
+          19.5
+        ],
+        [
+          9.5,
+          21.5
+        ],
+        [
+          8.5,
+          25.5
+        ],
+        [
+          7.5,
+          29.5
+        ],
+        [
+          6.5,
+          33.5
+        ],
+        [
+          5.5,
+          37.5
+        ],
+        [
+          3.5,
+          41.5
+        ],
+        [
+          2.5,
+          46.5
+        ],
+        [
+          1.5,
+          51.5
+        ],
+        [
+          1.5,
+          57.5
+        ],
+        [
+          1.5,
+          63.5
+        ],
+        [
+          2.5,
+          68.5
+        ],
+        [
+          1.5,
+          73.5
+        ],
+        [
+          0.5,
+          78.5
+        ],
+        [
+          0.5,
+          84.5
+        ],
+        [
+          -0.5,
+          89.5
+        ],
+        [
+          0.5,
+          94.5
+        ],
+        [
+          0.5,
+          100.5
+        ],
+        [
+          -1.5,
+          104.5
+        ],
+        [
+          -4.5,
+          105.5
+        ],
+        [
+          -3.5,
+          110.5
+        ],
+        [
+          -3.5,
+          116.5
+        ],
+        [
+          -3.5,
+          122.5
+        ],
+        [
+          -3.5,
+          128.5
+        ],
+        [
+          -2.5,
+          132.5
+        ],
+        [
+          -0.5,
+          135.5
+        ],
+        [
+          0.5,
+          139.5
+        ],
+        [
+          2.5,
+          142.5
+        ],
+        [
+          3.5,
+          146.5
+        ],
+        [
+          5.5,
+          149.5
+        ],
+        [
+          6.5,
+          153.5
+        ],
+        [
+          9.5,
+          155.5
+        ],
+        [
+          12.5,
+          152.5
+        ],
+        [
+          18.5,
+          152.5
+        ],
+        [
+          24.5,
+          152.5
+        ],
+        [
+          28.5,
+          154.5
+        ],
+        [
+          26.5,
+          158.5
+        ],
+        [
+          26.5,
+          164.5
+        ],
+        [
+          26.5,
+          170.5
+        ],
+        [
+          26.5,
+          176.5
+        ],
+        [
+          26.5,
+          182.5
+        ],
+        [
+          26.5,
+          188.5
+        ],
+        [
+          26.5,
+          194.5
+        ],
+        [
+          26.5,
+          200.5
+        ],
+        [
+          26.5,
+          206.5
+        ],
+        [
+          26.5,
+          212.5
+        ],
+        [
+          25.5,
+          217.5
+        ],
+        [
+          21.5,
+          219.5
+        ],
+        [
+          18.5,
+          221.5
+        ],
+        [
+          14.5,
+          222.5
+        ],
+        [
+          12.5,
+          225.5
+        ],
+        [
+          14.5,
+          228.5
+        ],
+        [
+          15.5,
+          232.5
+        ],
+        [
+          17.5,
+          236.5
+        ],
+        [
+          18.5,
+          240.5
+        ],
+        [
+          20.5,
+          243.5
+        ],
+        [
+          21.5,
+          247.5
+        ],
+        [
+          23.5,
+          250.5
+        ],
+        [
+          24.5,
+          254.5
+        ],
+        [
+          26.5,
+          258.5
+        ],
+        [
+          28.5,
+          261.5
+        ],
+        [
+          29.5,
+          266.5
+        ],
+        [
+          30.5,
+          270.5
+        ],
+        [
+          32.5,
+          273.5
+        ],
+        [
+          35.5,
+          276.5
+        ],
+        [
+          38.5,
+          279.5
+        ],
+        [
+          41.5,
+          282.5
+        ],
+        [
+          43.5,
+          286.5
+        ],
+        [
+          43.5,
+          292.5
+        ],
+        [
+          43.5,
+          298.5
+        ],
+        [
+          43.5,
+          304.5
+        ],
+        [
+          46.5,
+          307.5
+        ],
+        [
+          49.5,
+          310.5
+        ],
+        [
+          52.5,
+          313.5
+        ],
+        [
+          55.5,
+          316.5
+        ],
+        [
+          58.5,
+          319.5
+        ],
+        [
+          62.5,
+          321.5
+        ],
+        [
+          68.5,
+          321.5
+        ],
+        [
+          74.5,
+          321.5
+        ],
+        [
+          78.5,
+          322.5
+        ],
+        [
+          82.5,
+          323.5
+        ],
+        [
+          85.5,
+          325.5
+        ],
+        [
+          86.5,
+          325.5
+        ]
+      ]
+    }
+  },
+  "generated": "tools/v8_configs.mjs (do not edit by hand: edit the generator and re-run --write)",
+  "release": "v8",
+  "sim": {
+    "plan": "v8/sim/plan.json",
+    "retry": "v8/sim/retry.json",
+    "pick": "TB",
+    "retryPick": "TB",
+    "over": "TA",
+    "clear": "TB",
+    "rule": "判定：スコア（予測時間＋混雑ペナルティ）が最小のルート。ペナルティ＝最大密度が2人/m²を超えた分×1分",
+    "assumptions": "シミュレーション（仮定）：人出48,000人・ピーク時（22時ごろ想定）／ハチ公改札前は入場規制を仮定／歩行80m/分（OSM区間）。2026年のJRの対策は未発表"
+  }
+}

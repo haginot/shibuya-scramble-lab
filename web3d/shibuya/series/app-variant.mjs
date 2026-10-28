@@ -72,6 +72,13 @@ export async function start(params){
  const validation=VS.validateConfig(cfg,{part,facts:FACTS,dropped:DROPPED,...keys});
  if(!validation.ok)console.error('variant config invalid:',validation.errors.join('; '));
  const V=VS.videoPlan(opening,body),plan=part==='opening'?V.opening:V.body;
+ // v8 sim (series/sim-v8.mjs, tools/v8_sim.mjs): summaries for the panel / meter items, keyframes for the map layer
+ const simUse={sum:new Set(),frames:new Set()};
+ for(const b of cfg.beats||[]){if(b.simmap)simUse.frames.add(b.simmap.scenario);for(const h of b.hud||[])if(h.c==='simpanel'||h.c==='simmeter'){simUse.sum.add(h.scenario);if(h.from)simUse.sum.add(h.from);}}
+ const SIM={sum:{},frames:{},M:null,layer:null};
+ if(simUse.sum.size||simUse.frames.size){status('シミュレーション結果を読み込み中…');SIM.M=await import('./sim-v8.mjs');const dir=new URL(`./variants/${ep}/v8/sim/`,import.meta.url);
+  for(const n of new Set([...simUse.sum,...simUse.frames]))SIM.sum[n]=await json(new URL(`${n}.json`,dir));
+  if(simUse.frames.size&&!hudOnly){const L=await import('./sim-layer.mjs');for(const n of simUse.frames)SIM.frames[n]=L.decodeFrames(await json(new URL(`cache/${n}-frames.json`,dir)));SIM.layer=L.createSimLayer(document.body);}}
 
  // ---------- scene ----------
  const S=await buildJRScene(params,{recording,status,routes:{...(opening.routes||{}),...(body.routes||{})}});
@@ -168,6 +175,9 @@ export async function start(params){
   const renderMs=performance.now()-T0-simMs;
   // HUD
   let items=spec.items.filter(it=>it.c!=='parody');
+  const cfgBeat=(cfg.beats||[]).find(b=>b.id===spec.beat.id),bl=spec.beat.local;let simStats=null;
+  if(SIM.layer){const sm=cfgBeat?.simmap;simStats=SIM.layer.update(sm&&!res.blank?sm:null,{simT:sm?SIM.M.simTimeAt(sm,bl):0,frames:sm?SIM.frames[sm.scenario]:null,project:S.project,t:bl});}
+  if(SIM.M)items=items.map(it=>it.c==='simpanel'?{...it,...SIM.M.panelState(SIM.sum[it.scenario],it,bl,{from:it.from?SIM.sum[it.from]:null,clockStart:it.clockStart??null})}:it.c==='simmeter'?{...it,...SIM.M.meterState(SIM.sum[it.scenario],it,bl)}:it);
   items=items.map(it=>{if(it.c==='pin'&&Array.isArray(it.world)){const q=S.project(it.world[0],it.world[1]??0,it.world[2]??0);return q.inFrame?{...it,x:q.x,y:q.y}:null;}if(typeof it.crowd==='string'){const f=frAll?.hud?.items?.find(x=>x.id===it.crowd);return f?{...it,c:it.c==='sim'?'sim':it.c,ja:f.text}:null;}return it;}).filter(Boolean);
   // 「位置・構造は概略」 for approximate sets / the station interior: a design-system corner tag (ui/components.mjs tag)
   // (not on the caught POV: the creature hands own the frame edges there)
@@ -186,6 +196,7 @@ export async function start(params){
    claims,footnote:rec.footnote?{ids:claims,text:rec.footnote.text}:{ids:[],text:''},footBox:rec.footBox||null,safe:rec.safe,cheat:!!rec.cheat,choice:rec.choice,items:rec.items,fallbacks:spec.fallbacks,
    caught:e.caught?{t:+e.caught.t.toFixed(3),intensity:+e.caught.intensity.toFixed(3),press:+e.caught.press.toFixed(3),flash:+e.caught.flash.toFixed(3),black:e.caught.black,vfx:!!fxOn.caught}:null,
    kaiju:e.kaiju?{rise:+e.kaiju.rise.toFixed(3),eyes:+e.kaiju.eyes.toFixed(3),roar:+e.kaiju.roar.toFixed(3),model:!!fxOn.kaiju}:null,blank:!!res.blank,
+   simpanel:rec.simpanel??null,simmeter:rec.simmeter??null,simmap:simStats,
    cont:rec.cont??null,endcard:rec.endcard??null,gag:rec.gag??null,credit:rec.credit??null,goodbye:rec.goodbye??null,guide:rec.guide??null,mission:rec.mission??null,
    ms:{sim:Math.round(simMs),render:Math.round(renderMs)},hudOnly,plateTag:approx&&hudOnly?approx:null,peopleDrawn:drawn,near:near?.last?.drawn??0,interior:nInterior,fade:+(post.settings.uFade.value).toFixed(3),cutFade:+(+spec.fade).toFixed(3)};
   window.__variantOverlay=out;

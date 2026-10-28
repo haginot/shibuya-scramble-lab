@@ -41,19 +41,20 @@ console.log(JSON.stringify({pure:a.every((x,i)=>x===b[i]),nul:m.caughtLayout(nul
 
 def test_kaiju_is_original_showa_beast_and_animates():
     """v7 (HAGINO steering 2026-10-27): an ORIGINAL Showa-style giant — black, hunched on four legs, long neck, beaked +
-    horned head, dorsal CRYSTAL prisms, a beam from the mouth — and clearly not the famous upright lizard: no tail, not
-    upright (longer than tall in its own frame), crystal shards rather than leaf plates, its own synth roar."""
+    horned head, dorsal CRYSTAL prisms — and clearly not the famous upright lizard: no tail, not upright (longer than
+    tall in its own frame), crystal shards rather than leaf plates, its own synth roar.  v8: the mouth fires a one-shot
+    confetti / party-cannon blast on the roar instead of a beam (tests/test_v8_kaiju.py checks the blast itself)."""
     got = _node("""const T=await import('./web3d/vendor/three.module.min.js');const m=await import('./web3d/shibuya/series/kaiju.mjs');
 const k=m.createKaiju({});const cam={position:new T.Vector3(0,2,-1000)};const box=()=>{k.group.updateMatrixWorld(true);return new T.Box3().setFromObject(k.group);};
-const base={pos:[0,0],scale:150,seed:3,eyes:1,yaw:0};
+const base={pos:[0,0],scale:150,seed:3,eyes:1,yaw:0,roarAt:3.2};
 k.update({...base,rise:0,roar:0,t:0},{camera:cam});const b0=box();const vis0=k.group.visible;
-k.update({...base,rise:1,roar:0,t:3},{camera:cam});const b1=box();const head0=new T.Vector3();k.parts.head.getWorldPosition(head0);const jaw0=k.parts.jaw.rotation.z;const beam0=k.parts.beam.visible;
-k.update({...base,rise:1,roar:1,t:3},{camera:cam});const head1=new T.Vector3();k.parts.head.getWorldPosition(head1);const jaw1=k.parts.jaw.rotation.z;const beam1=k.parts.beam.visible;
+k.update({...base,rise:1,roar:0,t:3},{camera:cam});const b1=box();const head0=new T.Vector3();k.parts.head.getWorldPosition(head0);const jaw0=k.parts.jaw.rotation.z;const blast0=k.parts.blast.visible;
+k.update({...base,rise:1,roar:1,t:3.5},{camera:cam});const head1=new T.Vector3();k.parts.head.getWorldPosition(head1);const jaw1=k.parts.jaw.rotation.z;const blast1=k.parts.blast.visible;
 const tb=new T.Box3().setFromObject(k.parts.torso);const ts=new T.Vector3();tb.getSize(ts);
 let tris=0,draws=0;k.group.traverse(o=>{if(o.isMesh){draws++;const g=o.geometry;tris+=(g.index?g.index.count:g.attributes.position.count)/3;}});
 const s1=new T.Vector3();b1.getSize(s1);
 const p1=JSON.stringify(m.kaijuPose({...base,rise:.6,roar:.3,t:1.2},1.2)),p2=JSON.stringify(m.kaijuPose({...base,rise:.6,roar:.3,t:1.2},1.2));
-console.log(JSON.stringify({vis0,top0:b0.max.y,bottom1:b1.min.y,top1:b1.max.y,torso:[ts.x,ts.y],head0:head0.y,head1:head1.y,jaw0,jaw1,beam0,beam1,
+console.log(JSON.stringify({vis0,top0:b0.max.y,bottom1:b1.min.y,top1:b1.max.y,torso:[ts.x,ts.y],head0:head0.y,head1:head1.y,jaw0,jaw1,blast0,blast1,
  legs:k.parts.legs.length,crystals:k.parts.crystals.length,horns:k.parts.horns.length,tris,draws,pure:p1===p2,
  parts:Object.keys(m.KAIJU_PARTS),desc:JSON.stringify(m.KAIJU_PARTS).toLowerCase()}));""")
     assert (not got['vis0']) or got['top0'] < 0, got              # below the skyline before the rise
@@ -61,9 +62,10 @@ console.log(JSON.stringify({vis0,top0:b0.max.y,bottom1:b1.min.y,top1:b1.max.y,to
     assert got['torso'][0] > got['torso'][1] * 1.2, got             # hunched: the torso is long and low, never upright
     assert got['legs'] == 4 and got['horns'] == 2 and got['crystals'] >= 10, got
     assert got['head1'] > got['head0'] and got['jaw1'] < got['jaw0'] - .4, got   # roar: rears up, beak opens
-    assert not got['beam0'] and got['beam1'], got                   # the beam fires only on the roar
+    assert not got['blast0'] and got['blast1'], got                 # the confetti cannon pops only on the roar
     assert got['tris'] < 15000 and got['draws'] <= 40 and got['pure'], got
-    assert {'torso', 'legs', 'neck', 'head', 'mouth', 'horns', 'crystals', 'beam'} <= set(got['parts']), got
+    assert {'torso', 'legs', 'neck', 'head', 'mouth', 'horns', 'crystals', 'blast'} <= set(got['parts']), got
+    assert 'beam' not in got['parts'], got
     assert 'tail' not in got['parts'] and 'beak' in got['desc'] and 'crystal' in got['desc'], got
     assert not any(w in got['desc'] for w in ['godzilla', 'gojira', 'maple', 'upright', 'leaf-shaped plate']) or 'not' in got['desc'], got
     src = (ROOT/'web3d/shibuya/series/kaiju.mjs').read_text(encoding='utf-8')
