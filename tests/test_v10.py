@@ -1,6 +1,7 @@
 """JR v10: the v9 videos with two photoreal Gemini plates (tools/v10_plan.json) instead of the procedural flat costumed crowd
-— plate swaps, the crush POV camera on the photo, the crush meter still the sim peak, ghost lines unchanged and their
-boxes clear of the photo faces / sign panel, rendered deliverables (skipped until rendered)."""
+— plate swaps, the crush POV camera on the photo, the crush meter still the sim peak, ghost lines unchanged (v10.1: except
+the op-fly self-intro) and their boxes clear of the photo faces / sign panel, rendered deliverables (skipped until rendered).
+v10.1: the Hachiko plate is grounded-refs/v3/01-hachiko-v2.png (the v10 01-hachiko.png was the wrong place)."""
 from __future__ import annotations
 
 import json
@@ -19,7 +20,7 @@ V9 = ROOT/'web3d/shibuya/series/variants/jr/v9'
 G9 = json.loads((V9/'ghost.json').read_text(encoding='utf-8'))
 G10 = json.loads((ROOT/'web3d/shibuya/series/variants/jr/v10/ghost.json').read_text(encoding='utf-8'))
 PAIRS = ('gate', 'taxi', 'zone', 'alt')
-OUT = Path('/workspace/demos/halloween-escape-series/jr-v10')
+OUT = Path('/workspace/demos/halloween-escape-series/jr-v10.1')
 PLATE_ROOT = Path(PLAN9['plateRoot'])
 
 import v10_shots as C10  # noqa: E402  (numpy-free)
@@ -85,11 +86,34 @@ def test_crush_meter_is_still_the_sim_peak(pair):
 
 
 @pytest.mark.parametrize('pair', PAIRS)
-def test_ghost_lines_unchanged_from_v9(pair):
-    keys = ('id', 'beat', 'at', 't0', 't1', 'text', 'chars', 'nums')
-    a = [{k: l.get(k) for k in keys} for l in G9['pairs'][pair]['lines']]
-    b = [{k: l.get(k) for k in keys} for l in G10['pairs'][pair]['lines']]
+def test_ghost_lines_unchanged_from_v9_except_the_intro(pair):
+    keys = ('beat', 'at', 't0', 't1', 'text', 'chars', 'nums')
+    a = [{k: l.get(k) for k in keys} for l in G9['pairs'][pair]['lines'] if l['beat'] != 'op-fly']
+    b = [{k: l.get(k) for k in keys} for l in G10['pairs'][pair]['lines'] if l['beat'] != 'op-fly']
     assert a == b
+    ids = [l['id'] for l in G10['pairs'][pair]['lines']]
+    assert ids == [f'{pair}-{i:02d}' for i in range(len(ids))]
+
+
+@pytest.mark.parametrize('pair', PAIRS)
+def test_ghost_self_intro_at_first_appearance(pair):
+    """v10.1: the ghost's first lines (op-fly) are a goofy self-intro, within the bubble rules (<= 2 lines x 20 chars)."""
+    import v9_ghost as GH
+    lines = sorted(G10['pairs'][pair]['lines'], key=lambda l: l['t0'])
+    intro = [l for l in lines if l.get('intro')]
+    assert [l['id'] for l in intro] == [l['id'] for l in lines[:len(intro)]] and len(intro) == 2
+    assert all(l['beat'] == 'op-fly' for l in intro)
+    assert '渋谷系おばけです' in intro[0]['text'].replace('\n', '') and '裏道' in intro[1]['text']
+    for l in intro:
+        GH.check_text(l['text'])
+        assert l['t1'] == round(l['t0']+GH.read_time(l['text']), 3) and l['core'] == 0 and l['overlap'] == 0
+    assert intro[0]['box'] == intro[1]['box'] and intro[1]['t0']-intro[0]['t1'] < 1.2      # one span: the ghost stays on
+
+
+def test_hachiko_plate_is_the_v2_plate():
+    assert PLAN10['plates']['hachiko3']['src'] == 'grounded-refs/v3/01-hachiko-v2.png'
+    for f in [*(ROOT/'tools').glob('v10*'), ROOT/'web3d/shibuya/series/variants/jr/v10/ghost.json']:
+        assert 'v3/01-hachiko.png' not in f.read_text(encoding='utf-8'), f
 
 
 @pytest.mark.parametrize('pair', PAIRS)
@@ -103,7 +127,7 @@ def test_ghost_boxes_safe_and_clear_of_photo_faces(pair):
         assert l['core'] == 0 or (l['beat'] in GH.ALLOW_OVERLAP and l['core'] < 3000), (l['beat'], l['core'])
         assert l['overlap'] < 10000
         assert l.get('protect') == 0, (l['id'], l.get('protect'))
-        if l.get('moved'): assert l['beat'] in ('over-result', 'crush-pov', 'rules', 'over-move', 'over-lesson', 'continue')
+        if l.get('moved'): assert l['beat'] in ('mission', 'over-result', 'crush-pov', 'rules', 'over-move', 'over-lesson', 'continue')
         checked += 'protect' in l
     assert checked == len(G10['pairs'][pair]['lines'])
 
@@ -124,8 +148,8 @@ def test_ghost_recheck_on_sample_frames(pair):
 
 @pytest.mark.parametrize('pair', PAIRS)
 def test_rendered_v10_deliverables(pair):
-    rep = Path('/workspace/projects/logs/ssl-claude-halloween/v10/render')/pair/'report.json'
-    if not rep.exists(): pytest.skip('v10 not rendered yet')
+    rep = Path('/workspace/projects/logs/ssl-claude-halloween/v10.1/render')/pair/'report.json'
+    if not rep.exists() or not (OUT/f'{pair}-share.mp4').exists(): pytest.skip('v10.1 not rendered yet')
     r = json.loads(rep.read_text(encoding='utf-8'))
     assert r['ok'], r['errors']
     v = r['video']

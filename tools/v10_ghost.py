@@ -4,6 +4,8 @@ new photoreal plates (tools/v10_plan.json). On every frame of a line where a new
 boxes (faces of the photo people, the blank sign panel) are projected through that frame's camera (push-in / sway / shove
 kicks included, tools/v10_composite.py shot_mapper) and dilated 16 px. If the v9 box touches them, the beat's box is
 searched again (v9_ghost.search: protect first, then HUD core / overlap, inside the TikTok/Reels safe area).
+v10.1: the ghost's first appearance (op-fly, every pair) is a goofy self-intro (INTRO, 2 lines replacing the v9 op-fly
+line; same <= 2 x 20 chars / reading-time rules, box re-searched against the op-fly HUD probes).
 Result: web3d/shibuya/series/variants/jr/v10/ghost.json (v9 ghost.json + `protect` px per line, `moved` where re-placed).
 usage: python3 tools/v10_ghost.py place [pair|all]
        python3 tools/v10_ghost.py sheet <pair> out.jpg     QA: every line on the composited frame, protect boxes outlined
@@ -25,6 +27,9 @@ import v10_composite as C10  # noqa: E402
 W, H, FPS = G9.W, G9.H, G9.FPS
 OUT = C10.GHOST10
 DILATE = 16
+# v10.1: the ghost introduces itself at its first appearance (op-fly, all pairs); original lines, no real names / lyrics
+INTRO_BEAT = 'op-fly'
+INTRO = [(1.0, 'どーも！\n渋谷系おばけです〜'), (3.8, '渋谷の裏道、\nぜんぶ知ってるよ〜')]
 
 
 def protect_rects(pair, idx, v):
@@ -51,6 +56,26 @@ def protect_mask(pair, idx, t0, t1, step=2):
             a, b = int(max(0, x0-DILATE)), int(max(0, y0-DILATE)); c, d = int(min(W, x1+DILATE)), int(min(H, y1+DILATE))
             if c > a and d > b: m[b:d, a:c] = True; n += 1
     return m, n
+
+
+def intro(pair, lines):
+    """v9 lines with the op-fly line replaced by the INTRO lines (timing = beat start + at, reading time as v9), re-numbered,
+    and the op-fly box re-searched for the new bubble sizes (HUD probes of the beat, v9 rules)."""
+    bt = G9.beat_table(pair); b0 = bt[INTRO_BEAT]['t0']
+    new = []
+    for at, text in INTRO:
+        G9.check_text(text)
+        t0 = round(b0+at, 3)
+        new.append(dict(id='', beat=INTRO_BEAT, at=at, t0=t0, t1=round(t0+G9.read_time(text), 3), text=text, chars=G9.nchars(text), nums=[], intro=True))
+    out = sorted([l for l in lines if l['beat'] != INTRO_BEAT]+new, key=lambda l: l['t0'])
+    for a, b in zip(out, out[1:]): assert b['t0']-a['t1'] >= .2, (a, b)
+    mask, probes = G9.hud_mask(pair, bt, new[0]['t0']-.15, new[-1]['t1']+.25)
+    assert probes, (pair, INTRO_BEAT, 'no HUD probe frames')
+    g, b, box, flip, ov, core, _ = G9.search(mask, new)
+    for l in new: l.update(box=list(box), ghost=list(g), bubble=list(b), flip=flip, overlap=ov, core=core, probes=probes)
+    for i, l in enumerate(out): l['id'] = f'{pair}-{i:02d}'
+    print(f'{pair} {INTRO_BEAT:12s} self-intro {[l["text"].replace(chr(10), "/") for l in new]} box={box} core={core} overlap={ov}')
+    return out
 
 
 def place(pair, data):
@@ -87,6 +112,7 @@ def main(argv):
         pairs = G9.PAIRS if len(argv) < 2 or argv[1] == 'all' else [argv[1]]
         for p in pairs:
             data['pairs'][p] = json.loads(json.dumps(v9['pairs'][p]))     # always start from the v9 placement
+            data['pairs'][p]['lines'] = intro(p, data['pairs'][p]['lines'])
             place(p, data)
         OUT.parent.mkdir(parents=True, exist_ok=True)
         OUT.write_text(json.dumps(data, ensure_ascii=False, indent=1)+'\n', encoding='utf-8')

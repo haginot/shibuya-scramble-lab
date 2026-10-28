@@ -37,16 +37,17 @@
     {
      "id": "gate-00",
      "beat": "op-fly",
-     "at": 1.2,
-     "t0": 1.2,
-     "t1": 4.96,
-     "text": "やっほー！渋谷の道なら\nぜんぶ知ってるおばけだよ",
-     "chars": 23,
+     "at": 1.0,
+     "t0": 1.0,
+     "t1": 3.56,
+     "text": "どーも！\n渋谷系おばけです〜",
+     "chars": 13,
      "nums": [],
+     "intro": true,
      "box": [
       42,
       1322,
-      626,
+      524,
       1472
      ],
      "ghost": [
@@ -58,17 +59,51 @@
      "bubble": [
       174,
       1323,
-      626,
+      524,
       1446
      ],
      "flip": false,
      "overlap": 0,
-     "probes": 20,
      "core": 0,
+     "probes": 30,
      "protect": 0
     },
     {
      "id": "gate-01",
+     "beat": "op-fly",
+     "at": 3.8,
+     "t0": 3.8,
+     "t1": 6.6,
+     "text": "渋谷の裏道、\nぜんぶ知ってるよ〜",
+     "chars": 15,
+     "nums": [],
+     "intro": true,
+     "box": [
+      42,
+      1322,
+      524,
+      1472
+     ],
+     "ghost": [
+      42,
+      1322,
+      170,
+      1472
+     ],
+     "bubble": [
+      174,
+      1323,
+      524,
+      1446
+     ],
+     "flip": false,
+     "overlap": 0,
+     "core": 0,
+     "probes": 30,
+     "protect": 0
+    },
+    {
+     "id": "gate-02",
      "beat": "mission",
      "at": 0.1,
      "t0": 7.8,
@@ -78,30 +113,31 @@
      "nums": [],
      "box": [
       42,
-      1322,
+      506,
       524,
-      1472
+      656
      ],
      "ghost": [
       42,
-      1322,
+      506,
       170,
-      1472
+      656
      ],
      "bubble": [
       174,
-      1323,
+      507,
       524,
-      1446
+      630
      ],
      "flip": false,
      "overlap": 0,
      "probes": 16,
      "core": 0,
-     "protect": 0
+     "protect": 0,
+     "moved": true
     },
     {
-     "id": "gate-02",
+     "id": "gate-03",
      "beat": "rules",
      "at": 0.45,
      "t0": 11.15,
@@ -111,30 +147,31 @@
      "nums": [],
      "box": [
       42,
-      1322,
+      446,
       558,
-      1472
+      596
      ],
      "ghost": [
       42,
-      1322,
+      446,
       170,
-      1472
+      596
      ],
      "bubble": [
       174,
-      1323,
+      447,
       558,
-      1446
+      570
      ],
      "flip": false,
      "overlap": 0,
      "probes": 18,
      "core": 0,
-     "protect": 0
+     "protect": 0,
+     "moved": true
     },
     {
-     "id": "gate-03",
+     "id": "gate-04",
      "beat": "first-choice",
      "at": 0.4,
      "t0": 15.1,
@@ -167,7 +204,7 @@
      "protect": 0
     },
     {
-     "id": "gate-04",
+     "id": "gate-05",
      "beat": "true-end",
      "at": 0.3,
      "t0": 19.0,
@@ -200,7 +237,7 @@
      "protect": 0
     },
     {
-     "id": "gate-05",
+     "id": "gate-06",
      "beat": "guide",
      "at": 0.2,
      "t0": 22.9,
@@ -233,7 +270,7 @@
      "protect": 0
     },
     {
-     "id": "gate-06",
+     "id": "gate-07",
      "beat": "over-start",
      "at": 0.3,
      "t0": 26.0,
@@ -266,7 +303,7 @@
      "protect": 0
     },
     {
-     "id": "gate-07",
+     "id": "gate-08",
      "beat": "sim-plan",
      "at": 0.3,
      "t0": 29.5,
@@ -299,7 +336,7 @@
      "protect": 0
     },
     {
-     "id": "gate-08",
+     "id": "gate-09",
      "beat": "sim-plan",
      "at": 3.5,
      "t0": 32.7,
@@ -338,7 +375,7 @@
      "protect": 0
     },
     {
-     "id": "gate-09",
+     "id": "gate-10",
      "beat": "sim-plan",
      "at": 7.3,
      "t0": 36.5,
@@ -371,7 +408,7 @@
      "protect": 0
     },
     {
-     "id": "gate-10",
+     "id": "gate-11",
      "beat": "sim-pick",
      "at": 0.4,
      "t0": 40.6,
@@ -404,7 +441,7 @@
      "protect": 0
     },
     {
-     "id": "gate-11",
+     "id": "gate-12",
      "beat": "over-choice",
      "at": 0.3,
      "t0": 44.5,
@@ -437,7 +474,7 @@
      "protect": 0
     },
     {
-     "id": "gate-12",
+     "id": "gate-13",
      "beat": "over-move",
      "at": 0.4,
      "t0": 48.1,
@@ -446,31 +483,32 @@
      "chars": 17,
      "nums": [],
      "box": [
-      42,
-      1004,
-      547,
-      1154
+      174,
+      920,
+      679,
+      1070
      ],
      "ghost": [
-      42,
-      1004,
-      170,
-      1154
+      174,
+      920,
+      302,
+      1070
      ],
      "bubble": [
-      174,
-      1005,
-      547,
-      1128
+      306,
+      921,
+      679,
+      1044
      ],
      "flip": false,
      "overlap": 0,
      "probes": 17,
      "core": 0,
-     "protect": 0
+     "protect": 0,
+     "moved": true
     },
     {
-     "id": "gate-13",
+     "id": "gate-14",
      "beat": "over-result",
      "at": 0.4,
      "t0": 52.6,
@@ -480,31 +518,30 @@
      "nums": [],
      "box": [
       42,
-      1046,
+      1052,
       490,
-      1196
+      1202
      ],
      "ghost": [
       42,
-      1046,
+      1052,
       170,
-      1196
+      1202
      ],
      "bubble": [
       174,
-      1047,
+      1053,
       490,
-      1170
+      1176
      ],
      "flip": false,
      "overlap": 0,
      "probes": 16,
      "core": 0,
-     "protect": 0,
-     "moved": true
+     "protect": 0
     },
     {
-     "id": "gate-14",
+     "id": "gate-15",
      "beat": "crush-pov",
      "at": 0.4,
      "t0": 56.6,
@@ -514,31 +551,30 @@
      "nums": [],
      "box": [
       42,
-      1058,
+      1112,
       592,
-      1208
+      1262
      ],
      "ghost": [
       42,
-      1058,
+      1112,
       170,
-      1208
+      1262
      ],
      "bubble": [
       174,
-      1059,
+      1113,
       592,
-      1182
+      1236
      ],
      "flip": false,
      "overlap": 0,
      "probes": 39,
      "core": 0,
-     "protect": 0,
-     "moved": true
+     "protect": 0
     },
     {
-     "id": "gate-15",
+     "id": "gate-16",
      "beat": "crush-pov",
      "at": 4.4,
      "t0": 60.6,
@@ -555,31 +591,30 @@
      ],
      "box": [
       42,
-      1058,
+      1112,
       592,
-      1208
+      1262
      ],
      "ghost": [
       42,
-      1058,
+      1112,
       170,
-      1208
+      1262
      ],
      "bubble": [
       174,
-      1059,
+      1113,
       592,
-      1182
+      1236
      ],
      "flip": false,
      "overlap": 0,
      "probes": 39,
      "core": 0,
-     "protect": 0,
-     "moved": true
+     "protect": 0
     },
     {
-     "id": "gate-16",
+     "id": "gate-17",
      "beat": "over-lesson",
      "at": 0.4,
      "t0": 69.1,
@@ -612,7 +647,7 @@
      "protect": 0
     },
     {
-     "id": "gate-17",
+     "id": "gate-18",
      "beat": "continue",
      "at": 0.3,
      "t0": 74.0,
@@ -645,7 +680,7 @@
      "protect": 0
     },
     {
-     "id": "gate-18",
+     "id": "gate-19",
      "beat": "retry-why",
      "at": 0.3,
      "t0": 77.0,
@@ -691,7 +726,7 @@
      "protect": 0
     },
     {
-     "id": "gate-19",
+     "id": "gate-20",
      "beat": "clear-choice",
      "at": 0.2,
      "t0": 81.9,
@@ -724,7 +759,7 @@
      "protect": 0
     },
     {
-     "id": "gate-20",
+     "id": "gate-21",
      "beat": "clear-choice",
      "at": 3.8,
      "t0": 85.5,
@@ -757,7 +792,7 @@
      "protect": 0
     },
     {
-     "id": "gate-21",
+     "id": "gate-22",
      "beat": "clear-move",
      "at": 0.4,
      "t0": 89.6,
@@ -790,7 +825,7 @@
      "protect": 0
     },
     {
-     "id": "gate-22",
+     "id": "gate-23",
      "beat": "clear-pov",
      "at": 0.2,
      "t0": 93.9,
@@ -823,7 +858,7 @@
      "protect": 0
     },
     {
-     "id": "gate-23",
+     "id": "gate-24",
      "beat": "clear-result",
      "at": 0.5,
      "t0": 97.2,
@@ -856,7 +891,7 @@
      "protect": 0
     },
     {
-     "id": "gate-24",
+     "id": "gate-25",
      "beat": "clear-cheat",
      "at": 0.3,
      "t0": 103.5,
@@ -889,7 +924,7 @@
      "protect": 0
     },
     {
-     "id": "gate-25",
+     "id": "gate-26",
      "beat": "kaiju",
      "at": 0.3,
      "t0": 107.0,
@@ -922,7 +957,7 @@
      "protect": 0
     },
     {
-     "id": "gate-26",
+     "id": "gate-27",
      "beat": "sources",
      "at": 0.3,
      "t0": 119.0,
@@ -962,16 +997,17 @@
     {
      "id": "taxi-00",
      "beat": "op-fly",
-     "at": 1.2,
-     "t0": 1.2,
-     "t1": 4.96,
-     "text": "やっほー！渋谷の道なら\nぜんぶ知ってるおばけだよ",
-     "chars": 23,
+     "at": 1.0,
+     "t0": 1.0,
+     "t1": 3.56,
+     "text": "どーも！\n渋谷系おばけです〜",
+     "chars": 13,
      "nums": [],
+     "intro": true,
      "box": [
       42,
       1322,
-      626,
+      524,
       1472
      ],
      "ghost": [
@@ -983,17 +1019,51 @@
      "bubble": [
       174,
       1323,
-      626,
+      524,
       1446
      ],
      "flip": false,
      "overlap": 0,
-     "probes": 20,
      "core": 0,
+     "probes": 30,
      "protect": 0
     },
     {
      "id": "taxi-01",
+     "beat": "op-fly",
+     "at": 3.8,
+     "t0": 3.8,
+     "t1": 6.6,
+     "text": "渋谷の裏道、\nぜんぶ知ってるよ〜",
+     "chars": 15,
+     "nums": [],
+     "intro": true,
+     "box": [
+      42,
+      1322,
+      524,
+      1472
+     ],
+     "ghost": [
+      42,
+      1322,
+      170,
+      1472
+     ],
+     "bubble": [
+      174,
+      1323,
+      524,
+      1446
+     ],
+     "flip": false,
+     "overlap": 0,
+     "core": 0,
+     "probes": 30,
+     "protect": 0
+    },
+    {
+     "id": "taxi-02",
      "beat": "mission",
      "at": 0.1,
      "t0": 7.8,
@@ -1003,30 +1073,31 @@
      "nums": [],
      "box": [
       42,
-      1322,
+      506,
       524,
-      1472
+      656
      ],
      "ghost": [
       42,
-      1322,
+      506,
       170,
-      1472
+      656
      ],
      "bubble": [
       174,
-      1323,
+      507,
       524,
-      1446
+      630
      ],
      "flip": false,
      "overlap": 0,
      "probes": 16,
      "core": 0,
-     "protect": 0
+     "protect": 0,
+     "moved": true
     },
     {
-     "id": "taxi-02",
+     "id": "taxi-03",
      "beat": "rules",
      "at": 0.45,
      "t0": 11.15,
@@ -1036,30 +1107,31 @@
      "nums": [],
      "box": [
       42,
-      1322,
+      446,
       558,
-      1472
+      596
      ],
      "ghost": [
       42,
-      1322,
+      446,
       170,
-      1472
+      596
      ],
      "bubble": [
       174,
-      1323,
+      447,
       558,
-      1446
+      570
      ],
      "flip": false,
      "overlap": 0,
      "probes": 18,
      "core": 0,
-     "protect": 0
+     "protect": 0,
+     "moved": true
     },
     {
-     "id": "taxi-03",
+     "id": "taxi-04",
      "beat": "first-choice",
      "at": 0.4,
      "t0": 15.1,
@@ -1092,7 +1164,7 @@
      "protect": 0
     },
     {
-     "id": "taxi-04",
+     "id": "taxi-05",
      "beat": "true-end",
      "at": 0.3,
      "t0": 19.0,
@@ -1125,7 +1197,7 @@
      "protect": 0
     },
     {
-     "id": "taxi-05",
+     "id": "taxi-06",
      "beat": "guide",
      "at": 0.2,
      "t0": 22.9,
@@ -1158,7 +1230,7 @@
      "protect": 0
     },
     {
-     "id": "taxi-06",
+     "id": "taxi-07",
      "beat": "over-start",
      "at": 0.3,
      "t0": 26.0,
@@ -1191,7 +1263,7 @@
      "protect": 0
     },
     {
-     "id": "taxi-07",
+     "id": "taxi-08",
      "beat": "sim-plan",
      "at": 0.3,
      "t0": 29.5,
@@ -1224,7 +1296,7 @@
      "protect": 0
     },
     {
-     "id": "taxi-08",
+     "id": "taxi-09",
      "beat": "sim-plan",
      "at": 3.5,
      "t0": 32.7,
@@ -1263,7 +1335,7 @@
      "protect": 0
     },
     {
-     "id": "taxi-09",
+     "id": "taxi-10",
      "beat": "sim-plan",
      "at": 7.3,
      "t0": 36.5,
@@ -1296,7 +1368,7 @@
      "protect": 0
     },
     {
-     "id": "taxi-10",
+     "id": "taxi-11",
      "beat": "sim-pick",
      "at": 0.4,
      "t0": 40.6,
@@ -1329,7 +1401,7 @@
      "protect": 0
     },
     {
-     "id": "taxi-11",
+     "id": "taxi-12",
      "beat": "over-choice",
      "at": 0.3,
      "t0": 44.5,
@@ -1362,7 +1434,7 @@
      "protect": 0
     },
     {
-     "id": "taxi-12",
+     "id": "taxi-13",
      "beat": "over-move",
      "at": 0.4,
      "t0": 48.1,
@@ -1395,7 +1467,7 @@
      "protect": 0
     },
     {
-     "id": "taxi-13",
+     "id": "taxi-14",
      "beat": "over-result",
      "at": 0.4,
      "t0": 52.6,
@@ -1428,7 +1500,7 @@
      "protect": 0
     },
     {
-     "id": "taxi-14",
+     "id": "taxi-15",
      "beat": "crush-pov",
      "at": 0.4,
      "t0": 56.6,
@@ -1461,7 +1533,7 @@
      "protect": 0
     },
     {
-     "id": "taxi-15",
+     "id": "taxi-16",
      "beat": "crush-pov",
      "at": 4.4,
      "t0": 60.6,
@@ -1501,7 +1573,7 @@
      "protect": 0
     },
     {
-     "id": "taxi-16",
+     "id": "taxi-17",
      "beat": "over-lesson",
      "at": 0.4,
      "t0": 69.1,
@@ -1534,7 +1606,7 @@
      "protect": 0
     },
     {
-     "id": "taxi-17",
+     "id": "taxi-18",
      "beat": "continue",
      "at": 0.3,
      "t0": 74.0,
@@ -1567,7 +1639,7 @@
      "protect": 0
     },
     {
-     "id": "taxi-18",
+     "id": "taxi-19",
      "beat": "retry-why",
      "at": 0.3,
      "t0": 77.0,
@@ -1607,7 +1679,7 @@
      "protect": 0
     },
     {
-     "id": "taxi-19",
+     "id": "taxi-20",
      "beat": "clear-choice",
      "at": 0.2,
      "t0": 81.9,
@@ -1640,7 +1712,7 @@
      "protect": 0
     },
     {
-     "id": "taxi-20",
+     "id": "taxi-21",
      "beat": "clear-choice",
      "at": 3.8,
      "t0": 85.5,
@@ -1673,7 +1745,7 @@
      "protect": 0
     },
     {
-     "id": "taxi-21",
+     "id": "taxi-22",
      "beat": "clear-move",
      "at": 0.4,
      "t0": 89.6,
@@ -1706,7 +1778,7 @@
      "protect": 0
     },
     {
-     "id": "taxi-22",
+     "id": "taxi-23",
      "beat": "clear-pov",
      "at": 0.2,
      "t0": 93.9,
@@ -1739,7 +1811,7 @@
      "protect": 0
     },
     {
-     "id": "taxi-23",
+     "id": "taxi-24",
      "beat": "clear-result",
      "at": 0.5,
      "t0": 97.2,
@@ -1772,7 +1844,7 @@
      "protect": 0
     },
     {
-     "id": "taxi-24",
+     "id": "taxi-25",
      "beat": "clear-cheat",
      "at": 0.3,
      "t0": 103.5,
@@ -1805,7 +1877,7 @@
      "protect": 0
     },
     {
-     "id": "taxi-25",
+     "id": "taxi-26",
      "beat": "kaiju",
      "at": 0.3,
      "t0": 107.0,
@@ -1838,7 +1910,7 @@
      "protect": 0
     },
     {
-     "id": "taxi-26",
+     "id": "taxi-27",
      "beat": "sources",
      "at": 0.3,
      "t0": 119.0,
@@ -1878,16 +1950,17 @@
     {
      "id": "zone-00",
      "beat": "op-fly",
-     "at": 1.2,
-     "t0": 1.2,
-     "t1": 4.96,
-     "text": "やっほー！渋谷の道なら\nぜんぶ知ってるおばけだよ",
-     "chars": 23,
+     "at": 1.0,
+     "t0": 1.0,
+     "t1": 3.56,
+     "text": "どーも！\n渋谷系おばけです〜",
+     "chars": 13,
      "nums": [],
+     "intro": true,
      "box": [
       42,
       1322,
-      626,
+      524,
       1472
      ],
      "ghost": [
@@ -1899,17 +1972,51 @@
      "bubble": [
       174,
       1323,
-      626,
+      524,
       1446
      ],
      "flip": false,
      "overlap": 0,
-     "probes": 20,
      "core": 0,
+     "probes": 30,
      "protect": 0
     },
     {
      "id": "zone-01",
+     "beat": "op-fly",
+     "at": 3.8,
+     "t0": 3.8,
+     "t1": 6.6,
+     "text": "渋谷の裏道、\nぜんぶ知ってるよ〜",
+     "chars": 15,
+     "nums": [],
+     "intro": true,
+     "box": [
+      42,
+      1322,
+      524,
+      1472
+     ],
+     "ghost": [
+      42,
+      1322,
+      170,
+      1472
+     ],
+     "bubble": [
+      174,
+      1323,
+      524,
+      1446
+     ],
+     "flip": false,
+     "overlap": 0,
+     "core": 0,
+     "probes": 30,
+     "protect": 0
+    },
+    {
+     "id": "zone-02",
      "beat": "mission",
      "at": 0.1,
      "t0": 7.8,
@@ -1919,30 +2026,31 @@
      "nums": [],
      "box": [
       42,
-      1322,
+      506,
       524,
-      1472
+      656
      ],
      "ghost": [
       42,
-      1322,
+      506,
       170,
-      1472
+      656
      ],
      "bubble": [
       174,
-      1323,
+      507,
       524,
-      1446
+      630
      ],
      "flip": false,
      "overlap": 0,
      "probes": 16,
      "core": 0,
-     "protect": 0
+     "protect": 0,
+     "moved": true
     },
     {
-     "id": "zone-02",
+     "id": "zone-03",
      "beat": "rules",
      "at": 0.45,
      "t0": 11.15,
@@ -1952,30 +2060,31 @@
      "nums": [],
      "box": [
       42,
-      1322,
+      446,
       558,
-      1472
+      596
      ],
      "ghost": [
       42,
-      1322,
+      446,
       170,
-      1472
+      596
      ],
      "bubble": [
       174,
-      1323,
+      447,
       558,
-      1446
+      570
      ],
      "flip": false,
      "overlap": 0,
      "probes": 18,
      "core": 0,
-     "protect": 0
+     "protect": 0,
+     "moved": true
     },
     {
-     "id": "zone-03",
+     "id": "zone-04",
      "beat": "first-choice",
      "at": 0.4,
      "t0": 15.1,
@@ -2008,7 +2117,7 @@
      "protect": 0
     },
     {
-     "id": "zone-04",
+     "id": "zone-05",
      "beat": "true-end",
      "at": 0.3,
      "t0": 19.0,
@@ -2041,7 +2150,7 @@
      "protect": 0
     },
     {
-     "id": "zone-05",
+     "id": "zone-06",
      "beat": "guide",
      "at": 0.2,
      "t0": 22.9,
@@ -2074,7 +2183,7 @@
      "protect": 0
     },
     {
-     "id": "zone-06",
+     "id": "zone-07",
      "beat": "over-start",
      "at": 0.3,
      "t0": 26.0,
@@ -2107,7 +2216,7 @@
      "protect": 0
     },
     {
-     "id": "zone-07",
+     "id": "zone-08",
      "beat": "sim-plan",
      "at": 0.3,
      "t0": 29.5,
@@ -2140,7 +2249,7 @@
      "protect": 0
     },
     {
-     "id": "zone-08",
+     "id": "zone-09",
      "beat": "sim-plan",
      "at": 3.5,
      "t0": 32.7,
@@ -2179,7 +2288,7 @@
      "protect": 0
     },
     {
-     "id": "zone-09",
+     "id": "zone-10",
      "beat": "sim-plan",
      "at": 7.3,
      "t0": 36.5,
@@ -2212,7 +2321,7 @@
      "protect": 0
     },
     {
-     "id": "zone-10",
+     "id": "zone-11",
      "beat": "sim-pick",
      "at": 0.4,
      "t0": 40.6,
@@ -2245,7 +2354,7 @@
      "protect": 0
     },
     {
-     "id": "zone-11",
+     "id": "zone-12",
      "beat": "over-choice",
      "at": 0.3,
      "t0": 44.5,
@@ -2278,7 +2387,7 @@
      "protect": 0
     },
     {
-     "id": "zone-12",
+     "id": "zone-13",
      "beat": "over-move",
      "at": 0.4,
      "t0": 48.1,
@@ -2311,7 +2420,7 @@
      "protect": 0
     },
     {
-     "id": "zone-13",
+     "id": "zone-14",
      "beat": "over-result",
      "at": 0.4,
      "t0": 52.6,
@@ -2344,7 +2453,7 @@
      "protect": 0
     },
     {
-     "id": "zone-14",
+     "id": "zone-15",
      "beat": "crush-pov",
      "at": 0.4,
      "t0": 56.6,
@@ -2377,7 +2486,7 @@
      "protect": 0
     },
     {
-     "id": "zone-15",
+     "id": "zone-16",
      "beat": "crush-pov",
      "at": 4.4,
      "t0": 60.6,
@@ -2417,7 +2526,7 @@
      "protect": 0
     },
     {
-     "id": "zone-16",
+     "id": "zone-17",
      "beat": "over-lesson",
      "at": 0.4,
      "t0": 69.1,
@@ -2450,7 +2559,7 @@
      "protect": 0
     },
     {
-     "id": "zone-17",
+     "id": "zone-18",
      "beat": "continue",
      "at": 0.3,
      "t0": 74.0,
@@ -2483,7 +2592,7 @@
      "protect": 0
     },
     {
-     "id": "zone-18",
+     "id": "zone-19",
      "beat": "retry-why",
      "at": 0.3,
      "t0": 77.0,
@@ -2523,7 +2632,7 @@
      "protect": 0
     },
     {
-     "id": "zone-19",
+     "id": "zone-20",
      "beat": "clear-choice",
      "at": 0.2,
      "t0": 81.9,
@@ -2556,7 +2665,7 @@
      "protect": 0
     },
     {
-     "id": "zone-20",
+     "id": "zone-21",
      "beat": "clear-choice",
      "at": 3.8,
      "t0": 85.5,
@@ -2589,7 +2698,7 @@
      "protect": 0
     },
     {
-     "id": "zone-21",
+     "id": "zone-22",
      "beat": "clear-move",
      "at": 0.4,
      "t0": 89.6,
@@ -2622,7 +2731,7 @@
      "protect": 0
     },
     {
-     "id": "zone-22",
+     "id": "zone-23",
      "beat": "clear-pov",
      "at": 0.2,
      "t0": 93.9,
@@ -2655,7 +2764,7 @@
      "protect": 0
     },
     {
-     "id": "zone-23",
+     "id": "zone-24",
      "beat": "clear-result",
      "at": 0.5,
      "t0": 97.2,
@@ -2688,7 +2797,7 @@
      "protect": 0
     },
     {
-     "id": "zone-24",
+     "id": "zone-25",
      "beat": "clear-cheat",
      "at": 0.3,
      "t0": 103.5,
@@ -2721,7 +2830,7 @@
      "protect": 0
     },
     {
-     "id": "zone-25",
+     "id": "zone-26",
      "beat": "kaiju",
      "at": 0.3,
      "t0": 107.0,
@@ -2754,7 +2863,7 @@
      "protect": 0
     },
     {
-     "id": "zone-26",
+     "id": "zone-27",
      "beat": "sources",
      "at": 0.3,
      "t0": 119.0,
@@ -2794,16 +2903,17 @@
     {
      "id": "alt-00",
      "beat": "op-fly",
-     "at": 1.2,
-     "t0": 1.2,
-     "t1": 4.96,
-     "text": "やっほー！渋谷の道なら\nぜんぶ知ってるおばけだよ",
-     "chars": 23,
+     "at": 1.0,
+     "t0": 1.0,
+     "t1": 3.56,
+     "text": "どーも！\n渋谷系おばけです〜",
+     "chars": 13,
      "nums": [],
+     "intro": true,
      "box": [
       42,
       1322,
-      626,
+      524,
       1472
      ],
      "ghost": [
@@ -2815,17 +2925,51 @@
      "bubble": [
       174,
       1323,
-      626,
+      524,
       1446
      ],
      "flip": false,
      "overlap": 0,
      "core": 0,
-     "probes": 20,
+     "probes": 30,
      "protect": 0
     },
     {
      "id": "alt-01",
+     "beat": "op-fly",
+     "at": 3.8,
+     "t0": 3.8,
+     "t1": 6.6,
+     "text": "渋谷の裏道、\nぜんぶ知ってるよ〜",
+     "chars": 15,
+     "nums": [],
+     "intro": true,
+     "box": [
+      42,
+      1322,
+      524,
+      1472
+     ],
+     "ghost": [
+      42,
+      1322,
+      170,
+      1472
+     ],
+     "bubble": [
+      174,
+      1323,
+      524,
+      1446
+     ],
+     "flip": false,
+     "overlap": 0,
+     "core": 0,
+     "probes": 30,
+     "protect": 0
+    },
+    {
+     "id": "alt-02",
      "beat": "mission",
      "at": 0.1,
      "t0": 7.8,
@@ -2835,30 +2979,31 @@
      "nums": [],
      "box": [
       42,
-      1322,
+      506,
       524,
-      1472
+      656
      ],
      "ghost": [
       42,
-      1322,
+      506,
       170,
-      1472
+      656
      ],
      "bubble": [
       174,
-      1323,
+      507,
       524,
-      1446
+      630
      ],
      "flip": false,
      "overlap": 0,
      "core": 0,
      "probes": 16,
-     "protect": 0
+     "protect": 0,
+     "moved": true
     },
     {
-     "id": "alt-02",
+     "id": "alt-03",
      "beat": "rules",
      "at": 0.45,
      "t0": 11.15,
@@ -2868,30 +3013,31 @@
      "nums": [],
      "box": [
       42,
-      1322,
+      446,
       558,
-      1472
+      596
      ],
      "ghost": [
       42,
-      1322,
+      446,
       170,
-      1472
+      596
      ],
      "bubble": [
       174,
-      1323,
+      447,
       558,
-      1446
+      570
      ],
      "flip": false,
      "overlap": 0,
      "core": 0,
      "probes": 18,
-     "protect": 0
+     "protect": 0,
+     "moved": true
     },
     {
-     "id": "alt-03",
+     "id": "alt-04",
      "beat": "first-choice",
      "at": 0.4,
      "t0": 15.1,
@@ -2924,7 +3070,7 @@
      "protect": 0
     },
     {
-     "id": "alt-04",
+     "id": "alt-05",
      "beat": "true-end",
      "at": 0.3,
      "t0": 19.0,
@@ -2957,7 +3103,7 @@
      "protect": 0
     },
     {
-     "id": "alt-05",
+     "id": "alt-06",
      "beat": "guide",
      "at": 0.2,
      "t0": 22.9,
@@ -2990,7 +3136,7 @@
      "protect": 0
     },
     {
-     "id": "alt-06",
+     "id": "alt-07",
      "beat": "over-start",
      "at": 0.3,
      "t0": 26.0,
@@ -3023,7 +3169,7 @@
      "protect": 0
     },
     {
-     "id": "alt-07",
+     "id": "alt-08",
      "beat": "sim-plan",
      "at": 0.3,
      "t0": 29.5,
@@ -3056,7 +3202,7 @@
      "protect": 0
     },
     {
-     "id": "alt-08",
+     "id": "alt-09",
      "beat": "sim-plan",
      "at": 3.5,
      "t0": 32.7,
@@ -3095,7 +3241,7 @@
      "protect": 0
     },
     {
-     "id": "alt-09",
+     "id": "alt-10",
      "beat": "sim-plan",
      "at": 7.3,
      "t0": 36.5,
@@ -3128,7 +3274,7 @@
      "protect": 0
     },
     {
-     "id": "alt-10",
+     "id": "alt-11",
      "beat": "sim-pick",
      "at": 0.4,
      "t0": 40.6,
@@ -3161,7 +3307,7 @@
      "protect": 0
     },
     {
-     "id": "alt-11",
+     "id": "alt-12",
      "beat": "over-choice",
      "at": 0.3,
      "t0": 44.5,
@@ -3194,7 +3340,7 @@
      "protect": 0
     },
     {
-     "id": "alt-12",
+     "id": "alt-13",
      "beat": "crush-pov",
      "at": 0.4,
      "t0": 48.1,
@@ -3227,7 +3373,7 @@
      "protect": 0
     },
     {
-     "id": "alt-13",
+     "id": "alt-14",
      "beat": "crush-pov",
      "at": 4.4,
      "t0": 52.1,
@@ -3267,7 +3413,7 @@
      "protect": 0
     },
     {
-     "id": "alt-14",
+     "id": "alt-15",
      "beat": "over-move",
      "at": 0.4,
      "t0": 56.1,
@@ -3300,7 +3446,7 @@
      "protect": 0
     },
     {
-     "id": "alt-15",
+     "id": "alt-16",
      "beat": "over-result",
      "at": 0.4,
      "t0": 60.6,
@@ -3333,7 +3479,7 @@
      "protect": 0
     },
     {
-     "id": "alt-16",
+     "id": "alt-17",
      "beat": "over-lesson",
      "at": 0.4,
      "t0": 69.1,
@@ -3366,7 +3512,7 @@
      "protect": 0
     },
     {
-     "id": "alt-17",
+     "id": "alt-18",
      "beat": "continue",
      "at": 0.3,
      "t0": 74.0,
@@ -3399,7 +3545,7 @@
      "protect": 0
     },
     {
-     "id": "alt-18",
+     "id": "alt-19",
      "beat": "retry-why",
      "at": 0.3,
      "t0": 77.0,
@@ -3445,7 +3591,7 @@
      "protect": 0
     },
     {
-     "id": "alt-19",
+     "id": "alt-20",
      "beat": "clear-choice",
      "at": 0.2,
      "t0": 81.9,
@@ -3478,7 +3624,7 @@
      "protect": 0
     },
     {
-     "id": "alt-20",
+     "id": "alt-21",
      "beat": "clear-choice",
      "at": 3.8,
      "t0": 85.5,
@@ -3511,7 +3657,7 @@
      "protect": 0
     },
     {
-     "id": "alt-21",
+     "id": "alt-22",
      "beat": "clear-move",
      "at": 0.4,
      "t0": 89.6,
@@ -3544,7 +3690,7 @@
      "protect": 0
     },
     {
-     "id": "alt-22",
+     "id": "alt-23",
      "beat": "clear-pov",
      "at": 0.2,
      "t0": 93.9,
@@ -3577,7 +3723,7 @@
      "protect": 0
     },
     {
-     "id": "alt-23",
+     "id": "alt-24",
      "beat": "clear-result",
      "at": 0.5,
      "t0": 97.2,
@@ -3610,7 +3756,7 @@
      "protect": 0
     },
     {
-     "id": "alt-24",
+     "id": "alt-25",
      "beat": "clear-cheat",
      "at": 0.3,
      "t0": 103.5,
@@ -3643,7 +3789,7 @@
      "protect": 0
     },
     {
-     "id": "alt-25",
+     "id": "alt-26",
      "beat": "kaiju",
      "at": 0.3,
      "t0": 107.0,
@@ -3676,7 +3822,7 @@
      "protect": 0
     },
     {
-     "id": "alt-26",
+     "id": "alt-27",
      "beat": "sources",
      "at": 0.3,
      "t0": 119.0,

@@ -4,7 +4,7 @@ v10 work dir + the share file. The v10 timeline, cue sheet and ghost lines are t
 mix is the v9 mix recomputed (same cues, same shove times as the photo crush POV's kicks).
   share: <pair>-share.mp4 = x264 crf 23 (preset slow, yuv420p, faststart) + the same AAC audio, must be < 200 MB.
 usage: python3 tools/v10_finish.py audio|mux|contact|verify|share|all <pair>
-env: OUT (default /workspace/demos/halloween-escape-series/jr-v10), WORK10
+env: OUT (default /workspace/demos/halloween-escape-series/jr-v10.1), WORK10
 """
 from __future__ import annotations
 
@@ -17,7 +17,7 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT/'tools'))
-os.environ.setdefault('OUT', '/workspace/demos/halloween-escape-series/jr-v10')
+os.environ.setdefault('OUT', '/workspace/demos/halloween-escape-series/jr-v10.1')
 import render_v9 as R9  # noqa: E402
 import v9_finish as F9  # noqa: E402
 from v10_composite import WORK10  # noqa: E402

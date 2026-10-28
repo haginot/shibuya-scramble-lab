@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """JR v10 compositor: the v9 video (tools/v9_composite.py: same timeline, CG / HUD renders, cuts, ghost lines) with two
 photoreal Gemini plates (tools/v10_plan.json, approved by HAGINO) instead of the procedural flat costumed crowd:
-  hachiko3  grounded-refs/v3/01-hachiko.png: the Hachiko gate passage (gate route: over-move / over-result / caught /
+  hachiko3  grounded-refs/v3/01-hachiko-v2.png (v10.1): Hachiko-mae from the exit side (gate route: over-move / over-result / caught /
             over-lesson / continue) and the opening Hachiko-mae reveal (rules, every pair). The costumed people are in
             the photo: no procedural figures, no press row, no 2.5D floor split (it would double real people).
             caught: the photo crowd stays a still bystander crowd under the camera shake; the attackers are still ONLY
@@ -14,7 +14,7 @@ Everything else is v9 frame for frame. The ghost overlay reads variants/jr/v10/g
 boxes re-checked against the faces / sign panel of the new photos).
 Rendered in SEG-frame segments ($WORK10/<pair>/seg/, finished segments are skipped → a restart resumes), then concatenated.
 usage: python3 tools/v10_composite.py <pair> [--frames a:b --out FILE] [--stills t1,t2,... --stills-dir DIR]
-env: WORK10 (default /workspace/projects/logs/ssl-claude-halloween/v10/render), SEG10 (frames per segment, 600)
+env: WORK10 (default /workspace/projects/logs/ssl-claude-halloween/v10.1/render), SEG10 (frames per segment, 600)
 """
 from __future__ import annotations
 
@@ -36,7 +36,7 @@ import v9_ghost as GHOST  # noqa: E402
 from v9_composite import V7C, COS, W, H, TR, PLAN, FPS, build_index, pieces, segments, cg_path  # noqa: E402
 
 from v10_shots import PLAN10, NEW, spec, crush_cam, crush_to_out, to_out  # noqa: E402
-WORK10 = Path(os.environ.get('WORK10', '/workspace/projects/logs/ssl-claude-halloween/v10/render'))
+WORK10 = Path(os.environ.get('WORK10', '/workspace/projects/logs/ssl-claude-halloween/v10.1/render'))
 SEG = int(os.environ.get('SEG10', 600))
 GHOST10 = ROOT/'web3d/shibuya/series/variants/jr/v10/ghost.json'
 for _pid, _g in PLAN10['geom'].items():
