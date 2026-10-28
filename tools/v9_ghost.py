@@ -200,8 +200,59 @@ def layout(box_xy, bw, bh, flip=False):
     return g, b, (x, min(g[1], b[1]), max(g[2], b[2]), y+hh)
 
 
-def place(pair):
+def hud_mask(pair, bt, t0, t1):
+    """union of the HUD probe frames (HUD-only renders, every 6th frame) of every beat overlapping [t0, t1) → (mask, probes)."""
     from render_v9 import WORK
+    mask = np.zeros((H, W), bool); probes = 0
+    for k, b in bt.items():
+        if b['t1'] <= t0 or b['t0'] >= t1: continue
+        who = 'opening' if b['part'] == 'opening' else pair
+        d = WORK/who/'probe'/b['part']
+        fa, fb = int(round((max(t0, b['t0'])-b['off'])*FPS)), int(round((min(t1, b['t1'])-b['off'])*FPS))
+        for f in sorted(d.glob('f*.png')):
+            n = int(f.stem[1:])
+            if fa <= n < fb:
+                al = np.asarray(Image.open(f).convert('RGBA'))[..., 3].astype(np.int16)
+                # card beats lay a dim full-frame backdrop (alpha ~150–210) under the card: HUD = clearly above it
+                a = (al >= 240) | (al > np.median(al)+35)
+                mask |= a; probes += 1
+    return mask, probes
+
+
+def _sat(m):
+    return np.pad(m.astype(np.int32).cumsum(0).cumsum(1), ((1, 0), (1, 0)))
+
+
+def rect_sum(ii, r):
+    return int(ii[r[3], r[2]]-ii[r[1], r[2]]-ii[r[3], r[0]]+ii[r[1], r[0]])
+
+
+def search(mask, lns, protect=None):
+    """best ghost + bubble box for one beat's lines: least HUD core, (protect: least overlap with the protected mask first),
+    least dilated-HUD overlap, no flip, nearest the lower-left. → (g, b, box, flip, overlap, core, prot)"""
+    # dilate the HUD mask (keep a margin around panels / captions)
+    m = Image.fromarray((mask*255).astype(np.uint8)).filter(ImageFilter.MaxFilter(25))
+    ii = _sat(np.asarray(m) > 0); raw = _sat(mask); pp = _sat(protect) if protect is not None else None
+    area = lambda r: rect_sum(ii, r)
+    core = lambda r: rect_sum(raw, r)
+    prot = (lambda r: rect_sum(pp, r)) if pp is not None else (lambda r: 0)
+    bw = max(bubble_size(l['text'])[0] for l in lns); bh = max(bubble_size(l['text'])[1] for l in lns)
+    best = None
+    hh = max(GH, bh); tw = GW+GAP+bw
+    assert SAFE['x0']+tw <= SAFE['x1'], (lns[0]['beat'], tw)
+    pref_y = SAFE['y1']-hh-12
+    for flip in (False, True):
+        for x in range(SAFE['x0'], SAFE['x1']-tw+1, 12):
+            for y in range(SAFE['y0'], SAFE['y1']-hh+1, 6):
+                g, b, box = layout((x, y), bw, bh, flip)
+                ov = area(g)+area(b)
+                score = ((prot(g)+prot(b)) if pp is not None else 0, core(g)+core(b), ov, flip, abs(y-pref_y)/H+(x-SAFE['x0'])/W*.5)
+                if best is None or score < best[0]: best = (score, g, b, box, flip)
+    (pr, c, ov, _, _), g, b, box, flip = best
+    return g, b, box, flip, ov, c, pr
+
+
+def place(pair):
     G = json.loads(GHOST_JSON.read_text(encoding='utf-8'))
     bt = beat_table(pair); lines = G['pairs'][pair]['lines']
     # group lines per beat (one box per beat: the ghost does not hop around inside a beat)
@@ -209,43 +260,12 @@ def place(pair):
     for ln in lines: groups.setdefault(ln['beat'], []).append(ln)
     for beat, lns in groups.items():
         t0, t1 = min(l['t0'] for l in lns)-.15, max(l['t1'] for l in lns)+.25
-        mask = np.zeros((H, W), bool); probes = 0
-        for k, b in bt.items():
-            if b['t1'] <= t0 or b['t0'] >= t1: continue
-            who = 'opening' if b['part'] == 'opening' else pair
-            d = WORK/who/'probe'/b['part']
-            fa, fb = int(round((max(t0, b['t0'])-b['off'])*FPS)), int(round((min(t1, b['t1'])-b['off'])*FPS))
-            for f in sorted(d.glob('f*.png')):
-                n = int(f.stem[1:])
-                if fa <= n < fb:
-                    al = np.asarray(Image.open(f).convert('RGBA'))[..., 3].astype(np.int16)
-                    # card beats lay a dim full-frame backdrop (alpha ~150–210) under the card: HUD = clearly above it
-                    a = (al >= 240) | (al > np.median(al)+35)
-                    mask |= a; probes += 1
+        mask, probes = hud_mask(pair, bt, t0, t1)
         assert probes, (pair, beat, 'no HUD probe frames')
-        # dilate the HUD mask (keep a margin around panels / captions)
-        m = Image.fromarray((mask*255).astype(np.uint8)).filter(ImageFilter.MaxFilter(25))
-        ii = (np.asarray(m) > 0).astype(np.int32).cumsum(0).cumsum(1)
-        ii = np.pad(ii, ((1, 0), (1, 0)))
-        area = lambda x0, y0, x1, y1: int(ii[y1, x1]-ii[y0, x1]-ii[y1, x0]+ii[y0, x0])
-        raw = np.pad(mask.astype(np.int32).cumsum(0).cumsum(1), ((1, 0), (1, 0)))
-        core = lambda r: int(raw[r[3], r[2]]-raw[r[1], r[2]]-raw[r[3], r[0]]+raw[r[1], r[0]])
-        bw = max(bubble_size(l['text'])[0] for l in lns); bh = max(bubble_size(l['text'])[1] for l in lns)
-        best = None
-        hh = max(GH, bh); tw = GW+GAP+bw
-        assert SAFE['x0']+tw <= SAFE['x1'], (pair, beat, tw)
-        pref_y = SAFE['y1']-hh-12
-        for flip in (False, True):
-            for x in range(SAFE['x0'], SAFE['x1']-tw+1, 12):
-                for y in range(SAFE['y0'], SAFE['y1']-hh+1, 6):
-                    g, b, box = layout((x, y), bw, bh, flip)
-                    ov = area(g[0], g[1], g[2], g[3])+area(b[0], b[1], b[2], b[3])
-                    score = (core(g)+core(b), ov, flip, abs(y-pref_y)/H+(x-SAFE['x0'])/W*.5)
-                    if best is None or score < best[0]: best = (score, g, b, box, flip)
-        (_, ov, _, _), g, b, box, flip = best
+        g, b, box, flip, ov, core, _ = search(mask, lns)
         for l in lns:
-            l.update(box=list(box), ghost=list(g), bubble=list(b), flip=flip, overlap=ov, core=core(g)+core(b), probes=probes)
-        print(f'{pair} {beat:12s} probes={probes:3d} box={box} core={core(g)+core(b)} overlap={ov}')
+            l.update(box=list(box), ghost=list(g), bubble=list(b), flip=flip, overlap=ov, core=core, probes=probes)
+        print(f'{pair} {beat:12s} probes={probes:3d} box={box} core={core} overlap={ov}')
     GHOST_JSON.write_text(json.dumps(G, ensure_ascii=False, indent=1)+'\n', encoding='utf-8')
 
 
