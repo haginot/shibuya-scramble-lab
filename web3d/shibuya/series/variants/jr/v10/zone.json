@@ -873,7 +873,7 @@
         },
         {
           "c": "caption",
-          "ja": "スクランブル交差点：一歩も前に進めない",
+          "ja": "スクランブル交差点：一歩も進めない",
           "factIds": [],
           "tone": "warn",
           "at": 0.9,
@@ -3108,6 +3108,14 @@
   "v10": {
     "from": "v9/zone",
     "fixes": [
+      {
+        "beat": "crush-pov",
+        "c": "caption",
+        "key": "ja",
+        "from": "スクランブル交差点：一歩も前に進めない",
+        "to": "スクランブル交差点：一歩も進めない",
+        "why": "v11: the caption wrapped its last character onto line 2 (since v10.1)"
+      },
       {
         "beat": "clear-stamp",
         "c": "stamp",

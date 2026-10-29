@@ -214,7 +214,7 @@ def test_v10_configs_are_v9_plus_the_listed_fixes(pair):
     for k in ('id', 'generated', 'v10'): c10.pop(k); c9.pop(k, None)
     assert c10 == c9
     assert sorted({f['beat'] for f in fixes}) == sorted(_changed(pair))
-    assert len(fixes) == dict(gate=3, taxi=0, zone=1, alt=2)[pair]
+    assert len(fixes) == dict(gate=3, taxi=0, zone=2, alt=2)[pair]   # v11: + the zone crush-pov wrap fix
 
 
 def _plate(pair, beat):
@@ -257,7 +257,8 @@ def test_v102_hud_frames_cover_the_changed_beats(pair):
     HUD = pytest.importorskip('v10_hud')
     ch = HUD.changed_beats(pair)
     assert [b for b, _, _ in ch] == _changed(pair)
-    d = RENDER/'v10.2/render'/pair/'hud'/'body'
+    # v11: zone's wrap fix is rendered in its own JP work dir (jr-v10.2 stays untouched)
+    d = (RENDER/'v11-en/ja-zone-fix/render' if pair == 'zone' else RENDER/'v10.2/render')/pair/'hud'/'body'
     if ch and not d.exists(): pytest.skip('v10.2 HUD not rendered yet')
     for _, f0, f1 in ch:
         assert all((d/f'f{f:05d}.png').exists() for f in range(f0, f1))

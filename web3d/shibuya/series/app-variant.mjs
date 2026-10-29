@@ -104,7 +104,7 @@ export async function start(params){
    const ft=typeof s.footnote==='function'?s.footnote(ids):s.footnote;if(ft){strings.push(ft);h+=`<div class="f">${ft}</div>`;}el.innerHTML=h;
    return {T:s.T,parody:false,fiction:notice,notice,parodyNote:src,header:!!s.header,items:s.items.map(i=>i.c),strings,factIds:ids,sims,stamps,cheat:s.items.some(i=>i.c==='cheat'),choice:null,boxes:[],safe:{ok:true,violations:[]},footnote:ft?{ids,text:ft}:null,plain:true};}};}
  const srcRows=VS.sourceRows(body.sources||[],{facts:FACTS,sources:SOURCES});
- const footnote=ids=>VS.footnoteFor(ids,{facts:FACTS,sourceNames,lang,credit:DATA_CREDIT});
+ const footnote=ids=>VS.footnoteFor(ids,{facts:FACTS,sourceNames,lang,credit:lang==='en'?'3D: PLATEAU · © OpenStreetMap contributors':DATA_CREDIT});
 
  // ---------- shots / crowd states (built once per beat) ----------
  const shotCache=new Map();
@@ -181,7 +181,7 @@ export async function start(params){
   const cfgBeat=(cfg.beats||[]).find(b=>b.id===spec.beat.id),bl=spec.beat.local;let simStats=null;
   if(SIM.layer){const sm=cfgBeat?.simmap;simStats=SIM.layer.update(sm&&!res.blank?sm:null,{simT:sm?SIM.M.simTimeAt(sm,bl):0,frames:sm?SIM.frames[sm.scenario]:null,project:S.project,t:bl});}
   if(SIM.M)items=items.map(it=>it.c==='simpanel'?{...it,...SIM.M.panelState(SIM.sum[it.scenario],it,bl,{from:it.from?SIM.sum[it.from]:null,clockStart:it.clockStart??null})}:it.c==='simmeter'?{...it,...SIM.M.meterState(SIM.sum[it.scenario],it,bl)}:it.c==='crushmeter'?{...it,...SIM.M.meterState(it.track==='worst'?{...SIM.sum[it.scenario],track:SIM.sum[it.scenario].worst}:SIM.sum[it.scenario],it,bl)}:it);
-  items=items.map(it=>{if(it.c==='pin'&&Array.isArray(it.world)){const q=S.project(it.world[0],it.world[1]??0,it.world[2]??0);return q.inFrame?{...it,x:q.x,y:q.y}:null;}if(typeof it.crowd==='string'){const f=frAll?.hud?.items?.find(x=>x.id===it.crowd);return f?{...it,c:it.c==='sim'?'sim':it.c,ja:f.text}:null;}return it;}).filter(Boolean);
+  items=items.map(it=>{if(it.c==='pin'&&Array.isArray(it.world)){const q=S.project(it.world[0],it.world[1]??0,it.world[2]??0);return q.inFrame?{...it,x:q.x,y:q.y}:null;}if(typeof it.crowd==='string'){const f=frAll?.hud?.items?.find(x=>x.id===it.crowd);return f?{...it,c:it.c==='sim'?'sim':it.c,ja:lang==='en'&&f.textEn?f.textEn.replace('(simulation)','(SIMULATION)'):f.text}:null;}return it;}).filter(Boolean);
   // 「位置・構造は概略」 for approximate sets / the station interior: a design-system corner tag (ui/components.mjs tag)
   // (not on the caught POV: the creature hands own the frame edges there)
   const plateTag=hudOnly?(cfg.beats||[]).find(b=>b.id===spec.beat.id)?.plateTag??null:null;
@@ -200,7 +200,7 @@ export async function start(params){
    caught:e.caught?{t:+e.caught.t.toFixed(3),intensity:+e.caught.intensity.toFixed(3),press:+e.caught.press.toFixed(3),flash:+e.caught.flash.toFixed(3),black:e.caught.black,vfx:!!fxOn.caught}:null,
    kaiju:e.kaiju?{rise:+e.kaiju.rise.toFixed(3),eyes:+e.kaiju.eyes.toFixed(3),roar:+e.kaiju.roar.toFixed(3),model:!!fxOn.kaiju}:null,blank:!!res.blank,
    simpanel:rec.simpanel??null,simmeter:rec.simmeter??null,crushmeter:rec.crushmeter??null,simmap:simStats,
-   cont:rec.cont??null,endcard:rec.endcard??null,gag:rec.gag??null,credit:rec.credit??null,goodbye:rec.goodbye??null,guide:rec.guide??null,mission:rec.mission??null,
+   cont:rec.cont??null,fit:rec.fit??null,endcard:rec.endcard??null,gag:rec.gag??null,credit:rec.credit??null,goodbye:rec.goodbye??null,guide:rec.guide??null,mission:rec.mission??null,
    ms:{sim:Math.round(simMs),render:Math.round(renderMs)},hudOnly,plateTag:approx&&hudOnly?approx:null,peopleDrawn:drawn,near:near?.last?.drawn??0,interior:nInterior,fade:+(post.settings.uFade.value).toFixed(3),cutFade:+(+spec.fade).toFixed(3)};
   window.__variantOverlay=out;
   return {t,frame:Math.round(t*VS.FPS),beat:spec.beat.id,shot:spec.shot.key,ms:out.ms,drawCalls:S.renderer.info.render.calls,triangles:S.renderer.info.render.triangles,agents:S.nAgents};}

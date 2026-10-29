@@ -22,6 +22,7 @@
 //   stamp {onBlack:true, safety} (GAME OVER on the hard cut to black), sources {compact:true} (over+clear union).
 // Item fields per component: see the JSDoc line above each function below. Texts: item[lang] ?? item.ja.
 import {SAFE,ZONE,FOOT_CLEAR,COLOR,MOTION,EASE,clamp,seg,mix,hash,cssVars,fontFaceCSS,FONT_LOADS} from './tokens.mjs';
+import {tr,trDeep,loadDict,CJK_RE} from '../i18n/i18n.mjs';
 
 export const HUD_TEXT=Object.freeze({   // game-framing strings (no facts)
  parody:'※パロディ', parodySub:'架空のゲーム演出', fiction:'フィクション',
@@ -127,7 +128,16 @@ export function enterStyle(kind,t,dur,opt={}){
 const rowIn=(t,i,base=.18,kind='x')=>{const k=EASE.outCubic(seg(t,base+i*MOTION.stagger,base+i*MOTION.stagger+.28));return `opacity:${f3(k)};transform:translate${kind==='x'?'X':'Y'}(${f3((1-k)*(kind==='x'?-22:14))}px)`;};
 const panel=(cls,inner,{style='',inStyle='',acc=null,brackets=true,attrs=''}={})=>
  `<div class="gh-sh ${cls}" style="${style}" ${attrs}><div class="gh-panel"${acc?` style="--acc:${acc}"`:''}><div class="in" style="${inStyle}">${inner}${brackets?'<i class="gh-br tr"></i><i class="gh-br bl"></i>':''}</div></div></div>`;
-const tab=(label,{ic='',jp=''}={})=>`<div class="gh-tab">${ic?icon(ic):''}<span>${esc(label)}</span>${jp?`<span class="jp">${esc(jp)}</span>`:''}</div>`;
+// v11-en: LANG = the lang of the item being rendered (set by render()); in EN the JP sub-label of a tab is translated and
+// dropped when it only repeats the tab word ('SIM' + 「シミュレーション」 → 'SIMULATION')
+let LANG='ja';
+const tab=(label,{ic='',jp=''}={})=>{if(LANG==='en'){const j=tr(jp,'en');if(j&&j.toUpperCase().startsWith(String(label).toUpperCase())){label=j.toUpperCase();jp='';}else jp=j&&j.toUpperCase()!==String(label).toUpperCase()?j:'';}
+ return `<div class="gh-tab">${ic?icon(ic):''}<span>${esc(label)}</span>${jp?`<span class="jp">${esc(jp)}</span>`:''}</div>`;};
+// v11-en: text between tags of a rendered HUD html string → its EN entry (hard-coded component words, dynamic labels);
+// the config / sim strings are translated before rendering (GameHUD.frame trDeep)
+const unesc=s=>s.replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&#39;/g,"'").replace(/&amp;/g,'&');
+export function trHtml(h,lang){if(lang!=='en'||!CJK_RE.test(h))return h;
+ return h.replace(/>([^<>]+)</g,(m,x)=>{if(!CJK_RE.test(x))return m;const u=unesc(x),e=tr(u,'en');return e===u?m:'>'+esc(e)+'<';});}
 
 // ---------- result builder ----------
 function R(slot,lang){const r={slot,html:'',strings:[],factIds:[],sims:[],stamps:[]};
@@ -370,7 +380,7 @@ function cont(item,env){const r=R('center',env.lang),t=item.t??0,dur=item.dur??3
 //   box: the question types on (layout fixed, chars revealed), a ▼ prompt blinks when done, sub line, small credit line.
 //   Put {c:'logo'} + lockup:false if the 3D logotype is used instead. Use header:false on the beat (the lockup is the title).
 function endcard(item,env){const r=R('center',env.lang),t=item.t??0,dur=item.dur??2.5,st=enterStyle('scale',t,dur);
- const q=L(item,env.lang),lines=q.split('\n'),maxLen=Math.max(1,...lines.map(l=>[...l].length)),fs=Math.round(Math.min(item.fs??52,520/maxLen));
+ const q=L(item,env.lang),lines=q.split('\n'),maxLen=Math.max(1,...lines.map(l=>clen(l))),fs=Math.round(Math.min(item.fs??52,520/maxLen));
  r.txt(item);const cps=item.cps??30,t0=item.t0??.1,total=[...q.replace(/\n/g,'')].length,shown=Math.floor(Math.max(0,t-t0)*cps),done=shown>=total;
  let k=0;const qh=lines.map(l=>[...l].map(ch=>`<span${k++<shown?'':' class="h"'}>${html(ch)}</span>`).join('')).join('<br>');
  const lk=EASE.outBack(seg(t,0,.34)),blink=done?(Math.floor((t-(t0+total/cps))/.28)%2?.25:1):0,sk=EASE.outCubic(seg(t,t0+total/cps,t0+total/cps+.3));
@@ -383,7 +393,7 @@ function endcard(item,env){const r=R('center',env.lang),t=item.t??0,dur=item.dur
 //   beat: a spiky starburst (jittered, deterministic) slams in, every character hops in on its own and keeps bouncing,
 //   the whole thing wobbles; optional small tilted sub band. Own slot (gag) above the cards, below the clock/header.
 function gag(item,env){const r=R('gag',env.lang),t=item.t??0,dur=item.dur??0,a=life(t,dur,{enter:.18,exit:.2});
- const s=L(item,env.lang);r.txt(item);const lines=s.split('\n'),maxLen=Math.max(1,...lines.map(l=>[...l].length)),fs=Math.round(Math.min(item.fs??80,430/maxLen));
+ const s=L(item,env.lang);r.txt(item);const lines=s.split('\n'),maxLen=Math.max(1,...lines.map(l=>clen(l))),fs=Math.round(Math.min(item.fs??80,430/maxLen));
  const y=item.y??800,W=SAFE.W-SAFE.left-SAFE.right,H=Math.round(lines.length*fs*1.18+140);
  const bk=EASE.outBack(seg(t,0,.22)),shake=Math.exp(-t*7),f=Math.floor(t*MOTION.fps),jx=(hash(f,83)-.5)*16*shake,jy=(hash(f,89)-.5)*12*shake;
  const rot=(item.rot??-6)+2.2*Math.sin(2*Math.PI*1.3*t);
@@ -397,7 +407,10 @@ function gag(item,env){const r=R('gag',env.lang),t=item.t??0,dur=item.dur??0,a=l
 // ---------- v6 「渋谷Halloweenには近づくな」 (2026-10-27): mission card, first-choice card, guide card, GOODBYE end card ----------
 // split a JA line for display only (line breaks are the only allowed change): after 「、」 when the line is long
 const brk=(s,max=16)=>s.split('\n').flatMap(l=>[...l].length>max&&l.includes('、')?l.replace(/、(?!$)/,'、\n').split('\n'):[l]);
-const fitFs=(line,base,avail)=>Math.round(Math.min(base,avail/Math.max(1,[...line].length)));
+// v11-en: the width of a line in em of the JP full-width cell (fitFs / endcard / gag lines are set in the display font,
+// Dela Gothic One: Latin lower ≈ .67 em, upper ≈ .91 em, space .2 em; measured with fontTools). JP stays the char count.
+const clen=l=>LANG==='en'?[...l].reduce((a,c)=>a+(CJK_RE.test(c)?1:/[A-Z]/.test(c)?.92:/[a-z0-9?]/.test(c)?.68:c===' '?.2:.4),0)*1.04:[...l].length;
+const fitFs=(line,base,avail)=>Math.round(Math.min(base,avail/Math.max(1,clen(line))));
 
 // mission card: {card:true, ja (2 lines, \n), en?, issuer?, label?, labelJa?, fiction?:false, factIds} — opening mission beat.
 //   Centre card: fictional issuer line, MISSION tab, JA line 1 hero size, line 2 (auto-wrapped after 「、」) a bit smaller,
@@ -460,28 +473,28 @@ export function goodbyeTiming({dur=8}={}){const e=.32;
 //   font only, attribution 「（渋谷区）」; (2) facts rows (when | what) neutral; (3) OUR message in the game's own panel style
 //   (pumpkin bevel, pumpkin icon, 「制作チームより」 tab) — never inside the quote, never attributed to the city; footer sources +
 //   fiction note. EN small under each JA block. record r.goodbye={blocks, lines:[…verbatim, line breaks removed]}.
-function goodbye(item,env){const r=R('press',env.lang),t=item.t??0,dur=item.dur??8,G=GOODBYE_TEXT,T=goodbyeTiming({dur});
+function goodbye(item,env){const r=R('press',env.lang),t=item.t??0,dur=item.dur??8,G=GOODBYE_TEXT,T=goodbyeTiming({dur}),EN=env.lang==='en';
  const Q={...G.quote,...(item.quote||{})},F=item.facts??G.facts,O={...G.ours,...(item.ours||{})},FT={...G.foot,...(item.foot||{})};
  const out=life(t,dur,{exit:.3}).kout,bin=at=>{const k=EASE.outCubic(seg(t,at,at+.32));return `opacity:${f3(k*(1-out))};transform:translateY(${f3((1-k)*16)}px)`;};
  const one=s=>String(s).replace(/\n/g,''),ln=s=>{const v=one(s);r.strings.push(v);return v;};r.ids(item.factIds);
  const H=s=>html(s);// \n → <br>
  // block 1 — quote (neutral, attributed)
- ln(Q.title);ln(one(Q.ja)+Q.attr);ln(Q.en+' '+Q.enAttr);
- const b1=`<div class="gb-q" data-c="goodbye-quote" style="${bin(T.quote)}">${Q.label===false?'':`<span class="ql">${esc(Q.label??HUD_TEXT.quoteLabel)}</span>`}<div class="qt">${H(Q.title)}</div><div class="qj">${H(Q.ja)}<span class="qa">${esc(Q.attr)}</span></div><div class="qe">${esc(Q.en)} <span class="qa">${esc(Q.enAttr)}</span></div></div>`;
+ ln(Q.title);ln(one(Q.ja)+Q.attr);if(!EN)ln(Q.en+' '+Q.enAttr);
+ const b1=`<div class="gb-q" data-c="goodbye-quote" style="${bin(T.quote)}">${Q.label===false?'':`<span class="ql">${esc(Q.label??HUD_TEXT.quoteLabel)}</span>`}<div class="qt">${H(Q.title)}</div><div class="qj">${H(Q.ja)}<span class="qa">${esc(Q.attr)}</span></div>${EN?'':`<div class="qe">${esc(Q.en)} <span class="qa">${esc(Q.enAttr)}</span></div>`}</div>`;
  // block 2 — facts (neutral rows: when | what)
- const b2=`<div class="gb-f" data-c="goodbye-facts" style="${bin(T.facts)}">${F.map(f=>{const v=ln(f.ja),m=/^(.*?)[　 ]+(.*)$/.exec(v),en=f.en?ln(f.en):'';
+ const b2=`<div class="gb-f" data-c="goodbye-facts" style="${bin(T.facts)}">${F.map(f=>{const v=ln(f.ja),m=(EN?/^(.*?):\s+(.*)$/:/^(.*?)[　 ]+(.*)$/).exec(v),en=f.en&&!EN?ln(f.en):'';
   return `<div class="fr"><span class="fi">${icon('clock')}</span><div class="fb"><div class="fj">${m?`<b>${esc(m[1])}</b><br><span>${esc(m[2])}</span>`:esc(v)}</div>${en?`<div class="fe">${esc(en)}</div>`:''}</div></div>`;}).join('')}</div>`;
  // block 3 — OUR message (game panel, own label)
- ln(O.ja);if(O.en)ln(O.en);const oj=H(O.ja).replace(/「行かない」/g,'<em>「行かない」</em>');
+ ln(O.ja);if(O.en&&!EN)ln(O.en);const oj=EN?H(O.ja).replace(/(don&#39;t go|don't go|skip(?:ping)? it)/i,'<em>$1</em>'):H(O.ja).replace(/「行かない」/g,'<em>「行かない」</em>');
  const lab=O.label??HUD_TEXT.oursLabel,tabEn=O.tab??HUD_TEXT.oursTab;
- const b3=panel('gb-o',`<div class="oh">${icon('pumpkin')}${tab(tabEn,{jp:lab})}</div><div class="oj">${oj}</div>${O.en?`<div class="oe">${esc(O.en)}</div>`:''}`,{style:bin(T.ours),attrs:'data-c="goodbye-ours"'});
+ const b3=panel('gb-o',`<div class="oh">${icon('pumpkin')}${tab(tabEn,{jp:lab})}</div><div class="oj">${oj}</div>${O.en&&!EN?`<div class="oe">${esc(O.en)}</div>`:''}`,{style:bin(T.ours),attrs:'data-c="goodbye-ours"'});
  r.strings.push(lab);
  // footer — sources + fiction note
- ln(FT.ja);if(FT.en)ln(FT.en);
- const b4=`<div class="gb-ft" data-c="goodbye-foot" style="${bin(T.foot)}"><div>${FT.ja.split(/(?<=　)(?=※)/).map(esc).join('<br>')}</div>${FT.en?`<div class="fe">${esc(FT.en)}</div>`:''}</div>`;
+ ln(FT.ja);if(FT.en&&!EN)ln(FT.en);
+ const b4=`<div class="gb-ft" data-c="goodbye-foot" style="${bin(T.foot)}"><div>${EN?html(FT.ja):FT.ja.split(/(?<=　)(?=※)/).map(esc).join('<br>')}</div>${FT.en&&!EN?`<div class="fe">${esc(FT.en)}</div>`:''}</div>`;
  r.html=`<div class="gh-goodbye" data-c="goodbye" style="left:${SAFE.left}px;right:${SAFE.right}px;top:${SAFE.top+12}px;bottom:${SAFE.bottom+12}px">${b1}${b2}${b3}${b4}</div>`;
  r.fx=`<div class="gh-tint gb" style="opacity:${f3(seg(t,0,.25)*(1-out))}"></div>`;
- r.goodbye={blocks:4,quoteAttr:Q.attr,full:t>=T.fullFrom&&t<=T.exit};r.parodyNote=/フィクション/.test(FT.ja);return r;}
+ r.goodbye={blocks:4,quoteAttr:Q.attr,full:t>=T.fullFrom&&t<=T.exit};r.parodyNote=EN?!!FT.ja:/フィクション/.test(FT.ja);return r;}
 
 // ---------- v8: the crowd-flow simulation drives the route choice (STEERING-sim-core.md, 2026-10-28) ----------
 // simpanel: {rows:[{key,label,sub,color,final,shown(s),total,offsim:{seconds}|null,rho,bar 0..1,risk,score,ruledOut:{ja}|null,
@@ -541,7 +554,7 @@ export const EXTERNAL_KEYS=Object.freeze(['logo']);   // rendered by other modul
 
 // render one item → result (or null for external/unknown keys)
 export function render(item,env={}){const fn=COMPONENTS[item.c];if(!fn){if(!EXTERNAL_KEYS.includes(item.c))console.warn?.(`hud: unknown component ${item.c}`);return null;}
- return fn(item,{lang:'ja',...env});}
+ LANG=env.lang??'ja';const r=fn(item,{lang:'ja',...env});LANG='ja';if(r&&env.lang==='en'){r.html=trHtml(r.html,'en');if(r.fx)r.fx=trHtml(r.fx,'en');}return r;}
 
 // ================= browser layer =================
 const prng=seed=>()=>{seed=(seed*16807)%2147483647;return seed/2147483647;};
@@ -552,6 +565,25 @@ function vnoise(size,cells,rnd){const g=[];for(let i=0;i<cells*cells;i++)g.push(
  return (x,y)=>{const fx=x/size*cells,fy=y/size*cells,ix=Math.floor(fx),iy=Math.floor(fy),u=EASE.smooth(fx-ix),v=EASE.smooth(fy-iy);return mix(mix(at(ix,iy),at(ix+1,iy),u),mix(at(ix,iy+1),at(ix+1,iy+1),u),v);};}
 
 const isObjS=v=>v&&typeof v==='object';
+function measureFit(root){const cjk=[],wraps=[],over=[];
+ const txt=root.innerText||'';for(const l of txt.split('\n'))if(CJK_RE.test(l))cjk.push(l.trim());
+ for(const e of root.querySelectorAll('*')){if(e.closest('svg'))continue;const tn=[...e.childNodes].filter(n=>n.nodeType===3&&n.textContent.trim());if(!tn.length)continue;
+  const cs=getComputedStyle(e);if(cs.display==='none'||cs.visibility==='hidden')continue;
+  const want=1+[...e.childNodes].filter(n=>n.nodeName==='BR').length,tops=new Set();let lh=parseFloat(cs.lineHeight)||parseFloat(cs.fontSize)*1.3;
+  for(const n of tn){const rg=document.createRange();rg.selectNodeContents(n);for(const q of rg.getClientRects())if(q.width>1)tops.add(Math.round(q.top/4));}
+  const lines=[...tops].sort((a,b)=>a-b).filter((v,i,a)=>!i||v-a[i-1]>1).length;
+  const host=e.closest('[data-c]'),c=host?.dataset.c??'',info={c,cls:String(e.className||e.nodeName),text:e.textContent.trim().slice(0,60),lines,want};
+  if(lines>want)wraps.push(info);
+  // overflow: the text's ink box must stay inside every clipping ancestor (overflow ≠ visible) and inside the frame
+  let tb=null;for(const n of tn){const rg=document.createRange();rg.selectNodeContents(n);const q=rg.getBoundingClientRect();if(q.width>1)tb=tb?{l:Math.min(tb.l,q.left),r:Math.max(tb.r,q.right),t:Math.min(tb.t,q.top),b:Math.max(tb.b,q.bottom)}:{l:q.left,r:q.right,t:q.top,b:q.bottom};}
+  if(!tb)continue;
+  let clip=null;for(let a=e;a&&a!==root;a=a.parentElement){const ac=getComputedStyle(a);if(ac.overflow!=='visible'||ac.overflowX!=='visible'){const q=a.getBoundingClientRect();if(tb.l<q.left-1||tb.r>q.right+1||tb.t<q.top-2||tb.b>q.bottom+2){clip=a;break;}}}
+  const hb=host?.getBoundingClientRect(),settled=!hb||(hb.left>=-1&&hb.right<=SAFE.W+1);   // sliding in / out: frame edge not checked
+  let anim=false;for(let a=e;a&&a!==root;a=a.parentElement){const tf=getComputedStyle(a).transform;if(tf&&tf!=='none'){const m=/matrix\(([^,]+),([^,]+)/.exec(tf);if(m&&Math.abs(Math.hypot(+m[1],+m[2])-1)>.02){anim=true;break;}}}
+  if(e.closest('.gh-glitch')||['stamp','continue','press-start'].includes(c))anim=anim||!clip&&!(tb.l>=-1&&tb.r<=SAFE.W+1);   // glitch jitter / stamp slam: frame edge as in JP
+  if(anim)continue;   // scaling in / out (stamp slam, card pop): checked once settled
+  if(clip||(settled&&(tb.l<-1||tb.r>SAFE.W+1)))over.push({...info,box:[Math.round(tb.l),Math.round(tb.t),Math.round(tb.r),Math.round(tb.b)],clip:clip?String(clip.className):'frame'});}
+ return {cjk,wraps,over};}
 const SLOT_ORDER=['fx','pins','center','top','press','low','gag','foot','clock','header','parody'];
 export class GameHUD{
  constructor(parent=document.body,{lang='ja',fontBase=null,cssHref=null}={}){
@@ -575,7 +607,7 @@ export class GameHUD{
   Object.assign(this.el.low.style,{left:ZONE.low.left+'px',right:ZONE.low.right+'px',bottom:ZONE.low.bottom+'px'});
   for(const k of ['foot','clock','header','parody'])Object.assign(this.el[k].style,{inset:'0'});
   this.cache={};
-  this.ready=Promise.all([cssLoaded,...FONT_LOADS.map(s=>document.fonts.load(s,'渋谷脱出せよ！ABC0123'))]).then(()=>document.fonts.ready).then(()=>true);
+  this.ready=Promise.all([cssLoaded,...(lang==='en'?[loadDict()]:[]),...FONT_LOADS.map(s=>document.fonts.load(s,'渋谷脱出せよ！ABC0123'))]).then(()=>document.fonts.ready).then(()=>true);
  }
  set(slot,h){if(this.cache[slot]!==h){this.el[slot].innerHTML=h;this.cache[slot]=h;}}
  // state: {T, items[], header?:bool|{…}, clock?:{…}|null, footnote?:string|{ja}|(ids)=>string|null, parody?:{…}, config?, sources?, lang?}
@@ -583,7 +615,8 @@ export class GameHUD{
  //           safe:{ok, violations:[…]}, footnote:{ids,text}, footBox,
  //           cont:{digit,yes,yesAt,ticks}|null, endcard:{typed,total,done}|null, gag:bool, credit:bool (PLATEAU credit line drawn)}
  frame(state={}){
-  const lang=state.lang??this.lang,T=state.T??0,env={lang,T,config:state.config,sources:state.sources};
+  const lang=state.lang??this.lang,T=state.T??0;if(lang==='en')state=trDeep(state,lang);
+  const env={lang,T,config:state.config,sources:state.sources};
   const out={fx:'',pins:'',center:'',top:'',press:'',low:'',gag:'',chips:'',foot:'',clock:'',header:'',parody:''};
   const rec={T,parody:false,fiction:false,notice:false,parodyNote:false,header:false,items:[],strings:[],factIds:[],sims:[],stamps:[],cheat:false,choice:null,labels:[],cont:null,endcard:null,gag:false,credit:false,goodbye:null,guide:null,mission:null};
   const add=res=>{if(!res)return;out[res.slot]+=res.html;if(res.fx)out.fx+=res.fx;rec.strings.push(...res.strings);for(const id of res.factIds)if(!rec.factIds.includes(id))rec.factIds.push(id);
@@ -607,6 +640,9 @@ export class GameHUD{
    if(box.y0<SAFE.top-tol||box.y1>SAFE.H-SAFE.bottom+tol||box.x0<0||box.x1>xr+tol)viol.push(box);}
   rec.safe={ok:viol.length===0,violations:viol};
   const fe=this.root.querySelector('.gh-foot');if(fe){const b=fe.getBoundingClientRect();rec.footBox={top:Math.round(b.top),bottom:Math.round(b.bottom),right:Math.round(b.right),scrollH:fe.scrollHeight,clientH:fe.clientHeight,limit:Math.min(SAFE.H-SAFE.bottom,Math.round(SAFE.H*(1-FOOT_CLEAR.bottomFrac))),rlimit:Math.round(SAFE.W*(1-FOOT_CLEAR.rightFrac))};}
+  // v11-en: text fit (EN, or window.__measureText): CJK left on screen, and every text element whose rendered lines exceed its
+  // explicit lines (an automatic wrap) or whose text overflows its box → rec.fit {cjk:[…], wraps:[{c,cls,text,lines,want}], over:[…]}
+  if(lang==='en'||globalThis.__measureText)rec.fit=measureFit(this.root);
   rec.parody=rec.parody&&!!this.root.querySelector('.gh-parody');rec.fiction=rec.fiction&&!!this.root.querySelector('.gh-fiction');
   return rec;}
 }

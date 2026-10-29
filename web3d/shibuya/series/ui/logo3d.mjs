@@ -32,11 +32,13 @@ export const LOGO_TIMELINE=Object.freeze({
 const T=LOGO_TIMELINE;
 
 const here=u=>new URL(u,import.meta.url);
-export async function loadLogoGlyphs(url=here('../../../data/logo_glyphs.json')){const r=await fetch(url);if(!r.ok)throw Error(`logo glyphs ${r.status}`);return r.json();}
+// v11-en: the variant page with lang=en (body.lang-en) gets the English lockup (tools/build_logo_glyphs.py --lang en)
+const SFX=()=>globalThis.document?.body?.classList.contains('lang-en')?'_en':'';
+export async function loadLogoGlyphs(url=here(`../../../data/logo_glyphs${SFX()}.json`)){const r=await fetch(url);if(!r.ok)throw Error(`logo glyphs ${r.status}`);return r.json();}
 const loadField=url=>new Promise((res,rej)=>new THREE.TextureLoader().load(String(url),t=>{t.colorSpace=THREE.NoColorSpace;t.minFilter=THREE.LinearFilter;t.magFilter=THREE.LinearFilter;t.generateMipmaps=false;t.flipY=true;res(t);},undefined,rej));
 // logo_sdf.png + (optional) logo_halo.png: the hole-filled backing field the backdrop halo reads (fixer 2026-10-26: no
 // glow rings in the glyph counters); the halo texture rides on sdf.userData.halo (missing file → the backing channel)
-export async function loadLogoSdf(url=here('../../../data/logo_sdf.png'),haloUrl=here('../../../data/logo_halo.png')){const t=await loadField(url);
+export async function loadLogoSdf(url=here(`../../../data/logo_sdf${SFX()}.png`),haloUrl=here(`../../../data/logo_halo${SFX()}.png`)){const t=await loadField(url);
  try{t.userData.halo=await loadField(haloUrl);}catch{t.userData.halo=null;}return t;}
 
 const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));

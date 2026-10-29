@@ -392,7 +392,7 @@ class Overlay:
         l = next((l for l in s['lines'] if l['t0'] <= t < l['t1']+.12), None)
         if l is not None:
             bw, bh = l['bubble'][2]-l['bubble'][0], l['bubble'][3]-l['bubble'][1]
-            n = int(min(l['chars'], (t-l['t0'])*40)+1)          # quick typewriter (40 chars/s)
+            n = int(min(l['chars'], (t-l['t0'])*l.get('cps', 40))+1)   # quick typewriter (40 chars/s; v11-en lines: cps 60)
             flip = bool(l.get('flip'))
             im = bubble_img(l['text'], n, bw, bh, flip)
             u = ease_back((t-l['t0'])/.2); a = 1-min(1, max(0, (t-l['t1'])/.12))

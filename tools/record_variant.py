@@ -60,6 +60,13 @@ COMBINED_RANGE = (60, 80)  # series/variant-system.mjs COMBINED_VIDEO
 V6_RANGE = (75, 95)  # series/variant-system.mjs V6_VIDEO (v6 opening + v6 body; next/CONTRACT.md)
 V8_RANGE = (75, 100)  # V8_VIDEO (v8: the sim beats; < 100 s)
 V9_RANGE = (100, 130)   # v9: 100–130 s (STEERING-length.md, no cap); v10 (v9 configs + caption fixes) too
+# v11-en (--lang en, logs/ssl-claude-halloween/v11-en/brief.md): the page translates every on-screen string (i18n/en.json);
+# extra hard checks per frame: no CJK text on screen, no automatic wrap / overflow outside FIT_FREE components, the fiction
+# word only in the cold open (opening part), every sim item still labelled.
+LANG = os.environ.get('VARIANT_LANG', 'ja')
+CJK_RE = re.compile(r'[\u3000-\u30ff\u3400-\u9fff\uff00-\uffef]')
+FICTION_EN = re.compile(r'fiction', re.I)
+FIT_FREE = {'footnote', 'sources', 'simpanel'}   # paragraph boxes: may wrap on their own (still no overflow)
 
 
 def is_v6(plan):
@@ -75,18 +82,19 @@ def check_frame(rec, plan=None, facts=None, soft=None):
     """Assertions on one frame's record (window.__variantOverlay). Returns the record; soft issues → soft (dict counter)."""
     known, dropped = facts or fact_table()
     t = rec['t']
+    if LANG == 'en': check_en(rec)
     soft = soft if soft is not None else {}
     strings = rec.get('strings') or []
     # HAGINO steering 2026-10-26: no persistent ※パロディ label. The fictional operator notice (cold open) must carry the
     # small 「フィクション」 tag; the sources card must carry the parody/fiction note.
     items = rec.get('items') or []
     if rec.get('notice') or 'notice' in items:
-        assert rec.get('fiction') and any(FICTION in v for v in strings), ('「フィクション」 tag missing on the fictional notice', t)
+        assert rec.get('fiction') and (LANG == 'en' or any(FICTION in v for v in strings)), ('「フィクション」 tag missing on the fictional notice', t)
     if rec.get('mission'):   # v6: the mission card replaces the notice beat → same fiction-tag rule (HUD request 3)
-        assert rec.get('fiction') and any(FICTION in v for v in strings), ('「フィクション」 tag missing on the mission card', t)
+        assert rec.get('fiction') and (LANG == 'en' or any(FICTION in v for v in strings)), ('「フィクション」 tag missing on the mission card', t)
     if 'sources' in items:
         # v6 (QA): the note may say 「フィクション」 instead of 「パロディ」 (it follows a real, quoted city text)
-        assert rec.get('parodyNote') and any('パロディ' in v or FICTION in v for v in strings), ('sources card without the parody/fiction note', t)
+        assert rec.get('parodyNote') and (LANG == 'en' or any('パロディ' in v or FICTION in v for v in strings)), ('sources card without the parody/fiction note', t)
     for s in rec.get('sims') or []:
         assert s.get('label') and (SIM_JA in s['text'] or 'simulation' in s['text'].lower()), ('sim number without label', t, s)
     allowed = {STAMP_OF.get(k, k) for k in rec.get('allowedStamps') or []}
@@ -124,6 +132,26 @@ def check_frame(rec, plan=None, facts=None, soft=None):
     return rec
 
 
+def check_en(rec):
+    """v11-en hard checks on the DOM text measured by GameHUD.frame (rec.fit, ui/components.mjs measureFit)."""
+    t, fit = rec['t'], rec.get('fit')
+    assert fit is not None, ('EN frame without the text-fit record', t)
+    if os.environ.get('V11_FIT_SOFT'):   # layout probe (tools/v11_render.py probe): log every issue, never stop
+        try: return check_en_hard(rec, t, fit)
+        except AssertionError as e: print('fit:', json.dumps(e.args[0], ensure_ascii=False)[:400], flush=True); return
+    return check_en_hard(rec, t, fit)
+
+
+def check_en_hard(rec, t, fit):
+    assert not fit['cjk'], ('CJK text on an EN frame', t, rec.get('beat'), fit['cjk'][:4])
+    bad = [w for w in fit['wraps'] if w['c'] not in FIT_FREE]
+    assert not bad, ('automatic line wrap on an EN frame', t, rec.get('beat'), bad[:3])
+    assert not fit['over'], ('text overflows its box on an EN frame', t, rec.get('beat'), fit['over'][:3])
+    if rec.get('part') != 'opening':
+        hits = [v for v in rec.get('strings') or [] if FICTION_EN.search(v)]
+        assert not hits, ('the fiction word outside the cold open', t, rec.get('beat'), hits[:2])
+
+
 def check_plan(plan):
     assert plan['fps'] == FPS, plan['fps']
     assert plan['frames'] == round(plan['duration']*FPS), plan
@@ -144,7 +172,7 @@ def frame_line(frame, state, rec):
             'sims': [s['text'] for s in rec.get('sims') or []], 'stamps': rec.get('stamps'), 'claims': sorted(rec.get('claims') or []),
             'footnote': (rec.get('footnote') or {}).get('text'), 'safe': (rec.get('safe') or {}).get('ok'), 'fallbacks': rec.get('fallbacks'),
             'ms': rec.get('ms'), 'people': rec.get('peopleDrawn'), 'near': rec.get('near'), 'drawCalls': state.get('drawCalls'), 'triangles': state.get('triangles'),
-            **({k: rec[k] for k in ('simpanel', 'simmeter', 'simmap', 'crushmeter') if rec.get(k)})}  # v8/v9 sim records (tests/test_v8.py, test_v9.py)
+            **({k: rec[k] for k in ('simpanel', 'simmeter', 'simmap', 'crushmeter', 'fit') if rec.get(k)})}  # v8/v9 sim records (tests/test_v8.py, test_v9.py)
 
 
 def encoder_cmd(path, title=TITLE):
@@ -155,7 +183,7 @@ def encoder_cmd(path, title=TITLE):
 
 
 def page_query(variant, part, agents=None, pr=1.0, opening=None, hud_only=False):
-    q = f'mode=series&ep=jr&variant={variant}&part={part}&lang=ja&aspect=v&record=1&jrrun=/__series/jr-run.json&pr={pr}'
+    q = f'mode=series&ep=jr&variant={variant}&part={part}&lang={LANG}&aspect=v&record=1&jrrun=/__series/jr-run.json&pr={pr}'
     if hud_only: q += '&hudonly=1'
     if agents: q += f'&agents={int(agents)}'
     if opening: q += f'&opening={opening}'
@@ -363,7 +391,10 @@ def main(argv=None):
     ap.add_argument('--hud-only', action='store_true', help='v7: transparent HUD layer → RGBA PNGs in the --output directory')
     ap.add_argument('--stride', type=int, default=1, help='v9 (--hud-only): every n-th frame only (HUD layout probe for the ghost guide)')
     ap.add_argument('--run-cache', type=Path, default=RUN_CACHE)
+    ap.add_argument('--lang', choices=('ja', 'en'), default=None, help='v11-en: page language (default $VARIANT_LANG or ja)')
     a = ap.parse_args(argv)
+    global LANG
+    if a.lang: LANG = a.lang
     kw = dict(agents=a.agents, pr=a.pr, run_cache=a.run_cache, opening=a.opening, hud_only=a.hud_only, stride=a.stride)
     if a.stills_at: return record(a.variant, a.part, stills=a.stills, stills_at=a.stills_at, **kw)
     if not a.output: ap.error('--output is required (or --stills-at)')

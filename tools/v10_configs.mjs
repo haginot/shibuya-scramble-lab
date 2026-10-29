@@ -34,6 +34,10 @@ export const FIXES=[
   'plate crush3 is an open-air crowd, not a passage'],
  ['alt','crush-pov','caption','駅前の通路：一歩も前に進めない','駅前：一歩も前に進めない','ja',
   'plate crush3 is an open-air crowd, not a passage'],
+ // v11 (logs/ssl-claude-halloween/v11-en/brief.md): the zone crush-pov caption spilled its last character onto a 2nd line
+ // (since v10.1) → 「前に」 dropped (same meaning: can't move a step); re-rendered JP zone → jr-v11-en/ja-zone-fix
+ ['zone','crush-pov','caption','スクランブル交差点：一歩も前に進めない','スクランブル交差点：一歩も進めない','ja',
+  'v11: the caption wrapped its last character onto line 2 (since v10.1)'],
  ['zone','clear-stamp','stamp','原宿駅にたどり着いた！\n（シミュレーション）','渋谷を抜けて原宿駅へ！\n（シミュレーション）','ja',
   'plate meiji is Meiji-dori seen from the Shibuya deck, not Harajuku station'],
 ];

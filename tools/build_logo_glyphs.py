@@ -24,6 +24,9 @@ Also writes web3d/data/logo_halo.png (closed + hole-filled backing SDF for the b
 0.5 + d/(2*range) (d > 0 inside): R = title glyphs, G = backing slabs, B = badge / subtitle bar / ※パロディ tag plates.
 logo3d.mjs uses them for edge wear, contact shadows, glow halos and the burn-in reveal.
 
+v11-en (--lang en): the English lockup 「ESCAPE FROM / HALLOWEEN / SHIBUYA!」 + 「JR」 ticket + 「10/31 HOW DO YOU GET HOME?」
+→ web3d/data/logo_glyphs_en.json / logo_sdf_en.png / logo_halo_en.png (same fonts: all three have full Latin coverage).
+
 usage: uv run --with fonttools --with skia-pathops --with shapely --with numpy --with scipy --with pillow \
          python tools/build_logo_glyphs.py [--preview out.png]
 """
@@ -49,6 +52,13 @@ FONT_FILES = {
     'title': ('KaiseiTokumin-ExtraBold.ttf', 'Kaisei Tokumin ExtraBold', 'SIL OFL 1.1 (OFL-KaiseiTokumin.txt), github.com/google/fonts/tree/main/ofl/kaiseitokumin'),
     'badge': ('DelaGothicOne-Regular.ttf', 'Dela Gothic One', 'SIL OFL 1.1 (OFL-DelaGothicOne.txt), github.com/google/fonts/tree/main/ofl/delagothicone'),
     'sub': ('ZenKakuGothicNew-Black.ttf', 'Zen Kaku Gothic New Black', 'SIL OFL 1.1 (OFL-ZenKakuGothicNew.txt), github.com/google/fonts/tree/main/ofl/zenkakugothicnew'),
+}
+LANG = 'ja'
+TEXT = {
+    'ja': {'title': 'ハロウィンの渋谷を脱出せよ！', 'badge': 'JR編', 'subtitle': '10/31 渋谷からどう帰る？', 'parody': '※パロディ',
+           'press': 'PRESS START', 'pressSub': '▶ 脱出をはじめる'},
+    'en': {'title': 'ESCAPE FROM HALLOWEEN SHIBUYA!', 'badge': 'JR', 'subtitle': '10/31 HOW DO YOU GET HOME?', 'parody': '*PARODY',
+           'press': 'PRESS START', 'pressSub': '▶ START THE ESCAPE'},
 }
 TOL = .0016  # flatten / simplify tolerance (em)
 
@@ -163,9 +173,14 @@ def build():
                       'center': [round((b[0]+b[2])/2, 4), round((b[1]+b[3])/2, 4)], 'bbox': [round(v, 4) for v in b], 'polys': polys(geom)})
 
     # ---- title, three lines (layout in em, y up; recentred at the end) ----
-    L0 = set_line(T, 'ハロウィンの', 0.02, 2.02, .5, .035)
-    L1 = set_line(T, '渋谷を', -.02, 1.0, [1.04, 1.04, .7], [.0, .05, 0])
-    L2 = set_line(T, '脱出せよ！', -.02, -.04, [1.06, 1.06, .76, .76, .96], [.0, .06, .02, .02, 0])
+    if LANG == 'en':   # same three-line rhythm: small kicker line, two big lines (≈ the JP lockup's width)
+        L0 = set_line(T, 'ESCAPE FROM', 0.02, 2.0, .46, .03)
+        L1 = set_line(T, 'HALLOWEEN', -.02, 1.0, .74, .028)
+        L2 = set_line(T, 'SHIBUYA!', -.02, -.04, [.86]*7+[.9], [.035]*5+[-.07, .05, 0])
+    else:
+        L0 = set_line(T, 'ハロウィンの', 0.02, 2.02, .5, .035)
+        L1 = set_line(T, '渋谷を', -.02, 1.0, [1.04, 1.04, .7], [.0, .05, 0])
+        L2 = set_line(T, '脱出せよ！', -.02, -.04, [1.06, 1.06, .76, .76, .96], [.0, .06, .02, .02, 0])
     lines = [L0, L1, L2]
     # 「を」 / 「せよ」 sit on the baseline of the big kanji; nudge 「！」 a touch lower for a heavy finish.
     title = []
@@ -178,7 +193,7 @@ def build():
     bw, bh = 1.24, .66
     bx, by = max(l1[2]+.2+bw/2, l2[2]-bw/2+.02), (l1[1]+l1[3])/2+.03
     plate = affinity.translate(ticket(bw, bh, .085, .06), bx, by)
-    jr = set_line(B, 'JR編', 0, 0, [.42, .42, .44], [.025, .05, 0])
+    jr = set_line(B, 'JR', 0, 0, .42, [.025, 0]) if LANG == 'en' else set_line(B, 'JR編', 0, 0, [.42, .42, .44], [.025, .05, 0])
     jb = unary_union([g for _, g in jr]).bounds
     k = min((bw-.36)/(jb[2]-jb[0]), (bh-.2)/(jb[3]-jb[1]))  # fit inside the ticket (clear of the punch notches)
     jr = [(ch, affinity.scale(g, k, k, origin=(0, 0))) for ch, g in jr]
@@ -190,7 +205,7 @@ def build():
     full = unary_union([g for _, _, g in title]+[plate]).bounds
     sub = set_line(S, '10/31', 0, 0, .3, .012)
     xs = sub[-1][1].bounds[2]+.13
-    sub += set_line(S, '渋谷からどう帰る？', xs, 0, .3, .022)
+    sub += set_line(S, 'HOW DO YOU GET HOME?', xs, 0, .3, .018) if LANG == 'en' else set_line(S, '渋谷からどう帰る？', xs, 0, .3, .022)
     sg = unary_union([g for _, g in sub]); sb = sg.bounds
     cx = (full[0]+full[2])/2
     sy = full[1]-.42
@@ -200,7 +215,7 @@ def build():
     bar = parallelogram(sb[0]-.34, sb[2]+.34, sb[1]-.13, sb[3]+.13, .14)
 
     # ---- ※パロディ tag (top left, above 「ハロウィンの」) ----
-    par = set_line(S, '※パロディ', 0, 0, .2, .012)
+    par = set_line(S, TEXT[LANG]['parody'], 0, 0, .2, .012)
     pg = unary_union([g for _, g in par]).bounds
     l0 = unary_union([g for _, g in L0]).bounds
     off = (full[2]-pg[2]-.12, l0[1]+(l0[3]-l0[1])/2-(pg[1]+pg[3])/2)
@@ -214,7 +229,7 @@ def build():
     off = (cx-(pr[0]+pr[2])/2, bar.bounds[1]-.5-(pr[1]+pr[3])/2)
     press = [(ch, affinity.translate(g, *off)) for ch, g in press]
     pr = unary_union([g for _, g in press]).bounds
-    press2 = set_line(S, '脱出をはじめる', .2, 0, .17, .015)
+    press2 = set_line(S, TEXT[LANG]['pressSub'][2:], .2, 0, .17, .015)
     p2 = unary_union([g for _, g in press2]).bounds
     tri = Polygon([(0, p2[1]+.012), (0, p2[3]-.012), (.13, (p2[1]+p2[3])/2)])  # ▶ (drawn: not in the font)
     press2 = [('▶', tri)]+press2
@@ -255,8 +270,7 @@ def build():
     every = unary_union([mv(g) for _, _, g in title]+[mv(plate), mv(bar), mv(tag)]+[mv(g) for _, g in press2]).bounds
     data = {'version': 1, 'unit': 'em',
             'fonts': {k: {'file': f'web3d/fonts/{v[0]}', 'name': v[1], 'license': v[2]} for k, v in FONT_FILES.items()},
-            'text': {'title': 'ハロウィンの渋谷を脱出せよ！', 'badge': 'JR編', 'subtitle': '10/31 渋谷からどう帰る？', 'parody': '※パロディ',
-                     'press': 'PRESS START', 'pressSub': '▶ 脱出をはじめる'},
+            'text': dict(TEXT[LANG]), 'lang': LANG,
             'bbox': [round(v, 4) for v in every], 'items': items}
     return data
 
@@ -302,7 +316,7 @@ def build_sdf(data, out):
         sizes = np.bincount(lab.ravel()); keep = sizes > (.08/halo_px)**2; keep[0] = False; hm = keep[lab]
     hd = (edt(hm)-edt(~hm))*halo_px
     halo = (np.clip(.5+hd/(2*SDF_RANGE), 0, 1)*255+.5).astype(np.uint8)
-    hout = Path(out).with_name('logo_halo.png'); Image.fromarray(halo, 'L').save(hout, optimize=True)
+    hout = Path(out).with_name('logo_halo_en.png' if LANG == 'en' else 'logo_halo.png'); Image.fromarray(halo, 'L').save(hout, optimize=True)
     return {'file': 'web3d/data/'+Path(out).name, 'rect': rect, 'range': SDF_RANGE, 'channels': {k: v for k, v in chans.items()},
             'halo': 'web3d/data/'+hout.name}
 
@@ -325,11 +339,15 @@ def preview(data, out):
 
 if __name__ == '__main__':
     ap = argparse.ArgumentParser(description=__doc__.split('\n')[0])
-    ap.add_argument('--out', default=str(OUT))
+    ap.add_argument('--out', default=None)
+    ap.add_argument('--lang', default='ja', choices=['ja', 'en'])
     ap.add_argument('--preview', help='also write a flat 2D PNG of the layout')
     a = ap.parse_args()
+    LANG = a.lang
+    a.out = a.out or str(OUT.with_name('logo_glyphs_en.json') if LANG == 'en' else OUT)
     data = build()
-    data['sdf'] = build_sdf(data, Path(a.out).with_name('logo_sdf.png'))
+    if LANG == 'ja': del data['lang']   # the JP file stays byte-identical
+    data['sdf'] = build_sdf(data, Path(a.out).with_name('logo_sdf_en.png' if LANG == 'en' else 'logo_sdf.png'))
     Path(a.out).write_text(json.dumps(data, ensure_ascii=False, separators=(',', ':')))
     n = sum(len(p['o'])+sum(len(h) for h in p['h']) for it in data['items'] for p in it['polys'])
     print(f'{a.out}: {len(data["items"])} items, {n} outline points, bbox {data["bbox"]}, {Path(a.out).stat().st_size//1024} KiB')

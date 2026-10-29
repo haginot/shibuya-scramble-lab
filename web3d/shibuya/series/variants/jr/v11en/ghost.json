@@ -1,0 +1,4327 @@
+{
+ "generated": "tools/v11_ghost.py place (v10.2 lines in English; boxes re-checked against the EN HUD; do not edit by hand)",
+ "character": {
+  "name": "おばけ",
+  "design": "original, procedural (tools/v9_ghost.py draw_ghost): round white sheet body, tiny orange party hat, big simple eyes, stubby arms"
+ },
+ "rules": {
+  "maxLines": 2,
+  "maxChars": 24,
+  "readBase": 1.0,
+  "readPerChar": 0.05,
+  "silentBeats": [
+   "caught",
+   "over-stamp",
+   "clear-stamp",
+   "goodbye"
+  ],
+  "jargon": [
+   "heat map",
+   "heatmap",
+   "agent",
+   "density",
+   "solver",
+   "optimiz",
+   "score"
+  ],
+  "lang": "en",
+  "cps": 60,
+  "jpMaxWidth": 724
+ },
+ "safe": {
+  "x0": 42,
+  "x1": 918,
+  "y0": 230,
+  "y1": 1536
+ },
+ "pairs": {
+  "gate": {
+   "duration": 121.7,
+   "lines": [
+    {
+     "id": "gate-00",
+     "beat": "op-fly",
+     "at": 1.0,
+     "t0": 1.0,
+     "t1": 3.56,
+     "text": "Hiii! I'm the\nShibuya-kei Ghost~",
+     "chars": 31,
+     "nums": [],
+     "intro": true,
+     "box": [
+      42,
+      1322,
+      584,
+      1472
+     ],
+     "ghost": [
+      42,
+      1322,
+      170,
+      1472
+     ],
+     "bubble": [
+      174,
+      1323,
+      584,
+      1446
+     ],
+     "flip": false,
+     "overlap": 0,
+     "core": 0,
+     "probes": 65,
+     "protect": 0,
+     "ja": "どーも！\n渋谷系おばけです〜",
+     "jp_t1": 3.56,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "gate-01",
+     "beat": "op-fly",
+     "at": 3.8,
+     "t0": 3.8,
+     "t1": 7.15,
+     "text": "Shibuya-kei = 90s cool~\nI know every back alley!",
+     "chars": 47,
+     "nums": [],
+     "intro": true,
+     "box": [
+      42,
+      1322,
+      584,
+      1472
+     ],
+     "ghost": [
+      42,
+      1322,
+      170,
+      1472
+     ],
+     "bubble": [
+      174,
+      1323,
+      584,
+      1446
+     ],
+     "flip": false,
+     "overlap": 0,
+     "core": 0,
+     "probes": 65,
+     "protect": 0,
+     "ja": "渋谷の裏道、\nぜんぶ知ってるよ〜",
+     "jp_t1": 6.6,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "gate-02",
+     "beat": "mission",
+     "at": 0.1,
+     "t0": 7.8,
+     "t1": 10.6,
+     "text": "The mission is...\n\"don't go\"? Huh!",
+     "chars": 33,
+     "nums": [],
+     "box": [
+      42,
+      506,
+      470,
+      656
+     ],
+     "ghost": [
+      42,
+      506,
+      170,
+      656
+     ],
+     "bubble": [
+      174,
+      507,
+      470,
+      630
+     ],
+     "flip": false,
+     "overlap": 0,
+     "probes": 32,
+     "core": 0,
+     "protect": 0,
+     "moved": false,
+     "ja": "ミッションは\n「近づくな」だって",
+     "jp_t1": 10.6,
+     "cps": 60
+    },
+    {
+     "id": "gate-03",
+     "beat": "rules",
+     "at": 0.45,
+     "t0": 11.15,
+     "t1": 14.31,
+     "text": "So many costumes!\nBut isn't it too packed?",
+     "chars": 41,
+     "nums": [],
+     "box": [
+      42,
+      446,
+      569,
+      596
+     ],
+     "ghost": [
+      42,
+      446,
+      170,
+      596
+     ],
+     "bubble": [
+      174,
+      447,
+      569,
+      570
+     ],
+     "flip": false,
+     "overlap": 0,
+     "probes": 36,
+     "core": 0,
+     "protect": 0,
+     "moved": false,
+     "ja": "わ、仮装だらけ！\nでも人、多すぎない？",
+     "jp_t1": 14.31,
+     "cps": 60
+    },
+    {
+     "id": "gate-04",
+     "beat": "first-choice",
+     "at": 0.4,
+     "t0": 15.1,
+     "t1": 18.38,
+     "text": "A is \"don't go\".\nThat's allowed?!",
+     "chars": 32,
+     "nums": [],
+     "box": [
+      42,
+      1334,
+      459,
+      1484
+     ],
+     "ghost": [
+      42,
+      1334,
+      170,
+      1484
+     ],
+     "bubble": [
+      174,
+      1335,
+      459,
+      1458
+     ],
+     "flip": false,
+     "overlap": 0,
+     "probes": 37,
+     "core": 0,
+     "protect": 0,
+     "ja": "Aは「行かない」。\nそれ、アリなんだ！？",
+     "jp_t1": 18.38,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "gate-05",
+     "beat": "true-end",
+     "at": 0.3,
+     "t0": 19.0,
+     "t1": 22.52,
+     "text": "Not going = the best!\nThat's the TRUE END~",
+     "chars": 41,
+     "nums": [],
+     "box": [
+      42,
+      476,
+      560,
+      626
+     ],
+     "ghost": [
+      42,
+      476,
+      170,
+      626
+     ],
+     "bubble": [
+      174,
+      477,
+      560,
+      600
+     ],
+     "flip": false,
+     "overlap": 0,
+     "probes": 39,
+     "core": 0,
+     "protect": 0,
+     "ja": "行かないのが最強！\nだからTRUE END〜",
+     "jp_t1": 22.52,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "gate-06",
+     "beat": "guide",
+     "at": 0.2,
+     "t0": 22.9,
+     "t1": 25.46,
+     "text": "Already here?\nThen watch this~",
+     "chars": 29,
+     "nums": [],
+     "box": [
+      42,
+      1334,
+      476,
+      1484
+     ],
+     "ghost": [
+      42,
+      1334,
+      170,
+      1484
+     ],
+     "bubble": [
+      174,
+      1335,
+      476,
+      1458
+     ],
+     "flip": false,
+     "overlap": 0,
+     "probes": 29,
+     "core": 0,
+     "protect": 0,
+     "ja": "来ちゃった人は\nこっち見てね",
+     "jp_t1": 25.46,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "gate-07",
+     "beat": "over-start",
+     "at": 0.3,
+     "t0": 26.0,
+     "t1": 29.1,
+     "text": "This is the start.\nWhich way should we go~?",
+     "chars": 42,
+     "nums": [],
+     "box": [
+      42,
+      836,
+      616,
+      986
+     ],
+     "ghost": [
+      42,
+      836,
+      170,
+      986
+     ],
+     "bubble": [
+      174,
+      837,
+      616,
+      960
+     ],
+     "flip": false,
+     "overlap": 0,
+     "probes": 35,
+     "core": 0,
+     "protect": 0,
+     "ja": "ここがスタート。\nどの道で行こっか〜",
+     "jp_t1": 29.04,
+     "cps": 60,
+     "moved": true
+    },
+    {
+     "id": "gate-08",
+     "beat": "sim-plan",
+     "at": 0.3,
+     "t0": 29.5,
+     "t1": 32.42,
+     "text": "Red spots mean\npeople packed tight",
+     "chars": 33,
+     "nums": [],
+     "box": [
+      42,
+      812,
+      547,
+      962
+     ],
+     "ghost": [
+      42,
+      812,
+      170,
+      962
+     ],
+     "bubble": [
+      174,
+      813,
+      547,
+      936
+     ],
+     "flip": false,
+     "overlap": 0,
+     "probes": 108,
+     "core": 0,
+     "protect": 0,
+     "ja": "赤いとこは\n人ぎゅうぎゅうってこと",
+     "jp_t1": 32.42,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "gate-09",
+     "beat": "sim-plan",
+     "at": 3.5,
+     "t0": 32.7,
+     "t1": 36.22,
+     "text": "Every dot is a person.\nI counted 48,000~",
+     "chars": 39,
+     "nums": [
+      {
+       "quote": "4万8千人",
+       "value": 48000,
+       "src": "sim:plan.agents",
+       "quote_en": "48,000"
+      }
+     ],
+     "box": [
+      42,
+      812,
+      547,
+      962
+     ],
+     "ghost": [
+      42,
+      812,
+      170,
+      962
+     ],
+     "bubble": [
+      174,
+      813,
+      547,
+      936
+     ],
+     "flip": false,
+     "overlap": 0,
+     "probes": 108,
+     "core": 0,
+     "protect": 0,
+     "ja": "この点々ぜんぶ人ね。\n4万8千人、数えたよ〜",
+     "jp_t1": 36.22,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "gate-10",
+     "beat": "sim-plan",
+     "at": 7.3,
+     "t0": 36.5,
+     "t1": 39.9,
+     "text": "Comparing each road:\ntime, crowds, danger",
+     "chars": 40,
+     "nums": [],
+     "box": [
+      42,
+      812,
+      547,
+      962
+     ],
+     "ghost": [
+      42,
+      812,
+      170,
+      962
+     ],
+     "bubble": [
+      174,
+      813,
+      547,
+      936
+     ],
+     "flip": false,
+     "overlap": 0,
+     "probes": 108,
+     "core": 0,
+     "protect": 0,
+     "ja": "道ごとに時間と混み方と\n危なさを比べてるの",
+     "jp_t1": 39.9,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "gate-11",
+     "beat": "sim-pick",
+     "at": 0.4,
+     "t0": 40.6,
+     "t1": 44.12,
+     "text": "Gold road = fastest,\ncrowds included!",
+     "chars": 36,
+     "nums": [],
+     "box": [
+      378,
+      602,
+      864,
+      752
+     ],
+     "ghost": [
+      736,
+      602,
+      864,
+      752
+     ],
+     "bubble": [
+      378,
+      603,
+      732,
+      726
+     ],
+     "flip": true,
+     "overlap": 7796,
+     "probes": 39,
+     "core": 3215,
+     "protect": 0,
+     "ja": "金色の道が、混み方も\n入れるといちばん早い！",
+     "jp_t1": 44.12,
+     "cps": 60,
+     "moved": true
+    },
+    {
+     "id": "gate-12",
+     "beat": "over-choice",
+     "at": 0.3,
+     "t0": 44.5,
+     "t1": 47.55,
+     "text": "But the close one is\nsooo tempting, right~",
+     "chars": 41,
+     "nums": [],
+     "box": [
+      294,
+      512,
+      797,
+      662
+     ],
+     "ghost": [
+      294,
+      512,
+      422,
+      662
+     ],
+     "bubble": [
+      426,
+      513,
+      797,
+      636
+     ],
+     "flip": false,
+     "overlap": 0,
+     "probes": 34,
+     "core": 0,
+     "protect": 0,
+     "ja": "でも近い方に\n行きたくなるよね〜",
+     "jp_t1": 47.3,
+     "cps": 60,
+     "moved": true
+    },
+    {
+     "id": "gate-13",
+     "beat": "over-move",
+     "at": 0.4,
+     "t0": 48.1,
+     "t1": 51.15,
+     "text": "From the square, you\nU-turn into the gate~",
+     "chars": 41,
+     "nums": [],
+     "box": [
+      174,
+      920,
+      672,
+      1070
+     ],
+     "ghost": [
+      174,
+      920,
+      302,
+      1070
+     ],
+     "bubble": [
+      306,
+      921,
+      672,
+      1044
+     ],
+     "flip": false,
+     "overlap": 0,
+     "probes": 34,
+     "core": 0,
+     "v9text": "改札前の通路、\nUターンするんだよ〜",
+     "protect": 0,
+     "moved": false,
+     "v102": true,
+     "ja": "広場から改札へは\nUターンで入るよ〜",
+     "jp_t1": 51.14,
+     "cps": 60
+    },
+    {
+     "id": "gate-14",
+     "beat": "over-result",
+     "at": 0.4,
+     "t0": 52.6,
+     "t1": 55.3,
+     "text": "Yikes, the line\nisn't moving at all",
+     "chars": 34,
+     "nums": [],
+     "box": [
+      42,
+      1052,
+      484,
+      1202
+     ],
+     "ghost": [
+      42,
+      1052,
+      170,
+      1202
+     ],
+     "bubble": [
+      174,
+      1053,
+      484,
+      1176
+     ],
+     "flip": false,
+     "overlap": 0,
+     "probes": 31,
+     "core": 0,
+     "protect": 0,
+     "ja": "やばっ、列が\nぜんぜん進まない",
+     "jp_t1": 55.28,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "gate-15",
+     "beat": "crush-pov",
+     "at": 0.4,
+     "t0": 56.6,
+     "t1": 60.0,
+     "text": "In the simulation you\ncan't move a step",
+     "chars": 38,
+     "nums": [],
+     "box": [
+      42,
+      1112,
+      561,
+      1262
+     ],
+     "ghost": [
+      42,
+      1112,
+      170,
+      1262
+     ],
+     "bubble": [
+      174,
+      1113,
+      561,
+      1236
+     ],
+     "flip": false,
+     "overlap": 0,
+     "probes": 78,
+     "core": 0,
+     "protect": 0,
+     "v102": true,
+     "ja": "シミュレーションだと\n一歩も動けないくらい",
+     "jp_t1": 60.0,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "gate-16",
+     "beat": "crush-pov",
+     "at": 4.4,
+     "t0": 60.6,
+     "t1": 64.0,
+     "text": "6+ people per m².\nShoved, nowhere to go",
+     "chars": 38,
+     "nums": [
+      {
+       "quote": "6",
+       "value": 6.44,
+       "src": "sim:crush.pov.gate.peak",
+       "rule": "floor",
+       "quote_en": "6"
+      }
+     ],
+     "box": [
+      42,
+      1112,
+      561,
+      1262
+     ],
+     "ghost": [
+      42,
+      1112,
+      170,
+      1262
+     ],
+     "bubble": [
+      174,
+      1113,
+      561,
+      1236
+     ],
+     "flip": false,
+     "overlap": 0,
+     "probes": 78,
+     "core": 0,
+     "protect": 0,
+     "v102": true,
+     "ja": "1m²に6人以上。\n押されても逃げられない",
+     "jp_t1": 64.0,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "gate-17",
+     "beat": "over-lesson",
+     "at": 0.4,
+     "t0": 69.1,
+     "t1": 72.26,
+     "text": "Following everyone is\nhow you get stuck~",
+     "chars": 39,
+     "nums": [],
+     "box": [
+      42,
+      422,
+      538,
+      572
+     ],
+     "ghost": [
+      42,
+      422,
+      170,
+      572
+     ],
+     "bubble": [
+      174,
+      423,
+      538,
+      546
+     ],
+     "flip": false,
+     "overlap": 0,
+     "probes": 35,
+     "core": 0,
+     "protect": 0,
+     "ja": "みんなと同じ道は\nハマりやすいんだよね",
+     "jp_t1": 72.26,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "gate-18",
+     "beat": "continue",
+     "at": 0.3,
+     "t0": 74.0,
+     "t1": 75.84,
+     "text": "Let's try again!",
+     "chars": 16,
+     "nums": [],
+     "box": [
+      42,
+      1322,
+      447,
+      1472
+     ],
+     "ghost": [
+      42,
+      1322,
+      170,
+      1472
+     ],
+     "bubble": [
+      174,
+      1369,
+      447,
+      1446
+     ],
+     "flip": false,
+     "overlap": 0,
+     "probes": 22,
+     "core": 0,
+     "protect": 0,
+     "ja": "もう1回やろ！",
+     "jp_t1": 75.84,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "gate-19",
+     "beat": "retry-why",
+     "at": 0.3,
+     "t0": 77.0,
+     "t1": 80.76,
+     "text": "Gate front: 4 per m²!\nStill stuck at 15 min~",
+     "chars": 43,
+     "nums": [
+      {
+       "quote": "4",
+       "value": 4.0,
+       "src": "cfg:retry-why.pin",
+       "match": "4.0人/m²",
+       "quote_en": "4"
+      },
+      {
+       "quote": "15分",
+       "value": 15,
+       "src": "cfg:retry-why.pin",
+       "match": "15分",
+       "quote_en": "15 min"
+      }
+     ],
+     "box": [
+      42,
+      1112,
+      532,
+      1262
+     ],
+     "ghost": [
+      42,
+      1112,
+      170,
+      1262
+     ],
+     "bubble": [
+      174,
+      1113,
+      532,
+      1236
+     ],
+     "flip": false,
+     "overlap": 0,
+     "probes": 41,
+     "core": 0,
+     "protect": 0,
+     "ja": "改札前、1m²に4人！\n15分たっても通れない〜",
+     "jp_t1": 80.76,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "gate-20",
+     "beat": "clear-choice",
+     "at": 0.2,
+     "t0": 81.9,
+     "t1": 85.06,
+     "text": "Re-ran it with the crowd\nat that exact time",
+     "chars": 42,
+     "nums": [],
+     "box": [
+      342,
+      764,
+      883,
+      914
+     ],
+     "ghost": [
+      342,
+      764,
+      470,
+      914
+     ],
+     "bubble": [
+      474,
+      765,
+      883,
+      888
+     ],
+     "flip": false,
+     "overlap": 0,
+     "probes": 69,
+     "core": 0,
+     "protect": 0,
+     "ja": "混む時間に合わせて\nもう1回計算したよ",
+     "jp_t1": 85.06,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "gate-21",
+     "beat": "clear-choice",
+     "at": 3.8,
+     "t0": 85.5,
+     "t1": 88.42,
+     "text": "New South gate it is!\nThe best one!",
+     "chars": 34,
+     "nums": [],
+     "box": [
+      342,
+      764,
+      883,
+      914
+     ],
+     "ghost": [
+      342,
+      764,
+      470,
+      914
+     ],
+     "bubble": [
+      474,
+      765,
+      883,
+      888
+     ],
+     "flip": false,
+     "overlap": 0,
+     "probes": 69,
+     "core": 0,
+     "protect": 0,
+     "ja": "やっぱり新南改札が\nいちばんいい！",
+     "jp_t1": 88.42,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "gate-22",
+     "beat": "clear-move",
+     "at": 0.4,
+     "t0": 89.6,
+     "t1": 91.8,
+     "text": "Smooth sailing this way~",
+     "chars": 24,
+     "nums": [],
+     "box": [
+      42,
+      1058,
+      594,
+      1208
+     ],
+     "ghost": [
+      42,
+      1058,
+      170,
+      1208
+     ],
+     "bubble": [
+      174,
+      1105,
+      594,
+      1182
+     ],
+     "flip": false,
+     "overlap": 0,
+     "probes": 26,
+     "core": 0,
+     "protect": 0,
+     "ja": "この道ならスイスイ〜",
+     "jp_t1": 91.8,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "gate-23",
+     "beat": "clear-pov",
+     "at": 0.2,
+     "t0": 93.9,
+     "t1": 96.58,
+     "text": "See? It's way\nemptier over here",
+     "chars": 30,
+     "nums": [],
+     "box": [
+      42,
+      1058,
+      485,
+      1208
+     ],
+     "ghost": [
+      42,
+      1058,
+      170,
+      1208
+     ],
+     "bubble": [
+      174,
+      1059,
+      485,
+      1182
+     ],
+     "flip": false,
+     "overlap": 0,
+     "probes": 31,
+     "core": 0,
+     "protect": 0,
+     "ja": "ほら、こっちは\nすいてるでしょ",
+     "jp_t1": 96.58,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "gate-24",
+     "beat": "clear-result",
+     "at": 0.5,
+     "t0": 97.2,
+     "t1": 99.64,
+     "text": "Yay! We caught\nthe train~!",
+     "chars": 25,
+     "nums": [],
+     "box": [
+      42,
+      1052,
+      447,
+      1202
+     ],
+     "ghost": [
+      42,
+      1052,
+      170,
+      1202
+     ],
+     "bubble": [
+      174,
+      1053,
+      447,
+      1176
+     ],
+     "flip": false,
+     "overlap": 0,
+     "probes": 28,
+     "core": 0,
+     "protect": 0,
+     "ja": "やったー！\n電車乗れた〜！",
+     "jp_t1": 99.64,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "gate-25",
+     "beat": "clear-cheat",
+     "at": 0.3,
+     "t0": 103.5,
+     "t1": 106.18,
+     "text": "Screenshot\nthis, okay~?",
+     "chars": 22,
+     "nums": [],
+     "box": [
+      42,
+      302,
+      401,
+      452
+     ],
+     "ghost": [
+      42,
+      302,
+      170,
+      452
+     ],
+     "bubble": [
+      174,
+      303,
+      401,
+      426
+     ],
+     "flip": false,
+     "overlap": 0,
+     "probes": 31,
+     "core": 0,
+     "protect": 0,
+     "ja": "このメモ、\nスクショしといて〜",
+     "jp_t1": 106.18,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "gate-26",
+     "beat": "kaiju",
+     "at": 0.3,
+     "t0": 107.0,
+     "t1": 110.35,
+     "text": "Wait, a monster?! Next:\na note from Shibuya City",
+     "chars": 47,
+     "nums": [],
+     "box": [
+      42,
+      842,
+      595,
+      992
+     ],
+     "ghost": [
+      42,
+      842,
+      170,
+      992
+     ],
+     "bubble": [
+      174,
+      843,
+      595,
+      966
+     ],
+     "flip": false,
+     "overlap": 0,
+     "probes": 37,
+     "core": 0,
+     "protect": 0,
+     "ja": "えっ、怪獣！？\n次は渋谷区のお知らせ",
+     "jp_t1": 110.04,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "gate-27",
+     "beat": "sources",
+     "at": 0.3,
+     "t0": 119.0,
+     "t1": 121.68,
+     "text": "Thanks for watching~\nSee ya!",
+     "chars": 27,
+     "nums": [],
+     "box": [
+      42,
+      1376,
+      542,
+      1526
+     ],
+     "ghost": [
+      42,
+      1376,
+      170,
+      1526
+     ],
+     "bubble": [
+      174,
+      1377,
+      542,
+      1500
+     ],
+     "flip": false,
+     "overlap": 0,
+     "probes": 28,
+     "core": 0,
+     "protect": 0,
+     "ja": "見てくれてありがと〜\nまたね！",
+     "jp_t1": 121.68,
+     "cps": 60,
+     "moved": false
+    }
+   ]
+  },
+  "taxi": {
+   "duration": 121.7,
+   "lines": [
+    {
+     "id": "taxi-00",
+     "beat": "op-fly",
+     "at": 1.0,
+     "t0": 1.0,
+     "t1": 3.56,
+     "text": "Hiii! I'm the\nShibuya-kei Ghost~",
+     "chars": 31,
+     "nums": [],
+     "intro": true,
+     "box": [
+      42,
+      1322,
+      584,
+      1472
+     ],
+     "ghost": [
+      42,
+      1322,
+      170,
+      1472
+     ],
+     "bubble": [
+      174,
+      1323,
+      584,
+      1446
+     ],
+     "flip": false,
+     "overlap": 0,
+     "core": 0,
+     "probes": 65,
+     "protect": 0,
+     "ja": "どーも！\n渋谷系おばけです〜",
+     "jp_t1": 3.56,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "taxi-01",
+     "beat": "op-fly",
+     "at": 3.8,
+     "t0": 3.8,
+     "t1": 7.15,
+     "text": "Shibuya-kei = 90s cool~\nI know every back alley!",
+     "chars": 47,
+     "nums": [],
+     "intro": true,
+     "box": [
+      42,
+      1322,
+      584,
+      1472
+     ],
+     "ghost": [
+      42,
+      1322,
+      170,
+      1472
+     ],
+     "bubble": [
+      174,
+      1323,
+      584,
+      1446
+     ],
+     "flip": false,
+     "overlap": 0,
+     "core": 0,
+     "probes": 65,
+     "protect": 0,
+     "ja": "渋谷の裏道、\nぜんぶ知ってるよ〜",
+     "jp_t1": 6.6,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "taxi-02",
+     "beat": "mission",
+     "at": 0.1,
+     "t0": 7.8,
+     "t1": 10.6,
+     "text": "The mission is...\n\"don't go\"? Huh!",
+     "chars": 33,
+     "nums": [],
+     "box": [
+      42,
+      506,
+      470,
+      656
+     ],
+     "ghost": [
+      42,
+      506,
+      170,
+      656
+     ],
+     "bubble": [
+      174,
+      507,
+      470,
+      630
+     ],
+     "flip": false,
+     "overlap": 0,
+     "probes": 32,
+     "core": 0,
+     "protect": 0,
+     "moved": false,
+     "ja": "ミッションは\n「近づくな」だって",
+     "jp_t1": 10.6,
+     "cps": 60
+    },
+    {
+     "id": "taxi-03",
+     "beat": "rules",
+     "at": 0.45,
+     "t0": 11.15,
+     "t1": 14.31,
+     "text": "So many costumes!\nBut isn't it too packed?",
+     "chars": 41,
+     "nums": [],
+     "box": [
+      42,
+      446,
+      569,
+      596
+     ],
+     "ghost": [
+      42,
+      446,
+      170,
+      596
+     ],
+     "bubble": [
+      174,
+      447,
+      569,
+      570
+     ],
+     "flip": false,
+     "overlap": 0,
+     "probes": 36,
+     "core": 0,
+     "protect": 0,
+     "moved": false,
+     "ja": "わ、仮装だらけ！\nでも人、多すぎない？",
+     "jp_t1": 14.31,
+     "cps": 60
+    },
+    {
+     "id": "taxi-04",
+     "beat": "first-choice",
+     "at": 0.4,
+     "t0": 15.1,
+     "t1": 18.38,
+     "text": "A is \"don't go\".\nThat's allowed?!",
+     "chars": 32,
+     "nums": [],
+     "box": [
+      42,
+      1334,
+      459,
+      1484
+     ],
+     "ghost": [
+      42,
+      1334,
+      170,
+      1484
+     ],
+     "bubble": [
+      174,
+      1335,
+      459,
+      1458
+     ],
+     "flip": false,
+     "overlap": 0,
+     "probes": 37,
+     "core": 0,
+     "protect": 0,
+     "ja": "Aは「行かない」。\nそれ、アリなんだ！？",
+     "jp_t1": 18.38,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "taxi-05",
+     "beat": "true-end",
+     "at": 0.3,
+     "t0": 19.0,
+     "t1": 22.52,
+     "text": "Not going = the best!\nThat's the TRUE END~",
+     "chars": 41,
+     "nums": [],
+     "box": [
+      42,
+      476,
+      560,
+      626
+     ],
+     "ghost": [
+      42,
+      476,
+      170,
+      626
+     ],
+     "bubble": [
+      174,
+      477,
+      560,
+      600
+     ],
+     "flip": false,
+     "overlap": 0,
+     "probes": 39,
+     "core": 0,
+     "protect": 0,
+     "ja": "行かないのが最強！\nだからTRUE END〜",
+     "jp_t1": 22.52,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "taxi-06",
+     "beat": "guide",
+     "at": 0.2,
+     "t0": 22.9,
+     "t1": 25.46,
+     "text": "Already here?\nThen watch this~",
+     "chars": 29,
+     "nums": [],
+     "box": [
+      42,
+      1334,
+      476,
+      1484
+     ],
+     "ghost": [
+      42,
+      1334,
+      170,
+      1484
+     ],
+     "bubble": [
+      174,
+      1335,
+      476,
+      1458
+     ],
+     "flip": false,
+     "overlap": 0,
+     "probes": 29,
+     "core": 0,
+     "protect": 0,
+     "ja": "来ちゃった人は\nこっち見てね",
+     "jp_t1": 25.46,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "taxi-07",
+     "beat": "over-start",
+     "at": 0.3,
+     "t0": 26.0,
+     "t1": 29.1,
+     "text": "This is the start.\nWhich way should we go~?",
+     "chars": 42,
+     "nums": [],
+     "box": [
+      42,
+      920,
+      616,
+      1070
+     ],
+     "ghost": [
+      42,
+      920,
+      170,
+      1070
+     ],
+     "bubble": [
+      174,
+      921,
+      616,
+      1044
+     ],
+     "flip": false,
+     "overlap": 0,
+     "probes": 35,
+     "core": 0,
+     "protect": 0,
+     "ja": "ここがスタート。\nどの道で行こっか〜",
+     "jp_t1": 29.04,
+     "cps": 60,
+     "moved": true
+    },
+    {
+     "id": "taxi-08",
+     "beat": "sim-plan",
+     "at": 0.3,
+     "t0": 29.5,
+     "t1": 32.42,
+     "text": "Red spots mean\npeople packed tight",
+     "chars": 33,
+     "nums": [],
+     "box": [
+      42,
+      902,
+      547,
+      1052
+     ],
+     "ghost": [
+      42,
+      902,
+      170,
+      1052
+     ],
+     "bubble": [
+      174,
+      903,
+      547,
+      1026
+     ],
+     "flip": false,
+     "overlap": 0,
+     "probes": 108,
+     "core": 0,
+     "protect": 0,
+     "ja": "赤いとこは\n人ぎゅうぎゅうってこと",
+     "jp_t1": 32.42,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "taxi-09",
+     "beat": "sim-plan",
+     "at": 3.5,
+     "t0": 32.7,
+     "t1": 36.22,
+     "text": "Every dot is a person.\nI counted 48,000~",
+     "chars": 39,
+     "nums": [
+      {
+       "quote": "4万8千人",
+       "value": 48000,
+       "src": "sim:plan.agents",
+       "quote_en": "48,000"
+      }
+     ],
+     "box": [
+      42,
+      902,
+      547,
+      1052
+     ],
+     "ghost": [
+      42,
+      902,
+      170,
+      1052
+     ],
+     "bubble": [
+      174,
+      903,
+      547,
+      1026
+     ],
+     "flip": false,
+     "overlap": 0,
+     "probes": 108,
+     "core": 0,
+     "protect": 0,
+     "ja": "この点々ぜんぶ人ね。\n4万8千人、数えたよ〜",
+     "jp_t1": 36.22,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "taxi-10",
+     "beat": "sim-plan",
+     "at": 7.3,
+     "t0": 36.5,
+     "t1": 39.9,
+     "text": "Comparing each road:\ntime, crowds, danger",
+     "chars": 40,
+     "nums": [],
+     "box": [
+      42,
+      902,
+      547,
+      1052
+     ],
+     "ghost": [
+      42,
+      902,
+      170,
+      1052
+     ],
+     "bubble": [
+      174,
+      903,
+      547,
+      1026
+     ],
+     "flip": false,
+     "overlap": 0,
+     "probes": 108,
+     "core": 0,
+     "protect": 0,
+     "ja": "道ごとに時間と混み方と\n危なさを比べてるの",
+     "jp_t1": 39.9,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "taxi-11",
+     "beat": "sim-pick",
+     "at": 0.4,
+     "t0": 40.6,
+     "t1": 43.76,
+     "text": "West Exit is closed, so\nthe gold road wins!",
+     "chars": 42,
+     "nums": [],
+     "box": [
+      42,
+      854,
+      555,
+      1004
+     ],
+     "ghost": [
+      42,
+      854,
+      170,
+      1004
+     ],
+     "bubble": [
+      174,
+      855,
+      555,
+      978
+     ],
+     "flip": false,
+     "overlap": 0,
+     "probes": 35,
+     "core": 0,
+     "protect": 0,
+     "ja": "西口はお休み中だから\n金色の道が正解！",
+     "jp_t1": 43.76,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "taxi-12",
+     "beat": "over-choice",
+     "at": 0.3,
+     "t0": 44.5,
+     "t1": 47.42,
+     "text": "Station stand's\nfine, right~?",
+     "chars": 28,
+     "nums": [],
+     "box": [
+      42,
+      290,
+      447,
+      440
+     ],
+     "ghost": [
+      42,
+      290,
+      170,
+      440
+     ],
+     "bubble": [
+      174,
+      291,
+      447,
+      414
+     ],
+     "flip": false,
+     "overlap": 4343,
+     "probes": 33,
+     "core": 20,
+     "protect": 0,
+     "ja": "駅前の乗り場で\nいい気がするよね〜",
+     "jp_t1": 47.42,
+     "cps": 60,
+     "moved": true
+    },
+    {
+     "id": "taxi-13",
+     "beat": "over-move",
+     "at": 0.4,
+     "t0": 48.1,
+     "t1": 50.9,
+     "text": "Uh-oh, go that way\nand you're stuck~",
+     "chars": 35,
+     "nums": [],
+     "box": [
+      42,
+      1004,
+      505,
+      1154
+     ],
+     "ghost": [
+      42,
+      1004,
+      170,
+      1154
+     ],
+     "bubble": [
+      174,
+      1005,
+      505,
+      1128
+     ],
+     "flip": false,
+     "overlap": 0,
+     "probes": 32,
+     "core": 0,
+     "protect": 0,
+     "ja": "あ、そっち行ったら\nハマるやつ〜",
+     "jp_t1": 50.9,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "taxi-14",
+     "beat": "over-result",
+     "at": 0.4,
+     "t0": 52.6,
+     "t1": 55.16,
+     "text": "Wait, the taxi stand\nis closed?!",
+     "chars": 31,
+     "nums": [],
+     "box": [
+      42,
+      1004,
+      518,
+      1154
+     ],
+     "ghost": [
+      42,
+      1004,
+      170,
+      1154
+     ],
+     "bubble": [
+      174,
+      1005,
+      518,
+      1128
+     ],
+     "flip": false,
+     "overlap": 0,
+     "probes": 29,
+     "core": 0,
+     "protect": 0,
+     "ja": "えっ、乗り場が\nお休み中！？",
+     "jp_t1": 55.16,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "taxi-15",
+     "beat": "crush-pov",
+     "at": 0.4,
+     "t0": 56.6,
+     "t1": 60.0,
+     "text": "In the simulation you\ncan't move a step",
+     "chars": 38,
+     "nums": [],
+     "box": [
+      42,
+      1112,
+      561,
+      1262
+     ],
+     "ghost": [
+      42,
+      1112,
+      170,
+      1262
+     ],
+     "bubble": [
+      174,
+      1113,
+      561,
+      1236
+     ],
+     "flip": false,
+     "overlap": 0,
+     "probes": 78,
+     "core": 0,
+     "protect": 0,
+     "ja": "シミュレーションだと\n一歩も動けないくらい",
+     "jp_t1": 60.0,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "taxi-16",
+     "beat": "crush-pov",
+     "at": 4.4,
+     "t0": 60.6,
+     "t1": 64.0,
+     "text": "4+ people per m².\nShoved, nowhere to go",
+     "chars": 38,
+     "nums": [
+      {
+       "quote": "4",
+       "value": 4.5,
+       "src": "sim:crush.pov.taxi.peak",
+       "rule": "floor",
+       "quote_en": "4"
+      }
+     ],
+     "box": [
+      42,
+      1112,
+      561,
+      1262
+     ],
+     "ghost": [
+      42,
+      1112,
+      170,
+      1262
+     ],
+     "bubble": [
+      174,
+      1113,
+      561,
+      1236
+     ],
+     "flip": false,
+     "overlap": 0,
+     "probes": 78,
+     "core": 0,
+     "protect": 0,
+     "ja": "1m²に4人以上。\n押されても逃げられない",
+     "jp_t1": 64.0,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "taxi-17",
+     "beat": "over-lesson",
+     "at": 0.4,
+     "t0": 69.1,
+     "t1": 72.25,
+     "text": "Gotta check where the\ntaxi stands are first~",
+     "chars": 43,
+     "nums": [],
+     "box": [
+      42,
+      422,
+      557,
+      572
+     ],
+     "ghost": [
+      42,
+      422,
+      170,
+      572
+     ],
+     "bubble": [
+      174,
+      423,
+      557,
+      546
+     ],
+     "flip": false,
+     "overlap": 0,
+     "probes": 35,
+     "core": 0,
+     "protect": 0,
+     "ja": "乗り場、ちゃんと\n調べとかないとね〜",
+     "jp_t1": 72.14,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "taxi-18",
+     "beat": "continue",
+     "at": 0.3,
+     "t0": 74.0,
+     "t1": 75.84,
+     "text": "Let's try again!",
+     "chars": 16,
+     "nums": [],
+     "box": [
+      42,
+      1322,
+      447,
+      1472
+     ],
+     "ghost": [
+      42,
+      1322,
+      170,
+      1472
+     ],
+     "bubble": [
+      174,
+      1369,
+      447,
+      1446
+     ],
+     "flip": false,
+     "overlap": 0,
+     "probes": 22,
+     "core": 0,
+     "protect": 0,
+     "ja": "もう1回やろ！",
+     "jp_t1": 75.84,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "taxi-19",
+     "beat": "retry-why",
+     "at": 0.3,
+     "t0": 77.0,
+     "t1": 80.3,
+     "text": "That stand's been closed\nsince March last year~",
+     "chars": 46,
+     "nums": [
+      {
+       "quote": "3月",
+       "value": 3,
+       "src": "cfg:retry-why.pin",
+       "match": "2025年3月30日",
+       "quote_en": "March"
+      }
+     ],
+     "box": [
+      42,
+      1112,
+      593,
+      1262
+     ],
+     "ghost": [
+      42,
+      1112,
+      170,
+      1262
+     ],
+     "bubble": [
+      174,
+      1113,
+      593,
+      1236
+     ],
+     "flip": false,
+     "overlap": 0,
+     "probes": 37,
+     "core": 0,
+     "protect": 0,
+     "ja": "乗り場、去年の3月から\nお休みしてたの〜",
+     "jp_t1": 80.28,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "taxi-20",
+     "beat": "clear-choice",
+     "at": 0.2,
+     "t0": 81.9,
+     "t1": 85.06,
+     "text": "Re-ran it with the crowd\nat that exact time",
+     "chars": 42,
+     "nums": [],
+     "box": [
+      42,
+      854,
+      583,
+      1004
+     ],
+     "ghost": [
+      42,
+      854,
+      170,
+      1004
+     ],
+     "bubble": [
+      174,
+      855,
+      583,
+      978
+     ],
+     "flip": false,
+     "overlap": 0,
+     "probes": 76,
+     "core": 0,
+     "protect": 0,
+     "ja": "混む時間に合わせて\nもう1回計算したよ",
+     "jp_t1": 85.06,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "taxi-21",
+     "beat": "clear-choice",
+     "at": 3.8,
+     "t0": 85.5,
+     "t1": 89.14,
+     "text": "SAKURA Terrace it is!\nThe best one!",
+     "chars": 34,
+     "nums": [],
+     "box": [
+      42,
+      854,
+      583,
+      1004
+     ],
+     "ghost": [
+      42,
+      854,
+      170,
+      1004
+     ],
+     "bubble": [
+      174,
+      855,
+      583,
+      978
+     ],
+     "flip": false,
+     "overlap": 0,
+     "probes": 76,
+     "core": 0,
+     "protect": 0,
+     "ja": "やっぱりSAKURAテラス前が\nいちばんいい！",
+     "jp_t1": 89.14,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "taxi-22",
+     "beat": "clear-move",
+     "at": 0.4,
+     "t0": 89.6,
+     "t1": 91.8,
+     "text": "Smooth sailing this way~",
+     "chars": 24,
+     "nums": [],
+     "box": [
+      42,
+      1058,
+      594,
+      1208
+     ],
+     "ghost": [
+      42,
+      1058,
+      170,
+      1208
+     ],
+     "bubble": [
+      174,
+      1105,
+      594,
+      1182
+     ],
+     "flip": false,
+     "overlap": 0,
+     "probes": 26,
+     "core": 0,
+     "protect": 0,
+     "ja": "この道ならスイスイ〜",
+     "jp_t1": 91.8,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "taxi-23",
+     "beat": "clear-pov",
+     "at": 0.2,
+     "t0": 93.9,
+     "t1": 96.58,
+     "text": "See? It's way\nemptier over here",
+     "chars": 30,
+     "nums": [],
+     "box": [
+      42,
+      1058,
+      485,
+      1208
+     ],
+     "ghost": [
+      42,
+      1058,
+      170,
+      1208
+     ],
+     "bubble": [
+      174,
+      1059,
+      485,
+      1182
+     ],
+     "flip": false,
+     "overlap": 0,
+     "probes": 31,
+     "core": 0,
+     "protect": 0,
+     "ja": "ほら、こっちは\nすいてるでしょ",
+     "jp_t1": 96.58,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "taxi-24",
+     "beat": "clear-result",
+     "at": 0.5,
+     "t0": 97.2,
+     "t1": 99.76,
+     "text": "Yay! We got\na taxi~",
+     "chars": 18,
+     "nums": [],
+     "box": [
+      42,
+      1052,
+      395,
+      1202
+     ],
+     "ghost": [
+      42,
+      1052,
+      170,
+      1202
+     ],
+     "bubble": [
+      174,
+      1053,
+      395,
+      1176
+     ],
+     "flip": false,
+     "overlap": 0,
+     "probes": 29,
+     "core": 0,
+     "protect": 0,
+     "ja": "やったー！\nタクシー乗れた〜",
+     "jp_t1": 99.76,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "taxi-25",
+     "beat": "clear-cheat",
+     "at": 0.3,
+     "t0": 103.5,
+     "t1": 106.18,
+     "text": "Screenshot\nthis, okay~?",
+     "chars": 22,
+     "nums": [],
+     "box": [
+      42,
+      314,
+      401,
+      464
+     ],
+     "ghost": [
+      42,
+      314,
+      170,
+      464
+     ],
+     "bubble": [
+      174,
+      315,
+      401,
+      438
+     ],
+     "flip": false,
+     "overlap": 0,
+     "probes": 31,
+     "core": 0,
+     "protect": 0,
+     "ja": "このメモ、\nスクショしといて〜",
+     "jp_t1": 106.18,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "taxi-26",
+     "beat": "kaiju",
+     "at": 0.3,
+     "t0": 107.0,
+     "t1": 110.35,
+     "text": "Wait, a monster?! Next:\na note from Shibuya City",
+     "chars": 47,
+     "nums": [],
+     "box": [
+      42,
+      836,
+      595,
+      986
+     ],
+     "ghost": [
+      42,
+      836,
+      170,
+      986
+     ],
+     "bubble": [
+      174,
+      837,
+      595,
+      960
+     ],
+     "flip": false,
+     "overlap": 0,
+     "probes": 37,
+     "core": 0,
+     "protect": 0,
+     "ja": "えっ、怪獣！？\n次は渋谷区のお知らせ",
+     "jp_t1": 110.04,
+     "cps": 60,
+     "moved": true
+    },
+    {
+     "id": "taxi-27",
+     "beat": "sources",
+     "at": 0.3,
+     "t0": 119.0,
+     "t1": 121.68,
+     "text": "Thanks for watching~\nSee ya!",
+     "chars": 27,
+     "nums": [],
+     "box": [
+      42,
+      1376,
+      542,
+      1526
+     ],
+     "ghost": [
+      42,
+      1376,
+      170,
+      1526
+     ],
+     "bubble": [
+      174,
+      1377,
+      542,
+      1500
+     ],
+     "flip": false,
+     "overlap": 0,
+     "probes": 28,
+     "core": 0,
+     "protect": 0,
+     "ja": "見てくれてありがと〜\nまたね！",
+     "jp_t1": 121.68,
+     "cps": 60,
+     "moved": false
+    }
+   ]
+  },
+  "zone": {
+   "duration": 121.7,
+   "lines": [
+    {
+     "id": "zone-00",
+     "beat": "op-fly",
+     "at": 1.0,
+     "t0": 1.0,
+     "t1": 3.56,
+     "text": "Hiii! I'm the\nShibuya-kei Ghost~",
+     "chars": 31,
+     "nums": [],
+     "intro": true,
+     "box": [
+      42,
+      1322,
+      584,
+      1472
+     ],
+     "ghost": [
+      42,
+      1322,
+      170,
+      1472
+     ],
+     "bubble": [
+      174,
+      1323,
+      584,
+      1446
+     ],
+     "flip": false,
+     "overlap": 0,
+     "core": 0,
+     "probes": 65,
+     "protect": 0,
+     "ja": "どーも！\n渋谷系おばけです〜",
+     "jp_t1": 3.56,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "zone-01",
+     "beat": "op-fly",
+     "at": 3.8,
+     "t0": 3.8,
+     "t1": 7.15,
+     "text": "Shibuya-kei = 90s cool~\nI know every back alley!",
+     "chars": 47,
+     "nums": [],
+     "intro": true,
+     "box": [
+      42,
+      1322,
+      584,
+      1472
+     ],
+     "ghost": [
+      42,
+      1322,
+      170,
+      1472
+     ],
+     "bubble": [
+      174,
+      1323,
+      584,
+      1446
+     ],
+     "flip": false,
+     "overlap": 0,
+     "core": 0,
+     "probes": 65,
+     "protect": 0,
+     "ja": "渋谷の裏道、\nぜんぶ知ってるよ〜",
+     "jp_t1": 6.6,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "zone-02",
+     "beat": "mission",
+     "at": 0.1,
+     "t0": 7.8,
+     "t1": 10.6,
+     "text": "The mission is...\n\"don't go\"? Huh!",
+     "chars": 33,
+     "nums": [],
+     "box": [
+      42,
+      506,
+      470,
+      656
+     ],
+     "ghost": [
+      42,
+      506,
+      170,
+      656
+     ],
+     "bubble": [
+      174,
+      507,
+      470,
+      630
+     ],
+     "flip": false,
+     "overlap": 0,
+     "probes": 32,
+     "core": 0,
+     "protect": 0,
+     "moved": false,
+     "ja": "ミッションは\n「近づくな」だって",
+     "jp_t1": 10.6,
+     "cps": 60
+    },
+    {
+     "id": "zone-03",
+     "beat": "rules",
+     "at": 0.45,
+     "t0": 11.15,
+     "t1": 14.31,
+     "text": "So many costumes!\nBut isn't it too packed?",
+     "chars": 41,
+     "nums": [],
+     "box": [
+      42,
+      446,
+      569,
+      596
+     ],
+     "ghost": [
+      42,
+      446,
+      170,
+      596
+     ],
+     "bubble": [
+      174,
+      447,
+      569,
+      570
+     ],
+     "flip": false,
+     "overlap": 0,
+     "probes": 36,
+     "core": 0,
+     "protect": 0,
+     "moved": false,
+     "ja": "わ、仮装だらけ！\nでも人、多すぎない？",
+     "jp_t1": 14.31,
+     "cps": 60
+    },
+    {
+     "id": "zone-04",
+     "beat": "first-choice",
+     "at": 0.4,
+     "t0": 15.1,
+     "t1": 18.38,
+     "text": "A is \"don't go\".\nThat's allowed?!",
+     "chars": 32,
+     "nums": [],
+     "box": [
+      42,
+      1334,
+      459,
+      1484
+     ],
+     "ghost": [
+      42,
+      1334,
+      170,
+      1484
+     ],
+     "bubble": [
+      174,
+      1335,
+      459,
+      1458
+     ],
+     "flip": false,
+     "overlap": 0,
+     "probes": 37,
+     "core": 0,
+     "protect": 0,
+     "ja": "Aは「行かない」。\nそれ、アリなんだ！？",
+     "jp_t1": 18.38,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "zone-05",
+     "beat": "true-end",
+     "at": 0.3,
+     "t0": 19.0,
+     "t1": 22.52,
+     "text": "Not going = the best!\nThat's the TRUE END~",
+     "chars": 41,
+     "nums": [],
+     "box": [
+      42,
+      476,
+      560,
+      626
+     ],
+     "ghost": [
+      42,
+      476,
+      170,
+      626
+     ],
+     "bubble": [
+      174,
+      477,
+      560,
+      600
+     ],
+     "flip": false,
+     "overlap": 0,
+     "probes": 39,
+     "core": 0,
+     "protect": 0,
+     "ja": "行かないのが最強！\nだからTRUE END〜",
+     "jp_t1": 22.52,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "zone-06",
+     "beat": "guide",
+     "at": 0.2,
+     "t0": 22.9,
+     "t1": 25.46,
+     "text": "Already here?\nThen watch this~",
+     "chars": 29,
+     "nums": [],
+     "box": [
+      42,
+      1334,
+      476,
+      1484
+     ],
+     "ghost": [
+      42,
+      1334,
+      170,
+      1484
+     ],
+     "bubble": [
+      174,
+      1335,
+      476,
+      1458
+     ],
+     "flip": false,
+     "overlap": 0,
+     "probes": 29,
+     "core": 0,
+     "protect": 0,
+     "ja": "来ちゃった人は\nこっち見てね",
+     "jp_t1": 25.46,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "zone-07",
+     "beat": "over-start",
+     "at": 0.3,
+     "t0": 26.0,
+     "t1": 29.1,
+     "text": "This is the start.\nWhich way should we go~?",
+     "chars": 42,
+     "nums": [],
+     "box": [
+      42,
+      920,
+      616,
+      1070
+     ],
+     "ghost": [
+      42,
+      920,
+      170,
+      1070
+     ],
+     "bubble": [
+      174,
+      921,
+      616,
+      1044
+     ],
+     "flip": false,
+     "overlap": 0,
+     "probes": 35,
+     "core": 0,
+     "protect": 0,
+     "ja": "ここがスタート。\nどの道で行こっか〜",
+     "jp_t1": 29.04,
+     "cps": 60,
+     "moved": true
+    },
+    {
+     "id": "zone-08",
+     "beat": "sim-plan",
+     "at": 0.3,
+     "t0": 29.5,
+     "t1": 32.42,
+     "text": "Red spots mean\npeople packed tight",
+     "chars": 33,
+     "nums": [],
+     "box": [
+      42,
+      902,
+      547,
+      1052
+     ],
+     "ghost": [
+      42,
+      902,
+      170,
+      1052
+     ],
+     "bubble": [
+      174,
+      903,
+      547,
+      1026
+     ],
+     "flip": false,
+     "overlap": 0,
+     "probes": 108,
+     "core": 0,
+     "protect": 0,
+     "ja": "赤いとこは\n人ぎゅうぎゅうってこと",
+     "jp_t1": 32.42,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "zone-09",
+     "beat": "sim-plan",
+     "at": 3.5,
+     "t0": 32.7,
+     "t1": 36.22,
+     "text": "Every dot is a person.\nI counted 48,000~",
+     "chars": 39,
+     "nums": [
+      {
+       "quote": "4万8千人",
+       "value": 48000,
+       "src": "sim:plan.agents",
+       "quote_en": "48,000"
+      }
+     ],
+     "box": [
+      42,
+      902,
+      547,
+      1052
+     ],
+     "ghost": [
+      42,
+      902,
+      170,
+      1052
+     ],
+     "bubble": [
+      174,
+      903,
+      547,
+      1026
+     ],
+     "flip": false,
+     "overlap": 0,
+     "probes": 108,
+     "core": 0,
+     "protect": 0,
+     "ja": "この点々ぜんぶ人ね。\n4万8千人、数えたよ〜",
+     "jp_t1": 36.22,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "zone-10",
+     "beat": "sim-plan",
+     "at": 7.3,
+     "t0": 36.5,
+     "t1": 39.9,
+     "text": "Comparing each road:\ntime, crowds, danger",
+     "chars": 40,
+     "nums": [],
+     "box": [
+      42,
+      902,
+      547,
+      1052
+     ],
+     "ghost": [
+      42,
+      902,
+      170,
+      1052
+     ],
+     "bubble": [
+      174,
+      903,
+      547,
+      1026
+     ],
+     "flip": false,
+     "overlap": 0,
+     "probes": 108,
+     "core": 0,
+     "protect": 0,
+     "ja": "道ごとに時間と混み方と\n危なさを比べてるの",
+     "jp_t1": 39.9,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "zone-11",
+     "beat": "sim-pick",
+     "at": 0.4,
+     "t0": 40.6,
+     "t1": 43.6,
+     "text": "The gold road skips the\nred zone. Winner!",
+     "chars": 40,
+     "nums": [],
+     "box": [
+      42,
+      854,
+      570,
+      1004
+     ],
+     "ghost": [
+      42,
+      854,
+      170,
+      1004
+     ],
+     "bubble": [
+      174,
+      855,
+      570,
+      978
+     ],
+     "flip": false,
+     "overlap": 0,
+     "probes": 34,
+     "core": 0,
+     "protect": 0,
+     "ja": "赤枠を通らない\n金色の道が正解！",
+     "jp_t1": 43.4,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "zone-12",
+     "beat": "over-choice",
+     "at": 0.3,
+     "t0": 44.5,
+     "t1": 47.55,
+     "text": "But the close one is\nsooo tempting, right~",
+     "chars": 41,
+     "nums": [],
+     "box": [
+      42,
+      512,
+      545,
+      662
+     ],
+     "ghost": [
+      42,
+      512,
+      170,
+      662
+     ],
+     "bubble": [
+      174,
+      513,
+      545,
+      636
+     ],
+     "flip": false,
+     "overlap": 0,
+     "probes": 34,
+     "core": 0,
+     "protect": 0,
+     "ja": "でも近い方に\n行きたくなるよね〜",
+     "jp_t1": 47.3,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "zone-13",
+     "beat": "over-move",
+     "at": 0.4,
+     "t0": 48.1,
+     "t1": 50.9,
+     "text": "Uh-oh, go that way\nand you're stuck~",
+     "chars": 35,
+     "nums": [],
+     "box": [
+      42,
+      1058,
+      505,
+      1208
+     ],
+     "ghost": [
+      42,
+      1058,
+      170,
+      1208
+     ],
+     "bubble": [
+      174,
+      1059,
+      505,
+      1182
+     ],
+     "flip": false,
+     "overlap": 0,
+     "probes": 32,
+     "core": 0,
+     "protect": 0,
+     "ja": "あ、そっち行ったら\nハマるやつ〜",
+     "jp_t1": 50.9,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "zone-14",
+     "beat": "over-result",
+     "at": 0.4,
+     "t0": 52.6,
+     "t1": 55.28,
+     "text": "Yikes, the closures\nblock the way~",
+     "chars": 33,
+     "nums": [],
+     "box": [
+      42,
+      1052,
+      500,
+      1202
+     ],
+     "ghost": [
+      42,
+      1052,
+      170,
+      1202
+     ],
+     "bubble": [
+      174,
+      1053,
+      500,
+      1176
+     ],
+     "flip": false,
+     "overlap": 0,
+     "probes": 31,
+     "core": 0,
+     "protect": 0,
+     "ja": "やばっ、規制で\n前に進めない〜",
+     "jp_t1": 55.28,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "zone-15",
+     "beat": "crush-pov",
+     "at": 0.4,
+     "t0": 56.6,
+     "t1": 60.0,
+     "text": "In the simulation you\ncan't move a step",
+     "chars": 38,
+     "nums": [],
+     "box": [
+      42,
+      1112,
+      561,
+      1262
+     ],
+     "ghost": [
+      42,
+      1112,
+      170,
+      1262
+     ],
+     "bubble": [
+      174,
+      1113,
+      561,
+      1236
+     ],
+     "flip": false,
+     "overlap": 0,
+     "probes": 78,
+     "core": 0,
+     "protect": 0,
+     "v102": true,
+     "ja": "シミュレーションだと\n一歩も動けないくらい",
+     "jp_t1": 60.0,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "zone-16",
+     "beat": "crush-pov",
+     "at": 4.4,
+     "t0": 60.6,
+     "t1": 64.0,
+     "text": "4+ people per m².\nShoved, nowhere to go",
+     "chars": 38,
+     "nums": [
+      {
+       "quote": "4",
+       "value": 4.67,
+       "src": "sim:crush.pov.zone.peak",
+       "rule": "floor",
+       "quote_en": "4"
+      }
+     ],
+     "box": [
+      42,
+      1112,
+      561,
+      1262
+     ],
+     "ghost": [
+      42,
+      1112,
+      170,
+      1262
+     ],
+     "bubble": [
+      174,
+      1113,
+      561,
+      1236
+     ],
+     "flip": false,
+     "overlap": 0,
+     "probes": 78,
+     "core": 0,
+     "protect": 0,
+     "v102": true,
+     "ja": "1m²に4人以上。\n押されても逃げられない",
+     "jp_t1": 64.0,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "zone-17",
+     "beat": "over-lesson",
+     "at": 0.4,
+     "t0": 69.1,
+     "t1": 72.25,
+     "text": "Inside the red zone,\nyou may not get through",
+     "chars": 43,
+     "nums": [],
+     "box": [
+      42,
+      440,
+      587,
+      590
+     ],
+     "ghost": [
+      42,
+      440,
+      170,
+      590
+     ],
+     "bubble": [
+      174,
+      441,
+      587,
+      564
+     ],
+     "flip": false,
+     "overlap": 0,
+     "probes": 35,
+     "core": 0,
+     "protect": 0,
+     "ja": "赤枠の中は\n通れないことあるの",
+     "jp_t1": 71.78,
+     "cps": 60,
+     "moved": true
+    },
+    {
+     "id": "zone-18",
+     "beat": "continue",
+     "at": 0.3,
+     "t0": 74.0,
+     "t1": 75.84,
+     "text": "Let's try again!",
+     "chars": 16,
+     "nums": [],
+     "box": [
+      42,
+      1322,
+      447,
+      1472
+     ],
+     "ghost": [
+      42,
+      1322,
+      170,
+      1472
+     ],
+     "bubble": [
+      174,
+      1369,
+      447,
+      1446
+     ],
+     "flip": false,
+     "overlap": 0,
+     "probes": 22,
+     "core": 0,
+     "protect": 0,
+     "ja": "もう1回やろ！",
+     "jp_t1": 75.84,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "zone-19",
+     "beat": "retry-why",
+     "at": 0.3,
+     "t0": 77.0,
+     "t1": 80.4,
+     "text": "Red zone: 4 per m².\nPlus closures~",
+     "chars": 33,
+     "nums": [
+      {
+       "quote": "4",
+       "value": 4.0,
+       "src": "cfg:retry-why.pin",
+       "match": "4.0人/m²",
+       "quote_en": "4"
+      }
+     ],
+     "box": [
+      42,
+      1112,
+      505,
+      1262
+     ],
+     "ghost": [
+      42,
+      1112,
+      170,
+      1262
+     ],
+     "bubble": [
+      174,
+      1113,
+      505,
+      1236
+     ],
+     "flip": false,
+     "overlap": 0,
+     "probes": 38,
+     "core": 0,
+     "protect": 0,
+     "ja": "赤枠の中、1m²に4人。\nしかも規制あり〜",
+     "jp_t1": 80.4,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "zone-20",
+     "beat": "clear-choice",
+     "at": 0.2,
+     "t0": 81.9,
+     "t1": 85.06,
+     "text": "Re-ran it with the crowd\nat that exact time",
+     "chars": 42,
+     "nums": [],
+     "box": [
+      42,
+      854,
+      583,
+      1004
+     ],
+     "ghost": [
+      42,
+      854,
+      170,
+      1004
+     ],
+     "bubble": [
+      174,
+      855,
+      583,
+      978
+     ],
+     "flip": false,
+     "overlap": 0,
+     "probes": 71,
+     "core": 0,
+     "protect": 0,
+     "ja": "混む時間に合わせて\nもう1回計算したよ",
+     "jp_t1": 85.06,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "zone-21",
+     "beat": "clear-choice",
+     "at": 3.8,
+     "t0": 85.5,
+     "t1": 88.66,
+     "text": "The go-around road!\nIt skips the red zone",
+     "chars": 40,
+     "nums": [],
+     "box": [
+      42,
+      854,
+      583,
+      1004
+     ],
+     "ghost": [
+      42,
+      854,
+      170,
+      1004
+     ],
+     "bubble": [
+      174,
+      855,
+      583,
+      978
+     ],
+     "flip": false,
+     "overlap": 0,
+     "probes": 71,
+     "core": 0,
+     "protect": 0,
+     "ja": "やっぱり外側の道！\n赤枠を通らないから",
+     "jp_t1": 88.66,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "zone-22",
+     "beat": "clear-move",
+     "at": 0.4,
+     "t0": 89.6,
+     "t1": 91.8,
+     "text": "Smooth sailing this way~",
+     "chars": 24,
+     "nums": [],
+     "box": [
+      42,
+      1058,
+      594,
+      1208
+     ],
+     "ghost": [
+      42,
+      1058,
+      170,
+      1208
+     ],
+     "bubble": [
+      174,
+      1105,
+      594,
+      1182
+     ],
+     "flip": false,
+     "overlap": 0,
+     "probes": 26,
+     "core": 0,
+     "protect": 0,
+     "ja": "この道ならスイスイ〜",
+     "jp_t1": 91.8,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "zone-23",
+     "beat": "clear-pov",
+     "at": 0.2,
+     "t0": 93.9,
+     "t1": 96.58,
+     "text": "See? It's way\nemptier over here",
+     "chars": 30,
+     "nums": [],
+     "box": [
+      42,
+      1058,
+      485,
+      1208
+     ],
+     "ghost": [
+      42,
+      1058,
+      170,
+      1208
+     ],
+     "bubble": [
+      174,
+      1059,
+      485,
+      1182
+     ],
+     "flip": false,
+     "overlap": 0,
+     "probes": 31,
+     "core": 0,
+     "protect": 0,
+     "ja": "ほら、こっちは\nすいてるでしょ",
+     "jp_t1": 96.58,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "zone-24",
+     "beat": "clear-result",
+     "at": 0.5,
+     "t0": 97.2,
+     "t1": 99.95,
+     "text": "Yay! We can get\nthrough to Harajuku~",
+     "chars": 35,
+     "nums": [],
+     "box": [
+      42,
+      1052,
+      541,
+      1202
+     ],
+     "ghost": [
+      42,
+      1052,
+      170,
+      1202
+     ],
+     "bubble": [
+      174,
+      1053,
+      541,
+      1176
+     ],
+     "flip": false,
+     "overlap": 0,
+     "probes": 31,
+     "core": 0,
+     "v9text": "やったー！\n原宿まで歩けた〜",
+     "protect": 0,
+     "v102": true,
+     "ja": "やったー！\n原宿へ抜けられる〜",
+     "jp_t1": 99.88,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "zone-25",
+     "beat": "clear-cheat",
+     "at": 0.3,
+     "t0": 103.5,
+     "t1": 106.18,
+     "text": "Screenshot\nthis, okay~?",
+     "chars": 22,
+     "nums": [],
+     "box": [
+      558,
+      296,
+      917,
+      446
+     ],
+     "ghost": [
+      789,
+      296,
+      917,
+      446
+     ],
+     "bubble": [
+      558,
+      297,
+      785,
+      420
+     ],
+     "flip": true,
+     "overlap": 859,
+     "probes": 31,
+     "core": 0,
+     "protect": 0,
+     "ja": "このメモ、\nスクショしといて〜",
+     "jp_t1": 106.18,
+     "cps": 60,
+     "moved": true
+    },
+    {
+     "id": "zone-26",
+     "beat": "kaiju",
+     "at": 0.3,
+     "t0": 107.0,
+     "t1": 110.35,
+     "text": "Wait, a monster?! Next:\na note from Shibuya City",
+     "chars": 47,
+     "nums": [],
+     "box": [
+      42,
+      794,
+      595,
+      944
+     ],
+     "ghost": [
+      42,
+      794,
+      170,
+      944
+     ],
+     "bubble": [
+      174,
+      795,
+      595,
+      918
+     ],
+     "flip": false,
+     "overlap": 0,
+     "probes": 37,
+     "core": 0,
+     "protect": 0,
+     "ja": "えっ、怪獣！？\n次は渋谷区のお知らせ",
+     "jp_t1": 110.04,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "zone-27",
+     "beat": "sources",
+     "at": 0.3,
+     "t0": 119.0,
+     "t1": 121.68,
+     "text": "Thanks for watching~\nSee ya!",
+     "chars": 27,
+     "nums": [],
+     "box": [
+      42,
+      1376,
+      542,
+      1526
+     ],
+     "ghost": [
+      42,
+      1376,
+      170,
+      1526
+     ],
+     "bubble": [
+      174,
+      1377,
+      542,
+      1500
+     ],
+     "flip": false,
+     "overlap": 0,
+     "probes": 28,
+     "core": 0,
+     "protect": 0,
+     "ja": "見てくれてありがと〜\nまたね！",
+     "jp_t1": 121.68,
+     "cps": 60,
+     "moved": false
+    }
+   ]
+  },
+  "alt": {
+   "duration": 121.7,
+   "lines": [
+    {
+     "id": "alt-00",
+     "beat": "op-fly",
+     "at": 1.0,
+     "t0": 1.0,
+     "t1": 3.56,
+     "text": "Hiii! I'm the\nShibuya-kei Ghost~",
+     "chars": 31,
+     "nums": [],
+     "intro": true,
+     "box": [
+      42,
+      1322,
+      584,
+      1472
+     ],
+     "ghost": [
+      42,
+      1322,
+      170,
+      1472
+     ],
+     "bubble": [
+      174,
+      1323,
+      584,
+      1446
+     ],
+     "flip": false,
+     "overlap": 0,
+     "core": 0,
+     "probes": 65,
+     "protect": 0,
+     "ja": "どーも！\n渋谷系おばけです〜",
+     "jp_t1": 3.56,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "alt-01",
+     "beat": "op-fly",
+     "at": 3.8,
+     "t0": 3.8,
+     "t1": 7.15,
+     "text": "Shibuya-kei = 90s cool~\nI know every back alley!",
+     "chars": 47,
+     "nums": [],
+     "intro": true,
+     "box": [
+      42,
+      1322,
+      584,
+      1472
+     ],
+     "ghost": [
+      42,
+      1322,
+      170,
+      1472
+     ],
+     "bubble": [
+      174,
+      1323,
+      584,
+      1446
+     ],
+     "flip": false,
+     "overlap": 0,
+     "core": 0,
+     "probes": 65,
+     "protect": 0,
+     "ja": "渋谷の裏道、\nぜんぶ知ってるよ〜",
+     "jp_t1": 6.6,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "alt-02",
+     "beat": "mission",
+     "at": 0.1,
+     "t0": 7.8,
+     "t1": 10.6,
+     "text": "The mission is...\n\"don't go\"? Huh!",
+     "chars": 33,
+     "nums": [],
+     "box": [
+      42,
+      506,
+      470,
+      656
+     ],
+     "ghost": [
+      42,
+      506,
+      170,
+      656
+     ],
+     "bubble": [
+      174,
+      507,
+      470,
+      630
+     ],
+     "flip": false,
+     "overlap": 0,
+     "core": 0,
+     "probes": 32,
+     "protect": 0,
+     "moved": false,
+     "ja": "ミッションは\n「近づくな」だって",
+     "jp_t1": 10.6,
+     "cps": 60
+    },
+    {
+     "id": "alt-03",
+     "beat": "rules",
+     "at": 0.45,
+     "t0": 11.15,
+     "t1": 14.31,
+     "text": "So many costumes!\nBut isn't it too packed?",
+     "chars": 41,
+     "nums": [],
+     "box": [
+      42,
+      446,
+      569,
+      596
+     ],
+     "ghost": [
+      42,
+      446,
+      170,
+      596
+     ],
+     "bubble": [
+      174,
+      447,
+      569,
+      570
+     ],
+     "flip": false,
+     "overlap": 0,
+     "core": 0,
+     "probes": 36,
+     "protect": 0,
+     "moved": false,
+     "ja": "わ、仮装だらけ！\nでも人、多すぎない？",
+     "jp_t1": 14.31,
+     "cps": 60
+    },
+    {
+     "id": "alt-04",
+     "beat": "first-choice",
+     "at": 0.4,
+     "t0": 15.1,
+     "t1": 18.38,
+     "text": "A is \"don't go\".\nThat's allowed?!",
+     "chars": 32,
+     "nums": [],
+     "box": [
+      42,
+      1334,
+      459,
+      1484
+     ],
+     "ghost": [
+      42,
+      1334,
+      170,
+      1484
+     ],
+     "bubble": [
+      174,
+      1335,
+      459,
+      1458
+     ],
+     "flip": false,
+     "overlap": 0,
+     "core": 0,
+     "probes": 37,
+     "protect": 0,
+     "ja": "Aは「行かない」。\nそれ、アリなんだ！？",
+     "jp_t1": 18.38,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "alt-05",
+     "beat": "true-end",
+     "at": 0.3,
+     "t0": 19.0,
+     "t1": 22.52,
+     "text": "Not going = the best!\nThat's the TRUE END~",
+     "chars": 41,
+     "nums": [],
+     "box": [
+      42,
+      476,
+      560,
+      626
+     ],
+     "ghost": [
+      42,
+      476,
+      170,
+      626
+     ],
+     "bubble": [
+      174,
+      477,
+      560,
+      600
+     ],
+     "flip": false,
+     "overlap": 0,
+     "core": 0,
+     "probes": 39,
+     "protect": 0,
+     "ja": "行かないのが最強！\nだからTRUE END〜",
+     "jp_t1": 22.52,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "alt-06",
+     "beat": "guide",
+     "at": 0.2,
+     "t0": 22.9,
+     "t1": 25.46,
+     "text": "Already here?\nThen watch this~",
+     "chars": 29,
+     "nums": [],
+     "box": [
+      42,
+      1334,
+      476,
+      1484
+     ],
+     "ghost": [
+      42,
+      1334,
+      170,
+      1484
+     ],
+     "bubble": [
+      174,
+      1335,
+      476,
+      1458
+     ],
+     "flip": false,
+     "overlap": 0,
+     "core": 0,
+     "probes": 29,
+     "protect": 0,
+     "ja": "来ちゃった人は\nこっち見てね",
+     "jp_t1": 25.46,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "alt-07",
+     "beat": "over-start",
+     "at": 0.3,
+     "t0": 26.0,
+     "t1": 29.1,
+     "text": "This is the start.\nWhich way should we go~?",
+     "chars": 42,
+     "nums": [],
+     "box": [
+      42,
+      920,
+      616,
+      1070
+     ],
+     "ghost": [
+      42,
+      920,
+      170,
+      1070
+     ],
+     "bubble": [
+      174,
+      921,
+      616,
+      1044
+     ],
+     "flip": false,
+     "overlap": 0,
+     "core": 0,
+     "probes": 35,
+     "protect": 0,
+     "ja": "ここがスタート。\nどの道で行こっか〜",
+     "jp_t1": 29.04,
+     "cps": 60,
+     "moved": true
+    },
+    {
+     "id": "alt-08",
+     "beat": "sim-plan",
+     "at": 0.3,
+     "t0": 29.5,
+     "t1": 32.42,
+     "text": "Red spots mean\npeople packed tight",
+     "chars": 33,
+     "nums": [],
+     "box": [
+      42,
+      902,
+      547,
+      1052
+     ],
+     "ghost": [
+      42,
+      902,
+      170,
+      1052
+     ],
+     "bubble": [
+      174,
+      903,
+      547,
+      1026
+     ],
+     "flip": false,
+     "overlap": 0,
+     "core": 0,
+     "probes": 108,
+     "protect": 0,
+     "ja": "赤いとこは\n人ぎゅうぎゅうってこと",
+     "jp_t1": 32.42,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "alt-09",
+     "beat": "sim-plan",
+     "at": 3.5,
+     "t0": 32.7,
+     "t1": 36.22,
+     "text": "Every dot is a person.\nI counted 48,000~",
+     "chars": 39,
+     "nums": [
+      {
+       "quote": "4万8千人",
+       "value": 48000,
+       "src": "sim:plan.agents",
+       "quote_en": "48,000"
+      }
+     ],
+     "box": [
+      42,
+      902,
+      547,
+      1052
+     ],
+     "ghost": [
+      42,
+      902,
+      170,
+      1052
+     ],
+     "bubble": [
+      174,
+      903,
+      547,
+      1026
+     ],
+     "flip": false,
+     "overlap": 0,
+     "core": 0,
+     "probes": 108,
+     "protect": 0,
+     "ja": "この点々ぜんぶ人ね。\n4万8千人、数えたよ〜",
+     "jp_t1": 36.22,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "alt-10",
+     "beat": "sim-plan",
+     "at": 7.3,
+     "t0": 36.5,
+     "t1": 39.9,
+     "text": "Comparing each road:\ntime, crowds, danger",
+     "chars": 40,
+     "nums": [],
+     "box": [
+      42,
+      902,
+      547,
+      1052
+     ],
+     "ghost": [
+      42,
+      902,
+      170,
+      1052
+     ],
+     "bubble": [
+      174,
+      903,
+      547,
+      1026
+     ],
+     "flip": false,
+     "overlap": 0,
+     "core": 0,
+     "probes": 108,
+     "protect": 0,
+     "ja": "道ごとに時間と混み方と\n危なさを比べてるの",
+     "jp_t1": 39.9,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "alt-11",
+     "beat": "sim-pick",
+     "at": 0.4,
+     "t0": 40.6,
+     "t1": 44.12,
+     "text": "Gold road = fastest,\ncrowds included!",
+     "chars": 36,
+     "nums": [],
+     "box": [
+      294,
+      566,
+      780,
+      716
+     ],
+     "ghost": [
+      294,
+      566,
+      422,
+      716
+     ],
+     "bubble": [
+      426,
+      567,
+      780,
+      690
+     ],
+     "flip": false,
+     "overlap": 0,
+     "core": 0,
+     "probes": 39,
+     "protect": 0,
+     "ja": "金色の道が、混み方も\n入れるといちばん早い！",
+     "jp_t1": 44.12,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "alt-12",
+     "beat": "over-choice",
+     "at": 0.3,
+     "t0": 44.5,
+     "t1": 47.42,
+     "text": "A later last train\nfeels safer, right~?",
+     "chars": 38,
+     "nums": [],
+     "box": [
+      42,
+      494,
+      504,
+      644
+     ],
+     "ghost": [
+      42,
+      494,
+      170,
+      644
+     ],
+     "bubble": [
+      174,
+      495,
+      504,
+      618
+     ],
+     "flip": false,
+     "overlap": 1906,
+     "core": 24,
+     "probes": 33,
+     "protect": 0,
+     "ja": "終電遅い方が\n安心な気がするよね〜",
+     "jp_t1": 47.42,
+     "cps": 60,
+     "moved": true
+    },
+    {
+     "id": "alt-13",
+     "beat": "crush-pov",
+     "at": 0.4,
+     "t0": 48.1,
+     "t1": 51.5,
+     "text": "In the simulation you\ncan't move a step",
+     "chars": 38,
+     "nums": [],
+     "box": [
+      42,
+      1112,
+      561,
+      1262
+     ],
+     "ghost": [
+      42,
+      1112,
+      170,
+      1262
+     ],
+     "bubble": [
+      174,
+      1113,
+      561,
+      1236
+     ],
+     "flip": false,
+     "overlap": 0,
+     "core": 0,
+     "probes": 78,
+     "protect": 0,
+     "v102": true,
+     "ja": "シミュレーションだと\n一歩も動けないくらい",
+     "jp_t1": 51.5,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "alt-14",
+     "beat": "crush-pov",
+     "at": 4.4,
+     "t0": 52.1,
+     "t1": 55.5,
+     "text": "5+ people per m².\nShoved, nowhere to go",
+     "chars": 38,
+     "nums": [
+      {
+       "quote": "5",
+       "value": 5.56,
+       "src": "sim:crush.pov.alt.peak",
+       "rule": "floor",
+       "quote_en": "5"
+      }
+     ],
+     "box": [
+      42,
+      1112,
+      561,
+      1262
+     ],
+     "ghost": [
+      42,
+      1112,
+      170,
+      1262
+     ],
+     "bubble": [
+      174,
+      1113,
+      561,
+      1236
+     ],
+     "flip": false,
+     "overlap": 0,
+     "core": 0,
+     "probes": 78,
+     "protect": 0,
+     "v102": true,
+     "ja": "1m²に5人以上。\n押されても逃げられない",
+     "jp_t1": 55.5,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "alt-15",
+     "beat": "over-move",
+     "at": 0.4,
+     "t0": 56.1,
+     "t1": 58.9,
+     "text": "Uh-oh, go that way\nand you're stuck~",
+     "chars": 35,
+     "nums": [],
+     "box": [
+      42,
+      1112,
+      505,
+      1262
+     ],
+     "ghost": [
+      42,
+      1112,
+      170,
+      1262
+     ],
+     "bubble": [
+      174,
+      1113,
+      505,
+      1236
+     ],
+     "flip": false,
+     "overlap": 0,
+     "core": 0,
+     "probes": 32,
+     "protect": 0,
+     "ja": "あ、そっち行ったら\nハマるやつ〜",
+     "jp_t1": 58.9,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "alt-16",
+     "beat": "over-result",
+     "at": 0.4,
+     "t0": 60.6,
+     "t1": 63.8,
+     "text": "Wait... we got there\nand the last train left…",
+     "chars": 44,
+     "nums": [],
+     "box": [
+      42,
+      1004,
+      567,
+      1154
+     ],
+     "ghost": [
+      42,
+      1004,
+      170,
+      1154
+     ],
+     "bubble": [
+      174,
+      1005,
+      567,
+      1128
+     ],
+     "flip": false,
+     "overlap": 0,
+     "core": 0,
+     "probes": 36,
+     "protect": 0,
+     "ja": "えっ、着いたら\n終電行っちゃった…",
+     "jp_t1": 63.52,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "alt-17",
+     "beat": "over-lesson",
+     "at": 0.4,
+     "t0": 69.1,
+     "t1": 72.45,
+     "text": "A late last train is no\ngood if you arrive late~",
+     "chars": 47,
+     "nums": [],
+     "box": [
+      42,
+      422,
+      569,
+      572
+     ],
+     "ghost": [
+      42,
+      422,
+      170,
+      572
+     ],
+     "bubble": [
+      174,
+      423,
+      569,
+      546
+     ],
+     "flip": false,
+     "overlap": 0,
+     "core": 0,
+     "probes": 37,
+     "protect": 0,
+     "ja": "終電が遅くても\n着くのが遅いとダメ〜",
+     "jp_t1": 72.14,
+     "cps": 60,
+     "moved": true
+    },
+    {
+     "id": "alt-18",
+     "beat": "continue",
+     "at": 0.3,
+     "t0": 74.0,
+     "t1": 75.84,
+     "text": "Let's try again!",
+     "chars": 16,
+     "nums": [],
+     "box": [
+      42,
+      1322,
+      447,
+      1472
+     ],
+     "ghost": [
+      42,
+      1322,
+      170,
+      1472
+     ],
+     "bubble": [
+      174,
+      1369,
+      447,
+      1446
+     ],
+     "flip": false,
+     "overlap": 0,
+     "core": 0,
+     "probes": 22,
+     "protect": 0,
+     "ja": "もう1回やろ！",
+     "jp_t1": 75.84,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "alt-19",
+     "beat": "retry-why",
+     "at": 0.3,
+     "t0": 77.0,
+     "t1": 80.64,
+     "text": "Ebisu at 0:51, last\ntrain 0:50. 1 min late~",
+     "chars": 42,
+     "nums": [
+      {
+       "quote": "0:51",
+       "value": "0:51",
+       "src": "cfg:retry-why.pin",
+       "match": "0:51",
+       "quote_en": "0:51"
+      },
+      {
+       "quote": "0:50",
+       "value": "0:50",
+       "src": "cfg:retry-why.pin",
+       "match": "0:50",
+       "quote_en": "0:50"
+      }
+     ],
+     "box": [
+      42,
+      1112,
+      540,
+      1262
+     ],
+     "ghost": [
+      42,
+      1112,
+      170,
+      1262
+     ],
+     "bubble": [
+      174,
+      1113,
+      540,
+      1236
+     ],
+     "flip": false,
+     "overlap": 0,
+     "core": 0,
+     "probes": 40,
+     "protect": 0,
+     "ja": "恵比寿に0:51着。\n終電0:50に1分遅刻〜",
+     "jp_t1": 80.64,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "alt-20",
+     "beat": "clear-choice",
+     "at": 0.2,
+     "t0": 81.9,
+     "t1": 85.06,
+     "text": "Re-ran it with the crowd\nat that exact time",
+     "chars": 42,
+     "nums": [],
+     "box": [
+      42,
+      416,
+      583,
+      566
+     ],
+     "ghost": [
+      42,
+      416,
+      170,
+      566
+     ],
+     "bubble": [
+      174,
+      417,
+      583,
+      540
+     ],
+     "flip": false,
+     "overlap": 0,
+     "core": 0,
+     "probes": 67,
+     "protect": 0,
+     "ja": "混む時間に合わせて\nもう1回計算したよ",
+     "jp_t1": 85.06,
+     "cps": 60,
+     "moved": true
+    },
+    {
+     "id": "alt-21",
+     "beat": "clear-choice",
+     "at": 3.8,
+     "t0": 85.5,
+     "t1": 88.18,
+     "text": "Harajuku it is!\nThe best one!",
+     "chars": 28,
+     "nums": [],
+     "box": [
+      42,
+      416,
+      583,
+      566
+     ],
+     "ghost": [
+      42,
+      416,
+      170,
+      566
+     ],
+     "bubble": [
+      174,
+      417,
+      583,
+      540
+     ],
+     "flip": false,
+     "overlap": 0,
+     "core": 0,
+     "probes": 67,
+     "protect": 0,
+     "ja": "やっぱり原宿が\nいちばんいい！",
+     "jp_t1": 88.18,
+     "cps": 60,
+     "moved": true
+    },
+    {
+     "id": "alt-22",
+     "beat": "clear-move",
+     "at": 0.4,
+     "t0": 89.6,
+     "t1": 91.8,
+     "text": "Smooth sailing this way~",
+     "chars": 24,
+     "nums": [],
+     "box": [
+      42,
+      1112,
+      594,
+      1262
+     ],
+     "ghost": [
+      42,
+      1112,
+      170,
+      1262
+     ],
+     "bubble": [
+      174,
+      1159,
+      594,
+      1236
+     ],
+     "flip": false,
+     "overlap": 0,
+     "core": 0,
+     "probes": 26,
+     "protect": 0,
+     "ja": "この道ならスイスイ〜",
+     "jp_t1": 91.8,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "alt-23",
+     "beat": "clear-pov",
+     "at": 0.2,
+     "t0": 93.9,
+     "t1": 96.58,
+     "text": "See? It's way\nemptier over here",
+     "chars": 30,
+     "nums": [],
+     "box": [
+      42,
+      1058,
+      485,
+      1208
+     ],
+     "ghost": [
+      42,
+      1058,
+      170,
+      1208
+     ],
+     "bubble": [
+      174,
+      1059,
+      485,
+      1182
+     ],
+     "flip": false,
+     "overlap": 0,
+     "core": 0,
+     "probes": 31,
+     "protect": 0,
+     "ja": "ほら、こっちは\nすいてるでしょ",
+     "jp_t1": 96.58,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "alt-24",
+     "beat": "clear-result",
+     "at": 0.5,
+     "t0": 97.2,
+     "t1": 99.76,
+     "text": "Yay! We made the\nlast train~",
+     "chars": 27,
+     "nums": [],
+     "box": [
+      42,
+      1052,
+      485,
+      1202
+     ],
+     "ghost": [
+      42,
+      1052,
+      170,
+      1202
+     ],
+     "bubble": [
+      174,
+      1053,
+      485,
+      1176
+     ],
+     "flip": false,
+     "overlap": 0,
+     "core": 0,
+     "probes": 29,
+     "protect": 0,
+     "ja": "やったー！\n終電間に合った〜",
+     "jp_t1": 99.76,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "alt-25",
+     "beat": "clear-cheat",
+     "at": 0.3,
+     "t0": 103.5,
+     "t1": 106.18,
+     "text": "Screenshot\nthis, okay~?",
+     "chars": 22,
+     "nums": [],
+     "box": [
+      558,
+      290,
+      917,
+      440
+     ],
+     "ghost": [
+      789,
+      290,
+      917,
+      440
+     ],
+     "bubble": [
+      558,
+      291,
+      785,
+      414
+     ],
+     "flip": true,
+     "overlap": 1932,
+     "core": 0,
+     "probes": 31,
+     "protect": 0,
+     "ja": "このメモ、\nスクショしといて〜",
+     "jp_t1": 106.18,
+     "cps": 60,
+     "moved": true
+    },
+    {
+     "id": "alt-26",
+     "beat": "kaiju",
+     "at": 0.3,
+     "t0": 107.0,
+     "t1": 110.35,
+     "text": "Wait, a monster?! Next:\na note from Shibuya City",
+     "chars": 47,
+     "nums": [],
+     "box": [
+      42,
+      806,
+      595,
+      956
+     ],
+     "ghost": [
+      42,
+      806,
+      170,
+      956
+     ],
+     "bubble": [
+      174,
+      807,
+      595,
+      930
+     ],
+     "flip": false,
+     "overlap": 0,
+     "core": 0,
+     "probes": 37,
+     "protect": 0,
+     "ja": "えっ、怪獣！？\n次は渋谷区のお知らせ",
+     "jp_t1": 110.04,
+     "cps": 60,
+     "moved": false
+    },
+    {
+     "id": "alt-27",
+     "beat": "sources",
+     "at": 0.3,
+     "t0": 119.0,
+     "t1": 121.68,
+     "text": "Thanks for watching~\nSee ya!",
+     "chars": 27,
+     "nums": [],
+     "box": [
+      42,
+      1376,
+      542,
+      1526
+     ],
+     "ghost": [
+      42,
+      1376,
+      170,
+      1526
+     ],
+     "bubble": [
+      174,
+      1377,
+      542,
+      1500
+     ],
+     "flip": false,
+     "overlap": 0,
+     "core": 0,
+     "probes": 28,
+     "protect": 0,
+     "ja": "見てくれてありがと〜\nまたね！",
+     "jp_t1": 121.68,
+     "cps": 60,
+     "moved": false
+    }
+   ]
+  }
+ }
+}

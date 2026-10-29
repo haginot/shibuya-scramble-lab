@@ -2487,7 +2487,8 @@
      "overlap": 0,
      "probes": 39,
      "core": 0,
-     "protect": 0
+     "protect": 0,
+     "v102": true
     },
     {
      "id": "zone-16",
@@ -2527,7 +2528,8 @@
      "overlap": 0,
      "probes": 39,
      "core": 0,
-     "protect": 0
+     "protect": 0,
+     "v102": true
     },
     {
      "id": "zone-17",
