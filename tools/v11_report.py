@@ -103,7 +103,11 @@ def build():
     bad = [(p, l['beat'], l['protect'], l['core'], l['overlap']) for p in PAIRS for l in GH['pairs'][p]['lines'] if l['protect'] or l['core'] or l['overlap']]
     w(f'- **Ghost bubbles** ({len(gl)} lines): ≤ 2 lines, longest line {mx} chars (rule ≤ 24), every bubble ≤ the widest JP bubble')
     w(f'  ({GH["rules"]["jpMaxWidth"]} px); reading time 1.0 s + 0.05 s/char inside the window; boxes vs the EN HUD probes and the photo')
-    w(f'  faces / sign panel: {"protect 0, core 0, overlap 0 on every line" if not bad else "exceptions " + str(bad)}.')
+    w('  faces / sign panel: **protect 0 on every line**; HUD core 0 and overlap 0 on every line except these, which are the')
+    w('  same beats JP v10.2 accepts (`v9_ghost.ALLOW_OVERLAP`: the full sim map of SIM PICK / gut pick, where the ghost grazes a')
+    w('  route pin and covers no text; clear-cheat: the 12 px margin around the cheat sheet only, core 0). Format: pair beat (core px / overlap px):')
+    w('  ' + ', '.join(f'{p} {b} ({c} / {o})' for p, b, _, c, o in bad) + '. JP v10.2 for comparison: gate sim-pick (2921 / 7333),')
+    w('  taxi over-choice (512 / 6533), zone clear-cheat (0 / 384), alt over-choice (871 / 3349), alt clear-cheat (0 / 1235).')
     moved = sorted({(p, l['beat']) for p in PAIRS for l in GH['pairs'][p]['lines'] if l.get('moved')})
     w(f'  Boxes moved from the v10.2 place (EN HUD / bubble size): {", ".join(f"{p} {b}" for p, b in moved) or "none"}.\n')
     w('## Deliverables')
@@ -114,7 +118,8 @@ def build():
             if f.exists(): r = probe(f); w(f'| `{f.name}` | {r["duration"]} | {r["mb"]} | {r["lufs"]} | {r["tp"]} |')
     for f in (FIX/'zone.mp4', FIX/'zone-share.mp4'):
         if f.exists(): r = probe(f); w(f'| `ja-zone-fix/{f.name}` | {r["duration"]} | {r["mb"]} | {r["lufs"]} | {r["tp"]} |')
-    w('')
+    w('The mix is limited at −2 dBTP on the master WAV, as in JP. The AAC files measure −1.6 to −1.8 dBTP, the same as JP v10.2')
+    w('(`verify` limit −1.0 dBTP). Every share file is under 200 MB.\n')
     w('## JP zone wrap fix')
     w('「スクランブル交差点：一歩も前に進めない」 (zone crush-pov caption) wrapped its last character onto a second line (since v10.1).')
     w('It is now 「スクランブル交差点：一歩も進めない」 (`tools/v10_configs.mjs` FIXES; same meaning). Only that beat\'s JP HUD frames')

@@ -42,18 +42,16 @@ _TAG = []
 
 
 def ai_tag():
-    """the EN plate tag (「Edited AI-generated image」) cut from the same tagged HUD frame as v10 (tools/v10_plan.json aiTag),
-    its box re-measured: same rows, the run of opaque columns that ends at the JP tag's right edge."""
+    """the EN plate tag (「Edited AI-generated image」) for the crush POV (its HUD has no tag): cut from the EN rules HUD frame
+    (opening, no game clock → the tag at the top right, clear of the EN header) and stamped at the same place."""
     if not _TAG:
-        who, beat, k = C10.PLAN10['aiTag']['from']; x0, y0, x1, y1 = C10.PLAN10['aiTag']['box']
-        tl = json.loads((WORK11/who/'timeline.json').read_text(encoding='utf-8'))
-        f0 = next(b['f0'] for b in tl['parts']['body']['beats'] if b['id'] == beat)
-        im = Image.open(WORK11/who/'hud'/'body'/f'f{f0+k:05d}.png').convert('RGBA')
-        col = np.asarray(im)[y0:y1, :, 3].max(0) > 8
-        xr = max(x for x in range(x1-40, min(im.width, x1+60)) if col[x])+1
-        xl = xr
-        while xl > 0 and col[xl-6:xl].any(): xl -= 1
-        box = (max(0, xl-4), y0, min(im.width, xr+4), y1)
+        tl = json.loads((WORK11/'gate'/'timeline.json').read_text(encoding='utf-8'))
+        b = next(b for b in tl['parts']['opening']['beats'] if b['id'] == 'rules')
+        im = Image.open(WORK11/'opening'/'hud'/'opening'/f"f{(b['f0']+b['f1'])//2:05d}.png").convert('RGBA')
+        a = np.asarray(im)[..., 3]
+        ys, xs = np.nonzero(a[:300, 500:] > 8); xs = xs+500
+        top = ys.min(); rows = ys < top+60                     # the first opaque block from the top (the tag)
+        box = (int(xs[rows].min())-2, int(top)-2, int(xs[rows].max())+3, int(ys[rows].max())+3)
         _TAG.append((im.crop(box), box[:2]))
     return _TAG[0]
 

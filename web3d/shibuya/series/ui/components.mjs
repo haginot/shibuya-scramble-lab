@@ -162,7 +162,7 @@ function fiction(item,env){const r=R('parody',env.lang);
 // tag: {ja, top?} — small corner chip (same look as the fiction tag), e.g. 「位置・構造は概略」 for approximate 3D sets;
 // GameHUD.frame({tags:['…']}) stacks them top-right under the game clock.
 function tag(item,env){const r=R('parody',env.lang);
- r.html=`<div class="gh-fiction gh-tag" data-c="tag" style="right:${ZONE.clock.right}px;top:${item.top??ZONE.clock.top}px">${r.txt(item)}</div>`;
+ r.html=`<div class="gh-fiction gh-tag" data-c="tag" style="right:${item.right??ZONE.clock.right}px;top:${item.top??ZONE.clock.top}px">${r.txt(item)}</div>`;
  return r;}
 
 // header: {title?, jr?, sub?, scrim?} — small logotype lockup (every frame except while the big 3D logo is up). scrim:true
@@ -565,6 +565,7 @@ function vnoise(size,cells,rnd){const g=[];for(let i=0;i<cells*cells;i++)g.push(
  return (x,y)=>{const fx=x/size*cells,fy=y/size*cells,ix=Math.floor(fx),iy=Math.floor(fy),u=EASE.smooth(fx-ix),v=EASE.smooth(fy-iy);return mix(mix(at(ix,iy),at(ix+1,iy),u),mix(at(ix,iy+1),at(ix+1,iy+1),u),v);};}
 
 const isObjS=v=>v&&typeof v==='object';
+const CLOCK_W=228;   // v11-en: CSS width of the game clock panel (measured on the EN HUD)
 function measureFit(root){const cjk=[],wraps=[],over=[];
  const txt=root.innerText||'';for(const l of txt.split('\n'))if(CJK_RE.test(l))cjk.push(l.trim());
  for(const e of root.querySelectorAll('*')){if(e.closest('svg'))continue;const tn=[...e.childNodes].filter(n=>n.nodeType===3&&n.textContent.trim());if(!tn.length)continue;
@@ -625,7 +626,8 @@ export class GameHUD{
   if(state.fiction||(state.items||[]).some(it=>it.c==='notice'||(it.c==='mission'&&it.card&&it.fiction!==false)))add(render({c:'fiction',...(isObjS(state.fiction)?state.fiction:{})},env));
   if(state.header)add(render({c:'header',...(state.header===true?{}:state.header)},env));
   if(state.clock)add(render({c:'clock',...state.clock},env));
-  {let y=ZONE.clock.top+(state.clock?50:rec.fiction?30:0);for(const tg of state.tags||[]){add(render({c:'tag',...(typeof tg==='string'?{ja:tg}:tg),top:y},env));y+=28;}}
+  // v11-en: under the clock the plate tag would sit on the (longer) EN header line → beside the clock, on its row
+  {const side=lang==='en'&&state.clock;let y=ZONE.clock.top+(side?12:state.clock?50:rec.fiction?30:0);for(const tg of state.tags||[]){add(render({c:'tag',...(typeof tg==='string'?{ja:tg}:tg),top:y,...(side?{right:ZONE.clock.right+CLOCK_W+8}:{})},env));y+=28;}}
   for(const it of state.items||[]){const res=render({t:T,...it},env);if(res){rec.items.push(it.c);add(res);}else if(EXTERNAL_KEYS.includes(it.c))rec.items.push(it.c);}
   if(out.chips)out.low+=`<div class="gh-chips">${out.chips}</div>`;
   let ft=state.footnote;if(typeof ft==='function')ft=ft(rec.factIds.slice());
