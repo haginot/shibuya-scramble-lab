@@ -791,7 +791,7 @@
       "hud": [
         {
           "c": "caption",
-          "ja": "赤枠内は状況により\n検問・交通規制（2026年）",
+          "ja": "赤枠内は状況により\n車両の検問・規制（2026年）",
           "factIds": [
             "MEAS-02"
           ],
@@ -808,7 +808,7 @@
         },
         {
           "c": "sim",
-          "ja": "進めない（シミュレーション）",
+          "ja": "混雑で進めない（シミュレーション）",
           "factIds": [],
           "at": 0.6
         },
@@ -1226,7 +1226,7 @@
             0,
             -23.3
           ],
-          "ja": "赤枠内 4.0人/m²（シミュレーション）\n状況により規制（2026年）",
+          "ja": "赤枠内 4.0人/m²（シミュレーション）\n状況により車両規制（2026年）",
           "color": "#FF6FB1",
           "factIds": [
             "MEAS-01"
@@ -1262,7 +1262,7 @@
         "rho": 4,
         "x": 19.4,
         "z": -23.3,
-        "text": "赤枠内 4.0人/m²（シミュレーション）\n状況により規制（2026年）"
+        "text": "赤枠内 4.0人/m²（シミュレーション）\n状況により車両規制（2026年）"
       }
     },
     {
@@ -1875,14 +1875,14 @@
             "title": "GOODBYE BAD HALLOWEEN",
             "ja": "渋谷駅周辺では、条例で飲酒・喫煙、\nごみのポイ捨ては禁止されています。",
             "attr": "（渋谷区）",
-            "en": "Drinking, smoking and littering on the streets around Shibuya Station are banned by ordinance.",
+            "en": "Near Shibuya Sta.: drinking, smoking, littering banned by ordinance.",
             "enAttr": "(Shibuya City)",
             "label": "引用"
           },
           "facts": [
             {
-              "ja": "10/30(金)早朝〜11/1(日)朝方　ハチ公像は囲いで観覧不可",
-              "en": "Oct 30 early AM – Nov 1 morning: Hachiko statue fenced off"
+              "ja": "10/30(金)早朝〜11/1(日)まで（予定）　ハチ公像は囲いで観覧不可",
+              "en": "Oct 30 early AM – until Nov 1 (planned): Hachiko statue fenced off"
             },
             {
               "ja": "10/30夕方〜11/1早朝　駅周辺で交通規制",
@@ -3123,6 +3123,52 @@
         "from": "原宿駅にたどり着いた！\n（シミュレーション）",
         "to": "渋谷を抜けて原宿駅へ！\n（シミュレーション）",
         "why": "plate meiji is Meiji-dori seen from the Shibuya deck, not Harajuku station"
+      }
+    ]
+  },
+  "v111": {
+    "fixes": [
+      {
+        "path": "@goodbye.hud.0.facts.0.ja",
+        "from": "10/30(金)早朝〜11/1(日)朝方　ハチ公像は囲いで観覧不可",
+        "to": "10/30(金)早朝〜11/1(日)まで（予定）　ハチ公像は囲いで観覧不可",
+        "why": "A: enclosure end is planned (ward: 11/1 morning, may change; news: ~17:00)"
+      },
+      {
+        "path": "@goodbye.hud.0.facts.0.en",
+        "from": "Oct 30 early AM – Nov 1 morning: Hachiko statue fenced off",
+        "to": "Oct 30 early AM – until Nov 1 (planned): Hachiko statue fenced off",
+        "why": "A (EN)"
+      },
+      {
+        "path": "@over-result.hud.0.ja",
+        "from": "赤枠内は状況により\n検問・交通規制（2026年）",
+        "to": "赤枠内は状況により\n車両の検問・規制（2026年）",
+        "why": "C: vehicle restrictions"
+      },
+      {
+        "path": "@over-result.hud.2.ja",
+        "from": "進めない（シミュレーション）",
+        "to": "混雑で進めない（シミュレーション）",
+        "why": "C: the cause is the crowd"
+      },
+      {
+        "path": "@retry-why.hud.1.ja",
+        "from": "赤枠内 4.0人/m²（シミュレーション）\n状況により規制（2026年）",
+        "to": "赤枠内 4.0人/m²（シミュレーション）\n状況により車両規制（2026年）",
+        "why": "C: vehicle restrictions"
+      },
+      {
+        "path": "@retry-why.why.text",
+        "from": "赤枠内 4.0人/m²（シミュレーション）\n状況により規制（2026年）",
+        "to": "赤枠内 4.0人/m²（シミュレーション）\n状況により車両規制（2026年）",
+        "why": "C"
+      },
+      {
+        "path": "@goodbye.hud.0.quote.en",
+        "from": "Drinking, smoking and littering on the streets around Shibuya Station are banned by ordinance.",
+        "to": "Near Shibuya Sta.: drinking, smoking, littering banned by ordinance.",
+        "why": "fit: the EN sub-line of the quote on one line"
       }
     ]
   }

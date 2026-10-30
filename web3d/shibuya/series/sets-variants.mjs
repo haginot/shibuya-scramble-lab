@@ -93,6 +93,14 @@ function setMaterial(shared,lights){const L=lights.slice(0,6);while(L.length<6)L
 // canvas sign texture (generic words only; Noto Sans CJK JP, SIL OFL 1.1)
 function signTexture(w,h,draw){const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');draw(x,w,h);const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=4;return {tex:t,canvas:c,ctx:x};}
 const FONT='"Noto Sans CJK JP","Noto Sans JP",sans-serif';
+// v11.1: the EN edition (page body.lang-en) draws the in-world signs / board in English (no CJK in the EN output)
+const EN_PAGE=()=>typeof document!=='undefined'&&!!document.body?.classList.contains('lang-en');
+const SIGN_EN=Object.freeze({'タクシー':'TAXI','のりば':'STAND','休止中':'CLOSED','こののりばは使えません':'This stand is not in use',
+ '原宿 山手線 内回り':'Harajuku Yamanote inner','恵比寿 山手線 内回り':'Ebisu Yamanote inner','終電':'Last','大崎':'Osaki','発車':'DEPARTED',
+ '通常の土休日ダイヤ（10/25確認）':'Normal weekend timetable (checked Oct 25)'});
+const S_=t=>EN_PAGE()&&t?SIGN_EN[t]??t:t;   // a JP sign text without an EN entry stays JP → the EN canvas check fails
+// fillText shrunk to maxW (EN words are wider than the JP ones)
+const fillFit=(x,t,px,y,w,maxW,pre='900')=>{x.font=`${pre} ${px}px ${FONT}`;const m=x.measureText(t).width;if(m>maxW)x.font=`${pre} ${Math.floor(px*maxW/m)}px ${FONT}`;x.fillText(t,w,y);};
 function signPlane(w,h,tex,{emissive=1.2}={}){const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.ShaderMaterial({uniforms:{tMap:{value:tex},uGain:{value:emissive}},transparent:true,side:THREE.FrontSide,
  vertexShader:`varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
  fragmentShader:`uniform sampler2D tMap;uniform float uGain;varying vec2 vUv;void main(){vec4 c=texture2D(tMap,vUv);gl_FragColor=vec4(pow(c.rgb,vec3(2.2))*uGain,c.a);}`}));return m;}
@@ -169,8 +177,8 @@ function buildTaxiWest(shared,opt,osm,ib){const o={...SET_DEFAULTS['taxi-west'],
  const lp=L(0,-.4);const lights=[{p:[lp[0],2.5,lp[1]],c:[1.4,1.3,1.15],r:3},{p:[sp[0],3.2,sp[1]],c:[.6,.45,.1],r:2}];
  const mesh=new THREE.Mesh(b.geometry(),setMaterial(shared,lights));mesh.frustumCulled=false;g.add(mesh);
  // sign faces (canvas): pole box and the closed board, both sides of the pole
- const s1=signTexture(256,170,(x,w,h)=>{x.fillStyle='#f2c014';x.fillRect(0,0,w,h);x.fillStyle='#111';x.textAlign='center';x.font=`900 50px ${FONT}`;x.fillText('タクシー',w/2,74);x.font=`900 46px ${FONT}`;x.fillText('のりば',w/2,140);});
- const s2=signTexture(300,190,(x,w,h)=>{x.fillStyle='#fff';x.fillRect(0,0,w,h);x.strokeStyle='#d01010';x.lineWidth=16;x.strokeRect(8,8,w-16,h-16);x.fillStyle='#d01010';x.textAlign='center';x.font=`900 78px ${FONT}`;x.fillText('休止中',w/2,122);x.font=`700 24px ${FONT}`;x.fillStyle='#222';x.fillText('こののりばは使えません',w/2,165);});
+ const s1=signTexture(256,170,(x,w,h)=>{x.fillStyle='#f2c014';x.fillRect(0,0,w,h);x.fillStyle='#111';x.textAlign='center';fillFit(x,S_('タクシー'),50,74,w/2,w-24);fillFit(x,S_('のりば'),46,140,w/2,w-24);});
+ const s2=signTexture(300,190,(x,w,h)=>{x.fillStyle='#fff';x.fillRect(0,0,w,h);x.strokeStyle='#d01010';x.lineWidth=16;x.strokeRect(8,8,w-16,h-16);x.fillStyle='#d01010';x.textAlign='center';fillFit(x,S_('休止中'),78,122,w/2,w-48);x.fillStyle='#222';fillFit(x,S_('こののりばは使えません'),24,165,w/2,w-36,'700');});
  const yaw=ang;
  for(const side of [1,-1]){const off=rot2(0,side*.05,ang);const a=signPlane(.86,.57,s1.tex,{emissive:.55});a.position.set(sp[0]+off[0],3.05,sp[1]+off[1]);a.rotation.y=yaw+(side<0?Math.PI:0);g.add(a);
   const c=signPlane(1.25,.8,s2.tex,{emissive:.65});c.position.set(sp[0]+off[0]*1.6,2.1,sp[1]+off[1]*1.6);c.rotation.y=yaw+(side<0?Math.PI:0);g.add(c);}
@@ -190,7 +198,7 @@ function buildTaxiSakura(shared,opt,osm,ib){const HERO_X=6.2;const o={...SET_DEF
  for(const k of [-7,0,7]){const q=L(k,-.3);b.box(q[0],4.2,q[1],.12,8.4,.12,COL.steel,ang);const r=L(k,.9);b.box(r[0],8.3,r[1],.4,.16,2.4,[.2,.2,.2],ang,{bottom:[2.2,2,1.7]});}// street lamps
  const lp=L(-3,-.3);const lights=[{p:[lp[0],2.5,lp[1]],c:[.95,.9,.8],r:3.2},...[-7,0,7].map(k=>{const q=L(k,1.5);return {p:[q[0],8,q[1]],c:[1.2,1.05,.85],r:5};}),{p:[sp[0],3.2,sp[1]],c:[.6,.45,.1],r:2}];
  const mesh=new THREE.Mesh(b.geometry(),setMaterial(shared,lights));mesh.frustumCulled=false;g.add(mesh);
- const s1=signTexture(256,170,(x,w,h)=>{x.fillStyle='#f2c014';x.fillRect(0,0,w,h);x.fillStyle='#111';x.textAlign='center';x.font=`900 50px ${FONT}`;x.fillText('タクシー',w/2,74);x.font=`900 46px ${FONT}`;x.fillText('のりば',w/2,140);});
+ const s1=signTexture(256,170,(x,w,h)=>{x.fillStyle='#f2c014';x.fillRect(0,0,w,h);x.fillStyle='#111';x.textAlign='center';fillFit(x,S_('タクシー'),50,74,w/2,w-24);fillFit(x,S_('のりば'),46,140,w/2,w-24);});
  for(const side of [1,-1]){const off=rot2(0,side*.05,ang);const a=signPlane(.86,.57,s1.tex,{emissive:.6});a.position.set(sp[0]+off[0],3.05,sp[1]+off[1]);a.rotation.y=ang+(side<0?Math.PI:0);g.add(a);}
  // taxis: instanced; positions animated in update (loop: approach → stop → pick up → leave)
  const tg=taxiGeometry();const taxis=[];for(let k=0;k<3;k++){const m=new THREE.Mesh(tg,setMaterial(shared,[]));m.frustumCulled=false;g.add(m);taxis.push(m);}
@@ -265,7 +273,7 @@ function buildAltPlatform(shared,opt,wideData){const o={...SET_DEFAULTS['alt-pla
  const mesh=new THREE.Mesh(b.geometry(),setMaterial(shared,lights));mesh.frustumCulled=false;g.add(mesh);
  // board canvas (both faces)
  const board=signTexture(640,220,()=>{});const faces=[];for(const side of [1,-1]){const off=rot2(0,side*.1,ang);const p=signPlane(BW-.1,BH-.08,board.tex,{emissive:1.5});p.position.set(bp[0]+rot2(0,side*.1,ang)[0],Y+2.85,bp[1]+rot2(0,side*.1,ang)[1]);p.rotation.y=ang+(side<0?Math.PI:0);g.add(p);faces.push(p);}
- function setBoard({title='',rows=[],status='',foot=''}={}){const x=board.ctx,w=640,h=220;x.fillStyle='#050505';x.fillRect(0,0,w,h);
+ function setBoard({title='',rows=[],status='',foot=''}={}){const x=board.ctx,w=640,h=220;title=S_(title);status=S_(status);foot=S_(foot);rows=rows.map(r=>({...r,note:S_(r.note),dest:S_(r.dest)}));x.fillStyle='#050505';x.fillRect(0,0,w,h);
   // LED dot mask look
   x.fillStyle='#ff9a1a';x.font=`700 30px ${FONT}`;x.textAlign='left';x.fillText(title,18,40);
   rows.slice(0,2).forEach((r,i)=>{const y=96+i*56;x.fillStyle=i===0?'#ffb02a':'#ff9a1a';x.font=`800 40px ${FONT}`;x.textAlign='left';x.fillText(r.note||'',18,y);x.fillText(r.time||'',140,y);x.fillStyle='#f0f0f0';x.font=`700 36px ${FONT}`;x.fillText(r.dest||'',330,y);});

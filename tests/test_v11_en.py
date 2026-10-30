@@ -135,7 +135,8 @@ def test_no_forbidden_names_in_v11_files():
 
 
 def test_jp_hud_unchanged_vs_v102(tmp_path):
-    """JP HUD html of every 15th frame state, this tree vs commit 7ec8667 (v10.2): identical except the zone wrap fix."""
+    """JP HUD html of every 15th frame state, this tree vs commit 7ec8667 (v10.2): identical except the zone wrap fix and the
+    v11.1 fact-check beats."""
     if subprocess.run(['git', 'cat-file', '-e', '7ec8667'], cwd=ROOT).returncode: pytest.skip('v10.2 commit not available')
     old = tmp_path/'old'; old.mkdir()
     p = subprocess.Popen(['git', 'archive', '7ec8667', 'web3d/shibuya/series', 'web3d/shibuya/sources-halloween.mjs'], cwd=ROOT, stdout=subprocess.PIPE)
@@ -146,14 +147,31 @@ def test_jp_hud_unchanged_vs_v102(tmp_path):
     A, B = json.loads(a.read_text()), json.loads(b.read_text())
     diff = [k for k in A if A[k] != B.get(k)]
     assert len(A) == len(B) > 900
-    assert diff and all(k.startswith('zone/body/') and 1245 <= int(k.split('/')[-1]) < 1485 for k in diff), diff
-    assert all('スクランブル交差点：一歩も進めない' in B[k] for k in diff)
+    # v11.1: + the beats of the fact-check fixes (tools/v10_configs.mjs V111; zone's sim / retry panels show the reworded
+    # 「混雑する赤枠内を長く歩く」 row) — see tests/test_v11_1.py for their text
+    tl = {p: Path(f'/workspace/projects/logs/ssl-claude-halloween/v9/render/{p}/timeline.json') for p in PAIRS}
+    if not all(f.exists() for f in tl.values()): pytest.skip('v9 timelines not on this machine')
+    beat_of = {}
+    for p, f in tl.items():
+        for b in json.loads(f.read_text(encoding='utf-8'))['parts']['body']['beats']:
+            for fr in range(b['f0'], b['f1']): beat_of[(p, fr)] = b['id']
+    allowed = {'zone': {'crush-pov', 'sim-plan', 'sim-pick', 'retry-why', 'clear-choice'}}
+    for p in PAIRS:
+        c = json.loads((SER/f'variants/jr/v10/{p}.json').read_text(encoding='utf-8'))
+        for f in c['v111']['fixes']:
+            k = f['path'].split('.')[0]
+            allowed.setdefault(p, set()).add(k[1:] if k.startswith('@') else {'lesson': 'over-lesson', 'cheat': 'clear-cheat'}[k])
+    bad = [k for k in diff if not (k.split('/')[1] == 'body' and beat_of[(k.split('/')[0], int(k.split('/')[-1]))] in allowed.get(k.split('/')[0], ()))]
+    assert diff and not bad, bad
+    zw = [k for k in diff if k.startswith('zone/body/') and 1245 <= int(k.split('/')[-1]) < 1485]
+    assert zw and all('スクランブル交差点：一歩も進めない' in B[k] for k in zw)
 
 
 @pytest.mark.parametrize('pair', PAIRS)
 def test_deliverables(pair):
     f, s = OUT/f'{pair}.mp4', OUT/f'{pair}-share.mp4'
     if not s.exists(): pytest.skip('not rendered yet')
+    if not (WORK11/pair/'report.json').exists(): pytest.skip('v11-en work dir not on this machine')
     rep = json.loads((WORK11/pair/'report.json').read_text(encoding='utf-8'))
     assert rep['ok'] and rep['duration'] == pytest.approx(121.7, abs=.05) and -15 <= rep['lufs'] <= -13 and rep['true_peak'] <= -1.0
     assert s.stat().st_size < 200*2**20 and (OUT/f'{pair}-contact.jpg').exists()

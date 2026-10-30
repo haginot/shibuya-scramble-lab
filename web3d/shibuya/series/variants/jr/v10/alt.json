@@ -197,14 +197,14 @@
       "hud": [
         {
           "c": "mission",
-          "ja": "山手線の内回りで\n品川方面へ帰れ",
+          "ja": "山手線の内回り\n大崎行き（品川方面）で帰れ",
           "factIds": [
             "JR-PLAT-01"
           ]
         },
         {
           "c": "caption",
-          "ja": "渋谷の内回り終電は0:48\n（通常の土休日ダイヤ）",
+          "ja": "渋谷の内回り終電0:48は大崎行き\n（通常の土休日ダイヤ）",
           "factIds": [
             "JR-LAST-02"
           ],
@@ -1734,14 +1734,14 @@
             "title": "GOODBYE BAD HALLOWEEN",
             "ja": "渋谷駅周辺では、条例で飲酒・喫煙、\nごみのポイ捨ては禁止されています。",
             "attr": "（渋谷区）",
-            "en": "Drinking, smoking and littering on the streets around Shibuya Station are banned by ordinance.",
+            "en": "Near Shibuya Sta.: drinking, smoking, littering banned by ordinance.",
             "enAttr": "(Shibuya City)",
             "label": "引用"
           },
           "facts": [
             {
-              "ja": "10/30(金)早朝〜11/1(日)朝方　ハチ公像は囲いで観覧不可",
-              "en": "Oct 30 early AM – Nov 1 morning: Hachiko statue fenced off"
+              "ja": "10/30(金)早朝〜11/1(日)まで（予定）　ハチ公像は囲いで観覧不可",
+              "en": "Oct 30 early AM – until Nov 1 (planned): Hachiko statue fenced off"
             },
             {
               "ja": "10/30夕方〜11/1早朝　駅周辺で交通規制",
@@ -1824,7 +1824,7 @@
     "note": "当日は駅・警察の案内を確認",
     "rows": [
       {
-        "sec": "駅 外回り（新宿方面）・内回り（品川方面）",
+        "sec": "駅 外回り（新宿方面）・内回り（大崎方面）",
         "ja": "渋谷 外回り0:33・内回り0:48",
         "sub": "通常の土休日・内回りは大崎行",
         "factIds": [
@@ -3002,6 +3002,46 @@
         "from": "駅前の通路：一歩も前に進めない",
         "to": "駅前：一歩も前に進めない",
         "why": "plate crush3 is an open-air crowd, not a passage"
+      }
+    ]
+  },
+  "v111": {
+    "fixes": [
+      {
+        "path": "@goodbye.hud.0.facts.0.ja",
+        "from": "10/30(金)早朝〜11/1(日)朝方　ハチ公像は囲いで観覧不可",
+        "to": "10/30(金)早朝〜11/1(日)まで（予定）　ハチ公像は囲いで観覧不可",
+        "why": "A: enclosure end is planned (ward: 11/1 morning, may change; news: ~17:00)"
+      },
+      {
+        "path": "@goodbye.hud.0.facts.0.en",
+        "from": "Oct 30 early AM – Nov 1 morning: Hachiko statue fenced off",
+        "to": "Oct 30 early AM – until Nov 1 (planned): Hachiko statue fenced off",
+        "why": "A (EN)"
+      },
+      {
+        "path": "@over-start.hud.0.ja",
+        "from": "山手線の内回りで\n品川方面へ帰れ",
+        "to": "山手線の内回り\n大崎行き（品川方面）で帰れ",
+        "why": "D: the last inner-loop trains end at Osaki"
+      },
+      {
+        "path": "@over-start.hud.1.ja",
+        "from": "渋谷の内回り終電は0:48\n（通常の土休日ダイヤ）",
+        "to": "渋谷の内回り終電0:48は大崎行き\n（通常の土休日ダイヤ）",
+        "why": "D: the source of 「大崎行き」 (JR timetable, JR-LAST-02)"
+      },
+      {
+        "path": "cheat.rows.0.sec",
+        "from": "駅 外回り（新宿方面）・内回り（品川方面）",
+        "to": "駅 外回り（新宿方面）・内回り（大崎方面）",
+        "why": "D: every listed last inner train is for Osaki"
+      },
+      {
+        "path": "@goodbye.hud.0.quote.en",
+        "from": "Drinking, smoking and littering on the streets around Shibuya Station are banned by ordinance.",
+        "to": "Near Shibuya Sta.: drinking, smoking, littering banned by ordinance.",
+        "why": "fit: the EN sub-line of the quote on one line"
       }
     ]
   }

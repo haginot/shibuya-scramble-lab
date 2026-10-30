@@ -28,10 +28,13 @@ def cfg(rel): return json.loads((CFG/f'{rel}.json').read_text(encoding='utf-8'))
 
 def changed_beats(pair):
     """[(beat id, f0, f1)] body beats whose HUD differs between v10/<pair> and v9/<pair> (body part frames)."""
-    a = {b['id']: b for b in cfg(f'v9/{pair}')['beats']}; b10 = cfg(f'v10/{pair}')
+    c9, b10 = cfg(f'v9/{pair}'), cfg(f'v10/{pair}'); a = {b['id']: b for b in c9['beats']}
     tl = json.loads((R9.WORK/pair/'timeline.json').read_text(encoding='utf-8'))
     fr = {b['id']: (b['f0'], b['f1']) for b in tl['parts']['body']['beats']}
-    return [(b['id'], *fr[b['id']]) for b in b10['beats'] if b['hud'] != a[b['id']]['hud']]
+
+    def shown(c, b):   # v11.1: the lesson / cheat cards take their text from the config root (`lesson`, `cheat`)
+        return [b['hud']]+[c.get(k) for k in ('lesson', 'cheat') if any(h.get('c') == k for h in b['hud'])]+[b.get('why')]
+    return [(b['id'], *fr[b['id']]) for b in b10['beats'] if shown(b10, b) != shown(c9, a[b['id']])]
 
 
 def hud_dir(pair): return WORK10/pair/'hud'/'body'

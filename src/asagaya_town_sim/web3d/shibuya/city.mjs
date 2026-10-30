@@ -15,6 +15,13 @@ function inside(x,z,ring){let hit=false;for(let i=0,j=ring.length-1;i<ring.lengt
 const WORDS={restaurant:['食堂','ラーメン','焼肉','寿司','中華','定食','そば'],cafe:['珈琲','喫茶','CAFE'],bar:['BAR','酒場'],pub:['居酒屋','酒場','立呑'],fast_food:['牛丼','軽食','餃子'],clothes:['古着','FASHION','洋服'],chemist:['薬','くすり'],books:['書店'],convenience:['24時間'],shoes:['靴'],optician:['眼鏡'],music:['音楽','CD'],video_games:['ゲーム'],games:['ゲーム'],mobile_phone:['携帯'],cosmetics:['化粧品'],jewelry:['宝飾'],sports:['SPORTS'],karaoke:['カラオケ'],default:['営業中','雑貨','カラオケ','OPEN','渋谷']};
 const NEON=[0xff2d75,0x29e6ff,0xffb627,0x9d4bff,0x3dff8b,0xff5a1f,0xffffff,0xff3df5,0x4d7cff];
 
+// v11.1: the EN edition of the series (page body.lang-en) paints the same signs with English words (same atlas slots, same
+// random draws; no CJK in the EN output). JP pages are unchanged.
+const WORDS_EN={'食堂':'DINER','ラーメン':'RAMEN','焼肉':'BBQ','寿司':'SUSHI','中華':'CHINESE','定食':'MEALS','そば':'SOBA','珈琲':'COFFEE','喫茶':'CAFE',
+ '酒場':'TAVERN','居酒屋':'IZAKAYA','立呑':'DRINKS','牛丼':'GYUDON','軽食':'SNACKS','餃子':'GYOZA','古着':'VINTAGE','洋服':'CLOTHES','薬':'PHARMACY',
+ 'くすり':'DRUGS','書店':'BOOKS','24時間':'24H','靴':'SHOES','眼鏡':'GLASSES','音楽':'MUSIC','ゲーム':'GAMES','携帯':'MOBILE','化粧品':'BEAUTY',
+ '宝飾':'JEWELRY','カラオケ':'KARAOKE','営業中':'OPEN','雑貨':'GOODS','渋谷':'SHIBUYA'};
+const EN_PAGE=()=>typeof document!=='undefined'&&!!document.body?.classList.contains('lang-en');
 // theme (optional): {words, share, neon} adds themed sign words; omitted in the normal mode.
 export function buildCity({scene,osm,plateau,config,theme=null}){
  const rnd=mulberry(1234);
@@ -136,7 +143,7 @@ export function buildCity({scene,osm,plateau,config,theme=null}){
  const atlasV=document.createElement('canvas');atlasV.width=words.length*96;atlasV.height=512;const AV=atlasV.getContext('2d');
  const atlasH=document.createElement('canvas');atlasH.width=512;atlasH.height=words.length*96;const AH=atlasH.getContext('2d');
  AV.fillStyle=AH.fillStyle='#fff';AV.textAlign=AH.textAlign='center';AV.textBaseline=AH.textBaseline='middle';
- words.forEach((w,i)=>{const chars=[...w];const latin=/^[A-Z0-9]+$/.test(w);
+ const EN=EN_PAGE();words.forEach((w0,i)=>{const w=EN?WORDS_EN[w0]??w0:w0;const chars=[...w];const latin=/^[A-Z0-9]+$/.test(w);
   // vertical: stacked characters (latin rotated)
   if(latin){AV.save();AV.translate(i*96+48,256);AV.rotate(Math.PI/2);AV.font=`900 ${Math.min(80,440/chars.length*1.4)}px ${FONT}`;AV.fillText(w,0,4);AV.restore();}
   else{const size=Math.min(84,470/chars.length);AV.font=`900 ${size}px ${FONT}`;chars.forEach((ch,k)=>AV.fillText(ch,i*96+48,256+(k-(chars.length-1)/2)*size*1.02));}
@@ -178,7 +185,7 @@ export function buildCity({scene,osm,plateau,config,theme=null}){
   const [px,py]=toL((e.a[0]+e.b[0])/2+e.nx*14,(e.a[1]+e.b[1])/2+e.nz*14),g=G.createRadialGradient(px,py,0,px,py,26*lsc);g.addColorStop(0,'rgba(170,160,255,.4)');g.addColorStop(1,'rgba(0,0,0,0)');G.fillStyle=g;G.fillRect(px-26*lsc,py-26*lsc,52*lsc,52*lsc);}
  // Screen content: kinetic type, colour fields and a live view of the trails.
  const typeCanvas=document.createElement('canvas');typeCanvas.width=1024;typeCanvas.height=256;const T=typeCanvas.getContext('2d');
- T.fillStyle='#fff';T.textBaseline='middle';const [line1,line2]=theme?.screenText??['SHIBUYA','渋谷'];T.font=`900 ${line1.length>7?118:150}px ${FONT}`;T.fillText(line1,20,128);T.font=`900 ${line2.length>2?120:170}px ${FONT}`;T.fillText(line2,line1.length>7?650:700,132);
+ T.fillStyle='#fff';T.textBaseline='middle';const [line1,line2]=theme?.screenText??(EN_PAGE()?['SHIBUYA','TYO']:['SHIBUYA','渋谷']);T.font=`900 ${line1.length>7?118:150}px ${FONT}`;T.fillText(line1,20,128);T.font=`900 ${line2.length>2?120:170}px ${FONT}`;T.fillText(line2,line1.length>7?650:700,132);
  const typeTex=new THREE.CanvasTexture(typeCanvas);typeTex.colorSpace=THREE.SRGBColorSpace;typeTex.wrapS=THREE.RepeatWrapping;
  const screenMat=kind=>new THREE.ShaderMaterial({uniforms:{...shared,uType:{value:typeTex},uKind:{value:kind},uAspect:{value:1},uTheme:{value:theme?1:0}},vertexShader:/* glsl */`varying vec2 vUv;varying vec3 vWorld;void main(){vUv=uv;vec4 w=modelMatrix*vec4(position,1.);vWorld=w.xyz;gl_Position=projectionMatrix*viewMatrix*w;}`,
   fragmentShader:/* glsl */`${common}uniform sampler2D uType;uniform float uKind,uAspect,uTheme;varying vec2 vUv;varying vec3 vWorld;

@@ -692,7 +692,7 @@
       "hud": [
         {
           "c": "caption",
-          "ja": "西口の乗り場は\n2025年3月30日から一時休止\n（東京タクシーセンター）",
+          "ja": "西口の優良タクシー乗り場は\n2025年3月30日から一時休止\n（東京タクシーセンター）",
           "factIds": [
             "TAXI-01"
           ],
@@ -1636,14 +1636,14 @@
             "title": "GOODBYE BAD HALLOWEEN",
             "ja": "渋谷駅周辺では、条例で飲酒・喫煙、\nごみのポイ捨ては禁止されています。",
             "attr": "（渋谷区）",
-            "en": "Drinking, smoking and littering on the streets around Shibuya Station are banned by ordinance.",
+            "en": "Near Shibuya Sta.: drinking, smoking, littering banned by ordinance.",
             "enAttr": "(Shibuya City)",
             "label": "引用"
           },
           "facts": [
             {
-              "ja": "10/30(金)早朝〜11/1(日)朝方　ハチ公像は囲いで観覧不可",
-              "en": "Oct 30 early AM – Nov 1 morning: Hachiko statue fenced off"
+              "ja": "10/30(金)早朝〜11/1(日)まで（予定）　ハチ公像は囲いで観覧不可",
+              "en": "Oct 30 early AM – until Nov 1 (planned): Hachiko statue fenced off"
             },
             {
               "ja": "10/30夕方〜11/1早朝　駅周辺で交通規制",
@@ -1702,9 +1702,9 @@
   ],
   "lesson": {
     "title": "乗り場は移っている",
-    "ja": "乗り場は移っている\n西口の乗り場は2025年3月30日\nから一時休止の案内\n再開の発表は見当たらない\n（10/25時点）\n乗るなら渋谷SAKURAテラス前\n新南改札から約97m・約2分\n（OSMから概算・階の移動含まず）\n駅前の高架下は16時ごろ〜\n車両通行止め（2026年）",
+    "ja": "乗り場は移っている\n西口の優良タクシー乗り場は\n2025年3月30日から一時休止の案内\n再開の発表は見当たらない\n（10/25時点）\n乗るなら渋谷SAKURAテラス前\n新南改札から約97m・約2分\n（OSMから概算・階の移動含まず）\n駅前の高架下は16時ごろ〜\n車両通行止め（2026年）",
     "points": [
-      "西口の乗り場は2025年3月30日\nから一時休止の案内",
+      "西口の優良タクシー乗り場は\n2025年3月30日から一時休止の案内",
       "再開の発表は見当たらない\n（10/25時点）",
       "乗るなら渋谷SAKURAテラス前\n新南改札から約97m・約2分\n（OSMから概算・階の移動含まず）",
       "駅前の高架下は16時ごろ〜\n車両通行止め（2026年）"
@@ -2319,5 +2319,45 @@
   "v10": {
     "from": "v9/taxi",
     "fixes": []
+  },
+  "v111": {
+    "fixes": [
+      {
+        "path": "@goodbye.hud.0.facts.0.ja",
+        "from": "10/30(金)早朝〜11/1(日)朝方　ハチ公像は囲いで観覧不可",
+        "to": "10/30(金)早朝〜11/1(日)まで（予定）　ハチ公像は囲いで観覧不可",
+        "why": "A: enclosure end is planned (ward: 11/1 morning, may change; news: ~17:00)"
+      },
+      {
+        "path": "@goodbye.hud.0.facts.0.en",
+        "from": "Oct 30 early AM – Nov 1 morning: Hachiko statue fenced off",
+        "to": "Oct 30 early AM – until Nov 1 (planned): Hachiko statue fenced off",
+        "why": "A (EN)"
+      },
+      {
+        "path": "@goodbye.hud.0.quote.en",
+        "from": "Drinking, smoking and littering on the streets around Shibuya Station are banned by ordinance.",
+        "to": "Near Shibuya Sta.: drinking, smoking, littering banned by ordinance.",
+        "why": "fit: the EN sub-line of the quote on one line"
+      },
+      {
+        "path": "@over-result.hud.0.ja",
+        "from": "西口の乗り場は\n2025年3月30日から一時休止\n（東京タクシーセンター）",
+        "to": "西口の優良タクシー乗り場は\n2025年3月30日から一時休止\n（東京タクシーセンター）",
+        "why": "minor: 優良タクシー乗り場 (TTC wording)"
+      },
+      {
+        "path": "lesson.points.0",
+        "from": "西口の乗り場は2025年3月30日\nから一時休止の案内",
+        "to": "西口の優良タクシー乗り場は\n2025年3月30日から一時休止の案内",
+        "why": "minor"
+      },
+      {
+        "path": "lesson.ja",
+        "from": "乗り場は移っている\n西口の乗り場は2025年3月30日\nから一時休止の案内\n再開の発表は見当たらない\n（10/25時点）\n乗るなら渋谷SAKURAテラス前\n新南改札から約97m・約2分\n（OSMから概算・階の移動含まず）\n駅前の高架下は16時ごろ〜\n車両通行止め（2026年）",
+        "to": "乗り場は移っている\n西口の優良タクシー乗り場は\n2025年3月30日から一時休止の案内\n再開の発表は見当たらない\n（10/25時点）\n乗るなら渋谷SAKURAテラス前\n新南改札から約97m・約2分\n（OSMから概算・階の移動含まず）\n駅前の高架下は16時ごろ〜\n車両通行止め（2026年）",
+        "why": "minor"
+      }
+    ]
   }
 }

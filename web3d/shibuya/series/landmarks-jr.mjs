@@ -84,6 +84,7 @@ function glowTexture(){const c=document.createElement('canvas');c.width=c.height
  g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(.25,'rgba(255,255,255,.55)');g.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=g;x.fillRect(0,0,64,64);return new THREE.CanvasTexture(c);}
 function plateTexture(){const c=document.createElement('canvas');c.width=360;c.height=124;const x=c.getContext('2d');
  x.fillStyle='#0d3d9a';x.fillRect(0,0,360,124);x.strokeStyle='#fff';x.lineWidth=5;x.strokeRect(6,6,348,112);
- x.fillStyle='#fff';x.textAlign='center';x.font='700 54px "Noto Sans CJK JP",sans-serif';x.fillText('明治通り',180,68);x.font='600 26px "Noto Sans CJK JP",sans-serif';x.fillText('Meiji-dori',180,104);
+ x.fillStyle='#fff';x.textAlign='center';x.font='700 54px "Noto Sans CJK JP",sans-serif';if(document.body?.classList.contains('lang-en'))x.fillText('Meiji-dori',180,80);// v11.1 EN: English only
+ else{x.fillText('明治通り',180,68);x.font='600 26px "Noto Sans CJK JP",sans-serif';x.fillText('Meiji-dori',180,104);}
  const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;// dim it to street level (unlit plate in the dark)
  return t;}

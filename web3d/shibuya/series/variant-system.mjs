@@ -555,9 +555,14 @@ export function validateV6(cfg,{configs=null}={}){const E=[],W=[];const err=m=>E
  return {errors:E,warnings:W};}
 // the goodbye item against the fixed text (only line breaks may differ). The props are optional (the HUD defaults to the
 // same text); when given they must match.
+// v11.1 fact check A: the enclosure end is planned (ward: 11/1 morning, may change; news: ~17:00). The v11.1 configs
+// (tools/v10_configs.mjs V111) carry this corrected first fact row; V6_GOODBYE stays the copy of the v6 – v10.2 videos.
+export const V111_GOODBYE_FACT0=Object.freeze({ja:'10/30(金)早朝〜11/1(日)まで（予定）　ハチ公像は囲いで観覧不可',en:'Oct 30 early AM – until Nov 1 (planned): Hachiko statue fenced off'});
+// v11.1 fit: the EN sub-line under the city quote (JP card) on one line — a shorter rendering of the same ordinance quote
+export const V111_GOODBYE_QUOTE_EN='Near Shibuya Sta.: drinking, smoking, littering banned by ordinance.';
 export function goodbyeErrors(it){const E=[],G=V6_GOODBYE;const eq=(a,b,lab)=>{if(a!=null&&flat(txt(a))!==b)E.push(`${lab} must be 「${b}」 (got 「${flat(txt(a))}」)`);};
- const q=it.quote||{};eq(q.title,G.quote.title,'quote.title');eq(q.ja,G.quote.ja,'quote.ja');eq(q.attr,G.quote.attr,'quote.attr');eq(q.en,G.quote.en,'quote.en');eq(q.enAttr,G.quote.enAttr,'quote.enAttr');
- if(it.facts!=null){if(!Array.isArray(it.facts)||it.facts.length!==G.facts.length)E.push('facts: exactly the 2 fact rows');else it.facts.forEach((f,i)=>{eq(f.ja,G.facts[i].ja,`facts[${i}].ja`);eq(f.en,G.facts[i].en,`facts[${i}].en`);});}
+ const q=it.quote||{};eq(q.title,G.quote.title,'quote.title');eq(q.ja,G.quote.ja,'quote.ja');eq(q.attr,G.quote.attr,'quote.attr');if(q.en==null||flat(txt(q.en))!==V111_GOODBYE_QUOTE_EN)eq(q.en,G.quote.en,'quote.en');eq(q.enAttr,G.quote.enAttr,'quote.enAttr');
+ if(it.facts!=null){if(!Array.isArray(it.facts)||it.facts.length!==G.facts.length)E.push('facts: exactly the 2 fact rows');else it.facts.forEach((f,i)=>{if(i===0&&flat(txt(f.ja))===V111_GOODBYE_FACT0.ja&&(f.en==null||flat(txt(f.en))===V111_GOODBYE_FACT0.en))return;eq(f.ja,G.facts[i].ja,`facts[${i}].ja`);eq(f.en,G.facts[i].en,`facts[${i}].en`);});}
  const o=it.ours||{};eq(o.ja,G.ours.ja,'ours.ja');eq(o.en,G.ours.en,'ours.en');
  if(o.attr!=null||CITY_RE.test(txt(o.label)||''))E.push('ours: our message has no attribution to the city');
  const f=it.foot||{};eq(f.ja,G.foot.ja,'foot.ja');eq(f.en,G.foot.en,'foot.en');

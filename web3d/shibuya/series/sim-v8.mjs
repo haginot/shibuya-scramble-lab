@@ -71,7 +71,7 @@ export const V8_PAIRS=Object.freeze({
   over:'GA',end:'改札を通るまで',stuck:'15分たっても改札を通れない',start:'H'},
  taxi:{routes:[{key:'TA',label:'A 西口の乗り場',sub:'駅のすぐ前',color:'#FF7A9A',ruledOut:{ja:'乗り場は休止中（2025年3月30日から）',factIds:['TAXI-01']}},
   {key:'TB',label:'B SAKURAテラス前',sub:'桜丘町',color:'#4FE3C1'}],over:'TA',end:'乗り場に着くまで',start:'SCR'},
- zone:{routes:[{key:'ZA',label:'A 最短（北へ直進）',sub:'赤枠内を通る',color:'#FFD23F',ruledOut:{ja:'赤枠内を長く歩く（規制の可能性）',factIds:['MEAS-01']}},{key:'HA',label:'B 外側のルート例',sub:'明治通り東側',color:'#4FE3C1'}],
+ zone:{routes:[{key:'ZA',label:'A 最短（北へ直進）',sub:'赤枠内を通る',color:'#FFD23F',ruledOut:{ja:'混雑する赤枠内を長く歩く',factIds:['MEAS-01']}},{key:'HA',label:'B 外側のルート例',sub:'明治通り東側',color:'#4FE3C1'}],
   over:'ZA',end:'原宿駅まで',start:'H'},
  alt:{routes:[{key:'HA',label:'A 原宿駅（北へ）',sub:'内回り終電 0:45',color:'#4FE3C1',lastTrain:'00:45',factIds:['JR-LAST-08']},
   {key:'EB',label:'B 恵比寿駅（南へ）',sub:'内回り終電 0:50',color:'#FF9A3D',lastTrain:'00:50',factIds:['JR-LAST-14']}],

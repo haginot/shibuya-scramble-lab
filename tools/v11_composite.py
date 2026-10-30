@@ -28,6 +28,12 @@ from PIL import Image  # noqa: E402
 import v10_composite as C10  # noqa: E402
 
 C10.GHOST10 = ROOT/'web3d/shibuya/series/variants/jr/v11en/ghost.json'
+# v11.1: no Japanese in the EN picture — the hachikomae plate (AI-made street) still showed legible shop signs
+# (「もんじゃ」「クスリ」, vertical signs, small shop boards) where the JP edition keeps them as on site. Extra blur rects
+# (source px, the v7 `blank` treatment) for the EN plate only; the EN plate cache is $WORK11/plates (JP: its own work dir).
+EN_BLANK = {'hachikomae': [(320, 740, 500, 1560), (0, 780, 50, 1560), (110, 1260, 340, 1540), (810, 1240, 1110, 1530), (1340, 880, 1420, 1140)]}
+for _pid, _rects in EN_BLANK.items():
+    C10.V7C.GEOM[_pid] = dict(C10.V7C.GEOM[_pid], blank=list(C10.V7C.GEOM[_pid]['blank'])+_rects)
 assert C10.WORK10 == WORK11, C10.WORK10
 
 

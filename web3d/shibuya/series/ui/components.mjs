@@ -568,6 +568,11 @@ const isObjS=v=>v&&typeof v==='object';
 const CLOCK_W=228;   // v11-en: CSS width of the game clock panel (measured on the EN HUD)
 function measureFit(root){const cjk=[],wraps=[],over=[];
  const txt=root.innerText||'';for(const l of txt.split('\n'))if(CJK_RE.test(l))cjk.push(l.trim());
+ // v11.1: text that innerText misses — CSS generated content (::before / ::after `content:`; v11-en showed 「スコア」 from
+ // hud.css in the EN sim table) and SVG <text> — any CJK there fails the EN frame too
+ for(const e of root.querySelectorAll('*')){for(const ps of ['::before','::after']){const ct=getComputedStyle(e,ps).content;
+   if(ct&&ct!=='none'&&ct!=='normal'&&CJK_RE.test(ct)&&getComputedStyle(e).display!=='none')cjk.push(`css${ps}:${ct}`);}
+  if(e.tagName==='text'&&CJK_RE.test(e.textContent))cjk.push(`svg:${e.textContent.trim()}`);}
  for(const e of root.querySelectorAll('*')){if(e.closest('svg'))continue;const tn=[...e.childNodes].filter(n=>n.nodeType===3&&n.textContent.trim());if(!tn.length)continue;
   const cs=getComputedStyle(e);if(cs.display==='none'||cs.visibility==='hidden')continue;
   const want=1+[...e.childNodes].filter(n=>n.nodeName==='BR').length,tops=new Set();let lh=parseFloat(cs.lineHeight)||parseFloat(cs.fontSize)*1.3;
@@ -579,7 +584,10 @@ function measureFit(root){const cjk=[],wraps=[],over=[];
   let tb=null;for(const n of tn){const rg=document.createRange();rg.selectNodeContents(n);const q=rg.getBoundingClientRect();if(q.width>1)tb=tb?{l:Math.min(tb.l,q.left),r:Math.max(tb.r,q.right),t:Math.min(tb.t,q.top),b:Math.max(tb.b,q.bottom)}:{l:q.left,r:q.right,t:q.top,b:q.bottom};}
   if(!tb)continue;
   let clip=null;for(let a=e;a&&a!==root;a=a.parentElement){const ac=getComputedStyle(a);if(ac.overflow!=='visible'||ac.overflowX!=='visible'){const q=a.getBoundingClientRect();if(tb.l<q.left-1||tb.r>q.right+1||tb.t<q.top-2||tb.b>q.bottom+2){clip=a;break;}}}
-  const hb=host?.getBoundingClientRect(),settled=!hb||(hb.left>=-1&&hb.right<=SAFE.W+1);   // sliding in / out: frame edge not checked
+  // sliding in / out (a translate on the host or above it): frame edge not checked. v11.1: a host that is NOT translated is
+  // settled even if it crosses the frame edge (the EN header ran past x=720 and #gh clipped it; v11-en never flagged it)
+  let slide=false;for(let a=e;a&&a!==root;a=a.parentElement){const m=/matrix\(([^)]+)\)/.exec(getComputedStyle(a).transform);if(m){const v=m[1].split(',').map(Number);if(Math.abs(v[4])>.5||Math.abs(v[5])>.5){slide=true;break;}}}
+  const hb=host?.getBoundingClientRect(),settled=!hb||(hb.left>=-1&&hb.right<=SAFE.W+1)||!slide;
   let anim=false;for(let a=e;a&&a!==root;a=a.parentElement){const tf=getComputedStyle(a).transform;if(tf&&tf!=='none'){const m=/matrix\(([^,]+),([^,]+)/.exec(tf);if(m&&Math.abs(Math.hypot(+m[1],+m[2])-1)>.02){anim=true;break;}}}
   if(e.closest('.gh-glitch')||['stamp','continue','press-start'].includes(c))anim=anim||!clip&&!(tb.l>=-1&&tb.r<=SAFE.W+1);   // glitch jitter / stamp slam: frame edge as in JP
   if(anim)continue;   // scaling in / out (stamp slam, card pop): checked once settled

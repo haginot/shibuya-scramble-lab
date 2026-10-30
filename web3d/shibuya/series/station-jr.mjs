@@ -144,21 +144,25 @@ function badge(x,cx,cy,sz,{code,color}){const r=sz*.14;x.fillStyle='#fff';x.begi
 function arrow(x,cx,cy,sz,dir,col){x.save();x.translate(cx,cy);if(dir<0)x.scale(-1,1);x.fillStyle=col;x.beginPath();x.moveTo(sz*.5,0);x.lineTo(0,-sz*.42);x.lineTo(0,-sz*.14);
  x.lineTo(-sz*.5,-sz*.14);x.lineTo(-sz*.5,sz*.14);x.lineTo(0,sz*.14);x.lineTo(0,sz*.42);x.closePath();x.fill();x.restore();}
 // kinds: gate {ja,en} | exit {ja,en,dir:-1 left / 1 right} | platform {num,ja,en,badges:[codes]} ; returns {canvas, aspect}
+// v11.1: the EN edition (page body.lang-en) draws the English line only, at the JP line's size (no CJK in EN output)
+const EN_PAGE=()=>typeof document!=='undefined'&&!!document.body?.classList.contains('lang-en');
+const fitFont=(x,txt,w,px,pre)=>{x.font=`${pre} ${px}px ${SIGN_FONT}`;const m=x.measureText(txt).width;if(m>w)x.font=`${pre} ${Math.floor(px*w/m)}px ${SIGN_FONT}`;};
 export function drawSign(kind,o={}){if(typeof document==='undefined')return null;const c=document.createElement('canvas');const x=c.getContext('2d');
+ const EN=EN_PAGE(),STA=EN?['Shibuya Station','']:['渋谷駅','Shibuya Station'];if(EN)o={...o,ja:o.en||'',en:'',num:o.num?.replace(/・/g,' · ')};
  if(kind==='gate'){// band ratio o.ratio (default 10); content (station block · gate block · line symbols) centred as one group
   c.height=160;c.width=Math.round(160*(o.ratio||10));const W=c.width,H=c.height;x.fillStyle=SIGN_COLORS.gateBand;x.fillRect(0,0,W,H);x.fillStyle='rgba(0,0,0,.35)';x.fillRect(0,H-8,W,8);
-  x.font=`700 66px ${SIGN_FONT}`;const a1=x.measureText('渋谷駅').width;x.font=`500 32px ${SIGN_FONT}`;const a2=x.measureText('Shibuya Station').width;
+  x.font=`700 66px ${SIGN_FONT}`;const a1=x.measureText(STA[0]).width;x.font=`500 32px ${SIGN_FONT}`;const a2=x.measureText(STA[1]).width;
   x.font=`700 56px ${SIGN_FONT}`;const b1=x.measureText(o.ja||'').width;x.font=`500 30px ${SIGN_FONT}`;const b2=x.measureText(o.en||'').width;
   const A=Math.max(a1,a2),Bw=Math.max(b1,b2),gap=70,badgeW=3*92,tot=A+gap+Bw+gap+badgeW;let L=Math.max(24,(W-tot)/2);
-  x.fillStyle='#fff';x.textBaseline='alphabetic';x.textAlign='left';x.font=`700 66px ${SIGN_FONT}`;x.fillText('渋谷駅',L,82);x.font=`500 32px ${SIGN_FONT}`;x.fillText('Shibuya Station',L,130);
-  L+=A+gap;x.font=`700 56px ${SIGN_FONT}`;x.fillText(o.ja||'',L,76);x.font=`500 30px ${SIGN_FONT}`;x.fillText(o.en||'',L,122);
+  x.fillStyle='#fff';x.textBaseline='alphabetic';x.textAlign='left';x.font=`700 66px ${SIGN_FONT}`;x.fillText(STA[0],L,EN?96:82);x.font=`500 32px ${SIGN_FONT}`;x.fillText(STA[1],L,130);
+  L+=A+gap;x.font=`700 56px ${SIGN_FONT}`;x.fillText(o.ja||'',L,EN?96:76);x.font=`500 30px ${SIGN_FONT}`;x.fillText(o.en||'',L,122);
   L+=Bw+gap;LINE_BADGES.forEach((b,i)=>badge(x,L+39+i*92,H/2,78,b));}
  else if(kind==='exit'){c.width=640;c.height=160;const W=c.width,H=c.height;x.fillStyle=SIGN_COLORS.exit;x.fillRect(0,0,W,H);const d=o.dir||-1;
   const ax=d<0?70:W-70;arrow(x,ax,H/2,92,d,'#111');x.fillStyle='#111';x.textAlign=d<0?'left':'right';const tx=d<0?140:W-140;
-  x.font=`700 62px ${SIGN_FONT}`;x.textBaseline='alphabetic';x.fillText(o.ja||'',tx,84);x.font=`500 30px ${SIGN_FONT}`;x.fillText(o.en||'',tx,130);}
+  fitFont(x,o.ja||'',W-170,62,700);x.textBaseline='alphabetic';x.fillText(o.ja||'',tx,EN?100:84);x.font=`500 30px ${SIGN_FONT}`;x.fillText(o.en||'',tx,130);}
  else{c.width=640;c.height=160;const W=c.width,H=c.height;x.fillStyle=SIGN_COLORS.platform;x.fillRect(0,0,W,H);x.fillStyle='#222';x.fillRect(0,0,W,10);
   x.textBaseline='alphabetic';x.textAlign='left';x.font=`700 70px ${SIGN_FONT}`;x.fillText(o.num||'',24,108);const tx=40+x.measureText(o.num||'').width+24;
-  x.font=`700 50px ${SIGN_FONT}`;x.fillText(o.ja||'',tx,78);x.font=`500 26px ${SIGN_FONT}`;x.fillText(o.en||'',tx,122);
+  fitFont(x,o.ja||'',W-tx-30-(o.badges||[]).length*84,50,700);x.fillText(o.ja||'',tx,EN?96:78);x.font=`500 26px ${SIGN_FONT}`;x.fillText(o.en||'',tx,122);
   (o.badges||[]).forEach((code,i)=>{const b=LINE_BADGES.find(q=>q.code===code);if(b)badge(x,W-60-i*84,H/2,72,b);});}
  return {canvas:c,aspect:c.width/c.height};}
 function signMesh(kind,o,width,{gain=SIGN_GAIN[kind]??1.1,lift=SIGN_LIFT[kind]??0}={}){const d=drawSign(kind,o);if(!d)return null;const t=new THREE.CanvasTexture(d.canvas);t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=8;

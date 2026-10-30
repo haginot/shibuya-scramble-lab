@@ -478,31 +478,31 @@
      "beat": "over-move",
      "at": 0.4,
      "t0": 48.1,
-     "t1": 51.14,
-     "text": "広場から改札へは\nUターンで入るよ〜",
-     "chars": 17,
+     "t1": 52.22,
+     "text": "ふだんはUターンで入るよ。\n当日は係員の指示に従ってね",
+     "chars": 26,
      "nums": [],
      "box": [
-      174,
-      920,
-      645,
-      1070
+      54,
+      722,
+      672,
+      872
      ],
      "ghost": [
-      174,
-      920,
-      302,
-      1070
+      54,
+      722,
+      182,
+      872
      ],
      "bubble": [
-      306,
-      921,
-      645,
-      1044
+      186,
+      723,
+      672,
+      846
      ],
      "flip": false,
      "overlap": 0,
-     "probes": 17,
+     "probes": 22,
      "core": 0,
      "v9text": "改札前の通路、\nUターンするんだよ〜",
      "protect": 0,
@@ -519,28 +519,30 @@
      "chars": 14,
      "nums": [],
      "box": [
-      42,
-      1052,
-      490,
-      1202
+      54,
+      716,
+      502,
+      866
      ],
      "ghost": [
-      42,
-      1052,
-      170,
-      1202
+      54,
+      716,
+      182,
+      866
      ],
      "bubble": [
-      174,
-      1053,
-      490,
-      1176
+      186,
+      717,
+      502,
+      840
      ],
      "flip": false,
      "overlap": 0,
      "probes": 16,
      "core": 0,
-     "protect": 0
+     "protect": 0,
+     "moved": true,
+     "v102": true
     },
     {
      "id": "gate-15",
@@ -648,7 +650,8 @@
      "overlap": 0,
      "probes": 17,
      "core": 0,
-     "protect": 0
+     "protect": 0,
+     "v102": true
     },
     {
      "id": "gate-18",
@@ -925,7 +928,8 @@
      "overlap": 0,
      "probes": 15,
      "core": 0,
-     "protect": 0
+     "protect": 0,
+     "v102": true
     },
     {
      "id": "gate-26",
@@ -1501,7 +1505,8 @@
      "overlap": 0,
      "probes": 15,
      "core": 0,
-     "protect": 0
+     "protect": 0,
+     "v102": true
     },
     {
      "id": "taxi-15",
@@ -1607,7 +1612,8 @@
      "overlap": 0,
      "probes": 17,
      "core": 0,
-     "protect": 0
+     "protect": 0,
+     "v102": true
     },
     {
      "id": "taxi-18",
@@ -1647,9 +1653,9 @@
      "beat": "retry-why",
      "at": 0.3,
      "t0": 77.0,
-     "t1": 80.28,
-     "text": "乗り場、去年の3月から\nお休みしてたの〜",
-     "chars": 19,
+     "t1": 80.52,
+     "text": "乗り場、2025年3月から\nお休みしてたの〜",
+     "chars": 21,
      "nums": [
       {
        "quote": "3月",
@@ -1661,7 +1667,7 @@
      "box": [
       42,
       1112,
-      574,
+      570,
       1262
      ],
      "ghost": [
@@ -1673,14 +1679,16 @@
      "bubble": [
       174,
       1113,
-      574,
+      570,
       1236
      ],
      "flip": false,
      "overlap": 0,
-     "probes": 19,
+     "probes": 20,
      "core": 0,
-     "protect": 0
+     "v9text": "乗り場、去年の3月から\nお休みしてたの〜",
+     "protect": 0,
+     "v102": true
     },
     {
      "id": "taxi-20",
@@ -2428,14 +2436,14 @@
      "beat": "over-result",
      "at": 0.4,
      "t0": 52.6,
-     "t1": 55.28,
-     "text": "やばっ、規制で\n前に進めない〜",
-     "chars": 14,
+     "t1": 55.64,
+     "text": "やばっ、混雑と誘導で\n前に進めない〜",
+     "chars": 17,
      "nums": [],
      "box": [
       42,
       1052,
-      456,
+      558,
       1202
      ],
      "ghost": [
@@ -2447,14 +2455,16 @@
      "bubble": [
       174,
       1053,
-      456,
+      558,
       1176
      ],
      "flip": false,
      "overlap": 0,
-     "probes": 16,
+     "probes": 17,
      "core": 0,
-     "protect": 0
+     "v9text": "やばっ、規制で\n前に進めない〜",
+     "protect": 0,
+     "v102": true
     },
     {
      "id": "zone-15",
@@ -2536,14 +2546,14 @@
      "beat": "over-lesson",
      "at": 0.4,
      "t0": 69.1,
-     "t1": 71.78,
-     "text": "赤枠の中は\n通れないことあるの",
-     "chars": 14,
+     "t1": 71.9,
+     "text": "赤枠の中は\n混んで通れないことも",
+     "chars": 15,
      "nums": [],
      "box": [
       42,
       1322,
-      524,
+      558,
       1472
      ],
      "ghost": [
@@ -2555,14 +2565,16 @@
      "bubble": [
       174,
       1323,
-      524,
+      558,
       1446
      ],
      "flip": false,
      "overlap": 0,
-     "probes": 15,
+     "probes": 16,
      "core": 0,
-     "protect": 0
+     "v9text": "赤枠の中は\n通れないことあるの",
+     "protect": 0,
+     "v102": true
     },
     {
      "id": "zone-18",
@@ -2602,9 +2614,9 @@
      "beat": "retry-why",
      "at": 0.3,
      "t0": 77.0,
-     "t1": 80.4,
-     "text": "赤枠の中、1m²に4人。\nしかも規制あり〜",
-     "chars": 20,
+     "t1": 80.52,
+     "text": "赤枠の中、1m²に4人。\n混雑で誘導待ちに〜",
+     "chars": 21,
      "nums": [
       {
        "quote": "4",
@@ -2633,9 +2645,11 @@
      ],
      "flip": false,
      "overlap": 0,
-     "probes": 19,
+     "probes": 20,
      "core": 0,
-     "protect": 0
+     "v9text": "赤枠の中、1m²に4人。\nしかも規制あり〜",
+     "protect": 0,
+     "v102": true
     },
     {
      "id": "zone-20",
@@ -3174,7 +3188,8 @@
      "overlap": 0,
      "core": 0,
      "probes": 17,
-     "protect": 0
+     "protect": 0,
+     "v102": true
     },
     {
      "id": "alt-08",
@@ -3796,7 +3811,8 @@
      "overlap": 1235,
      "core": 0,
      "probes": 15,
-     "protect": 0
+     "protect": 0,
+     "v102": true
     },
     {
      "id": "alt-26",

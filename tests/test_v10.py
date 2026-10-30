@@ -195,8 +195,22 @@ def _text_fix():
 
 
 def _changed(pair):
-    a = {b['id']: b for b in json.loads((V9/f'{pair}.json').read_text(encoding='utf-8'))['beats']}
-    return [b['id'] for b in json.loads((V10/f'{pair}.json').read_text(encoding='utf-8'))['beats'] if b['hud'] != a[b['id']]['hud']]
+    """beats whose shown text differs from v9 (v11.1: + the lesson / cheat cards read from the config root, the retry 'why')."""
+    c9 = json.loads((V9/f'{pair}.json').read_text(encoding='utf-8')); c10 = json.loads((V10/f'{pair}.json').read_text(encoding='utf-8'))
+    a = {b['id']: b for b in c9['beats']}
+
+    def shown(c, b): return [b['hud']]+[c.get(k) for k in ('lesson', 'cheat') if any(h.get('c') == k for h in b['hud'])]+[b.get('why')]
+    return [b['id'] for b in c10['beats'] if shown(c10, b) != shown(c9, a[b['id']])]
+
+
+def _undo_v111(c):
+    """the config before the v11.1 fixes (tools/v10_configs.mjs V111, recorded in c['v111'])"""
+    for f in reversed(c['v111']['fixes']):
+        o = c; keys = f['path'].split('.')
+        for k in keys[:-1]: o = next(b for b in o['beats'] if b['id'] == k[1:]) if k.startswith('@') else o[int(k) if k.isdigit() else k]
+        k = keys[-1]; k = int(k) if k.isdigit() else k
+        assert o[k] == f['to'], f; o[k] = f['from']
+    return c
 
 
 def test_v10_configs_up_to_date():
@@ -207,13 +221,18 @@ def test_v10_configs_up_to_date():
 @pytest.mark.parametrize('pair', PAIRS)
 def test_v10_configs_are_v9_plus_the_listed_fixes(pair):
     c9 = json.loads((V9/f'{pair}.json').read_text(encoding='utf-8')); c10 = json.loads((V10/f'{pair}.json').read_text(encoding='utf-8'))
+    changed = _changed(pair)
+    v111 = {f['path'].split('.')[0][1:] for f in c10['v111']['fixes'] if f['path'].startswith('@')}
+    v111 |= {b['id'] for b in c10['beats'] for f in c10['v111']['fixes'] if f['path'].split('.')[0] in ('lesson', 'cheat')
+             and any(h.get('c') == f['path'].split('.')[0] for h in b['hud'])}
+    _undo_v111(c10)
     fixes = c10['v10']['fixes']
     for f in fixes:   # undo the fixes → exactly v9 (apart from id / generator / the v10 record)
         b = next(x for x in c10['beats'] if x['id'] == f['beat'])
         h = next(x for x in b['hud'] if x['c'] == f['c'] and x[f['key']] == f['to']); h[f['key']] = f['from']
-    for k in ('id', 'generated', 'v10'): c10.pop(k); c9.pop(k, None)
+    for k in ('id', 'generated', 'v10', 'v111'): c10.pop(k); c9.pop(k, None)
     assert c10 == c9
-    assert sorted({f['beat'] for f in fixes}) == sorted(_changed(pair))
+    assert sorted({f['beat'] for f in fixes} | v111) == sorted(changed)
     assert len(fixes) == dict(gate=3, taxi=0, zone=2, alt=2)[pair]   # v11: + the zone crush-pov wrap fix
 
 
@@ -247,7 +266,8 @@ def test_gate_over_move_caption_describes_the_square_and_keeps_its_sources():
     assert '2025年1月' in cap['ja'] and '2026年3月' in cap['ja'] and cap['factIds'] == ['JR-GATE-03', 'JR-GATE-18']
     assert any(h['c'] == 'sim' and 'シミュレーション' in h['ja'] for h in b['hud'])      # the queue is the sim's picture
     gl = next(l for l in G10['pairs']['gate']['lines'] if l['beat'] == 'over-move')
-    assert '広場' in gl['text'] and gl.get('v102') and gl['protect'] == 0 and gl['core'] == 0
+    # v11.1 (fact check B): the line is the normal-day U-turn + follow staff on the night (was 「広場から改札へは…」 in v10.2)
+    assert 'ふだん' in gl['text'] and '係員の指示' in gl['text'] and gl.get('v102') and gl['protect'] == 0 and gl['core'] == 0
 
 
 @pytest.mark.parametrize('pair', PAIRS)
@@ -257,9 +277,9 @@ def test_v102_hud_frames_cover_the_changed_beats(pair):
     HUD = pytest.importorskip('v10_hud')
     ch = HUD.changed_beats(pair)
     assert [b for b, _, _ in ch] == _changed(pair)
-    # v11: zone's wrap fix is rendered in its own JP work dir (jr-v10.2 stays untouched)
-    d = (RENDER/'v11-en/ja-zone-fix/render' if pair == 'zone' else RENDER/'v10.2/render')/pair/'hud'/'body'
-    if ch and not d.exists(): pytest.skip('v10.2 HUD not rendered yet')
+    # v11.1: the JP build re-renders the HUD of every changed beat (v10.2 + zone wrap fix + v11.1) in its own work dir
+    d = RENDER/'v11.1/render-ja'/pair/'hud'/'body'
+    if ch and not d.exists(): pytest.skip('v11.1 JP HUD not rendered yet')
     for _, f0, f1 in ch:
         assert all((d/f'f{f:05d}.png').exists() for f in range(f0, f1))
     if d.exists():   # nothing else is re-rendered: every other beat keeps the v9 HUD frames

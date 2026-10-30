@@ -34,6 +34,7 @@ import {shared} from '../shaders.mjs';
 import * as VS from './variant-system.mjs';
 import {FACTS,DROPPED,SOURCES,sourceNames} from './sources-series.mjs';
 import {buildJRScene,LOOK} from './scene-jr.mjs';
+import {CJK_RE} from './i18n/i18n.mjs';
 
 const json=async p=>{const r=await fetch(p);if(!r.ok)throw Error(`${p}: ${r.status}`);return r.json();};
 const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
@@ -60,6 +61,12 @@ export async function start(params){
  #vs-plain .p{display:inline-block;background:#FFD23F;color:#160A14;padding:2px 8px;font-size:16px}#vs-plain .f{position:fixed;left:28px;right:112px;bottom:246px;font-size:12px}`;
  if(hudOnly)style.textContent+=`html,body{background:transparent!important}#view{visibility:hidden!important}`;
  document.head.append(style);document.body.classList.add('series','variant',`lang-${lang}`);if(recording)document.body.classList.add('recording');
+ // v11.1: in EN every canvas text (3D signage, boards, plates drawn with fillText / strokeText) is logged when it carries CJK;
+ // record_variant.py --lang en fails the frame (rec.fit.canvas) — the in-world text is part of the EN output too
+ if(params.get('fit')==='1')globalThis.__measureText=true;   // v11.1: the text-fit record (rec.fit) on JP frames too (QA of the rebuilt JP beats)
+ if(lang==='en'&&!window.__cjkCanvas){window.__cjkCanvas=[];
+  for(const P of [globalThis.CanvasRenderingContext2D?.prototype,globalThis.OffscreenCanvasRenderingContext2D?.prototype].filter(Boolean))for(const m of ['fillText','strokeText']){const f=P[m];
+   P[m]=function(t,...a){const s=String(t);if(CJK_RE.test(s)&&!window.__cjkCanvas.includes(s))window.__cjkCanvas.push(s);return f.call(this,t,...a);};}}
  const $=i=>document.getElementById(i);const status=m=>{if($('loading')){$('loading').hidden=false;$('loading').textContent=m;}};
  status('JR編（分岐）を準備中…');
 
@@ -200,7 +207,7 @@ export async function start(params){
    caught:e.caught?{t:+e.caught.t.toFixed(3),intensity:+e.caught.intensity.toFixed(3),press:+e.caught.press.toFixed(3),flash:+e.caught.flash.toFixed(3),black:e.caught.black,vfx:!!fxOn.caught}:null,
    kaiju:e.kaiju?{rise:+e.kaiju.rise.toFixed(3),eyes:+e.kaiju.eyes.toFixed(3),roar:+e.kaiju.roar.toFixed(3),model:!!fxOn.kaiju}:null,blank:!!res.blank,
    simpanel:rec.simpanel??null,simmeter:rec.simmeter??null,crushmeter:rec.crushmeter??null,simmap:simStats,
-   cont:rec.cont??null,fit:rec.fit??null,endcard:rec.endcard??null,gag:rec.gag??null,credit:rec.credit??null,goodbye:rec.goodbye??null,guide:rec.guide??null,mission:rec.mission??null,
+   cont:rec.cont??null,fit:rec.fit?{...rec.fit,canvas:[...(window.__cjkCanvas||[])]}:null,endcard:rec.endcard??null,gag:rec.gag??null,credit:rec.credit??null,goodbye:rec.goodbye??null,guide:rec.guide??null,mission:rec.mission??null,
    ms:{sim:Math.round(simMs),render:Math.round(renderMs)},hudOnly,plateTag:approx&&hudOnly?approx:null,peopleDrawn:drawn,near:near?.last?.drawn??0,interior:nInterior,fade:+(post.settings.uFade.value).toFixed(3),cutFade:+(+spec.fade).toFixed(3)};
   window.__variantOverlay=out;
   return {t,frame:Math.round(t*VS.FPS),beat:spec.beat.id,shot:spec.shot.key,ms:out.ms,drawCalls:S.renderer.info.render.calls,triangles:S.renderer.info.render.triangles,agents:S.nAgents};}

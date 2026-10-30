@@ -7,6 +7,8 @@
 // Everything is procedural; no brand names, logos or external assets.
 import * as THREE from '../vendor/three.module.min.js';
 import {shared,common} from './shaders.mjs';
+// v11.1: the EN edition of the series (page body.lang-en) paints its signs in English (no CJK in the EN output)
+const EN_PAGE=()=>typeof document!=='undefined'&&!!document.body?.classList.contains('lang-en');
 import {CostumeCrowd,POLICE,STAFF,PERFORMER} from './costume.mjs';
 
 const DECK=2.3;// platform deck height of the DJ police vehicle (m)
@@ -92,14 +94,14 @@ export class HalloweenScene{
    const beam=new THREE.Mesh(new THREE.BoxGeometry(w+.2,.22,.18),mat);beam.position.y=h;g.add(beam);
    const bulbs=[];for(let k=0;k<=22;k++){const u=k/22,x=-w/2+u*w,y=u<.15?u/.15*h:u>.85?(1-u)/.15*h:h;bulbs.push({x:u<.15?-w/2:u>.85?w/2:x,y:Math.min(h,y)+.12,c:k%2});}
    instanced(g,parts([[new THREE.SphereGeometry(.07,6,4),[1,1,1],3.2]]),bulbs,(d,o)=>{d.position.set(o.x,o.y,.12);},{tint:o=>o.c?[1,.42,.05,4]:[.55,.15,1,4]});
-   const sign=canvasTexture(512,160,(c,W,H)=>{c.fillStyle='#120a1c';roundRect(c,4,4,W-8,H-8,26);c.fill();c.strokeStyle='#ff7a1a';c.lineWidth=8;c.stroke();c.fillStyle='#ffb35a';c.textAlign='center';c.font=`900 64px ${FONT}`;c.fillText('PHOTO SPOT',W/2,78);c.fillStyle='#c89bff';c.font=`700 40px ${FONT}`;c.fillText('仮装フォトスポット',W/2,132);});
+   const sign=canvasTexture(512,160,(c,W,H)=>{c.fillStyle='#120a1c';roundRect(c,4,4,W-8,H-8,26);c.fill();c.strokeStyle='#ff7a1a';c.lineWidth=8;c.stroke();c.fillStyle='#ffb35a';c.textAlign='center';c.font=`900 64px ${FONT}`;c.fillText('PHOTO SPOT',W/2,78);c.fillStyle='#c89bff';c.font=`700 40px ${FONT}`;c.fillText(EN_PAGE()?'COSTUMES WELCOME':'仮装フォトスポット',W/2,132);});
    const board=new THREE.Mesh(new THREE.PlaneGeometry(w*.8,w*.25),new THREE.MeshBasicMaterial({map:sign.texture,color:new THREE.Color(1.6,1.6,1.6),side:THREE.DoubleSide}));board.position.set(0,h+.75,0);g.add(board);}
   // ---- Trash / recycling stations ----
   const binGeo=parts([[new THREE.BoxGeometry(.55,.95,.55).translate(-.62,.475,0),[.1,.3,.85]],[new THREE.BoxGeometry(.55,.95,.55).translate(0,.475,0),[.15,.65,.2]],[new THREE.BoxGeometry(.55,.95,.55).translate(.62,.475,0),[.9,.7,.05]],
    [new THREE.BoxGeometry(1.9,.06,.6).translate(0,.98,0),[.9,.9,.9],.2],[new THREE.CylinderGeometry(.03,.03,2.2,5).translate(1.05,1.1,0),[.3,.3,.3]]]);
   const bins=layout.pois.filter(p=>p.kind==='bins');
   instanced(G,binGeo,bins,(d,o)=>{d.position.set(o.x,0,o.z);d.rotation.set(0,o.angle,0);});
-  const binSign=canvasTexture(512,200,(c,W,H)=>{c.fillStyle='#f4f1e8';roundRect(c,4,4,W-8,H-8,18);c.fill();c.fillStyle='#1a7a2a';c.textAlign='center';c.font=`900 62px ${FONT}`;c.fillText('ゴミ・分別',W/2,82);c.fillStyle='#222';c.font=`700 40px ${FONT}`;c.fillText('TRASH · RECYCLE',W/2,150);});
+  const binSign=canvasTexture(512,200,(c,W,H)=>{c.fillStyle='#f4f1e8';roundRect(c,4,4,W-8,H-8,18);c.fill();c.fillStyle='#1a7a2a';c.textAlign='center';c.font=`900 62px ${FONT}`;c.fillText(EN_PAGE()?'TRASH':'ゴミ・分別',W/2,82);c.fillStyle='#222';c.font=`700 40px ${FONT}`;c.fillText(EN_PAGE()?'SORT · RECYCLE':'TRASH · RECYCLE',W/2,150);});
   for(const b of bins){const m=new THREE.Mesh(new THREE.PlaneGeometry(1.3,.5),new THREE.MeshBasicMaterial({map:binSign.texture,color:new THREE.Color(1.3,1.3,1.3),side:THREE.DoubleSide}));const ca=Math.cos(b.angle),sa=Math.sin(b.angle);m.position.set(b.x+ca*1.05,2.35,b.z-sa*1.05);m.rotation.y=b.angle;G.add(m);}
   // ---- Performer spots: stage mat + warm spotlight ----
   for(const p of shows){const mat=new THREE.Mesh(new THREE.CircleGeometry(p.r0+.4,24).rotateX(-Math.PI/2),new THREE.MeshBasicMaterial({color:0x2a0612}));mat.position.set(p.x,.02,p.z);G.add(mat);
@@ -116,7 +118,7 @@ export class HalloweenScene{
    // Light bar: red lamps, blinking.
    instanced(g,parts([[new THREE.BoxGeometry(.5,.16,.3),[1,.05,.03],5]]),[-.75,-.25,.25,.75],(d,x)=>d.position.set(x,2.42,1.7),{tint:(x,i)=>[1,1,1,i%2?11:13]});
    // LED sign on the crowd-facing side (scrolling).
-   this.led=canvasTexture(1024,128,()=>{});this.led.texture.wrapS=THREE.RepeatWrapping;this.drawLed('止まらずに進んでください · PLEASE KEEP MOVING · 前の人に続いて · ');
+   this.led=canvasTexture(1024,128,()=>{});this.led.texture.wrapS=THREE.RepeatWrapping;this.drawLed(EN_PAGE()?'PLEASE KEEP MOVING · FOLLOW THE PERSON AHEAD · ':'止まらずに進んでください · PLEASE KEEP MOVING · 前の人に続いて · ');
    const ledMat=new THREE.ShaderMaterial({uniforms:{...shared,uMap:{value:this.led.texture}},vertexShader:/* glsl */`varying vec2 vUv;varying vec3 vWorld;void main(){vUv=uv;vec4 w=modelMatrix*vec4(position,1.);vWorld=w.xyz;gl_Position=projectionMatrix*viewMatrix*w;}`,
     fragmentShader:/* glsl */`${common}uniform sampler2D uMap;varying vec2 vUv;varying vec3 vWorld;void main(){vec2 uv=vec2(vUv.x*.42+uTime*.06,vUv.y);float a=texture2D(uMap,uv).r;vec2 px=fract(vec2(vUv.x*180.,vUv.y*24.));float dot_=smoothstep(.5,.2,length(px-.5));vec3 c=vec3(2.6,.9,.12)*a*dot_+vec3(.03,.01,.0);gl_FragColor=vec4(applyFog(c,vWorld,cameraPosition),1.);}`});
    for(const s of [-1,1]){const led=new THREE.Mesh(new THREE.PlaneGeometry(4.2,.6),ledMat);led.position.set(s*1.17,1.55,-.2);led.rotation.y=s*Math.PI/2;g.add(led);}
@@ -139,7 +141,8 @@ export class HalloweenScene{
  say(k){if(!this.bubble)return;const L=DJ_LINES.length,j=((k%L)+L)%L,[ja,en]=DJ_LINES[j];this.line=j;const {ctx:c,canvas}=this.bubbleCanvas,W=canvas.width,H=canvas.height;c.clearRect(0,0,W,H);
   c.fillStyle='rgba(255,250,240,.96)';roundRect(c,10,10,W-20,H-80,48);c.fill();c.beginPath();c.moveTo(W/2-40,H-72);c.lineTo(W/2,H-6);c.lineTo(W/2+40,H-72);c.closePath();c.fill();
   c.strokeStyle='#ff7a1a';c.lineWidth=10;roundRect(c,10,10,W-20,H-80,48);c.stroke();c.textAlign='center';c.textBaseline='middle';
-  c.fillStyle='#16121e';c.font=`900 ${ja.length>12?66:78}px ${FONT}`;c.fillText(ja,W/2,100);c.fillStyle='#7a3cff';c.font=`800 46px ${FONT}`;c.fillText(en,W/2,182);this.bubbleCanvas.texture.needsUpdate=true;}
+  if(EN_PAGE()){c.fillStyle='#16121e';c.font=`900 66px ${FONT}`;const m=c.measureText(en).width;if(m>W-80)c.font=`900 ${Math.floor(66*(W-80)/m)}px ${FONT}`;c.fillText(en,W/2,140);}   // v11.1 EN: English only
+  else{c.fillStyle='#16121e';c.font=`900 ${ja.length>12?66:78}px ${FONT}`;c.fillText(ja,W/2,100);c.fillStyle='#7a3cff';c.font=`800 46px ${FONT}`;c.fillText(en,W/2,182);}this.bubbleCanvas.texture.needsUpdate=true;}
  // Bubble cycles every 3.2 s of simulated time.
  // Gate barrier (2 m, centred 1.6 m beside the gate officer along the gate line): closed = across the
  // walkway; open = swung 90° about its outer end so it lies along the flow.

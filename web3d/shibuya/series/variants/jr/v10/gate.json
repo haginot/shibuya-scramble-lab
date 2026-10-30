@@ -702,7 +702,7 @@
       "hud": [
         {
           "c": "caption",
-          "ja": "ハチ公口の広場、改札待ちの列\n改札へは宮益坂口側でUターン\n（2025年1月・2026年3月の報道）",
+          "ja": "ハチ公口の広場、改札待ちの列\n平常時の動線：宮益坂口側でUターン\n（2025年1月・2026年3月の報道）\n当日は係員の指示に従う",
           "factIds": [
             "JR-GATE-03",
             "JR-GATE-18"
@@ -788,15 +788,16 @@
           "factIds": [],
           "tone": "warn",
           "sim": true,
-          "until": 2
+          "until": 1.6
         },
         {
           "c": "caption",
-          "ja": "ハロウィーンは例年\n一部規制（2025年1月の報道）",
+          "ja": "ハロウィーン当日、2024年は\n宮益坂方面へ通り抜け不可\n（2026年のJRの対策は未発表）",
           "factIds": [
-            "JR-GATE-05"
+            "MEAS-15",
+            "NA-JR-2026"
           ],
-          "at": 2
+          "at": 1.6
         },
         {
           "c": "sim",
@@ -1868,14 +1869,14 @@
             "title": "GOODBYE BAD HALLOWEEN",
             "ja": "渋谷駅周辺では、条例で飲酒・喫煙、\nごみのポイ捨ては禁止されています。",
             "attr": "（渋谷区）",
-            "en": "Drinking, smoking and littering on the streets around Shibuya Station are banned by ordinance.",
+            "en": "Near Shibuya Sta.: drinking, smoking, littering banned by ordinance.",
             "enAttr": "(Shibuya City)",
             "label": "引用"
           },
           "facts": [
             {
-              "ja": "10/30(金)早朝〜11/1(日)朝方　ハチ公像は囲いで観覧不可",
-              "en": "Oct 30 early AM – Nov 1 morning: Hachiko statue fenced off"
+              "ja": "10/30(金)早朝〜11/1(日)まで（予定）　ハチ公像は囲いで観覧不可",
+              "en": "Oct 30 early AM – until Nov 1 (planned): Hachiko statue fenced off"
             },
             {
               "ja": "10/30夕方〜11/1早朝　駅周辺で交通規制",
@@ -1934,9 +1935,9 @@
   ],
   "lesson": {
     "title": "改札は1つじゃない",
-    "ja": "改札は1つじゃない\nハチ公改札前は一方通行\nUターンして入る形\n（2025年1月の報道）\nハロウィーンは例年一部規制\n（例：2024年・2023年）\n南改札（1F）・新南改札（3F）\nも選択肢に\n2026年のJRの対策は\n10/25時点で未発表",
+    "ja": "改札は1つじゃない\n平常時はハチ公改札前が一方通行\nUターンして入る形\n（2025年1月の報道）\nハロウィーンは例年一部規制\n（例：2024年・2023年）\n南改札（1F）・新南改札（3F）\nも選択肢に\n2026年のJRの対策は\n10/25時点で未発表",
     "points": [
-      "ハチ公改札前は一方通行\nUターンして入る形\n（2025年1月の報道）",
+      "平常時はハチ公改札前が一方通行\nUターンして入る形\n（2025年1月の報道）",
       "ハロウィーンは例年一部規制\n（例：2024年・2023年）",
       "南改札（1F）・新南改札（3F）\nも選択肢に",
       "2026年のJRの対策は\n10/25時点で未発表"
@@ -1949,18 +1950,18 @@
       "JR-GATE-01",
       "NA-JR-2026"
     ],
-    "summary": "ハチ公改札は2025年1月の移設で改札前が一方通行になり、ハチ公側からはUターンして入る形に（2025年1月の報道）。ハロウィーン期間は例年一部規制があるため（例：2024年・2023年）、南改札・新南改札など別の改札も選択肢に。2026年のJRの対策は10/25時点で未発表。"
+    "summary": "ハチ公改札は2025年1月の移設で、平常時は改札前が一方通行になり、ハチ公側からはUターンして入る形に（2025年1月の報道）。ハロウィーン期間は例年一部規制があり（例：2024年は改札前の通路を通り抜け不可・2023年）、当日は係員の指示に従う。南改札・新南改札など別の改札も選択肢に。2026年のJRの対策は10/25時点で未発表。"
   },
   "cheat": {
     "title": "保存版 JR渋谷の改札",
     "sub": "4つの改札と出口",
     "asOf": "10/25時点",
-    "note": "当日は係員の誘導に従う",
+    "note": "当日は係員の指示に従う",
     "rows": [
       {
         "sec": "改札 → 出口",
         "ja": "ハチ公改札 1F：前は一方通行",
-        "sub": "Uターンして入る（2025年1月の報道）",
+        "sub": "平常時はUターンして入る（2025年1月の報道）",
         "tone": "ng",
         "factIds": [
           "JR-GATE-01",
@@ -2765,6 +2766,93 @@
         "from": "改札前：一歩も前に進めない",
         "to": "ハチ公改札への列：一歩も前に進めない",
         "why": "plate crush3 is an open-air crowd; the sim point is the inbound queue to the Hachiko gate"
+      }
+    ]
+  },
+  "v111": {
+    "fixes": [
+      {
+        "path": "@goodbye.hud.0.facts.0.ja",
+        "from": "10/30(金)早朝〜11/1(日)朝方　ハチ公像は囲いで観覧不可",
+        "to": "10/30(金)早朝〜11/1(日)まで（予定）　ハチ公像は囲いで観覧不可",
+        "why": "A: enclosure end is planned (ward: 11/1 morning, may change; news: ~17:00)"
+      },
+      {
+        "path": "@goodbye.hud.0.facts.0.en",
+        "from": "Oct 30 early AM – Nov 1 morning: Hachiko statue fenced off",
+        "to": "Oct 30 early AM – until Nov 1 (planned): Hachiko statue fenced off",
+        "why": "A (EN)"
+      },
+      {
+        "path": "@over-move.hud.0.ja",
+        "from": "ハチ公口の広場、改札待ちの列\n改札へは宮益坂口側でUターン\n（2025年1月・2026年3月の報道）",
+        "to": "ハチ公口の広場、改札待ちの列\n平常時の動線：宮益坂口側でUターン\n（2025年1月・2026年3月の報道）\n当日は係員の指示に従う",
+        "why": "B: normal-day route + follow staff on the night"
+      },
+      {
+        "path": "@over-result.hud.0.until",
+        "from": 2,
+        "to": 1.6,
+        "why": "B: room for the 3-line fact caption"
+      },
+      {
+        "path": "@over-result.hud.1.at",
+        "from": 2,
+        "to": 1.6,
+        "why": "B"
+      },
+      {
+        "path": "@over-result.hud.1.ja",
+        "from": "ハロウィーンは例年\n一部規制（2025年1月の報道）",
+        "to": "ハロウィーン当日、2024年は\n宮益坂方面へ通り抜け不可\n（2026年のJRの対策は未発表）",
+        "why": "B: the 2024 day-of closure of the passage; 2026 not announced"
+      },
+      {
+        "path": "@over-result.hud.1.factIds",
+        "from": [
+          "JR-GATE-05"
+        ],
+        "to": [
+          "MEAS-15",
+          "NA-JR-2026"
+        ],
+        "why": "B: shibukei 18753 (2024-10-30) + 2026 unannounced"
+      },
+      {
+        "path": "lesson.points.0",
+        "from": "ハチ公改札前は一方通行\nUターンして入る形\n（2025年1月の報道）",
+        "to": "平常時はハチ公改札前が一方通行\nUターンして入る形\n（2025年1月の報道）",
+        "why": "B: normal-day flow"
+      },
+      {
+        "path": "lesson.ja",
+        "from": "改札は1つじゃない\nハチ公改札前は一方通行\nUターンして入る形\n（2025年1月の報道）\nハロウィーンは例年一部規制\n（例：2024年・2023年）\n南改札（1F）・新南改札（3F）\nも選択肢に\n2026年のJRの対策は\n10/25時点で未発表",
+        "to": "改札は1つじゃない\n平常時はハチ公改札前が一方通行\nUターンして入る形\n（2025年1月の報道）\nハロウィーンは例年一部規制\n（例：2024年・2023年）\n南改札（1F）・新南改札（3F）\nも選択肢に\n2026年のJRの対策は\n10/25時点で未発表",
+        "why": "B"
+      },
+      {
+        "path": "lesson.summary",
+        "from": "ハチ公改札は2025年1月の移設で改札前が一方通行になり、ハチ公側からはUターンして入る形に（2025年1月の報道）。ハロウィーン期間は例年一部規制があるため（例：2024年・2023年）、南改札・新南改札など別の改札も選択肢に。2026年のJRの対策は10/25時点で未発表。",
+        "to": "ハチ公改札は2025年1月の移設で、平常時は改札前が一方通行になり、ハチ公側からはUターンして入る形に（2025年1月の報道）。ハロウィーン期間は例年一部規制があり（例：2024年は改札前の通路を通り抜け不可・2023年）、当日は係員の指示に従う。南改札・新南改札など別の改札も選択肢に。2026年のJRの対策は10/25時点で未発表。",
+        "why": "B"
+      },
+      {
+        "path": "cheat.rows.0.sub",
+        "from": "Uターンして入る（2025年1月の報道）",
+        "to": "平常時はUターンして入る（2025年1月の報道）",
+        "why": "B"
+      },
+      {
+        "path": "cheat.note",
+        "from": "当日は係員の誘導に従う",
+        "to": "当日は係員の指示に従う",
+        "why": "B: brief wording"
+      },
+      {
+        "path": "@goodbye.hud.0.quote.en",
+        "from": "Drinking, smoking and littering on the streets around Shibuya Station are banned by ordinance.",
+        "to": "Near Shibuya Sta.: drinking, smoking, littering banned by ordinance.",
+        "why": "fit: the EN sub-line of the quote on one line"
       }
     ]
   }

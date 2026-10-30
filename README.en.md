@@ -83,6 +83,7 @@ The opening **≈18,000 is a 2026 estimate**, not a simulation output: Shibuya C
 Videos: `bash tools/record_halloween.sh` (45 s, 1280×720; Japanese and English from one render pass, plus 9:16 cuts). Assumptions, sources, results and checks: [docs/HALLOWEEN.md](docs/HALLOWEEN.md). Toy model, not a prediction.
 
 JR escape series, English edition (gate / taxi / zone / alt, `lang=en` of the v10.2 pipeline): [docs/V11-EN.md](docs/V11-EN.md).
+JR escape series v11.1 (fact-check fixes, JP + EN): [docs/V11.1.md](docs/V11.1.md).
 
 ## Recording, regeneration and checks
 

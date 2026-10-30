@@ -37,8 +37,15 @@ INTRO_BEAT = 'op-fly'
 INTRO = [(1.0, 'どーも！\n渋谷系おばけです〜'), (3.8, '渋谷の裏道、\nぜんぶ知ってるよ〜')]
 # v10.2: (pair, beat) → (v9 text, new text): lines that named a place the plate on screen does not show
 TEXT_FIX = {
-    ('gate', 'over-move'): ('改札前の通路、\nUターンするんだよ〜', '広場から改札へは\nUターンで入るよ〜'),      # hachiko3 = the outdoor square
+    # v11.1 (fact check B): the U-turn is the normal-day flow; on the night follow the staff (v10.2: 広場から改札へは／Uターンで入るよ〜)
+    ('gate', 'over-move'): ('改札前の通路、\nUターンするんだよ〜', 'ふだんはUターンで入るよ。\n当日は係員の指示に従ってね'),      # hachiko3 = the outdoor square
     ('zone', 'clear-result'): ('やったー！\n原宿まで歩けた〜', 'やったー！\n原宿へ抜けられる〜'),          # meiji = Meiji-dori in Shibuya
+    # v11.1 (fact check C): 2026 closures are for vehicles; walkers are stopped by the crowd and the staff guidance
+    ('zone', 'over-result'): ('やばっ、規制で\n前に進めない〜', 'やばっ、混雑と誘導で\n前に進めない〜'),
+    # v11.1 (fact check, minor): 「去年の3月」 is only right during 2026 → the year
+    ('taxi', 'retry-why'): ('乗り場、去年の3月から\nお休みしてたの〜', '乗り場、2025年3月から\nお休みしてたの〜'),
+    ('zone', 'over-lesson'): ('赤枠の中は\n通れないことあるの', '赤枠の中は\n混んで通れないことも'),
+    ('zone', 'retry-why'): ('赤枠の中、1m²に4人。\nしかも規制あり〜', '赤枠の中、1m²に4人。\n混雑で誘導待ちに〜'),
 }
 PROBE_STRIDE = 6
 
@@ -128,7 +135,7 @@ def recheck(pair, lines, beats):
         t0, t1 = min(l['t0'] for l in lns)-.25, max(l['t1'] for l in lns)+.3
         mask, probes = G9.hud_mask(pair, bt, t0+.1, t1-.05)
         assert probes, (pair, beat, 'no HUD probe frames')
-        pm, _ = protect_mask(pair, idx, t0, t1)
+        pm, _ = protect_mask(pair, idx, t0, t1, step=1)   # v11.1: every frame (step 2 missed the last frame of gate over-move)
         bw = max(G9.bubble_size(l['text'])[0] for l in lns); bh = max(G9.bubble_size(l['text'])[1] for l in lns)
         box, flip = lns[0]['box'], lns[0]['flip']
         g, b, nbox = G9.layout((box[0], box[3]-max(G9.GH, bh)), bw, bh, flip)
@@ -150,7 +157,7 @@ def place(pair, data):
     for ln in lines: groups.setdefault(ln['beat'], []).append(ln)
     for beat, lns in groups.items():
         t0, t1 = min(l['t0'] for l in lns)-.25, max(l['t1'] for l in lns)+.3     # incl. pop-in / pop-out
-        pm, n = protect_mask(pair, idx, t0, t1)
+        pm, n = protect_mask(pair, idx, t0, t1, step=1)
         if not n:
             for l in lns: l['protect'] = 0
             continue

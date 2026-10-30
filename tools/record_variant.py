@@ -83,6 +83,7 @@ def check_frame(rec, plan=None, facts=None, soft=None):
     known, dropped = facts or fact_table()
     t = rec['t']
     if LANG == 'en': check_en(rec)
+    elif rec.get('fit'): check_ja_fit(rec)
     soft = soft if soft is not None else {}
     strings = rec.get('strings') or []
     # HAGINO steering 2026-10-26: no persistent ※パロディ label. The fictional operator notice (cold open) must carry the
@@ -132,6 +133,18 @@ def check_frame(rec, plan=None, facts=None, soft=None):
     return rec
 
 
+# v11.1: JP text explicitly allowed in the EN edition (real place names / official quotes); documented in docs/V11.1.md
+EN_CJK_ALLOW: frozenset = frozenset()
+
+
+def check_ja_fit(rec):
+    """v11.1 (V111_FIT=1): JP frames — automatic wraps outside the paragraph boxes and overflowing text are printed (the
+    per-frame log keeps rec.fit; tests/test_v11_1.py asserts none on the rebuilt JP beats)."""
+    fit = rec['fit']; fit['cjk'] = []; fit.pop('canvas', None)   # JP text is expected on JP frames (not logged)
+    bad = [w for w in fit['wraps'] if w['c'] not in FIT_FREE]
+    if bad or fit['over']: print('fit-ja:', json.dumps([rec['t'], rec.get('beat'), bad[:3], fit['over'][:3]], ensure_ascii=False)[:400], flush=True)
+
+
 def check_en(rec):
     """v11-en hard checks on the DOM text measured by GameHUD.frame (rec.fit, ui/components.mjs measureFit)."""
     t, fit = rec['t'], rec.get('fit')
@@ -144,6 +157,10 @@ def check_en(rec):
 
 def check_en_hard(rec, t, fit):
     assert not fit['cjk'], ('CJK text on an EN frame', t, rec.get('beat'), fit['cjk'][:4])
+    # v11.1: canvas text drawn by the page (3D signage / boards / plates) — none may carry CJK in EN (allowlist: EN_CJK_ALLOW)
+    canvas = [s for s in fit.get('canvas') or [] if s not in EN_CJK_ALLOW]
+    assert 'canvas' in fit, ('EN frame without the canvas-text record', t)
+    assert not canvas, ('CJK canvas text (3D signage) in the EN page', t, rec.get('beat'), canvas[:40])
     bad = [w for w in fit['wraps'] if w['c'] not in FIT_FREE]
     assert not bad, ('automatic line wrap on an EN frame', t, rec.get('beat'), bad[:3])
     assert not fit['over'], ('text overflows its box on an EN frame', t, rec.get('beat'), fit['over'][:3])
@@ -184,6 +201,7 @@ def encoder_cmd(path, title=TITLE):
 
 def page_query(variant, part, agents=None, pr=1.0, opening=None, hud_only=False):
     q = f'mode=series&ep=jr&variant={variant}&part={part}&lang={LANG}&aspect=v&record=1&jrrun=/__series/jr-run.json&pr={pr}'
+    if LANG != 'en' and os.environ.get('V111_FIT'): q += '&fit=1'   # v11.1: JP text-fit record (logged per frame, see check_ja_fit)
     if hud_only: q += '&hudonly=1'
     if agents: q += f'&agents={int(agents)}'
     if opening: q += f'&opening={opening}'

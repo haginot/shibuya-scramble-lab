@@ -54,21 +54,21 @@ EN = {
  'でも近い方に\n行きたくなるよね〜': 'But the close one is\nsooo tempting, right~',
  '駅前の乗り場で\nいい気がするよね〜': "Station stand's\nfine, right~?",
  '終電遅い方が\n安心な気がするよね〜': 'A later last train\nfeels safer, right~?',
- '広場から改札へは\nUターンで入るよ〜': 'From the square, you\nU-turn into the gate~',
+ 'ふだんはUターンで入るよ。\n当日は係員の指示に従ってね': 'Normal days: U-turn in~\nTonight? Follow staff!',
  'あ、そっち行ったら\nハマるやつ〜': "Uh-oh, go that way\nand you're stuck~",
  'やばっ、列が\nぜんぜん進まない': "Yikes, the line\nisn't moving at all",
  'えっ、乗り場が\nお休み中！？': 'Wait, the taxi stand\nis closed?!',
- 'やばっ、規制で\n前に進めない〜': 'Yikes, the closures\nblock the way~',
+ 'やばっ、混雑と誘導で\n前に進めない〜': 'Yikes! Crowds and staff\nholds: we\'re stuck~',
  'えっ、着いたら\n終電行っちゃった…': 'Wait... we got there\nand the last train left…',
  'シミュレーションだと\n一歩も動けないくらい': "In the simulation you\ncan't move a step",
  'みんなと同じ道は\nハマりやすいんだよね': 'Following everyone is\nhow you get stuck~',
  '乗り場、ちゃんと\n調べとかないとね〜': 'Gotta check where the\ntaxi stands are first~',
- '赤枠の中は\n通れないことあるの': "Inside the red zone,\nyou may not get through",
+ '赤枠の中は\n混んで通れないことも': 'The red zone can get\ntoo packed to pass~',
  '終電が遅くても\n着くのが遅いとダメ〜': 'A late last train is no\ngood if you arrive late~',
  'もう1回やろ！': "Let's try again!",
  '改札前、1m²に4人！\n15分たっても通れない〜': 'Gate front: 4 per m²!\nStill stuck at 15 min~',
- '乗り場、去年の3月から\nお休みしてたの〜': "That stand's been closed\nsince March last year~",
- '赤枠の中、1m²に4人。\nしかも規制あり〜': 'Red zone: 4 per m².\nPlus closures~',
+ '乗り場、2025年3月から\nお休みしてたの〜': "That stand's been closed\nsince March 2025~",
+ '赤枠の中、1m²に4人。\n混雑で誘導待ちに〜': 'Red zone: 4 per m².\nWaiting on staff~',
  '恵比寿に0:51着。\n終電0:50に1分遅刻〜': 'Ebisu at 0:51, last\ntrain 0:50. 1 min late~',
  '混む時間に合わせて\nもう1回計算したよ': 'Re-ran it with the crowd\nat that exact time',
  'やっぱり新南改札が\nいちばんいい！': 'New South gate it is!\nThe best one!',
@@ -148,7 +148,7 @@ def place(pair, data):
         t0, t1 = min(l['t0'] for l in lns)-.25, max(l['t1'] for l in lns)+.3
         mask, probes = G9.hud_mask(pair, bt, t0+.1, t1-.05)
         assert probes, (pair, beat, 'no EN HUD probe frames')
-        pm, _ = GX.protect_mask(pair, idx, t0, t1)
+        pm, _ = GX.protect_mask(pair, idx, t0, t1, step=1)   # v11.1: every frame
         bw = max(G9.bubble_size(l['text'])[0] for l in lns); bh = max(G9.bubble_size(l['text'])[1] for l in lns)
         box, flip = lns[0]['box'], lns[0]['flip']
         x = min(box[0], G9.SAFE['x1']-(G9.GW+G9.GAP+bw))
