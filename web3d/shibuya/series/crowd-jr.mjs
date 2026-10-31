@@ -52,7 +52,8 @@
 // ConcourseModel / runConcourse(gate, admitLog, {layout?}) / concourseFrame(run, t) → interior queue model in sim metres
 //   (x,y,z per person; t = absolute sim time = warmup + simTime); concourseLayoutFrom(st) adopts station-jr.mjs's
 //   gateRow/anchors. A resumed render segment re-steps the live solver from t = 0 (≈ 0.4 s per sim s at 48,000).
-import {HalloweenSimulation,HALLOWEEN,EXTRA_MOTION} from '../halloween.mjs';
+import {HalloweenSimulation,HALLOWEEN,EXTRA_MOTION,MODEL} from '../halloween.mjs';
+export {MODEL};
 
 export const JMOTION=Object.freeze({PENDING:EXTRA_MOTION,WALK:EXTRA_MOTION+1,DONE:EXTRA_MOTION+2,BOUND:EXTRA_MOTION+3,INSIDE:EXTRA_MOTION+4,OUT:EXTRA_MOTION+5});
 const {PENDING,WALK,DONE,BOUND,INSIDE,OUT}=JMOTION;
@@ -227,7 +228,7 @@ export class JRCrowdSimulation extends HalloweenSimulation{
   // Initial placement only (before t = 0, not a teleport): anyone standing in a now-solid cell starts elsewhere.
   {const was=this.constructed;this.constructed=false;let moved=0;for(let i=0;i<base;i++){if(!this.blocked(this.x[i],this.z[i]))continue;
     if(this.motion[i]===1){this.active--;this.admitted--;}const k0=this.g.key(this.x[i],this.z[i]);if(k0>=0&&this.occ[k0])this.occ[k0]--;
-    let k=-1;for(let t=0;t<50;t++){this.placeBackground(i);k=this.g.key(this.x[i],this.z[i]);if(k>=0&&this.occ[k]<HALLOWEEN.occupancy)break;}if(k>=0)this.occ[k]++;
+    let k=-1;for(let t=0;t<50;t++){this.placeBackground(i);k=this.g.key(this.x[i],this.z[i]);if(k>=0&&this.occ[k]<MODEL.occ)break;}if(k>=0)this.occ[k]++;
     this.px[i]=this.x[i];this.pz[i]=this.z[i];this.vx[i]=this.vz[i]=0;moved++;}
    this.constructed=was;this.startMoved=moved;}
   const key=JSON.stringify([E.RE,E.frontRadius,E.startRadius,E.corridor,E.offCost,...(E.routeDefs||E.gateCapacity?[E.routeDefs||null,E.gateCapacity||null]:[])]);let byG=cache.get(this.g);if(!byG){byG=new Map();cache.set(this.g,byG);}
@@ -308,14 +309,16 @@ export class JRCrowdSimulation extends HalloweenSimulation{
      speed=Math.min(speed,.9);}}}
   const onRoad=this.roadBlocked(x,z);let mayCross=onRoad,hurry=false;
   if(!onRoad){const kk=this.g.key(x+dir[0]*1.2,z+dir[1]*1.2);if(kk>=0&&this.carriageway[kk]===1){
-   if(this.g.crossable[kk]===1)mayCross=phase==='walk'&&walkLeft>HALLOWEEN.cutoff;
+   if(this.g.crossable[kk]===1)mayCross=phase==='walk'&&walkLeft>HALLOWEEN.cutoff&&!this.holdAll;
    else if(s.xwalk[kk]>=0)mayCross=this.crosswalkGreen(s.xwalk[kk]);}}
   else{const kk=this.g.key(x,z),green=this.g.crossable[kk]===1?phase==='walk':s.xwalk[kk]>=0?this.crosswalkGreen(s.xwalk[kk]):false;if(!green){hurry=true;speed=Math.max(speed,1.55);}}
   this._esc=true;this.move(i,x,z,dir[0],dir[1],1,speed,false,true,mayCross,hurry);this._esc=false;
   if(m===WALK&&R&&!G){const r=s.ek(this.x[i],this.z[i]);if(r>=0&&R._.targetSet.has(r)){// walk-alt: reached the sim edge
    const key=this.g.key(this.x[i],this.z[i]);if(key>=0&&this.occ[key])this.occ[key]--;this.jDone[i]=this.jReach[i]=this.time;this.motion[i]=DONE;this.x[i]=this.px[i]=HIDDEN;this.z[i]=this.pz[i]=HIDDEN;this.vx[i]=this.vz[i]=0;}}}
  step(dt){const s=this.e,E=this.E,occ=this.occ,key=this.g.key;
-  for(let k=0;k<s.gates.length;k++)this.tokens[k]=Math.min(E.tokenMax,this.tokens[k]+s.gates[k].capacity*dt);
+  // science-sim-v5 (optional, off by default): police full-stop windows at the crossing (E.holds) and JR gate closures (E.gateClosures), in jrTime s.
+  {const jt=this.time-this.eStart;this.holdAll=!!E.holds?.some(h=>jt>=h.t0&&jt<h.t1);}
+  for(let k=0;k<s.gates.length;k++){const cl=E.gateClosures?.some(c=>c.gate===s.gates[k].key&&this.time-this.eStart>=c.t0&&this.time-this.eStart<c.t1);if(cl)this.tokens[k]=0;else this.tokens[k]=Math.min(E.tokenMax,this.tokens[k]+s.gates[k].capacity*dt);}
   // Route walkers spawn on a free start cell (≤ 2 per m²), in order per route.
   if(this.time+1e-9>=this.eStart)for(const br of this.routeList)for(const i of br.ids){if(this.motion[i]!==PENDING)continue;if(this.jSpawnAt[i]>this.time+1e-9)break;
    let ok=false;for(let t=0;t<12&&!ok;t++){const SC=s.routes[br.r]._.startCells,r=SC[Math.floor(this.jrng()*SC.length)],x=Math.fround(s.X(r)-.3+this.jrng()*.6),z=Math.fround(s.Z(r)-.3+this.jrng()*.6),kk=key(x,z);

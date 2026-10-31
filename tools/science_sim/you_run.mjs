@@ -12,7 +12,8 @@ const OUT=process.argv[2],HALF=Number(process.argv[3]||130);fs.mkdirSync(OUT,{re
 const load=n=>JSON.parse(fs.readFileSync(path.join(ROOT,`web3d/data/shibuya_${n}.json`),'utf8'));
 const CENTER=[17.5,22.5],CB=[-37.5,12.5],EDGES={S:[3,109],N:[40,-90],W:[-90,30]};
 const mk=(key,from,to,rec)=>({key,kind:'walk-alt',recommended:!!rec,color:'#ffffff',via:[],start:{at:from,label:{ja:key,en:key},sources:['science-sim']},edge:to,label:{ja:key,en:key},sources:['science-sim']});
-const routeDefs=[];for(const [cn,C,es] of [['A',CENTER,['S','N']],['B',CB,['W','S']]])for(const e of es){routeDefs.push(mk(`IN${cn}_${e}`,EDGES[e],C,routeDefs.length===0));routeDefs.push(mk(`OUT${cn}_${e}`,C,EDGES[e]));}
+let routeDefs=[];for(const [cn,C,es] of [['A',CENTER,['S','N']],['B',CB,['W','S']]])for(const e of es){routeDefs.push(mk(`IN${cn}_${e}`,EDGES[e],C,routeDefs.length===0));routeDefs.push(mk(`OUT${cn}_${e}`,C,EDGES[e]));}
+if(process.env.CFG){const C=JSON.parse(process.env.CFG);CENTER.splice(0,2,...C.dumpCenter);routeDefs=C.routes.map(([k,a,b],i)=>mk(k,a,b,i===0));}
 const config=load('config');const jr={...V8.scenarioJR('plan'),routeDefs,spawnGap:Number(process.env.GAP||12)};configureJR(config,jr);
 const sim=new JRCrowdSimulation(config,load('osm'),load('plateau'),load('traffic'));
 // alighting waves: outbound agents (alighting) per gate with their spawn times

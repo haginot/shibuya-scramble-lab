@@ -44,6 +44,8 @@ export const HALLOWEEN=Object.freeze({
  occupancy:4,        // hard limit: nobody steps into a 1 m² cell already holding this many people
 });
 
+// science-sim-v5c (off by default): MODEL.occ = per-m² occupancy limit; MODEL.weid = Weidmann (1993) speed–density cap instead of the hard limit.
+export const MODEL={occ:HALLOWEEN.occupancy,weid:false,idle:0,moverScale:1,v0:1.34,gamma:1.913,rhoMax:5.4,stats:{maxRho:0}};
 const cache=new WeakMap();
 const SIDESTEP=[[.707,.707],[.707,-.707],[0,1],[0,-1]];// cos/sin of left/right 45° and 90° turns
 const segDist=(x,z,a,b)=>{const dx=b[0]-a[0],dz=b[1]-a[1],l=dx*dx+dz*dz||1,t=Math.max(0,Math.min(1,((x-a[0])*dx+(z-a[1])*dz)/l));return Math.hypot(a[0]+dx*t-x,a[1]+dz*t-z);};
@@ -163,10 +165,10 @@ export class HalloweenSimulation extends Simulation{
   this.teleports=0;this.laneViolations=0;this.released=0;this.releasedCycle=0;this.heldPeak=0;this.cutoffs=0;this.stepCount=0;this.lastManage=-1;
   this.dcount=new Uint16Array(H.DN*H.DN);this.density={peak:0,p95:0,median:0,mean:0,peakRun:0,cells:0,time:0};
   // Initial placement (before t=0) respects prop footprints and the occupancy limit.
-  {const occ=this.occ,key=this.g.key,cap=HALLOWEEN.occupancy;for(let i=0;i<n;i++){let k=key(this.x[i],this.z[i]);
+  {const occ=this.occ,key=this.g.key,cap=MODEL.occ;for(let i=0;i<n;i++){let k=key(this.x[i],this.z[i]);
    for(let tries=0;(this.blocked(this.x[i],this.z[i])||k<0||occ[k]>=cap)&&tries<200;tries++){if(this.motion[i]===WAIT||this.motion[i]===CROSS){const [x,z]=this.waitSpot(i,this.source[i]);this.x[i]=x;this.z[i]=z;if(this.motion[i]===WAIT){this.gx[i]=x;this.gz[i]=z;}}else super.placeBackground(i);k=key(this.x[i],this.z[i]);}
    if(k>=0)occ[k]++;this.px[i]=this.x[i];this.pz[i]=this.z[i];}}
-  this.still=new Uint8Array(32);this.still[WAIT]=this.still[HOLD]=1;
+  this.rhoHere=new Float32Array(n);this.still=new Uint8Array(32);this.still[WAIT]=this.still[HOLD]=1;
   this.constructed=true;this.sampleDensity();
  }
  get h(){let h=cache.get(this.g);if(!h){h=build(this);cache.set(this.g,h);}return h;}
@@ -236,7 +238,7 @@ export class HalloweenSimulation extends Simulation{
   if(Math.floor(this.time+1e-6)!==this.lastManage){this.lastManage=Math.floor(this.time+1e-6);this.manage(phase,walkLeft);}
   const cs=this.ncell,ns=this.nsize,head=this.head,next=this.next,X=this.x,Z=this.z;
   head.fill(-1);for(let i=0;i<n;i++){const a=Math.floor((X[i]+450)/cs),b=Math.floor((Z[i]+450)/cs);if(a>=0&&b>=0&&a<ns&&b<ns){const k=b*ns+a;next[i]=head[k];head[k]=i;}else next[i]=-1;}
-  const occ=this.occ,ocap=P.occupancy,key=this.g.key;occ.fill(0);for(let i=0;i<n;i++){const k=key(X[i],Z[i]);if(k>=0&&occ[k]<255)occ[k]++;}
+  const occ=this.occ,ocap=MODEL.occ,key=this.g.key;occ.fill(0);for(let i=0;i<n;i++){const k=key(X[i],Z[i]);if(k>=0&&occ[k]<255)occ[k]++;}
   const obstacles=H.obstacles,OG=H.OG,obsHead=H.obsHead,obsNext=H.obsNext,R=this.g.R,checkPoi=this.stepCount%10;
   for(let i=0;i<n;i++){
    const x=X[i],z=Z[i];let m=this.motion[i],speed=this.speed[i],dx=this.gx[i]-x,dz=this.gz[i]-z,d=Math.sqrt(dx*dx+dz*dz);
@@ -248,7 +250,8 @@ export class HalloweenSimulation extends Simulation{
     if(d<1.5||(dead&&d<4)||(d<3.5&&gk>=0&&occ[gk]>=2)){this.nextSegment(i);dx=this.gx[i]-x;dz=this.gz[i]-z;d=Math.sqrt(dx*dx+dz*dz);}
     else if(this.leg[i]>8&&this.vx[i]*this.vx[i]+this.vz[i]*this.vz[i]<.04){// Stalled behind a packed crowd: turn back rather than push.
      this.turnbacks++;this.direction[i]*=-1;this.backgroundGoal(i);dx=this.gx[i]-x;dz=this.gz[i]-z;d=Math.sqrt(dx*dx+dz*dz);}
-    speed*=.85;
+    speed*=.85*MODEL.moverScale;
+    if(MODEL.idle>0&&((Math.imul(i,2654435761)>>>0)/4294967296)<MODEL.idle){dx=dz=d=0;speed=0;}// idle: photo-takers, chatting groups, loiterers (no destination)
     // Peripheral events: passers-by may stop to watch, take a photo, shop or drop rubbish.
     if(i%10===checkPoi)for(let q=0;q<H.pois.length;q++){const o=H.pois[q],ex=x-o.x,ez=z-o.z;if(ex*ex+ez*ez>(o.r1+7)**2||this.poiLoad[q]>=o.cap||this.rand(i)>o.rate)continue;
      const spot=o.ring[Math.floor(this.rand(i)*o.ring.length)],sx=spot[0]-.3+this.rand(i)*.6,sz=spot[1]-.3+this.rand(i)*.6,sk=key(sx,sz);if(sk<0||occ[sk]>=2||!this.walkLine(x,z,sx,sz))continue;
@@ -258,7 +261,7 @@ export class HalloweenSimulation extends Simulation{
     if(!this.flag[i]){const list=H.penV[k],tail=list.length?list[Math.min(list.length-1,Math.floor(this.held[k]/P.penDensity))]:P.gate;
      if(v<=tail+1.5&&(this.held[k]>0||this.cornerLoad[k]>=H.cornerCap[k]||this.gate[k]===0&&phase!=='walk')){this.motion[i]=m=HOLD;const [hx,hz]=this.penSpot(i,k,this.held[k]);this.held[k]++;this.gx[i]=hx;this.gz[i]=hz;dx=hx-x;dz=hz-z;d=Math.hypot(dx,dz);}}
     if(m===APPROACH){
-     if(v<=.5&&d<2.5){this.flag[i]=0;if(phase==='walk'&&walkLeft>P.cutoff+2&&this.active<P.maxOnCrossing){this.startCrossing(i,0);m=CROSS;}else this.motion[i]=m=WAIT;}// walks on to its spot behind the line
+     if(v<=.5&&d<2.5){this.flag[i]=0;if(phase==='walk'&&walkLeft>P.cutoff+2&&this.active<P.maxOnCrossing&&!this.holdAll){this.startCrossing(i,0);m=CROSS;}else this.motion[i]=m=WAIT;}// walks on to its spot behind the line
      else if(v>.5){const dir=this.descend(route,x,z);if(dir){// Inbound lane: keep left on the way in.
       const r=this.g.rkey(x,z),ln=r>=0?H.lane[r]:0,pull=ln===2?.9:ln===1?.2:0;dx=dir[0]+H.laneN[2*r]*pull;dz=dir[1]+H.laneN[2*r+1]*pull;d=Math.hypot(dx,dz);}}}}
    if(m===HOLD){speed=d>.5?.75:0;if(d<=.5){const dir=this.descend(this.g.walk[this.source[i]],x,z);if(dir)this.heading[i]=Math.atan2(dir[0],dir[1]);}}
@@ -267,7 +270,7 @@ export class HalloweenSimulation extends Simulation{
    if(m===CROSS){
     this.timer[i]+=dt;
     if(!this.entered[i]&&this.roadBlocked(x,z))this.entered[i]=1;
-    if(!this.entered[i]&&(phase!=='walk'||walkLeft<P.cutoff)){// Police cut-off: wait for the next green.
+    if(!this.entered[i]&&(phase!=='walk'||walkLeft<P.cutoff||this.holdAll)){// Police cut-off: wait for the next green.
      if(phase==='walk'){this.cutoffs++;this.cutoffsCycle++;}
      this.motion[i]=m=WAIT;this.active--;this.admitted--;const [wx,wz]=this.waitSpot(i,this.source[i]);this.gx[i]=wx;this.gz[i]=wz;speed=.6;}
     else if(this.delay[i]>0){this.delay[i]-=dt;speed=0;}
@@ -302,7 +305,7 @@ export class HalloweenSimulation extends Simulation{
  // One walker's motion for this step: look-ahead around full square metres, social force
  // (same parameters as the normal mode), fixed bodies (officers, staff), walls, the
  // carriageway rule and the hard occupancy limit. Shared by the dispersal scenario.
- move(i,x,z,dx,dz,d,speed,standing,moving,mayCross,hurry,ocap=HALLOWEEN.occupancy,pass=false){
+ move(i,x,z,dx,dz,d,speed,standing,moving,mayCross,hurry,ocap=MODEL.occ,pass=false){
   if(pass){const l=d>.05?1/d:0;this.ddx[i]=dx*l;this.ddz[i]=dz*l;}// desired heading, for counter-flow passing
   const X=this.x,Z=this.z,occ=this.occ,key=this.g.key,cs=this.ncell,ns=this.nsize,head=this.head,next=this.next,H=this.h,obstacles=H.obstacles,OG=H.OG,obsHead=H.obsHead,obsNext=H.obsNext,R=this.g.R;
   // Look-ahead: veer left (Japan keeps left), else right, around a crowded square metre ahead
@@ -319,6 +322,7 @@ export class HalloweenSimulation extends Simulation{
   const limit=standing?2.2:hurry?1.2:3.5,rep=Math.sqrt(rx*rx+rz*rz),wgt=rep>limit?limit/rep:1;ax+=rx*wgt;az+=rz*wgt;
   for(const [ox,oz] of [[1,0],[-1,0],[0,1],[0,-1]])if(this.blocked(x+ox*.8,z+oz*.8)){ax-=ox*1.5;az-=oz*1.5;}
   let vx=this.vx[i]+ax*this.dt,vz=this.vz[i]+az*this.dt,v=Math.sqrt(vx*vx+vz*vz);const cap=standing?.7:1.95;if(v>cap){vx*=cap/v;vz*=cap/v;v=cap;}
+  if(MODEL.weid){const k=key(x,z);if(k>=0){const g=this.g,sz=g.size;let sum=0;for(let oz=-1;oz<=1;oz++)for(let ox=-1;ox<=1;ox++){const kk=key(x+ox,z+oz);if(kk>=0)sum+=occ[kk];}const rho=sum/9;this.rhoHere[i]=rho;const wv=rho<=.05?9:rho>=MODEL.rhoMax?0:MODEL.v0*(1-Math.exp(-MODEL.gamma*(1/rho-1/MODEL.rhoMax)));if(v>wv){const f=v>1e-9?wv/v:0;vx*=f;vz*=f;v=wv;}}}
   const blocked=(p,q)=>mayCross?this.crossBlocked(p,q):this.blocked(p,q)||this.roadBlocked(p,q),dt=this.dt;
   let nx=Math.fround(x+vx*dt),nz=Math.fround(z+vz*dt);if(blocked(nx,nz)){if(!blocked(nx,z)){nz=z;vz=0;}else if(!blocked(x,nz)){nx=x;vx=0;}else{nx=x;nz=z;vx=vz=0;}}
   // Hard occupancy limit: a full square metre cannot be entered (the walker waits).

@@ -15,7 +15,9 @@ fr = load(str(YD / 'agents.bin'))
 FONT = '/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc'
 F = lambda sz: ImageFont.truetype(FONT, sz)
 W, H = 1080, 1920
-VX, VZ, WM = 25.0, -22.0, 124.0   # view centre (m) and width (m)
+import os
+CFG = json.loads(os.environ.get('MAPCFG', '{}'))
+VX, VZ, WM = CFG.get('view', [25.0, -22.0, 124.0])   # view centre (m) and width (m)
 s = W / WM; hm = H / s; X0, Z0 = VX - WM / 2, VZ - hm / 2
 P = lambda x, z: ((x - X0) * s, (z - Z0) * s)
 D = '/workspace/projects/ssl-claude-halloween/web3d/data/'
@@ -50,7 +52,8 @@ def you_at(t):
     a = tx[k]; b = tx.get(k + 1, a)
     return a[0] + (b[0] - a[0]) * u, a[1] + (b[1] - a[1]) * u
 dur = (tE - tS) / SPEED; nmain = int(dur * FPS); nhold = int(HOLD * FPS); NT = nmain + nhold
-CEN = (cx0, cz0)
+CEN = tuple(CFG.get('tgt', (cx0, cz0)))
+LBL = CFG.get('label', '人混みの中心'); INT = CFG.get('in_title', '端から人混みの中心へ歩く'); INR = CFG.get('in_rem', '中心まで あと'); OUTT = CFG.get('out_title', 'ここから外に出るまで'); OUTR = CFG.get('out_rem', '外縁まで あと'); ROBUST = CFG.get('robust', False)
 def mmss(sec): sec = int(sec); return f'{sec//60:02d}:{sec%60:02d}'
 DS = {}
 for t in range(int(tS) - 4, int(tE) + 5):
@@ -103,7 +106,7 @@ def draw_frame(n):
     cpx, cpz = P(*CEN)
     if MODE == 'in':
         dr.ellipse([cpx - 34, cpz - 34, cpx + 34, cpz + 34], outline=(255, 255, 255, 230), width=4)
-        dr.text((cpx + 44, cpz - 28), '人混みの中心', font=F(40), fill=(255, 255, 255, 255), stroke_width=4, stroke_fill=(0, 0, 0, 255))
+        dr.text((cpx + 44, cpz - 28), LBL, font=F(40), fill=(255, 255, 255, 255), stroke_width=4, stroke_fill=(0, 0, 0, 255))
     # density around you (4 m)
     dyv = dsm(ts)
     # HUD top
@@ -131,17 +134,17 @@ def draw_frame(n):
     # bottom status
     rem = np.hypot(yx - cx0, yz - cz0)
     if MODE == 'in':
-        st = f'中心まで あと {int(rem)} m'
+        st = f'{INR} {int(rem)} m'
         pn2 = Image.new('RGBA', (W, 260), (0, 0, 0, 0)); p2 = ImageDraw.Draw(pn2); p2.rounded_rectangle([30, 20, W - 30, 230], 36, fill=(6, 8, 14, 225), outline=(255, 255, 255, 60), width=2)
-        p2.text((70, 40), '端から人混みの中心へ歩く', font=F(46), fill=(255, 255, 255, 255)); p2.text((70, 112), st, font=F(76), fill=(255, 214, 90, 255))
+        p2.text((70, 40), INT, font=F(46), fill=(255, 255, 255, 255)); p2.text((70, 112), st, font=F(76), fill=(255, 214, 90, 255))
         img.paste(pn2, (0, H - 280), pn2)
     else:
         done = n >= nmain
         pn2 = Image.new('RGBA', (W, 520), (0, 0, 0, 0)); p2 = ImageDraw.Draw(pn2); p2.rounded_rectangle([30, 20, W - 30, 500], 36, fill=(6, 8, 14, 235), outline=(255, 90, 90, 200), width=4)
-        p2.text((70, 38), 'ここから外に出るまで', font=F(54), fill=(255, 255, 255, 255))
+        p2.text((70, 38), OUTT, font=F(54), fill=(255, 255, 255, 255))
         p2.text((70, 108), '約' + OUTTXT, font=F(150), fill=(255, 90, 90, 255))
-        p2.text((70, 296), f'（シミュレーション{OUTN}回の中央値。最短{OUTMIN}〜最長{OUTMAX}）', font=F(32), fill=(190, 200, 220, 255))
-        p2.text((70, 346), '外縁まで あと ' + (f'{int(np.hypot(yx - OUTTGT[0], yz - OUTTGT[1]))} m' if not done else '0 m（脱出）'), font=F(52), fill=(255, 214, 90, 255))
+        p2.text((70, 296), (f'（シミュレーション{OUTN}回の中央値。多くは{OUTMIN}〜{OUTMAX}）' if ROBUST else f'（シミュレーション{OUTN}回の中央値。最短{OUTMIN}〜最長{OUTMAX}）'), font=F(32), fill=(190, 200, 220, 255))
+        p2.text((70, 346), OUTR + ' ' + (f'{int(np.hypot(yx - OUTTGT[0], yz - OUTTGT[1]))} m' if not done else '0 m（脱出）'), font=F(52), fill=(255, 214, 90, 255))
         p2.text((70, 420), f'この1人の実測：{mmss(el)}' + ('　←脱出まで' if done else ''), font=F(46), fill=(255, 255, 255, 255))
         img.paste(pn2, (0, H - 540), pn2)
     return img
@@ -149,7 +152,7 @@ def draw_frame(n):
 durs = sorted((lambda ts: ts[-1] - ts[0])([r['t'] for r in T if r['w'][KEY][j] is not None]) for j in range(24))
 med = (durs[11] + durs[12]) / 2
 def jp(sec): sec = int(round(sec)); return f'{sec//60}分{sec%60:02d}秒'
-OUTTXT = jp(round(med / 5) * 5) if med < 600 else f'{med/3600:.1f}時間'; OUTN = len(durs); OUTMIN = jp(durs[0]); OUTMAX = jp(durs[-1])
+OUTTXT = jp(round(med / 5) * 5) if med < 600 else f'{med/3600:.1f}時間'; OUTN = len(durs); OUTMIN = jp(durs[2] if ROBUST else durs[0]); OUTMAX = jp(durs[-3] if ROBUST else durs[-1])
 OUTTGT = track[-1][1][:2]
 print('route', KEY, 'median', med, OUTTXT, OUTMIN, OUTMAX, 'frames', NT, 'tS', tS, 'tE', tE, flush=True)
 if STEP == 0: sys.exit()
