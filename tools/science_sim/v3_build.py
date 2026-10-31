@@ -13,7 +13,7 @@ END = [('当日は警察・係員の指示に従ってください', 54, (255, 2
        ('', 20, None),
        ('人流：独自シミュレーション（人出48,000人を想定）', 33, (205, 205, 215)),
        ('地図：国土交通省 PLATEAU / © OpenStreetMap contributors', 31, (205, 205, 215)),
-       ('映像はシミュレーションとAI生成によるイメージです', 31, (205, 205, 215))]
+       ]
 def text_c(d, y, s, f, fill, w=W, shadow=True):
     tw = d.textlength(s, font=f)
     if shadow:
@@ -35,6 +35,7 @@ def end_layer():
     for s, sz, col in END:
         if s: text_c(d, y, s, font(sz), col, shadow=False)
         y += int(sz * 1.9) if s else 40
+    f = font(26); tw = d.textlength('AI生成イメージ', font=f); d.text((W - tw - 36, H - 64), 'AI生成イメージ', font=f, fill=(190, 190, 200, 255))
     return L
 def main():
     ap = argparse.ArgumentParser(); ap.add_argument('frames', type=Path); ap.add_argument('out', type=Path)

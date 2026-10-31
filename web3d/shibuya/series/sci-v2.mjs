@@ -14,7 +14,7 @@ import {makeShot,applyShot} from './camera.mjs';
 import {NearCrowdLayer,setNearCostumes} from './people-close.mjs';
 import {v9Style} from './costumes-v9.mjs';
 
-const params=new URLSearchParams(location.search);window.__ready=false;
+const params=new URLSearchParams(location.search);globalThis.__NO_SIGN_TEXT=params.get('nosign')==='1';window.__ready=false;
 const json=async p=>{const r=await fetch(p);if(!r.ok)throw Error(`${p}: ${r.status}`);return r.json();};
 const W=Number(params.get('w')||720),H=Number(params.get('h')||1280);
 setNearCostumes('v9');

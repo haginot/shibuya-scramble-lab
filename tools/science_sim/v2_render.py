@@ -20,7 +20,7 @@ def main():
     ap.add_argument('--plan', type=Path, required=True); ap.add_argument('--out', type=Path, required=True)
     ap.add_argument('--w', type=int, default=720); ap.add_argument('--h', type=int, default=1280)
     ap.add_argument('--start', type=int, default=0); ap.add_argument('--end', type=int, default=None); ap.add_argument('--step', type=int, default=1)
-    ap.add_argument('--bin', default='sci/agents.bin'); ap.add_argument('--skip-existing', action='store_true')
+    ap.add_argument('--bin', default='sci/agents.bin'); ap.add_argument('--nosign', default='1'); ap.add_argument('--skip-existing', action='store_true')
     a = ap.parse_args(); a.out.mkdir(parents=True, exist_ok=True)
     plan = json.loads(a.plan.read_text()); pf = plan['per_frame']; end = a.end if a.end is not None else len(pf)
     server = http.server.ThreadingHTTPServer(('127.0.0.1', 0), functools.partial(QuietHandler, directory=str(ROOT)))
@@ -30,7 +30,7 @@ def main():
             page = browser.new_page(viewport={'width': a.w, 'height': a.h}, device_scale_factor=1)
             logs = []; page.on('console', lambda m: logs.append(f'{m.type}: {m.text}')); page.on('pageerror', lambda e: logs.append(f'pageerror: {e}'))
             t0 = time.time()
-            page.goto(f'http://127.0.0.1:{server.server_address[1]}/web3d/shibuya/series/sci-v2.html?w={a.w}&h={a.h}&bin={a.bin}')
+            page.goto(f'http://127.0.0.1:{server.server_address[1]}/web3d/shibuya/series/sci-v2.html?w={a.w}&h={a.h}&bin={a.bin}&nosign={a.nosign}')
             try: page.wait_for_function('window.__ready===true', timeout=900_000)
             except Exception: print('\n'.join(logs[-30:])); raise
             print('loaded', round(time.time() - t0, 1), 's', page.evaluate('window.__info'), flush=True)

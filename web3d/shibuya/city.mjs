@@ -23,6 +23,9 @@ const WORDS_EN={'食堂':'DINER','ラーメン':'RAMEN','焼肉':'BBQ','寿司':
  '宝飾':'JEWELRY','カラオケ':'KARAOKE','営業中':'OPEN','雑貨':'GOODS','渋谷':'SHIBUYA'};
 const EN_PAGE=()=>typeof document!=='undefined'&&!!document.body?.classList.contains('lang-en');
 // theme (optional): {words, share, neon} adds themed sign words; omitted in the normal mode.
+// science-sim: fillText replacement that paints each character as a hollow block (signage stays colourful but unreadable).
+function illegible(c){return (str,x,y)=>{const px=+/(\d+)px/.exec(c.font)[1],chars=[...String(str)],w=c.measureText(String(str)).width,left=c.textAlign==='center'?x-w/2:x,bw=w/Math.max(1,chars.length);
+ chars.forEach((_,i)=>{const bx=left+i*bw+bw*.1,by=y-px*.36,ww=bw*.8,hh=px*.72;c.fillRect(bx,by,ww,hh);c.clearRect(bx+ww*.28,by+hh*.2,ww*.44,hh*.18);c.clearRect(bx+ww*.28,by+hh*.6,ww*.44,hh*.18);});};}
 export function buildCity({scene,osm,plateau,config,theme=null}){
  const rnd=mulberry(1234);
  const group=new THREE.Group();scene.add(group);
@@ -143,6 +146,7 @@ export function buildCity({scene,osm,plateau,config,theme=null}){
  const atlasV=document.createElement('canvas');atlasV.width=words.length*96;atlasV.height=512;const AV=atlasV.getContext('2d');
  const atlasH=document.createElement('canvas');atlasH.width=512;atlasH.height=words.length*96;const AH=atlasH.getContext('2d');
  AV.fillStyle=AH.fillStyle='#fff';AV.textAlign=AH.textAlign='center';AV.textBaseline=AH.textBaseline='middle';
+ if(globalThis.__NO_SIGN_TEXT)for(const c of [AV,AH])c.fillText=illegible(c);// science-sim: render signs as unreadable glyph blocks
  const EN=EN_PAGE();words.forEach((w0,i)=>{const w=EN?WORDS_EN[w0]??w0:w0;const chars=[...w];const latin=/^[A-Z0-9]+$/.test(w);
   // vertical: stacked characters (latin rotated)
   if(latin){AV.save();AV.translate(i*96+48,256);AV.rotate(Math.PI/2);AV.font=`900 ${Math.min(80,440/chars.length*1.4)}px ${FONT}`;AV.fillText(w,0,4);AV.restore();}
@@ -184,7 +188,7 @@ export function buildCity({scene,osm,plateau,config,theme=null}){
   screens.push({x:(e.a[0]+e.b[0])/2+e.nx*.35,z:(e.a[1]+e.b[1])/2+e.nz*.35,y,w,h,angle:Math.atan2(e.nx,e.nz),kind:screens.length%4});
   const [px,py]=toL((e.a[0]+e.b[0])/2+e.nx*14,(e.a[1]+e.b[1])/2+e.nz*14),g=G.createRadialGradient(px,py,0,px,py,26*lsc);g.addColorStop(0,'rgba(170,160,255,.4)');g.addColorStop(1,'rgba(0,0,0,0)');G.fillStyle=g;G.fillRect(px-26*lsc,py-26*lsc,52*lsc,52*lsc);}
  // Screen content: kinetic type, colour fields and a live view of the trails.
- const typeCanvas=document.createElement('canvas');typeCanvas.width=1024;typeCanvas.height=256;const T=typeCanvas.getContext('2d');
+ const typeCanvas=document.createElement('canvas');typeCanvas.width=1024;typeCanvas.height=256;const T=typeCanvas.getContext('2d');if(globalThis.__NO_SIGN_TEXT)T.fillText=illegible(T);
  T.fillStyle='#fff';T.textBaseline='middle';const [line1,line2]=theme?.screenText??(EN_PAGE()?['SHIBUYA','TYO']:['SHIBUYA','渋谷']);T.font=`900 ${line1.length>7?118:150}px ${FONT}`;T.fillText(line1,20,128);T.font=`900 ${line2.length>2?120:170}px ${FONT}`;T.fillText(line2,line1.length>7?650:700,132);
  const typeTex=new THREE.CanvasTexture(typeCanvas);typeTex.colorSpace=THREE.SRGBColorSpace;typeTex.wrapS=THREE.RepeatWrapping;
  const screenMat=kind=>new THREE.ShaderMaterial({uniforms:{...shared,uType:{value:typeTex},uKind:{value:kind},uAspect:{value:1},uTheme:{value:theme?1:0}},vertexShader:/* glsl */`varying vec2 vUv;varying vec3 vWorld;void main(){vUv=uv;vec4 w=modelMatrix*vec4(position,1.);vWorld=w.xyz;gl_Position=projectionMatrix*viewMatrix*w;}`,
