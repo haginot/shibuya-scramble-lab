@@ -55,8 +55,9 @@ def layer_res():
         y += 229
     text_c(d, y + 10, '×1.5のあなたは 連続約5分 1歩も動けず', font(40), (255, 120, 110, 255), shadow=False)
     text_c(d, y + 74, '停止の割合が60%・80%だと結果は大きく変わります', font(30), (190, 198, 215, 255), shadow=False)
-    text_c(d, y + 120, '（×1でも30分近くかかる例あり）', font(30), (190, 198, 215, 255), shadow=False)
-    text_c(d, y + 190, '密度7人/㎡超は「押しつぶされる危険な密度」', font(32), (255, 150, 200, 255), shadow=False)
+    text_c(d, y + 108, '（×1でも30分近くかかる例あり）', font(30), (190, 198, 215, 255), shadow=False)
+    text_c(d, y + 150, '参考：南側へ引き返すと1〜2分台（×1〜×3）', font(31), (140, 230, 170, 255), shadow=False)
+    text_c(d, y + 210, '密度7人/㎡超は「押しつぶされる危険な密度」', font(32), (255, 150, 200, 255), shadow=False)
     return L
 def layer_ass():
     L = Image.new('RGBA', (W, H), (10, 10, 18, 255)); d = ImageDraw.Draw(L); y = 230
